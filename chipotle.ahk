@@ -97,7 +97,7 @@ FileInstall, chipotle.ini, chipotle.ini
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.4.5"
+vers := "1.4.6"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -117,14 +117,20 @@ gosub ReadIni
 
 servfold := "patlist"
 if (ObjHasValue(admins,user)) {
-	isAdmin = true
+	isAdmin := true
 	if (substr(A_WorkingDir,-3,4)=="List") {
-		MsgBox, 36, Test system, Use test system?
-		IfMsgBox Yes
-		{
+		tmp:=CMsgBox("Test system","Use test system?","&Local|&Server|Production","Q","V")
+		if (tmp="Local") {
+			isLocal := true
+			FileDelete, currlist.xml
+		}
+		if (tmp="Server") {
+			isLocal := false
 			servfold := "testlist"
 			FileDelete, currlist.xml
 		}
+		if (tmp="Production")
+			isLocal := false
 	}
 	tmp:=CMsgBox("Administrator","Which user role?","*&Normal user|&CICU user|&ARNP","Q","V")
 	if (tmp="CICU user")
@@ -194,22 +200,7 @@ outGrpV["Other"] := "callGrp" . (tmpIdxG+1)
 outGrpV["TO CALL"] := "callGrp" . (tmpIdxG+2)
 
 SetTimer, SeekCores, 250
-/*	Clipboard copier
-	Will wait resident until clipboard change, then will save clipboard to file.
-	Tends to falsely trigger a couple of times first. Will exit after .clip successfully saved.
-/
-OnClipboardChange:
-	FileSelectFile, clipname, 8, , Name of .clip file, *.clip
-	If (clipname) {			; If blank (e.g. pressed cancel), continue; If saved, then exitapp
-		IfNotInString, clipname, .clip
-			clipname := clipname . ".clip"
-		FileDelete %clipname%
-		FileAppend %ClipboardAll%, %clipname%
-		ExitApp
-	}
-Return
 
-*/
 eventlog(">>>>> Session started.")
 Gosub GetIt
 Gosub MainGUI
@@ -218,6 +209,7 @@ Gosub SaveIt
 eventlog("<<<<< Session completed.")
 ExitApp
 
+;	===========================================================================================
 ReadIni:
 {
 admins:=[]
@@ -283,7 +275,6 @@ Forecast_val:=[]
 			Forecast_val.Insert(c2)
 		}
 	}
-	;MsgBox % CORES_window
 Return
 }
 
@@ -294,6 +285,23 @@ splitIni(x, ByRef y, ByRef z) {
 }
 
 ;	===========================================================================================
+/*	Clipboard copier
+	Will wait resident until clipboard change, then will save clipboard to file.
+	Tends to falsely trigger a couple of times first. Will exit after .clip successfully saved.
+/
+OnClipboardChange:
+	FileSelectFile, clipname, 8, , Name of .clip file, *.clip
+	If (clipname) {			; If blank (e.g. pressed cancel), continue; If saved, then exitapp
+		IfNotInString, clipname, .clip
+			clipname := clipname . ".clip"
+		FileDelete %clipname%
+		FileAppend %ClipboardAll%, %clipname%
+		ExitApp
+	}
+Return
+
+*/
+
 OnClipboardChange:
 */
 {
@@ -302,8 +310,8 @@ DllCall("OpenClipboard", "Uint", 0)
 hMem := DllCall("GetClipboardData", "Uint", 1)
 nLen := DllCall("GlobalSize", "Uint", hMem)						; Directly check clipboard size
 DllCall("CloseClipboard")
-SetTimer, SeekCores, On
 clip = %Clipboard%
+SetTimer, SeekCores, On
 
 If (nLen>10000) {
 	; *** Check if CORES clip
@@ -351,6 +359,11 @@ If (nLen>10000) {
 
 Return
 }
+
+PrintScreen::
+	FileSelectFile , clipname,, %A_ScriptDir%, Select file:, AHK clip files (*.clip)
+	FileRead, Clipboard, *c %clipname%
+Return
 
 ;	===========================================================================================
 
@@ -517,7 +530,8 @@ OpenPrint:
 	locString := loc[location,"name"]
 	fileout := "patlist-" . location . ".rtf"
 	Run, %fileout%
-	MsgBox, 262192, Open temp file, Only use this function to troubleshoot `nprinting to the local printer. `n`nChanges to this file will not `nbe saved to the CHIPOTLE database `nand will likely be lost!
+	MsgBox, 262192, Open temp file
+, Only use this function to troubleshoot `nprinting to the local printer. `n`nChanges to this file will not `nbe saved to the CHIPOTLE database `nand will likely be lost!
 	eventlog(fileout " opened in Word.")
 	Return
 }
@@ -1606,7 +1620,7 @@ Return
 
 initClipSub:									;*** Initialize XML files
 {
-	Clipboard =
+	;Clipboard =
 	if !IsObject(t:=y.selectSingleNode("//root")) {		; if Y is empty,
 		y.addElement("root")					; then create it.
 		y.addElement("lists", "root")			; space for some lists
@@ -1819,6 +1833,12 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			CORES_ioUOP := StrX( ptBlock, "UOP=",NN,5, "Labs (72 Hrs)",1,14, NN)
 		CORES_LabsBlock := StrX( ptBlock, "Labs (72 Hrs)" ,NN,24, "Notes`r" ,1,6, NN )
 		CORES_NotesBlock := StrX( ptBlock, "Notes`r" ,NN,6, "CORES Round" ,1,12, NN )
+		
+		if (CORES_LabsBlock) {
+			l_block := CORES_labsBlock
+			parseLabs(l_block)
+		}
+		
 		n0 += 1
 		; List parsed, now place in XML(y)
 		y.addElement("mrn", "/root/lists/cores", CORES_mrn)
@@ -1872,6 +1892,96 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 	Return
 }
 
+parseLabs(block) {
+	while (block) {																	; iterate through each section of the lab block
+		l_sec := labGetSection(block)
+		labs := labSecType(l_sec.res)
+		if (labs.type="CBC")
+			MsgBox,,% l_sec.date, % "WBC=" labs.wbc "`nHgb=" labs.hgb "`nHct=" labs.hct "`nPlt=" labs.plt "`nRest=`n" labs.rest
+		if (labs.type="Lytes")
+			MsgBox,,% l_sec.date
+				, % "Na=" labs.Na "`nK=" labs.K "`nHCO3=" labs.HCO3 "`nCl=" labs.Cl "`nBUN=" labs.BUN "`nCr=" labs.Cr "`nGlu=" labs.glu 
+				. ((tmp:=labs.ABG) ? "`nABG=" tmp : "") . "`nRest=`n" labs.rest
+		if (labs.type="Other")
+			MsgBox,,% l_sec.date, % labs.rest
+	}
+	return
+}
+
+labGetSection(byref block) {
+/*	Separates block by date-delineated next section
+	Returns result.date (date block), result.res (text block to next section)
+	and truncated block byRef.
+	Next iteration will keep truncating until no more block
+*/
+	sepOld = (\(\))=\d{1,2}\/\d{1,2}\s\d{2}:\d{2}
+	sepNew = (\[\])=\d{1,2}\/\d{1,2}\s\d{2}:\d{2}
+	sep = (\(\)|\[\])=\d{1,2}\/\d{1,2}\s\d{2}:\d{2}
+	sepLine := "(" sep ".*)+.*\R"
+	from := RegExMatch(block,"O)"sepline,match1)
+	to := RegExMatch(block,"O)"sepline,match2,match1.len())
+	
+	blockDate := match1.value()
+	dateOld := RegExMatch(blockDate,"O)"sepOld,dts1)
+	dateNew := RegExMatch(blockDate,"O)"sepNew,dts2)
+	
+	blockNext := match2.value()
+	blockRes := strX(block,blockDate,from,match1.len(),blockNext,1,match2.len(),n)
+	block := substr(block,n)
+	return {date:trim(blockDate," `t`r`n"), old:dateOld, new:dateNew, res:trim(blockRes," `t`r`n")}
+}
+
+labDate(str) {
+	dateForm = \d{2}\/\d{2}\s\d{2}:\d{2}
+	strDate := RegExMatch(str,"O)"dateForm,res)
+	v := res.value()
+	if !v
+		return Error
+	StringReplace, v, v, %A_Space%,, All
+	StringReplace, v, v, /,, All
+	StringReplace, v, v, :,, All
+	FormatTime, yr, %A_now%, yyyy
+	v := yr . v
+return v
+}
+
+
+labSecType(block) {
+	x := Object()
+	topsec := strX(block,,1,0,"`r`n`r`n",1,2,n)
+	loop, parse, topsec, `n
+	{
+		row := A_Index
+		k := RegExReplace(trim(A_LoopField),"\s+"," ")
+		StringSplit, el, k, %A_Space%
+		loop, %el0%																		; generate fingerprint
+		{
+			sub := el%A_Index%
+			if (sub ~= "\d{1,3}\.\d{1,3}") {											; decimals
+				fing .= "D"
+				x[row,A_Index] := sub
+			}
+			else if (sub ~= "\d{1,3}") {												; whole numbers
+				fing .= "W"
+				x[row,A_Index] := sub
+			}
+		}
+		fing .= "N"																		; end line
+	}
+	botsec := SubStr(block,n)
+	if (RegExMatch(botsec,"O)[67]\.\d+\s\/\s\d+\s\/\s\d+\s.*",abg)) {
+		botsec := RegExReplace(botsec,"[67]\.\d{1,2}\s\/\s\d+\s\/\s\d+\s.*","")
+	}
+	
+	if (fing ~= "WW.?NDW.?N") {
+		return {type:"Lytes", Na:x[1,1], HCO3:x[1,2], BUN:x[1,3], K:x[2,1], Cl:x[2,2], Cr:x[2,3], Glu:x[3,1], ABG:abg.value(), rest:botsec}
+	} else if (fing ~= "DDNDNWN") {
+		return {type:"CBC", WBC:x[1,1], Hgb:x[1,2], Hct:x[2,1], Plt:x[3,1], rest:botsec}
+	} else {
+		return {type:"Other", rest:block}
+	}
+}
+
 readForecast:
 {
 /*	Parse the block into another table:
@@ -1889,43 +1999,45 @@ readForecast:
 	clipboard =
 	clip_row := 0
 	clip := substr(clip,(clip ~= "Service.*Monday.*Tuesday"))
-	Loop, parse, clip, `n, `r%A_Tab%%A_Space%
+	Loop, parse, clip, `n, `r
 	{
 		clip_full := A_LoopField
 		If !(clip_full)															; blank line exits scan
 			break
 		if (clip_full ~= "Service.*Monday.*Tuesday")							; ignore date header
 			continue
-		if (clip_full ~= "(\d{1,2}/\d{1,2}/\d{2,4}\t){2,}") {					; date line matches 2 or more date strings
+		if (clip_full ~= "(\d{1,2}/\d{1,2}/\d{2,4}\t){3,}") {					; date line matches 3 or more date strings
+			j := 0
 			Loop, parse, clip_full, %A_Tab%
 			{
 				i := A_LoopField
-				if (i ~= "\d{1,2}/\d{1,2}/\d{2,4}") {							; only parse actual date strings
+				if (i ~= "\b\d{1,2}/\d{1,2}/\d{2,4}\b") {						; only parse actual date strings
+					j ++
 					tmp := parseDate(i)
 					tmpDt := tmp.YYYY . tmp.MM . tmp.DD
-					fcDate[A_index] := tmpDt									; fill fcDate[1-7] with date strings
-					if !IsObject(y.selectSingleNode("root/lists/forecast/call[@date='" tmpDt "']")) {
-						y.addElement("call","/root/lists/forecast", {date:tmpDt})								; and create element if blank
+					fcDate[j] := tmpDt											; fill fcDate[1-7] with date strings
+					if IsObject(y.selectSingleNode("/root/lists/forecast/call[@date='" tmpDt "']")) {
+						RemoveNode("/root/lists/forecast/call[@date='" tmpDt "']")				; clear existing node
 					}
+					y.addElement("call","/root/lists/forecast", {date:tmpDt})					; and create node
 				}
 			} 
 		} else {																; otherwise parse line
-			clip_row ++
 			Loop, parse, clip_full, %A_Tab%
 			{
 				tmpDt:=A_index
-				i:=A_LoopField
-				if (tmpDt=1) {													; ignore first column
-					if (fuzzysearch(Forecast_val[clip_row],i)*100 > 5) {		; but check to make sure it is at least close
-						MsgBox,, Are you sure?, % "Field: " i "`nTemplate: " Forecast_val[clip_row]
+				i:=trim(A_LoopField)
+				if (tmpDt=1) {													; first column is service
+					if (j:=objHasValue(Forecast_val,i)) {						; match in Forecast_val array
+						clip_row := j
 					}
 					continue
 				}
-				y.addElement(Forecast_svc[clip_row],"/root/lists/forecast/call[@date='" fcDate[tmpDt] "']",i)		; or create it
+				y.addElement(Forecast_svc[clip_row],"/root/lists/forecast/call[@date='" fcDate[tmpDt-1] "']",i)		; or create it
 			}
 		}
 	}
-	loop, % (fcN := y.selectNodes("/root/lists/forecast/call")).length
+	loop, % (fcN := y.selectNodes("/root/lists/forecast/call")).length			; Remove old call elements
 	{
 		k:=fcN.item(A_index-1)
 		tmpDt := k.getAttribute("date")
@@ -1990,16 +2102,18 @@ SaveIt:
 	y.save("currlist.xml")
 	eventlog("Currlist cleaned up.")
 	
-	Run pscp.exe -sftp -i chipotle-pr.ppk -p currlist.xml pedcards@homer.u.washington.edu:public_html/%servfold%/currlist.xml,, Min
-	sleep 500																; CIS VM needs longer delay than 200ms to recognize window
-	ConsWin := WinExist("ahk_class ConsoleWindowClass")
-	IfWinExist ahk_id %consWin% 
-	{
-		ControlSend,, {y}{Enter}, ahk_id %consWin%
-		Progress,, Console %consWin% found
+	if !(isLocal) {
+		Run pscp.exe -sftp -i chipotle-pr.ppk -p currlist.xml pedcards@homer.u.washington.edu:public_html/%servfold%/currlist.xml,, Min
+		sleep 500																; CIS VM needs longer delay than 200ms to recognize window
+		ConsWin := WinExist("ahk_class ConsoleWindowClass")
+		IfWinExist ahk_id %consWin% 
+		{
+			ControlSend,, {y}{Enter}, ahk_id %consWin%
+			Progress,, Console %consWin% found
+		}
+		WinWaitClose ahk_id %consWin%
+		Run pscp.exe -sftp -i chipotle-pr.ppk -p logs/%sessdate%.log pedcards@homer.u.washington.edu:public_html/%servfold%/logs/%sessdate%.log,, Min
 	}
-	WinWaitClose ahk_id %consWin%
-	Run pscp.exe -sftp -i chipotle-pr.ppk -p logs/%sessdate%.log pedcards@homer.u.washington.edu:public_html/%servfold%/logs/%sessdate%.log,, Min
 
 	FileDelete, .currlock
 	eventlog("CHIPS server updated.")
@@ -2021,16 +2135,20 @@ GetIt:
 	else
 		Progress, b w200, Consolidating data..., 
 	Progress, 20
-
-	Run pscp.exe -sftp -i chipotle-pr.ppk -p pedcards@homer.u.washington.edu:public_html/%servfold%/currlist.xml templist.xml,, Min
-	sleep 500
-	ConsWin := WinExist("ahk_class ConsoleWindowClass")
-	IfWinExist ahk_id %consWin% 
-	{
-		ControlSend,, {y}{Enter}, ahk_id %consWin%
-		Progress,, Console %consWin% found
+	
+	if (isLocal) {
+		FileCopy, oldlist.xml, templist.xml
+	} else {
+		Run pscp.exe -sftp -i chipotle-pr.ppk -p pedcards@homer.u.washington.edu:public_html/%servfold%/currlist.xml templist.xml,, Min
+		sleep 500
+		ConsWin := WinExist("ahk_class ConsoleWindowClass")
+		IfWinExist ahk_id %consWin% 
+		{
+			ControlSend,, {y}{Enter}, ahk_id %consWin%
+			Progress,, Console %consWin% found
+		}
+		WinWaitClose ahk_id %consWin%
 	}
-	WinWaitClose ahk_id %consWin%
 	Progress, 60
 
 	FileRead, templist, templist.xml					; the downloaded list.
@@ -2348,12 +2466,23 @@ PrintIt:
 			. "\intbl\fs12 " . pr_todo "\fs18\cell`n"
 			. "\row`n"
 	}
-
-	rtfOut = 
+	FormatTime, rtfNow, A_Now, yyyyMMdd
+	onCall := getCall(rtfNow)
+	rtfCall := ((tmp:=onCall.Ward_A) ? "Ward: " tmp "   " : "")
+			. ((tmp:=onCall.Ward_F) ? "Ward Fellow: " tmp "   " : "")
+			. ((tmp:=onCall.ICU_A) ? "ICU: " tmp "   " : "")
+			. ((tmp:=onCall.ICU_F) ? "ICU Fellow: " tmp "   " : "")
+			. ((tmp:=onCall.EP) ? "EP: " tmp "   " : "")
+	
+	rtfOut =
 (
 {\rtf1\ansi\ansicpg1252\deff0\deflang1033{\fonttbl{\f0\fnil\fcharset0 Calibri;}{\f2\fnil\fcharset2 Wingdings;}}
 {\*\generator Msftedit 5.41.21.2510;}\viewkind4\uc1\lang9\f0\fs18\margl360\margr360\margt360\margb360
-{\header\viewkind4\uc1\pard\f0\fs18\qc\b
+{\header\viewkind4\uc1\pard\f0\fs12\qc\b
+
+)%rtfCall%
+(
+\line\line\fs18
 CHIPOTLE work-list\line
 Patient list:\~
 )%locString%
@@ -2387,6 +2516,18 @@ Page \chpgn\~\~\~\~\chdate\~\~\~\~\chtime
 		eventlog(fileout " printed.")
 	}
 return
+}
+
+getCall(dt) {
+	global y
+	callObj := {}
+	Loop, % (callDate:=y.selectNodes("/root/lists/forecast/call[@date='" dt "']/*")).length {
+		k := callDate.item(A_Index-1)
+		callEl := k.nodeName
+		callVal := k.text
+		callObj[callEl] := callVal
+	}
+	return callObj
 }
 
 saveCensus:
