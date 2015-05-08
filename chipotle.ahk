@@ -97,7 +97,7 @@ FileInstall, chipotle.ini, chipotle.ini
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.4.4"
+vers := "1.4.5"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -171,13 +171,17 @@ Loop, Read, outdocs.csv
 		continue
 	}
 	if (tmp1) {
-		if (tmp2="" and tmp3="" and tmp4="") {
+		if (tmp2="" and tmp3="" and tmp4="") {							; Fields 2,3,4 blank = new group
 			tmpGrp := tmp1
 			tmpIdx := 0
 			tmpIdxG += 1
 			outGrps.Insert(tmpGrp)
 			continue
-		} else {
+		} else if (tmp4="group") {										; Field4 "group" = synonym for group name
+			tmpIdx += 1													; if including names, place at END of group list to avoid premature match
+			Docs[tmpGrp,tmpIdx]:=tmp1
+			outGrpV[tmpGrp] := "callGrp" . tmpIdxG
+		} else {														; Otherwise format Crd name to first initial, last name
 			tmpIdx += 1
 			StringSplit, tmpPrv, tmp1, %A_Space%`"
 			tmpPrv := substr(tmpPrv1,1,1) . ". " . tmpPrv2
@@ -381,7 +385,7 @@ Gui, Main:Font, s16 wBold
 Gui, Main:Add, Button, x232 y2 w25 h24 BackgroundTrans gButtonInfo, i
 Gui, Main:Add, Text, x40 y0 w180 h20 +Center, % MainTitle1
 Gui, Main:Font, wNorm s8 wItalic
-Gui, Main:Add, Text, x22 yp+30 w210 h12 +Center, % MainTitle2
+Gui, Main:Add, Text, x22 yp+30 w210 h20 +Center, % MainTitle2
 Gui, Main:Add, Text, xp yp+14 wp hp +Center, % MainTitle3
 Gui, Main:Font, wNorm
 
@@ -2477,7 +2481,7 @@ IcuMerge:
 			}
 		}
 	}
-	if (tmpDT_crd=tmpDT_cicu "ss") {													; Scan Cards list for SURGCNTR patients
+	if (tmpDT_crd=tmpDT_cicu) {													; Scan Cards list for SURGCNTR patients
 		Loop, % (c2:=y.selectNodes("/root/lists/Cards/mrn")).length {
 			c2mrn := c2.item(A_Index-1).text
 			c2str := "/root/id[@mrn='" c2mrn "']"
