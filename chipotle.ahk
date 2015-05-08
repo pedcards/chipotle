@@ -97,7 +97,7 @@ FileInstall, chipotle.ini, chipotle.ini
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.4.6"
+vers := "1.4.7"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -200,6 +200,7 @@ outGrpV["Other"] := "callGrp" . (tmpIdxG+1)
 outGrpV["TO CALL"] := "callGrp" . (tmpIdxG+2)
 
 SetTimer, SeekCores, 250
+SetTimer, SeekWordErr, 250
 
 eventlog(">>>>> Session started.")
 Gosub GetIt
@@ -384,7 +385,18 @@ else {									; If CORES window and Print window open
 	ControlSend,, ^a, %CORES_window%
 	sleep 500
 	ControlSend,, ^c, %CORES_window%
+	}
+Return
 }
+
+SeekWordErr:
+{
+if !(Word_win2 := WinExist("User Name"))
+	return
+If !(Word_win1 := WinExist("Microsoft Office Word", "The command cannot be performed because a dialog box is open."))
+	return
+ControlSend,, {Esc}, ahk_id %Word_win1%
+ControlSend,, {Enter}, ahk_id %Word_win2%
 Return
 }
 
