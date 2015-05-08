@@ -1909,14 +1909,14 @@ parseLabs(block) {
 	while (block) {																	; iterate through each section of the lab block
 		l_sec := labGetSection(block)
 		labs := labSecType(l_sec.res)
-		if (labs.type="CBC")
-			MsgBox,,% l_sec.date, % "WBC=" labs.wbc "`nHgb=" labs.hgb "`nHct=" labs.hct "`nPlt=" labs.plt "`nRest=`n" labs.rest
-		if (labs.type="Lytes")
-			MsgBox,,% l_sec.date
-				, % "Na=" labs.Na "`nK=" labs.K "`nHCO3=" labs.HCO3 "`nCl=" labs.Cl "`nBUN=" labs.BUN "`nCr=" labs.Cr "`nGlu=" labs.glu 
-				. ((tmp:=labs.ABG) ? "`nABG=" tmp : "") . "`nRest=`n" labs.rest
-		if (labs.type="Other")
-			MsgBox,,% l_sec.date, % labs.rest
+		;~ if (labs.type="CBC")
+			;~ MsgBox,,% l_sec.date, % "WBC=" labs.wbc "`nHgb=" labs.hgb "`nHct=" labs.hct "`nPlt=" labs.plt "`nRest=`n" labs.rest
+		;~ if (labs.type="Lytes")
+			;~ MsgBox,,% l_sec.date
+				;~ , % "Na=" labs.Na "`nK=" labs.K "`nHCO3=" labs.HCO3 "`nCl=" labs.Cl "`nBUN=" labs.BUN "`nCr=" labs.Cr "`nGlu=" labs.glu 
+				;~ . ((tmp:=labs.ABG) ? "`nABG=" tmp : "") . "`nRest=`n" labs.rest
+		;~ if (labs.type="Other")
+			;~ MsgBox,,% l_sec.date, % labs.rest
 	}
 	return
 }
