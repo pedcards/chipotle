@@ -118,13 +118,13 @@ gosub ReadIni
 servfold := "patlist"
 if (ObjHasValue(admins,user)) {
 	isAdmin := true
-	if (substr(A_WorkingDir,-3,4)=="List") {
+	if (InStr(A_WorkingDir,"AutoHotkey")) {
 		tmp:=CMsgBox("Test system","Use test system?","&Local|&Server|Production","Q","V")
 		if (tmp="Local") {
 			isLocal := true
 			FileDelete, currlist.xml
 		}
-		if (tmp="Server") {
+		if (tmp="Test Server") {
 			isLocal := false
 			servfold := "testlist"
 			FileDelete, currlist.xml
@@ -132,7 +132,7 @@ if (ObjHasValue(admins,user)) {
 		if (tmp="Production")
 			isLocal := false
 	}
-	tmp:=CMsgBox("Administrator","Which user role?","*&Normal user|&CICU user|&ARNP","Q","V")
+	tmp:=CMsgBox("Administrator","Which user role?","*&Normal CHIPOTLE|&CICU CHILI|&ARNP Con Carne","Q","V")
 	if (tmp="CICU user")
 		isCICU := true
 	if (tmp="ARNP")
@@ -208,6 +208,7 @@ WinWaitClose, CHIPOTLE main
 Gosub SaveIt
 eventlog("<<<<< Session completed.")
 ExitApp
+
 
 ;	===========================================================================================
 ReadIni:
@@ -360,7 +361,7 @@ If (nLen>10000) {
 Return
 }
 
-PrintScreen::
+^F12::
 	FileSelectFile , clipname,, %A_ScriptDir%, Select file:, AHK clip files (*.clip)
 	FileRead, Clipboard, *c %clipname%
 Return
