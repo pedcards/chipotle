@@ -1847,11 +1847,6 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 		CORES_LabsBlock := StrX( ptBlock, "Labs (72 Hrs)" ,NN,24, "Notes`r" ,1,6, NN )
 		CORES_NotesBlock := StrX( ptBlock, "Notes`r" ,NN,6, "CORES Round" ,1,12, NN )
 		
-		if (CORES_LabsBlock) {
-			l_block := CORES_labsBlock
-			parseLabs(l_block)
-		}
-		
 		n0 += 1
 		; List parsed, now place in XML(y)
 		y.addElement("mrn", "/root/lists/cores", CORES_mrn)
@@ -1887,7 +1882,8 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 				y.addElement("out", MRNstring "/info/io", CORES_ioOut)
 				y.addElement("net", MRNstring "/info/io", CORES_ioNet)
 				y.addElement("uop", MRNstring "/info/io", CORES_ioUOP)
-			y.addElement("labs", MRNstring . "/info", CORES_LabsBlock)
+			y.addElement("labs", MRNstring . "/info")
+				parseLabs(CORES_labsBlock)
 			y.addElement("notes", MRNstring . "/info", CORES_NotesBlock)
 		RemoveNode(MRNstring . "/MAR")
 		y.addElement("MAR", MRNstring, {date: timenow})	; Create a new /MAR node
@@ -1907,8 +1903,9 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 
 parseLabs(block) {
 	while (block) {																	; iterate through each section of the lab block
-		l_sec := labGetSection(block)
-		labs := labSecType(l_sec.res)
+		labsec := labGetSection(block)
+		labs := labSecType(labsec.res)
+		;~ MsgBox,,% l_sec.date, % "old: " l_sec.old "`nnew: " l_sec.new
 		;~ if (labs.type="CBC")
 			;~ MsgBox,,% l_sec.date, % "WBC=" labs.wbc "`nHgb=" labs.hgb "`nHct=" labs.hct "`nPlt=" labs.plt "`nRest=`n" labs.rest
 		;~ if (labs.type="Lytes")
@@ -1927,21 +1924,22 @@ labGetSection(byref block) {
 	and truncated block byRef.
 	Next iteration will keep truncating until no more block
 */
-	sepOld = (\(\))=\d{1,2}\/\d{1,2}\s\d{2}:\d{2}
-	sepNew = (\[\])=\d{1,2}\/\d{1,2}\s\d{2}:\d{2}
-	sep = (\(\)|\[\])=\d{1,2}\/\d{1,2}\s\d{2}:\d{2}
+	str = \d{1,2}\/\d{1,2}\s\d{2}:\d{2}
+	sepOld := "(\(\))=" str
+	sepNew := "(\[\])=" str
+	sep := "(\(\)|\[\])=" str 
 	sepLine := "(" sep ".*)+.*\R"
 	from := RegExMatch(block,"O)"sepline,match1)
 	to := RegExMatch(block,"O)"sepline,match2,match1.len())
 	
 	blockDate := match1.value()
-	dateOld := RegExMatch(blockDate,"O)"sepOld,dts1)
-	dateNew := RegExMatch(blockDate,"O)"sepNew,dts2)
+	RegExMatch(blockDate,"O)"sepOld,dateOld)
+	RegExMatch(blockDate,"O)"sepNew,dateNew)
 	
 	blockNext := match2.value()
 	blockRes := strX(block,blockDate,from,match1.len(),blockNext,1,match2.len(),n)
 	block := substr(block,n)
-	return {date:trim(blockDate," `t`r`n"), old:dateOld, new:dateNew, res:trim(blockRes," `t`r`n")}
+	return {date:trim(blockDate," `t`r`n"), old:labDate(dateOld.value), new:labDate(dateNew.value), res:trim(blockRes," `t`r`n")}
 }
 
 labDate(str) {
@@ -1960,6 +1958,7 @@ return v
 
 
 labSecType(block) {
+	global y, MRNstring
 	x := Object()
 	topsec := strX(block,,1,0,"`r`n`r`n",1,2,n)
 	loop, parse, topsec, `n
