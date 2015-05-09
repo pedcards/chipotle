@@ -1895,25 +1895,40 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 	}
 	Progress off
 	y.save("currlist.xml")
-	;y := new XML("currlist.xml")							; probably superfluous since just saved freshest y and others locked out
 	eventlog("CORES data updated.")
 	FileDelete, .currlock
 	Return
 }
 
 parseLabs(block) {
+	global y, MRNstring
 	while (block) {																	; iterate through each section of the lab block
 		labsec := labGetSection(block)
 		labs := labSecType(labsec.res)
-		;~ MsgBox,,% l_sec.date, % "old: " l_sec.old "`nnew: " l_sec.new
-		;~ if (labs.type="CBC")
-			;~ MsgBox,,% l_sec.date, % "WBC=" labs.wbc "`nHgb=" labs.hgb "`nHct=" labs.hct "`nPlt=" labs.plt "`nRest=`n" labs.rest
-		;~ if (labs.type="Lytes")
-			;~ MsgBox,,% l_sec.date
-				;~ , % "Na=" labs.Na "`nK=" labs.K "`nHCO3=" labs.HCO3 "`nCl=" labs.Cl "`nBUN=" labs.BUN "`nCr=" labs.Cr "`nGlu=" labs.glu 
-				;~ . ((tmp:=labs.ABG) ? "`nABG=" tmp : "") . "`nRest=`n" labs.rest
-		;~ if (labs.type="Other")
-			;~ MsgBox,,% l_sec.date, % labs.rest
+		if (labs.type="CBC") {
+			y.addElement("CBC", MRNstring "/info/labs", {old:labsec.old, new:labsec.new}, labsec.date)
+				y.addElement("WBC", MRNstring "/info/labs/CBC", labs.wbc)
+				y.addElement("Hgb", MRNstring "/info/labs/CBC", labs.hgb)
+				y.addElement("Hct", MRNstring "/info/labs/CBC", labs.hct)
+				y.addElement("Plt", MRNstring "/info/labs/CBC", labs.plt)
+				y.addElement("rest", MRNstring "/info/labs/CBC", labs.rest)
+		}
+		if (labs.type="Lytes") {
+			y.addElement("Lytes", MRNstring "/info/labs", {old:labsec.old, new:labsec.new}, labsec.date)
+				y.addElement("Na", MRNstring "/info/labs/Lytes", labs.na)
+				y.addElement("K", MRNstring "/info/labs/Lytes", labs.k)
+				y.addElement("HCO3", MRNstring "/info/labs/Lytes", labs.HCO3)
+				y.addElement("Cl", MRNstring "/info/labs/Lytes", labs.Cl)
+				y.addElement("BUN", MRNstring "/info/labs/Lytes", labs.BUN)
+				y.addElement("Cr", MRNstring "/info/labs/Lytes", labs.Cr)
+				y.addElement("Glu", MRNstring "/info/labs/Lytes", labs.glu)
+				y.addElement("ABG", MRNstring "/info/labs/Lytes", labs.ABG)
+				y.addElement("rest", MRNstring "/info/labs/Lytes", labs.rest)
+		}
+		if (labs.type="Other") {
+			y.addElement("Other", MRNstring "/info/labs", {old:labsec.old, new:labsec.new}, labsec.date)
+				y.addElement("rest", MRNstring "/info/labs/Other", labs.rest)
+		}
 	}
 	return
 }
