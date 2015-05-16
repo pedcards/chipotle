@@ -22,6 +22,7 @@ MainGUI:
 	Gui, main:Add, Button, wp gUnlock, Release lock
 	Gui, main:Add, Button, wp, Search archive
 	Gui, main:Add, Button, wp, Clean archive
+	Gui, main:Add, Button, wp gEnvInfo, Env Info
 	Gui, main:Add, Button, wp gActiveWindow, ActiveWindowInfo
 	Gui, main:Show, AutoSize, Admin
 Return
@@ -32,6 +33,10 @@ ExitApp
 
 ActiveWindow:
 	run, ActiveWindow.exe
+return
+
+EnvInfo:
+	run, AHKenvinfo.exe
 return
 
 StatsGUI:

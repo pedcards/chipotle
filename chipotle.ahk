@@ -787,11 +787,18 @@ PatListGet:
 	pl_ProvPCP := pl.provPCP
 	pl_Call_L := pl.callL
 	pl_Call_N := pl.callN
-Gui, plistG:Add, Text, x26 y34 w200 h40 , demographics
-Gui, plistG:Add, Text, x26 y74 w200 h40 , go here
-Gui, plistG:Add, Text, x266 y34 w150 h48 gplInputCard, Cardiologist:
-Gui, plistG:Add, Text, xp yp+20 w150 vpl_Card, % pl_ProvCard
-Gui, plistG:Add, Text, xp yp+36 w150 h28 , Last call:
+	pl_demo := ""
+		. "DOB: " pl.DOB "  Age: " pl.Age "  Sex: " substr(pl.Sex,1,1) "`n"
+		. pl.Unit " - " pl.Room "`n"
+		. pl.Svc "`n"
+		. "Admitted: " pl.Admit "`n"
+Gui, plistG:Add, Text, x26 y34 w200 h80 , % pl_demo
+;Gui, plistG:Add, Text, x26 y74 w200 h40 , go here
+Gui, plistG:Add, Text, x266 y24 w150 h40 gplInputCard, Primary Cardiologist:
+Gui, plistG:Add, Text, xp yp+14 w150 vpl_Card, % pl_ProvCard
+Gui, plistG:Add, Text, xp yp+20 w150 h40 gplInputCard, Continuity Cardiologist:
+Gui, plistG:Add, Text, xp yp+14 w150 vpl_SCHcard, % pl_ProvCard
+Gui, plistG:Add, Text, xp y100 w150 h28 , Last call:
 Gui, plistG:Add, Text, xp+50 yp w80 vCrdCall_L , % ((pl_Call_L) ? niceDate(pl_Call_L) : "---")		;substr(pl_Call_L,1,8)
 Gui, plistG:Add, Text, xp-50 yp+14 , Next call:
 Gui, plistG:Add, Text, xp+50 yp w80 vCrdCall_N, % ((pl_Call_N) ? niceDate(pl_Call_N) : "---")
@@ -801,11 +808,11 @@ Gui, plistG:Add, CheckBox, x446 y54 w120 h20 Checked%pl_statTxp% vpl_statTxp gpl
 Gui, plistG:Add, CheckBox, x446 y74 w120 h20 Checked%pl_statRes% vpl_statRes gplInputNote, Research
 Gui, plistG:Add, CheckBox, x446 y94 w120 h20 Checked%pl_statScamp% vpl_statScamp gplInputNote, SCAMP
 
-Gui, plistG:Add, Edit, x26 y150 w540 h48 vpl_dxNotes gplInputNote, %pl_dxNotes%
-Gui, plistG:Add, Edit, x26 y220 w540 h48 vpl_dxCard gplInputNote, %pl_dxCard%
-Gui, plistG:Add, Edit, x26 y290 w540 h48 vpl_dxEP gplInputNote, %pl_dxEP%
-Gui, plistG:Add, Edit, x26 y360 w540 h48 vpl_dxSurg gplInputNote, %pl_dxSurg%
-Gui, plistG:Add, Edit, x26 y430 w540 h48 vpl_dxProb gplInputNote, %pl_dxProb%
+Gui, plistG:Add, Edit, x26 y160 w540 h48 vpl_dxNotes gplInputNote, %pl_dxNotes%
+Gui, plistG:Add, Edit, x26 yp+70 w540 h48 vpl_dxCard gplInputNote, %pl_dxCard%
+Gui, plistG:Add, Edit, x26 yp+70 w540 h48 vpl_dxEP gplInputNote, %pl_dxEP%
+Gui, plistG:Add, Edit, x26 yp+70 w540 h48 vpl_dxSurg gplInputNote, %pl_dxSurg%
+Gui, plistG:Add, Edit, x26 yp+70 w540 h48 vpl_dxProb gplInputNote, %pl_dxProb%
 
 Gui, plistG:Add, Button, x36 y504 w160 h40 gplTasksList, Tasks/Todos
 Gui, plistG:Add, Button, xp+180 yp w160 h40 gplDataList Disabledd, Data highlights
@@ -814,16 +821,16 @@ Gui, plistG:Add, Button, x36 y554 w240 h40 v1 gplCORES, Patient History (CORES)
 Gui, plistG:Add, Button, x316 y554 w240 h40 v2 gplMAR, Meds/Diet (CORES)
 
 Gui, plistG:Font, wBold
-Gui, plistG:Add, GroupBox, x16 y14 w400 h110 , % pl_NameL . ", " . pl_NameF
-Gui, plistG:Add, GroupBox, x256 yp w160 h70
-Gui, plistG:Add, GroupBox, xp yp+60 w160 h50 
+Gui, plistG:Add, GroupBox, x16 y14 w400 h120 , % pl_NameL . ", " . pl_NameF
+Gui, plistG:Add, GroupBox, x256 yp w160 h80
+Gui, plistG:Add, GroupBox, xp yp+70 w160 h50 
 
-Gui, plistG:Add, GroupBox, x436 y14 w140 h110 , Status Flags
-Gui, plistG:Add, GroupBox, x16 y134 w560 h70 , Quick Notes
-Gui, plistG:Add, GroupBox, x16 y204 w560 h70 , Diagnoses && Problems
-Gui, plistG:Add, GroupBox, x16 y274 w560 h70 , EP diagnoses/problems
-Gui, plistG:Add, GroupBox, x16 y344 w560 h70 , Surgeries/Caths/Interventions
-Gui, plistG:Add, GroupBox, x16 y414 w560 h70 , Problem List
+Gui, plistG:Add, GroupBox, x436 y14 w140 h120 , Status Flags
+Gui, plistG:Add, GroupBox, x16 y144 w560 h70 , Quick Notes
+Gui, plistG:Add, GroupBox, x16 yp+70 w560 h70 , Diagnoses && Problems
+Gui, plistG:Add, GroupBox, x16 yp+70 w560 h70 , EP diagnoses/problems
+Gui, plistG:Add, GroupBox, x16 yp+70 w560 h70 , Surgeries/Caths/Interventions
+Gui, plistG:Add, GroupBox, x16 yp+70 w560 h70 , Problem List
 Gui, plistG:Font, wNormal
 Gui, plistG:Add, Button, x176 y614 w240 h40 gplSave, SAVE
 
