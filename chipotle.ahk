@@ -783,30 +783,33 @@ PatListGet:
 	pl_CORES := pl.CORES
 	pl_MAR := pl.MAR
 	pl_ProvCard := pl.provCard
+	pl_ProvSchCard := pl.provSchCard
 	pl_ProvEP := pl.provEP
 	pl_ProvPCP := pl.provPCP
 	pl_Call_L := pl.callL
 	pl_Call_N := pl.callN
 	pl_demo := ""
-		. "DOB: " pl.DOB "  Age: " pl.Age "  Sex: " substr(pl.Sex,1,1) "`n"
-		. pl.Unit " - " pl.Room "`n"
-		. pl.Svc "`n"
-		. "Admitted: " pl.Admit "`n"
-Gui, plistG:Add, Text, x26 y34 w200 h80 , % pl_demo
+		. "DOB: " pl_DOB 
+		. "   Age: " (instr(pl_Age,"month")?RegExReplace(pl_Age,"i)month","mo"):instr(pl_Age,"year")?RegExReplace(pl_Age,"i)year","yr"):pl_Age) 
+		. "   Sex: " substr(pl_Sex,1,1) "`n`n"
+		. pl_Unit " :: " pl_Room "`n"
+		. pl_Svc "`n`n"
+		. "Admitted: " pl_Admit "`n"
+Gui, plistG:Add, Text, x26 y38 w200 h80 , % pl_demo
 ;Gui, plistG:Add, Text, x26 y74 w200 h40 , go here
-Gui, plistG:Add, Text, x266 y24 w150 h40 gplInputCard, Primary Cardiologist:
-Gui, plistG:Add, Text, xp yp+14 w150 vpl_Card, % pl_ProvCard
-Gui, plistG:Add, Text, xp yp+20 w150 h40 gplInputCard, Continuity Cardiologist:
-Gui, plistG:Add, Text, xp yp+14 w150 vpl_SCHcard, % pl_ProvCard
+Gui, plistG:Add, Text, x266 y24 w150 h30 gplInputCard, Primary Cardiologist:
+Gui, plistG:Add, Text, xp yp+14 cBlue w150 vpl_card, % pl_ProvCard
+Gui, plistG:Add, Text, xp yp+20 w150 h30 gplInputCard, Continuity Cardiologist:
+Gui, plistG:Add, Text, xp yp+14 cBlue w150 vpl_SCHcard, % pl_ProvSchCard
 Gui, plistG:Add, Text, xp y100 w150 h28 , Last call:
 Gui, plistG:Add, Text, xp+50 yp w80 vCrdCall_L , % ((pl_Call_L) ? niceDate(pl_Call_L) : "---")		;substr(pl_Call_L,1,8)
 Gui, plistG:Add, Text, xp-50 yp+14 , Next call:
 Gui, plistG:Add, Text, xp+50 yp w80 vCrdCall_N, % ((pl_Call_N) ? niceDate(pl_Call_N) : "---")
 
 Gui, plistG:Add, CheckBox, x446 y34 w120 h20 Checked%pl_statCons% vpl_statCons gplInputNote, Consult
-Gui, plistG:Add, CheckBox, x446 y54 w120 h20 Checked%pl_statTxp% vpl_statTxp gplInputNote, Transplant
-Gui, plistG:Add, CheckBox, x446 y74 w120 h20 Checked%pl_statRes% vpl_statRes gplInputNote, Research
-Gui, plistG:Add, CheckBox, x446 y94 w120 h20 Checked%pl_statScamp% vpl_statScamp gplInputNote, SCAMP
+Gui, plistG:Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statTxp% vpl_statTxp gplInputNote, Transplant
+Gui, plistG:Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statRes% vpl_statRes gplInputNote, Research
+Gui, plistG:Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statScamp% vpl_statScamp gplInputNote, SCAMP
 
 Gui, plistG:Add, Edit, x26 y160 w540 h48 vpl_dxNotes gplInputNote, %pl_dxNotes%
 Gui, plistG:Add, Edit, x26 yp+70 w540 h48 vpl_dxCard gplInputNote, %pl_dxCard%
@@ -867,32 +870,44 @@ Return
 
 plInputCard:
 {
-	InputBox, pl_ProvCard, Change cardiologist, %pl_ProvCard%,,,,,,,,%pl_ProvCard%
-	if (pl_ProvCard="")
+	CrdType:=A_GuiControl
+	if (InStr(CrdType,"primary")) {
+		ed_Crd := pl_ProvCard
+		ed_type := "provCard"
+		ed_var := "pl_Card"
+	} else {
+		ed_Crd := pl_ProvSchCard
+		ed_type := "SchCard"
+		ed_var := "pl_SCHcard"
+	}
+	InputBox, ed_Crd, % "Change " CrdType, %ed_Crd%,,,,,,,,%ed_Crd%
+	if (ed_Crd="")
 		return
-	tmpCrd := checkCrd(pl_ProvCard)
+	tmpCrd := checkCrd(ed_Crd)
 	if (tmpCrd.fuzz=0) {										; Perfect match found
-		pl_ProvCard := tmpCrd.best
+		ed_Crd := tmpCrd.best
 	} else {													; less than perfect
-		MsgBox, 262180, Primary cardiologist
+		MsgBox, 262180, % CrdType
 			, % "Did you mean: " tmpCrd.best "?`n`n`n"
 			. "YES = change to """ tmpCrd.best """`n`n"
-			. "NO = keep """ pl_ProvCard """"
+			. "NO = keep """ ed_Crd """"
 		IfMsgBox, Yes
-			pl_ProvCard := tmpCrd.best
+			ed_Crd := tmpCrd.best
+	}
+	if !(checkCrd(ed_Crd).group="SCH") {
+		MsgBox, 16, Provider error, Must be an SCH main campus provider!
+		return
 	}
 
 	if !(IsObject(y.selectSingleNode(pl_mrnstring "/prov"))) {
 		y.addElement("prov", pl_mrnstring)
 	}
 	FormatTime, editdate, A_Now, yyyyMMddHHmmss
-	y.setAtt(pl_mrnstring "/prov", {provCard: pl_ProvCard})
-	y.setAtt(pl_mrnstring "/prov", {ed: editdate})
-	y.setAtt(pl_mrnstring "/prov", {au: user})
-	;plEditNote = true
+	y.selectSingleNode(pl_mrnstring "/prov").setAttribute(ed_type,ed_Crd)
+	y.setAtt(pl_mrnstring "/prov", {ed: editdate},{au: user})
 	WriteOut(pl_mrnstring,"prov")
-	eventlog(mrn " Cardiologist changed.")
-	GuiControl, plistG:Text, pl_Card, %pl_ProvCard%
+	eventlog(mrn " " CrdType " changed.")
+	GuiControl, plistG:Text, %ed_var%, %ed_Crd%
 	Gui, plistG:Submit, NoHide
 	Return
 }
@@ -2683,40 +2698,33 @@ PtParse(mrn) {
 	global y
 	mrnstring := "/root/id[@mrn='" mrn "']"
 	pl := y.selectSingleNode(mrnstring)
-	NameL := pl.selectSingleNode("demog/name_last").text
-	NameF := pl.selectSingleNode("demog/name_first").text
-	Sex := pl.selectSingleNode("demog/data/sex").text
-	DOB := pl.selectSingleNode("demog/data/dob").text
-	Age := pl.selectSingleNode("demog/data/age").text
-	Svc := pl.selectSingleNode("demog/data/service").text
-	Unit := pl.selectSingleNode("demog/data/unit").text
-	Room := pl.selectSingleNode("demog/data/room").text
-	Admit := pl.selectSingleNode("demog/data/admit").text
-	dxCard := pl.selectSingleNode("diagnoses/card").text
-	dxEP := pl.selectSingleNode("diagnoses/ep").text
-	dxSurg := pl.selectSingleNode("diagnoses/surg").text
-	dxNotes := pl.selectSingleNode("diagnoses/notes").text
-	dxProb := pl.selectSingleNode("diagnoses/prob").text
-	statCons := (pl.selectSingleNode("status").getAttribute("cons") == "on")
-	statTxp := (pl.selectSingleNode("status").getAttribute("txp") == "on")
-	statRes := (pl.selectSingleNode("status").getAttribute("res") == "on")
-	statScamp := (pl.selectSingleNode("status").getAttribute("scamp") == "on")
-	callN := pl.selectSingleNode("plan/call").getAttribute("next")
-	callL := pl.selectSingleNode("plan/call").getAttribute("last")
-	callBy := pl.selectSingleNode("plan/call").getAttribute("by")
-	CORES := pl.selectSingleNode("info/hx").text
-	MAR := pl.selectSingleNode("MAR")
-	Prov := pl.selectSingleNode("prov")
-		ProvCard := Prov.getAttribute("provCard")
-		ProvEP := Prov.getAttribute("provEP")
-		ProvPCP := Prov.getAttribute("provPCP")
-	return { "NameL":NameL, "NameF":NameF, "Sex":Sex, "DOB":DOB, "Age":Age
-		, "Svc":Svc, "Unit":Unit, "Room":Room, "Admit":Admit
-		, "dxCard":dxCard, "dxEP":dxEP, "dxSurg":dxSurg, "dxNotes":dxNotes, "dxProb":dxProb
-		, "statCons":statCons, "statTxp":statTxp, "statRes":statRes, "statScamp":statScamp
-		, "callN":callN, "callL":callL, "callBy":callBy
-		, "CORES":CORES, "MAR":MAR
-		, "ProvCard":ProvCard, "ProvEP":ProvEp, "ProvPCP":ProvPCP}
+	return {"NameL":pl.selectSingleNode("demog/name_last").text
+		, "NameF":pl.selectSingleNode("demog/name_first").text
+		, "Sex":pl.selectSingleNode("demog/data/sex").text
+		, "DOB":pl.selectSingleNode("demog/data/dob").text
+		, "Age":pl.selectSingleNode("demog/data/age").text
+		, "Svc":pl.selectSingleNode("demog/data/service").text
+		, "Unit":pl.selectSingleNode("demog/data/unit").text
+		, "Room":pl.selectSingleNode("demog/data/room").text
+		, "Admit":pl.selectSingleNode("demog/data/admit").text
+		, "dxCard":pl.selectSingleNode("diagnoses/card").text
+		, "dxEP":pl.selectSingleNode("diagnoses/ep").text
+		, "dxSurg":pl.selectSingleNode("diagnoses/surg").text
+		, "dxNotes":pl.selectSingleNode("diagnoses/notes").text
+		, "dxProb":pl.selectSingleNode("diagnoses/prob").text
+		, "statCons":(pl.selectSingleNode("status").getAttribute("cons") == "on")
+		, "statTxp":(pl.selectSingleNode("status").getAttribute("txp") == "on")
+		, "statRes":(pl.selectSingleNode("status").getAttribute("res") == "on")
+		, "statScamp":(pl.selectSingleNode("status").getAttribute("scamp") == "on")
+		, "callN":pl.selectSingleNode("plan/call").getAttribute("next")
+		, "callL":pl.selectSingleNode("plan/call").getAttribute("last")
+		, "callBy":pl.selectSingleNode("plan/call").getAttribute("by")
+		, "CORES":pl.selectSingleNode("info/hx").text
+		, "MAR":pl.selectSingleNode("MAR")
+		, "ProvCard":y.getAtt(mrnstring "/prov","provCard")
+		, "ProvSchCard":y.getAtt(mrnstring "/prov","SchCard")
+		, "ProvEP":y.getAtt(mrnstring "/prov","provEP")
+		, "ProvPCP":y.getAtt(mrnstring "/prov","provPCP")}
 }
 
 PatNode(mrn,path,node) {
