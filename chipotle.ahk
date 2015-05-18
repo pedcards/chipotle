@@ -2078,8 +2078,8 @@ readForecast:
 						clip_nm := Forecast_svc[j]
 					} else {
 						clip_nm := i
-						StringReplace, clip_nm, clip_nm, %A_Space%, _, All
-						;~ RegExReplace(clip_nm,"(
+						;~ StringReplace, clip_nm, clip_nm, %A_Space%, _, All
+						clip_nm := RegExReplace(clip_nm,"(\s+)|[\/\*\?]","_")
 					}
 					;~ MsgBox % clip_nm
 					continue
