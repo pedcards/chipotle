@@ -2073,15 +2073,14 @@ readForecast:
 			{
 				tmpDt:=A_index
 				i:=trim(A_LoopField)
+				i:=RegExReplace(i,"\s+"," ")
 				if (tmpDt=1) {													; first column is service
 					if (j:=objHasValue(Forecast_val,i)) {						; match in Forecast_val array
 						clip_nm := Forecast_svc[j]
 					} else {
 						clip_nm := i
-						;~ StringReplace, clip_nm, clip_nm, %A_Space%, _, All
 						clip_nm := RegExReplace(clip_nm,"(\s+)|[\/\*\?]","_")
 					}
-					;~ MsgBox % clip_nm
 					continue
 				}
 				y.addElement(clip_nm,"/root/lists/forecast/call[@date='" fcDate[tmpDt-1] "']",i)		; or create it
