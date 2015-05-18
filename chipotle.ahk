@@ -331,9 +331,7 @@ If (nLen>10000) {
 			WinClose, % CORES_window
 		}
 	}
-} else {
-; Shorter ELSE block for smaller clips
-
+} else {										; Shorter ELSE block for smaller clips
 	; *** Check if CIS patient list
 	clipCkCIS := ClipboardAll
 	CISdelim := A_tab . A_tab . A_tab
@@ -352,10 +350,9 @@ If (nLen>10000) {
 		if (location="CSR" or location="CICU") {
 			gosub IcuMerge
 		}
-
 	;*** Check if Electronic Forecast
-	} else if (clip ~= "s)Service.*Monday.*Tuesday.*Ward.*ICU") {
-		Gosub readForecast
+	} else if (clip ~= "s)Service.*Monday.*Tuesday") {
+			Gosub readForecast
 	}
 }
 
@@ -2047,7 +2044,7 @@ readForecast:
 	fcDate:=[]
 	clipboard =
 	clip_row := 0
-	clip := substr(clip,(clip ~= "Service.*Monday.*Tuesday"))
+	clip := substr(clip,(clip ~= "i)Service.*Monday.*Tuesday"))
 	Loop, parse, clip, `n, `r
 	{
 		clip_full := A_LoopField
@@ -2078,11 +2075,16 @@ readForecast:
 				i:=trim(A_LoopField)
 				if (tmpDt=1) {													; first column is service
 					if (j:=objHasValue(Forecast_val,i)) {						; match in Forecast_val array
-						clip_row := j
+						clip_nm := Forecast_svc[j]
+					} else {
+						clip_nm := i
+						StringReplace, clip_nm, clip_nm, %A_Space%, _, All
+						;~ RegExReplace(clip_nm,"(
 					}
+					;~ MsgBox % clip_nm
 					continue
 				}
-				y.addElement(Forecast_svc[clip_row],"/root/lists/forecast/call[@date='" fcDate[tmpDt-1] "']",i)		; or create it
+				y.addElement(clip_nm,"/root/lists/forecast/call[@date='" fcDate[tmpDt-1] "']",i)		; or create it
 			}
 		}
 	}
