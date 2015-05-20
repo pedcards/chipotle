@@ -133,9 +133,9 @@ if (ObjHasValue(admins,user)) {
 			isLocal := false
 	}
 	tmp:=CMsgBox("Administrator","Which user role?","*&Normal CHIPOTLE|&CICU CHILI|&ARNP Con Carne","Q","V")
-	if (tmp="CICU user")
+	if (tmp~="CHILI")
 		isCICU := true
-	if (tmp="ARNP")
+	if (tmp~="ARNP")
 		isARNP := true
 }
 if (ObjHasValue(cicuUsers,user))
