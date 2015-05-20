@@ -1652,7 +1652,7 @@ Return
 
 initClipSub:									;*** Initialize XML files
 {
-	;Clipboard =
+	Clipboard =
 	if !IsObject(t:=y.selectSingleNode("//root")) {		; if Y is empty,
 		y.addElement("root")					; then create it.
 		y.addElement("lists", "root")			; space for some lists
