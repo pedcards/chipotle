@@ -85,7 +85,7 @@ FileInstall, chipotle.ini, chipotle.ini
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.4.9"
+vers := "1.5.0"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
