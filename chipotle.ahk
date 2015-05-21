@@ -2079,7 +2079,7 @@ readForecast:
 						clip_nm := Forecast_svc[j]
 					} else {
 						clip_nm := i
-						clip_nm := RegExReplace(clip_nm,"(\s+)|[\/\*\?]","_")
+						clip_nm := RegExReplace(clip_nm,"(\s+)|[\/\*\?]","_")	; replace space, /, \, *, ? with "_"
 					}
 					continue
 				}
