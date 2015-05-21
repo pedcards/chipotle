@@ -54,23 +54,11 @@
 	* Print to PDF instead of Word
 	* Add EP to census
 	* census compare MRN for new Card and CSR since last run, will tease out turnover vs chronic patients
-	* archive Notes when patient discharged
 	* Clean archive of records with no info (admin function)
 	
 */
 
 /*	Todo lists: 
-	AHK:
-		- Search archives.
-		- Add "barnacle icon" to CIS when MRN matches?
-		- Problem lists
-		- Surg/cath picklists.
-		- Add CHIPOTLE icon to GUI.
-		- List by service/location
-		- Still need to manually print report for CORES, unless can receive directly from IT?
-		- Encrypt data files with 7zip, gzip
-		- Store currlist as SQLite rather than XML. Simultaneous access, more compact.
-	
 	PHP:
 		- Tasks
 		- Problem list editor
@@ -2528,8 +2516,10 @@ PrintIt:
 			. ((tmp:=onCall.ARNP_RC6) ? "ARNP RC6: " tmp " 7-4594   " : "")
 			. ((tmp:=onCall.CICU) ? "CICU: " tmp " 7-6503   " : "")
 			. ((tmp:=onCall.Reg_Con) ? "Reg Cons: " tmp "   " : "")
-			. "`n\line`n"
-			. "HC Fax: 987-3839   Clinic RN: 7-5389   RC6.Charge RN: 7-0000   RC6.UC Desk: 7-0000   FA6.Charge RN: 7-0000   FA6.UC Desk: 7-0000"
+	if (rtfCall) {
+		rtfCall .= "`n\line`n"
+	}
+	rtfCall .= "\ul HC Fax: 987-3839   Clinic RN: 7-5389   Echo Lab: 7-2019   Echo West: 7-0000   RC6.Charge RN: 7-0000   RC6.UC Desk: 7-0000   FA6.Charge RN: 7-0000   FA6.UC Desk: 7-0000\ul0"
 	
 	rtfOut =
 (
