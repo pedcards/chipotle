@@ -753,6 +753,10 @@ PatListGet:
 	pl_mrnstring := "/root/id[@mrn='" mrn "']"
 	pl_NameL := pl.nameL
 	pl_NameF := pl.nameF
+	pl_DOB := pl.DOB
+	pl_Age := pl.Age
+	pl_Sex := pl.Sex
+	pl_Admit := pl.Admit
 	pl_Svc := pl.Svc
 	pl_Unit := pl.Unit
 	pl_Room := pl.Room
