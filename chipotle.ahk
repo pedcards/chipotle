@@ -879,7 +879,7 @@ plInputCard:
 		IfMsgBox, Yes
 			ed_Crd := tmpCrd.best
 	}
-	if !(checkCrd(ed_Crd).group="SCH") {
+	if (ed_type="SchCard") and !(checkCrd(ed_Crd).group="SCH") {
 		MsgBox, 16, Provider error, Must be an SCH main campus provider!
 		return
 	}
