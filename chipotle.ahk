@@ -54,23 +54,11 @@
 	* Print to PDF instead of Word
 	* Add EP to census
 	* census compare MRN for new Card and CSR since last run, will tease out turnover vs chronic patients
-	* archive Notes when patient discharged
 	* Clean archive of records with no info (admin function)
 	
 */
 
 /*	Todo lists: 
-	AHK:
-		- Search archives.
-		- Add "barnacle icon" to CIS when MRN matches?
-		- Problem lists
-		- Surg/cath picklists.
-		- Add CHIPOTLE icon to GUI.
-		- List by service/location
-		- Still need to manually print report for CORES, unless can receive directly from IT?
-		- Encrypt data files with 7zip, gzip
-		- Store currlist as SQLite rather than XML. Simultaneous access, more compact.
-	
 	PHP:
 		- Tasks
 		- Problem list editor
@@ -97,7 +85,7 @@ FileInstall, chipotle.ini, chipotle.ini
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.4.9"
+vers := "1.5.0"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -765,6 +753,10 @@ PatListGet:
 	pl_mrnstring := "/root/id[@mrn='" mrn "']"
 	pl_NameL := pl.nameL
 	pl_NameF := pl.nameF
+	pl_DOB := pl.DOB
+	pl_Age := pl.Age
+	pl_Sex := pl.Sex
+	pl_Admit := pl.Admit
 	pl_Svc := pl.Svc
 	pl_Unit := pl.Unit
 	pl_Room := pl.Room
@@ -891,7 +883,7 @@ plInputCard:
 		IfMsgBox, Yes
 			ed_Crd := tmpCrd.best
 	}
-	if !(checkCrd(ed_Crd).group="SCH") {
+	if (ed_type="SchCard") and !(checkCrd(ed_Crd).group="SCH") {
 		MsgBox, 16, Provider error, Must be an SCH main campus provider!
 		return
 	}
@@ -2504,7 +2496,7 @@ PrintIt:
 		rtfList .= "\keepn\trowd\trgaph144\trkeep" rtfTblCols "`n\b"
 			. "\intbl " . pr.Unit " " pr.Room "\cell`n"
 			. "\intbl " . kMRN "\cell`n"
-			. "\intbl " . pr.nameL ", " pr.nameF ((pr.provCard) ? "\fs12  (" pr.provCard ")\fs18" : "") "\cell`n"
+			. "\intbl " . pr.nameL ", " pr.nameF ((pr.provCard) ? "\fs12  (" pr.provCard . ((pr.provSchCard) ? "//" pr.provSchCard : "") ")\fs18" : "") "\cell`n"
 			. "\intbl " . SubStr(pr.Sex,1,1) " " pr.Age "\cell`n" 
 			. "\intbl " . pr.DOB "\cell`n"
 			. "\intbl " . CIS_los "\cell`n"
@@ -2523,16 +2515,25 @@ PrintIt:
 			. ((tmp:=onCall.ICU_A) ? "ICU: " tmp "   " : "")
 			. ((tmp:=onCall.ICU_F) ? "ICU Fellow: " tmp "   " : "")
 			. ((tmp:=onCall.EP) ? "EP: " tmp "   " : "")
+			. ((tmp:=onCall.TEE) ? "TEE: " tmp "   " : "")
+			. ((tmp:=onCall.ARNP_Cath) ? "ARNP Cath: " tmp "   " : "")
+			. ((tmp:=onCall.ARNP_RC6) ? "ARNP RC6: " tmp " 7-4594   " : "")
+			. ((tmp:=onCall.CICU) ? "CICU: " tmp " 7-6503   " : "")
+			. ((tmp:=onCall.Reg_Con) ? "Reg Cons: " tmp "   " : "")
+	if (rtfCall) {
+		rtfCall .= "`n\line`n"
+	}
+	rtfCall .= "\ul HC Fax: 987-3839   Clinic RN: 7-5389   Echo Lab: 7-2019   Echo West: 7-0000   RC6.Charge RN: 7-0000   RC6.UC Desk: 7-0000   FA6.Charge RN: 7-0000   FA6.UC Desk: 7-0000\ul0"
 	
 	rtfOut =
 (
 {\rtf1\ansi\ansicpg1252\deff0\deflang1033{\fonttbl{\f0\fnil\fcharset0 Calibri;}{\f2\fnil\fcharset2 Wingdings;}}
 {\*\generator Msftedit 5.41.21.2510;}\viewkind4\uc1\lang9\f0\fs18\margl360\margr360\margt360\margb360
-{\header\viewkind4\uc1\pard\f0\fs12\qc\b
+{\header\viewkind4\uc1\pard\f0\fs12\qc
 
 )%rtfCall%
 (
-\line\line\fs18
+\par\line\fs18\b
 CHIPOTLE work-list\line
 Patient list:\~
 )%locString%
