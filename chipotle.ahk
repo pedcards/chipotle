@@ -2067,7 +2067,7 @@ readForecast:
 				i:=trim(A_LoopField)
 				i:=RegExReplace(i,"\s+"," ")
 				if (tmpDt=1) {													; first column is service
-					if (j:=objHasValue(Forecast_val,i)) {						; match in Forecast_val array
+					if (j:=objHasValue(Forecast_val,i,"RX")) {						; match in Forecast_val array
 						clip_nm := Forecast_svc[j]
 					} else {
 						clip_nm := i
@@ -2940,11 +2940,18 @@ meds2 := ["procainamide","quinidine","disopyramide"
 	}
 }
 
-ObjHasValue(aObj, aValue) {
-; From http://www.autohotkey.com/board/topic/84006-ahk-l-containshasvalue-method/	
+ObjHasValue(aObj, aValue, rx:="") {
+; modified from http://www.autohotkey.com/board/topic/84006-ahk-l-containshasvalue-method/	
     for key, val in aObj
-        if(val = aValue)
-            return, key, ErrorLevel := 0
+		if (rx="RX") {
+			if (aValue ~= val) {
+				return, key, Errorlevel := 0
+			}
+		} else {
+			if (val = aValue) {
+				return, key, ErrorLevel := 0
+			}
+		}
     return, false, errorlevel := 1
 }
 
