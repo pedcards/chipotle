@@ -85,7 +85,7 @@ FileInstall, chipotle.ini, chipotle.ini
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.5.0"
+vers := "1.5.1"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -107,7 +107,7 @@ servfold := "patlist"
 if (ObjHasValue(admins,user)) {
 	isAdmin := true
 	if (InStr(A_WorkingDir,"AutoHotkey")) {
-		tmp:=CMsgBox("Test system","Use test system?","&Local|&Server|Production","Q","V")
+		tmp:=CMsgBox("Test system","Use test system?","&Local|&Test Server|Production","Q","V")
 		if (tmp="Local") {
 			isLocal := true
 			FileDelete, currlist.xml
