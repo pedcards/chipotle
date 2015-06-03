@@ -339,7 +339,7 @@ If (nLen>10000) {
 			gosub IcuMerge
 		}
 	;*** Check if Electronic Forecast
-	} else if (clip ~= "s)Service.*Monday.*Tuesday") {
+	} else if (clip ~= "i)Service.*(day\b)+") {
 			Gosub readForecast
 	}
 }
@@ -2034,25 +2034,27 @@ readForecast:
 		y.addElement("forecast","/root/lists")
 	}
 	fcDate:=[]
-	clipboard =
+	fcDateline:=Forecast_val[objHasValue(Forecast_svc,"Dateline")]
+	;clipboard =
 	clip_row := 0
-	clip := substr(clip,(clip ~= "i)Service.*Monday.*Tuesday"))
+	clip := substr(clip,(clip ~= fcDateline))
 	Loop, parse, clip, `n, `r
 	{
 		clip_full := A_LoopField
 		If !(clip_full)															; blank line exits scan
 			break
-		if (clip_full ~= "Service.*Monday.*Tuesday")							; ignore date header
+		if (clip_full ~= fcDateline)											; ignore date header
 			continue
-		if (clip_full ~= "(\d{1,2}/\d{1,2}/\d{2,4}\t){3,}") {					; date line matches 3 or more date strings
+		if (clip_full ~= "(\d{1,2}/\d{1,2}(/\d{2,4})?\t){3,}") {					; date line matches 3 or more date strings
 			j := 0
 			Loop, parse, clip_full, %A_Tab%
 			{
 				i := A_LoopField
-				if (i ~= "\b\d{1,2}/\d{1,2}/\d{2,4}\b") {						; only parse actual date strings
+				if (i ~= "\b\d{1,2}/\d{1,2}(/\d{2,4})?\b") {						; only parse actual date strings
 					j ++
 					tmp := parseDate(i)
-					tmpDt := tmp.YYYY . tmp.MM . tmp.DD
+					tmpDt := "2015" . tmp.MM . tmp.DD
+					MsgBox,, % i ": " tmpDt, % tmp.YYYY "-" tmp.MM "-" tmp.DD
 					fcDate[j] := tmpDt											; fill fcDate[1-7] with date strings
 					if IsObject(y.selectSingleNode("/root/lists/forecast/call[@date='" tmpDt "']")) {
 						RemoveNode("/root/lists/forecast/call[@date='" tmpDt "']")				; clear existing node
@@ -2972,10 +2974,10 @@ parseDate(x) {
 ; Disassembles "2/9/2015" or "2/9/2015 8:31" into Yr=2015 Mo=02 Da=09 Hr=08 Min=31
 	StringSplit, DT, x, %A_Space%
 	StringSplit, DY, DT1, /
-	if !(DY0=3) {
-		;MsgBox Wrong date format!
-		return
-	}
+	;~ if !(DY0=3) {
+		;~ ;MsgBox Wrong date format!
+		;~ return
+	;~ }
 	StringSplit, DHM, DT2, :
 	return {"MM":zDigit(DY1), "DD":zDigit(DY2), "YYYY":DY3, "hr":zDigit(DHM1), "min":zDigit(DHM2), "Date":DT1, "Time":DT2}
 }
