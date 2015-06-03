@@ -187,9 +187,12 @@ Loop, Read, outdocs.csv
 outGrpV["Other"] := "callGrp" . (tmpIdxG+1)
 outGrpV["TO CALL"] := "callGrp" . (tmpIdxG+2)
 
+fcDateline:=Forecast_val[objHasValue(Forecast_svc,"Dateline")]
+
 SetTimer, SeekCores, 250
 SetTimer, SeekWordErr, 250
 
+initDone = true
 eventlog(">>>>> Session started.")
 Gosub GetIt
 Gosub MainGUI
@@ -295,6 +298,8 @@ Return
 OnClipboardChange:
 */
 {
+if !initDone													; Avoid clip processing before initialization complete
+	return
 AutoTrim Off
 DllCall("OpenClipboard", "Uint", 0)
 hMem := DllCall("GetClipboardData", "Uint", 1)
@@ -339,7 +344,7 @@ If (nLen>10000) {
 			gosub IcuMerge
 		}
 	;*** Check if Electronic Forecast
-	} else if (clip ~= "s)Service.*Monday.*Tuesday") {
+	} else if (clip ~= fcDateline) {
 			Gosub readForecast
 	}
 }
@@ -2036,22 +2041,25 @@ readForecast:
 	fcDate:=[]
 	clipboard =
 	clip_row := 0
-	clip := substr(clip,(clip ~= "i)Service.*Monday.*Tuesday"))
+	clip := substr(clip,(clip ~= fcDateline))
 	Loop, parse, clip, `n, `r
 	{
 		clip_full := A_LoopField
 		If !(clip_full)															; blank line exits scan
 			break
-		if (clip_full ~= "Service.*Monday.*Tuesday")							; ignore date header
+		if (clip_full ~= fcDateline)											; ignore date header
 			continue
-		if (clip_full ~= "(\d{1,2}/\d{1,2}/\d{2,4}\t){3,}") {					; date line matches 3 or more date strings
+		if (clip_full ~= "(\d{1,2}/\d{1,2}(/\d{2,4})?\t){3,}") {					; date line matches 3 or more date strings
 			j := 0
 			Loop, parse, clip_full, %A_Tab%
 			{
 				i := A_LoopField
-				if (i ~= "\b\d{1,2}/\d{1,2}/\d{2,4}\b") {						; only parse actual date strings
+				if (i ~= "\b\d{1,2}/\d{1,2}(/\d{2,4})?\b") {						; only parse actual date strings
 					j ++
 					tmp := parseDate(i)
+					if !tmp.YYYY {
+						tmp.YYYY := substr(sessdate,1,4)
+					}
 					tmpDt := tmp.YYYY . tmp.MM . tmp.DD
 					fcDate[j] := tmpDt											; fill fcDate[1-7] with date strings
 					if IsObject(y.selectSingleNode("/root/lists/forecast/call[@date='" tmpDt "']")) {
@@ -2972,10 +2980,10 @@ parseDate(x) {
 ; Disassembles "2/9/2015" or "2/9/2015 8:31" into Yr=2015 Mo=02 Da=09 Hr=08 Min=31
 	StringSplit, DT, x, %A_Space%
 	StringSplit, DY, DT1, /
-	if !(DY0=3) {
-		;MsgBox Wrong date format!
-		return
-	}
+	;~ if !(DY0=3) {
+		;~ ;MsgBox Wrong date format!
+		;~ return
+	;~ }
 	StringSplit, DHM, DT2, :
 	return {"MM":zDigit(DY1), "DD":zDigit(DY2), "YYYY":DY3, "hr":zDigit(DHM1), "min":zDigit(DHM2), "Date":DT1, "Time":DT2}
 }
