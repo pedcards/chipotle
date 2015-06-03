@@ -187,9 +187,12 @@ Loop, Read, outdocs.csv
 outGrpV["Other"] := "callGrp" . (tmpIdxG+1)
 outGrpV["TO CALL"] := "callGrp" . (tmpIdxG+2)
 
+fcDateline:=Forecast_val[objHasValue(Forecast_svc,"Dateline")]
+
 SetTimer, SeekCores, 250
 SetTimer, SeekWordErr, 250
 
+initDone = true
 eventlog(">>>>> Session started.")
 Gosub GetIt
 Gosub MainGUI
@@ -295,6 +298,8 @@ Return
 OnClipboardChange:
 */
 {
+if !initDone													; Avoid clip processing before initialization complete
+	return
 AutoTrim Off
 DllCall("OpenClipboard", "Uint", 0)
 hMem := DllCall("GetClipboardData", "Uint", 1)
@@ -339,7 +344,7 @@ If (nLen>10000) {
 			gosub IcuMerge
 		}
 	;*** Check if Electronic Forecast
-	} else if (clip ~= "i)Service.*(day\b)+") {
+	} else if (clip ~= fcDateline) {
 			Gosub readForecast
 	}
 }
@@ -2034,8 +2039,7 @@ readForecast:
 		y.addElement("forecast","/root/lists")
 	}
 	fcDate:=[]
-	fcDateline:=Forecast_val[objHasValue(Forecast_svc,"Dateline")]
-	;clipboard =
+	clipboard =
 	clip_row := 0
 	clip := substr(clip,(clip ~= fcDateline))
 	Loop, parse, clip, `n, `r
@@ -2053,8 +2057,10 @@ readForecast:
 				if (i ~= "\b\d{1,2}/\d{1,2}(/\d{2,4})?\b") {						; only parse actual date strings
 					j ++
 					tmp := parseDate(i)
-					tmpDt := "2015" . tmp.MM . tmp.DD
-					MsgBox,, % i ": " tmpDt, % tmp.YYYY "-" tmp.MM "-" tmp.DD
+					if !tmp.YYYY {
+						tmp.YYYY := substr(sessdate,1,4)
+					}
+					tmpDt := tmp.YYYY . tmp.MM . tmp.DD
 					fcDate[j] := tmpDt											; fill fcDate[1-7] with date strings
 					if IsObject(y.selectSingleNode("/root/lists/forecast/call[@date='" tmpDt "']")) {
 						RemoveNode("/root/lists/forecast/call[@date='" tmpDt "']")				; clear existing node
