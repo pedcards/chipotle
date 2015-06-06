@@ -34,4 +34,7 @@ fileOut := "chipotle-" versNew "-" A_Now ".exe"
 Run, %ahk2exe_loc% /in "chipotle.tmp" /out "chipotle.exe" /icon %fileIco% /mpress 1
 FileCopy, chipotle.exe, %fileOut%
 
+;~ netFile := """\\chmc16\Cardio\Inpatient List\chipotle\chipotle.exe"""
+;~ FileCopy, chipotle.exe, %netFile%
+
 #Include strx.ahk
