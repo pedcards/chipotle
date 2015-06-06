@@ -34,14 +34,18 @@ if ErrorLevel {
 	MsgBox Cancelled
 	ExitApp
 }
+;FileDelete chipotle.tmp.bak
+FileMove, %fileIn%, chipotle.tmp.bak, 1
+
 
 txtOut := RegExReplace(txt,vers.value,versNewStr,,1)
 FileDelete chipotle.tmp
 FileAppend, %txtOut%, chipotle.tmp
 
 fileOut := "chipotle-" versNew "-" A_Now ".exe" 
-Run, %ahk2exe_loc% /in "chipotle.tmp" /out "chipotle.exe" /icon %fileIco% /mpress 1
+RunWait, %ahk2exe_loc% /in "chipotle.tmp" /out "chipotle.exe" /icon %fileIco% /mpress 1
 FileCopy, chipotle.exe, %fileOut%
+FileMove, chipotle.tmp, chipotle.ahk, 1
 
 if (user="tchun1") {
 	netDir := "\\chmc16\Cardio\Inpatient List\chipotle\"
