@@ -12,14 +12,26 @@
 SendMode Input ; Recommended for new scripts due to its superior speed and reliability.
 SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 
-ahk2exe_loc := "O:\PApps\PortableApps\AutoHotkey\Ahk2Exe.exe"
-ahk2exe_mpr := "O:\PApps\PortableApps\AutoHotkey\mpress.exe"
+ahk_path := "O:\PApps\PortableApps\AutoHotkey"
+ahk2exe_loc := ahk_path "\Ahk2Exe.exe"
+ahk2exe_mpr := ahk_path "\mpress.exe"
 
 fileIn := "chipotle.ahk"
-fileOut := "chipotle.exe"
-iconIn := "pepper32.ico"
-splitpath, fileIn,,,,fileNam
+fileIco := "pepper32.ico"
 
-MsgBox % fileIn "`n" fileNam
+FileRead, txt, %fileIn%
+
+RegExMatch(txt,"Oi)vers := "".*""",vers) 
+versOld := strX(vers.value,"""",1,1,"""",1,1)
+InputBox, versNew, Change version string, % "Previous version: " versOld,,,,,,,,% versOld
+versNewStr := "vers := """ versNew """"
+
+txtOut := RegExReplace(txt,vers.value,versNewStr,,1)
+FileDelete chipotle.tmp
+FileAppend, %txtOut%, chipotle.tmp
+
+fileOut := "chipotle-" versNew "-" A_Now ".exe" 
+Run, %ahk2exe_loc% /in "chipotle.tmp" /out "chipotle.exe" /icon %fileIco% /mpress 1
+FileCopy, chipotle.exe, %fileOut%
 
 #Include strx.ahk
