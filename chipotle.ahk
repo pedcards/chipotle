@@ -85,7 +85,7 @@ FileInstall, chipotle.ini, chipotle.ini
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.5.2"
+vers := "1.5.3"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -344,7 +344,7 @@ If (nLen>10000) {
 			gosub IcuMerge
 		}
 	;*** Check if Electronic Forecast
-	} else if (clip ~= fcDateline) {
+	} else if ((clip ~= fcDateline) and !(soText)) {
 			Gosub readForecast
 	}
 }
@@ -2377,6 +2377,7 @@ SignOut:
 	Clipboard := soText
 	MsgBox Text has been copied to clipboard.
 	eventlog(location " weekly signout.")
+	soText =
 Return
 }
 
