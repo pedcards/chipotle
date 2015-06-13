@@ -344,7 +344,7 @@ If (nLen>10000) {
 			gosub IcuMerge
 		}
 	;*** Check if Electronic Forecast
-	} else if (clip ~= fcDateline) {
+	} else if ((clip ~= fcDateline) and !(soText)) {
 			Gosub readForecast
 	}
 }
@@ -2377,6 +2377,7 @@ SignOut:
 	Clipboard := soText
 	MsgBox Text has been copied to clipboard.
 	eventlog(location " weekly signout.")
+	soText =
 Return
 }
 
