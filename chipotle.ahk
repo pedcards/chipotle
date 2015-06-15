@@ -2525,8 +2525,8 @@ PrintIt:
 			. ((tmp:=onCall.ICU_F) ? "ICU Fellow: " tmp "   " : "")
 			. ((tmp:=onCall.EP) ? "EP: " tmp "   " : "")
 			. ((tmp:=onCall.TEE) ? "TEE: " tmp "   " : "")
-			. ((tmp:=onCall.ARNP_Cath) ? "ARNP Cath: " tmp "   " : "")
-			. ((tmp:=onCall.ARNP_RC6) ? "ARNP RC6: " tmp " 7-4594   " : "")
+			. ((tmp:=onCall.ARNP_CL) ? "ARNP Cath: " tmp "   " : "")
+			. ((tmp:=onCall.ARNP_IP) ? "ARNP RC6: " tmp " 7-4594   " : "")
 			. ((tmp:=onCall.CICU) ? "CICU: " tmp " 7-6503   " : "")
 			. ((tmp:=onCall.Reg_Con) ? "Reg Cons: " tmp "   " : "")
 	if (rtfCall) {
