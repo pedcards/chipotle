@@ -2536,7 +2536,7 @@ PrintIt:
 			. ((tmp:=onCall.TEE) ? "TEE: " tmp "   " : "")
 			. ((tmp:=onCall.ARNP_CL) ? "ARNP Cath: " tmp "   " : "")
 			. ((tmp:=onCall.ARNP_IP) ? "ARNP RC6: " tmp " 7-4594   " : "")
-			. ((tmp:=onCall.CICU) ? "CICU: " tmp " 7-6503   Fellow: 7-6507   " : "")
+			. ((tmp:=onCall.CICU) ? "CICU: " tmp " 7-6503, Fellow: 7-6507   " : "")
 			. ((tmp:=onCall.Reg_Con) ? "Reg Cons: " tmp "   " : "")
 	if (rtfCall) {
 		rtfCall .= "`n\line`n"
