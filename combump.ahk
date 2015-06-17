@@ -51,8 +51,10 @@ if (user="tchun1") {
 	netDir := "\\chmc16\Cardio\Inpatient List\chipotle\"
 	netFile := """" netDir "chipotle.exe"""
 	netOld := """" netDir "chipotle." versOld ".exe"""
+	netIni := """" netDir "chipotle.ini"""
 	FileMove, %netFile%, %netOld%
 	FileCopy, chipotle.exe, %netFile%, 1
+	FileCopy, chipotle.ini, %netIni%, 1
 }
 
 #Include strx.ahk

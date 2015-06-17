@@ -85,7 +85,7 @@ FileInstall, chipotle.ini, chipotle.ini
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.5.3"
+vers := "1.5.4"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -213,6 +213,8 @@ csrDocs:=[]
 loc:=Object()
 CIS_cols:=[]
 CIS_colvals:=[]
+meds1:=[]
+meds2:=[]
 Forecast_svc:=[]
 Forecast_val:=[]
 
@@ -261,6 +263,12 @@ Forecast_val:=[]
 		if (sec="CORES_struc") {
 			splitIni(i,c1,c2)
 			%c1% := c2
+		}
+		if (sec="MEDS1") {
+			meds1.Insert(i)
+		}
+		if (sec="MEDS2") {
+			meds2.Insert(i)
 		}
 		if (sec="Forecast") {
 			splitIni(i,c1,c2)
@@ -2523,16 +2531,17 @@ PrintIt:
 			. ((tmp:=onCall.Ward_F) ? "Ward Fellow: " tmp "   " : "")
 			. ((tmp:=onCall.ICU_A) ? "ICU: " tmp "   " : "")
 			. ((tmp:=onCall.ICU_F) ? "ICU Fellow: " tmp "   " : "")
+			. ((tmp:=onCall.TXP) ? "Txp: " tmp "   " : "")
 			. ((tmp:=onCall.EP) ? "EP: " tmp "   " : "")
 			. ((tmp:=onCall.TEE) ? "TEE: " tmp "   " : "")
 			. ((tmp:=onCall.ARNP_CL) ? "ARNP Cath: " tmp "   " : "")
 			. ((tmp:=onCall.ARNP_IP) ? "ARNP RC6: " tmp " 7-4594   " : "")
-			. ((tmp:=onCall.CICU) ? "CICU: " tmp " 7-6503   " : "")
+			. ((tmp:=onCall.CICU) ? "CICU: " tmp " 7-6503, Fellow: 7-6507   " : "")
 			. ((tmp:=onCall.Reg_Con) ? "Reg Cons: " tmp "   " : "")
 	if (rtfCall) {
 		rtfCall .= "`n\line`n"
 	}
-	rtfCall .= "\ul HC Fax: 987-3839   Clinic RN: 7-5389   Echo Lab: 7-2019   Echo West: 7-0000   RC6.Charge RN: 7-0000   RC6.UC Desk: 7-0000   FA6.Charge RN: 7-0000   FA6.UC Desk: 7-0000\ul0"
+	rtfCall .= "\ul HC Fax: 987-3839   Clinic RN: 7-5389   Echo Lab: 7-2019   RC6.Charge RN: 7-2810,7-6200   RC6.UC Desk: 7-2021   FA6.Charge RN: 7-2475   FA6.UC Desk: 7-2040\ul0"
 	
 	rtfOut =
 (
@@ -2908,44 +2917,27 @@ RemoveNode(node) {
 	q.parentNode.removeChild(q)
 }
 
-MedListParse(medList,bList,mrn,yl) {
-meds1 := ["furosemide","Lasix","diuril","chlorothiazide","hydrochlorothiazide","bumex","bumetanide","aldactone","spironolactone","ethacyrnic acid"
-	,"aspirin","potassium","warfarin","coumadin","lovenox","enoxaparin","arginine","sildenafil","carvedilol","losartan","torsemide"
-	,"captopril","enalapril","lisinopril"
-	,"neosynephrine","phenylephrine","epinephrine","norepinephrine","dopamine","dobutamine","milrinone","nicardipine","nitroprusside","vasopressin"
-	,"prostaglandin","prostacyclin","alprostadil"
-	,"tacrolimus","sirolimus"]
-meds2 := ["procainamide","quinidine","disopyramide"
-	,"lidocaine","mexiletine","phenytoin","moricizine"
-	,"flecainide","propafenone"
-	,"propranolol","atenolol","nadolol","metoprolol","pindolol","esmolol"
-	,"ibutilide","sotalol","amiodarone","dofetilide"
-	,"verapamil","diltiazem"
-	,"digoxin","adenosine","phenylephrine","midodrine","fludrocortisone","atropine"]
-
-;	May convert this search into arrays or possibly regex to avoid matching strings inside words, like "LR"
-
+MedListParse(medList,bList,mrn,yl) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR")
+	global meds1, meds2
 	tempArray = 
 	medWords =
 	StringReplace, bList, bList, •%A_space%, ``, ALL
 	StringSplit, tempArray, bList, ``
 	Loop, %tempArray0%
 	{
-		if (StrLen(t:=tempArray%A_Index%)>2) {							; Discard essentially blank lines
-			StringReplace, tt, t, %A_Space%, ``, All
-			StringSplit, medWords, tt, ``
-			medName = %medWords1%										; Check first word of line
-			if ObjHasValue(meds1, medName) {
-				yl.addElement(medlist, "//id[@mrn='" mrn "']/MAR", {class: "Cardiac"}, t)
-				continue
-			}
-			if ObjHasValue(meds2, medName) {
-				yl.addElement(medlist, "//id[@mrn='" mrn "']/MAR", {class: "Arrhythmia"}, t)
-				continue
-			}
-			else
-				yl.addElement(medlist, "//id[@mrn='" mrn "']/MAR", {class: "Other"}, t)
+		if (StrLen(medName:=tempArray%A_Index%)<3)													; Discard essentially blank lines
+			continue
+		medName:=RegExReplace(medName,"[0-9\.]+\sm(g|Eq).*Rate..IV","gtt.")
+		if ObjHasValue(meds1, medName, "RX") {
+			yl.addElement(medlist, "//id[@mrn='" mrn "']/MAR", {class: "Cardiac"}, medName)
+			continue
 		}
+		if ObjHasValue(meds2, medName, "RX") {
+			yl.addElement(medlist, "//id[@mrn='" mrn "']/MAR", {class: "Arrhythmia"}, medName)
+			continue
+		}
+		else
+			yl.addElement(medlist, "//id[@mrn='" mrn "']/MAR", {class: "Other"}, medName)
 	}
 }
 
