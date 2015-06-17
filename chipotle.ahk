@@ -2917,32 +2917,27 @@ RemoveNode(node) {
 	q.parentNode.removeChild(q)
 }
 
-MedListParse(medList,bList,mrn,yl) {
+MedListParse(medList,bList,mrn,yl) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR")
 	global meds1, meds2
-
-;	May convert this search into arrays or possibly regex to avoid matching strings inside words, like "LR"
-
 	tempArray = 
 	medWords =
 	StringReplace, bList, bList, •%A_space%, ``, ALL
 	StringSplit, tempArray, bList, ``
 	Loop, %tempArray0%
 	{
-		if (StrLen(t:=tempArray%A_Index%)>2) {							; Discard essentially blank lines
-			StringReplace, tt, t, %A_Space%, ``, All
-			StringSplit, medWords, tt, ``
-			medName = %medWords1%										; Check first word of line
-			if ObjHasValue(meds1, medName, "RX") {
-				yl.addElement(medlist, "//id[@mrn='" mrn "']/MAR", {class: "Cardiac"}, t)
-				continue
-			}
-			if ObjHasValue(meds2, medName, "RX") {
-				yl.addElement(medlist, "//id[@mrn='" mrn "']/MAR", {class: "Arrhythmia"}, t)
-				continue
-			}
-			else
-				yl.addElement(medlist, "//id[@mrn='" mrn "']/MAR", {class: "Other"}, t)
+		if (StrLen(medName:=tempArray%A_Index%)<3)													; Discard essentially blank lines
+			continue
+		medName:=RegExReplace(medName,"[0-9\.]+\sm(g|Eq).*Rate..IV","gtt.")
+		if ObjHasValue(meds1, medName, "RX") {
+			yl.addElement(medlist, "//id[@mrn='" mrn "']/MAR", {class: "Cardiac"}, medName)
+			continue
 		}
+		if ObjHasValue(meds2, medName, "RX") {
+			yl.addElement(medlist, "//id[@mrn='" mrn "']/MAR", {class: "Arrhythmia"}, medName)
+			continue
+		}
+		else
+			yl.addElement(medlist, "//id[@mrn='" mrn "']/MAR", {class: "Other"}, medName)
 	}
 }
 
