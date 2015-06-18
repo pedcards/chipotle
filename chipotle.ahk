@@ -140,8 +140,9 @@ if (isCICU) {
 	mainTitle2 := "Children's Heart Center"
 	mainTitle3 := "Inpatient Longitudinal Integrator"
 } else if (isARNP) {
-	loc := ["CSR"]
+	loc := ["CSR","CICU"]
 	loc["CSR"] := {"name":"Cardiac Surgery", "datevar":"GUIcsrTXT"}
+	loc["CICU"] := {"name":"Cardiac ICU", "datevar":"GUIicuTXT"}
 	callLoc := "CSR"
 	mainTitle1 := "CON CARNE"
 	mainTitle2 := "Computerized Organized Notebook"
