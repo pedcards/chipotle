@@ -52,6 +52,7 @@ if (user="tchun1") {
 	netFile := """" netDir "chipotle.exe"""
 	netOld := """" netDir "chipotle." versOld ".exe"""
 	netIni := """" netDir "chipotle.ini"""
+
 	FileMove, %netFile%, %netOld%
 	FileCopy, chipotle.exe, %netFile%, 1
 	FileCopy, chipotle.ini, %netIni%, 1
