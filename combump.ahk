@@ -44,18 +44,19 @@ FileAppend, %txtOut%, chipotle.tmp
 
 fileOut := "chipotle-" versNew "-" A_Now ".exe" 
 RunWait, %ahk2exe_loc% /in "chipotle.tmp" /out "chipotle.exe" /icon %fileIco% /mpress 1
-FileCopy, chipotle.exe, %fileOut%
+FileCopy, chipotle.exe, %fileOut%, 1
+FileMove, chipotle.ini, chipotle.ini, 1
 FileMove, chipotle.tmp, chipotle.ahk, 1
 
-if (user="tchun1") {
-	netDir := "\\chmc16\Cardio\Inpatient List\chipotle\"
-	netFile := """" netDir "chipotle.exe"""
-	netOld := """" netDir "chipotle." versOld ".exe"""
-	netIni := """" netDir "chipotle.ini"""
+;~ if (user="tchun1") {
+	;~ netDir := "\\chmc16\Cardio\Inpatient List\chipotle\"
+	;~ netFile := """" netDir "chipotle.exe"""
+	;~ netOld := """" netDir "chipotle." versOld ".exe"""
+	;~ netIni := """" netDir "chipotle.ini"""
 
-	FileMove, %netFile%, %netOld%
-	FileCopy, chipotle.exe, %netFile%, 1
-	FileCopy, chipotle.ini, %netIni%, 1
-}
+	;~ FileMove, %netFile%, %netOld%
+	;~ FileCopy, chipotle.exe, %netFile%, 1
+	;~ FileCopy, chipotle.ini, %netIni%, 1
+;~ }
 
 #Include strx.ahk
