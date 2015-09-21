@@ -13,52 +13,14 @@
 	CHICA = Children's Hospital Inpatient CORES Aggregator
 */
 
-/*	Version History:
-	0.1 - Live version reads changes in clipboard. Practice version loads previously saved copies of .clip files. Clipboard copier creates .clip files for the practice version, then exits. In this alpha version, uncomment the section you want to run. XML(x) is the CIS patient list. XML(y) is the CORES data. CORES subroutine parses records. Creates MRN if does not exist. Creates DEMOG section with name (which could change). INFO section (timestamped) for allergies, weight, code status, and history if exists. MEDS section (timestamped) for drips, scheduled, PRN, and diet. INFO and MEDS section always replaced with new info. DEMOG info will populate from active XML(x).
-	
-	0.2 - Correctly handles and updates info from CIS and CORES lists. All data stored in XML(y), no need for XML(x) apparently. Properly created GUI to ask which list this should populate (in future versions, this may be able to correctly recognize which tab on CIS or get direct feed from CIS, but neither are likely). 
-
-	0.3	- Upload to server using PuttySCP. CLI string encrypted to avoid prying eyes. Tags cardiac and antiarrhythmic meds. 
-
-	0.4 - GUImain remains on top until quit. Loops until quit. Downloads currlist.xml from server, gets dates of last data. Creates/adds archlist.xml (having trouble copying node from currlist.xml to archlist.xml). Purges ID/mrn for obsolete records (not on any CIS lists) prior to upload (asks first).
-
-	0.41 - Changed order of user process so user would just click on GUImain when on desired patient list. 
-	Try to read UI elements from CIS, recognize patient list or CORES being accessed. AHK sends "Send, !{esc}" to go back to last active window, then {ctrl-A}{ctrl-C} to copy for processing. 
-
-	0.42 - Was pointless to try to read GUI elements from CIS. Download currlist.xml with diagnoses added on server side.
-	
-	0.43 - Version num displayed on splash screen. Injects CIS list data into patlist.rtf template after ProcessCIS, then sends to print (defaults to Word). RTF is a pain in the neck. Most users will only access one list, not all of them. Most recent printfiles stored. 
-
-	0.44 - Fixed PHP back button logic using SESSION variables. Fixed some typos in MedParseList(). Fixed error with prematurely exiting QueryList. Writes out Diagnoses etc to archlist upon retrieving remote currlist. Fixed parsing of CORES fields. Fixed formatting of parsed CORES fields. Added RemoveNodes() to reduce redundancy. 
-	
-	0.45 - Added FetchNodes() to retreive saved data from Archlist if it exists. Stores providers within Diagnoses so saved. Closes "View Downloads" when launched from CIS. Added Transplant and PHTN groups. GetIt and MainGUI get info from loc[] array. Revise button logic for multiple services. Added subsequent print button, which allows reprint option (should this be an Open option rather than Print?) 
-	
-	0.50 - Added editing features into the SALSA (CIS) aggregator. Clunkier than jQuery, but data can be entered from both the CHIPS and the SALSA sides. Switched to RSA key authentication rather than sending password. Secure WriteOut process to ensure any node updates are written to most up-to-date currlist. Fixed bug where xpath->"//id" found any node. Added MRN to list/cores so that patients kept if in EITHER existing patient list OR in CORES printout (Cards and Cardiac Surgery).
-	
-	0.60 - All write processes now use the lockfile function to prevent data collision. All editable items have timestamp. Updated GetIt process to compare timestamps for each element between the remote and local files to prevent overwrite of local data that has not been uploaded yet. Identify and set status for Txp patients if matches list. Various bug fixes.
-	
-	0.70 - Replaced EntryForm with custom Form subroutine. This took a long time.
-	
-	0.80 - Corrected errors introduced with custom Form subroutine. All items are indexed by created timestamp, so event date/time can now be adjusted. Closing MainGUI without saving presents dialog. Removed excessive y.save("currlist.xml") calls to avoid data collision; all writes performed with WriteOut(). SaveIt loads freshest version before compression, recompares the server copy, then stores/syncs final copy. Check off task moves to <plan/done> and adds {done:A_now} attribute. Weekly summary includes Dx and EP Dx. GUI fixes. 
-	
-	0.90 - Fixed print layout and printout errors. RTF is a PITA. Fixed formatting of MAR. Fixed formatting of listviews. Fixed archivenode(), more robust. GetIt moves <id/diagnoses/prov> to <id/prov>. Fixed logic of deleting tasks and notes by moving to </trash> node, will keep from rewriting notes from web on GetIt. Trash is dumped when patient discharged/archived.
-
-	1.00 - First official release!
-	
-	1.10 - Adjusted print routines. Census routine fires when Card, CSR, and Txp are updated. Print format changes.
-	
-	1.20 - Link to Admin interface (requires CHAI.exe). Spell checking of cardiologist name. Only display MAR if fresh data <1 day. Separate interface for CICU users, still need to complete phone call routines. Added PtParse() function, although is there enough redundancy to justify a separate function? Uses CustomMsgBox for multi responses (with some mods for visual appeal). Changed process for CORES recognition, actively watching when CORES window and print window pop up.
-	
-	1.30 - Parses CIS list via fieldType(), uses RegExp to identify best match for column. User does not need to have standard column config!
-	
-	* Print to PDF instead of Word
-	* Add EP to census
-	* census compare MRN for new Card and CSR since last run, will tease out turnover vs chronic patients
-	* Clean archive of records with no info (admin function)
-	
-*/
-
 /*	Todo lists: 
+	AHK:
+		- Word user dialog is back
+		- Handling "Transplant Surgery" and "Cardiac Transplant and Heart Failure" as medical services
+		- List order (consults at end of list)
+		- Change column order on print
+		- Reformat weekly signout
+		- Reformat phone list banner
 	PHP:
 		- Tasks
 		- Problem list editor
@@ -2101,7 +2063,7 @@ readForecast:
 		k:=fcN.item(A_index-1)
 		tmpDt := k.getAttribute("date")
 		tmpDt -= A_Now, Days
-		if (tmpDt < 0) {
+		if (tmpDt < -1) {
 			RemoveNode("/root/lists/forecast/call[@date='" k.getAttribute("date") "']")
 		}
 	}
