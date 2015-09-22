@@ -352,12 +352,16 @@ Return
 
 SeekWordErr:
 {
-if !(Word_win2 := WinExist("User Name"))
+if (Word_win2 := WinExist("User Name")) {
+	ControlSend,, {Enter}, ahk_id %Word_win2%
+	MsgBox,,Win 2, %Word_win2%
 	return
-If !(Word_win1 := WinExist("Microsoft Office Word", "The command cannot be performed because a dialog box is open."))
+}
+If (Word_win1 := WinExist("Microsoft Office Word", "The command cannot be performed because a dialog box is open.")) {
+	ControlSend,, {Esc}, ahk_id %Word_win1%
+	MsgBox,,Win 1, %Word_win1%
 	return
-ControlSend,, {Esc}, ahk_id %Word_win1%
-ControlSend,, {Enter}, ahk_id %Word_win2%
+}
 Return
 }
 
