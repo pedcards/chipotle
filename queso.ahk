@@ -1,4 +1,5 @@
-/* CHipotle Admin Interface (CHAI)
+/*	QUESO - QUEry for System Organization
+	formerly CHipotle Admin Interface (CHAI)
 */
 #NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
 Clipboard = 	; Empty the clipboard

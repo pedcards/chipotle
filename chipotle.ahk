@@ -45,7 +45,7 @@ FileGetTime, exeDT, chipotle.exe
 iniDT -= %exeDT%, Seconds										; Will be negative if chipotle.ini is older.
 FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.exe is newer (and contains newer .ini)
 ;FileInstall, pscp.exe, pscp.exe								; Necessary files (?)
-;FileInstall, chai.exe, chai.exe
+;FileInstall, queso.exe, queso.exe
 ;FileInstall, printer.png, printer.png
 
 Sleep 500
@@ -465,7 +465,7 @@ return
 }
 
 ButtonAdmin:
-	Run, chai.exe
+	Run, queso.exe
 return
 
 QueryList:
