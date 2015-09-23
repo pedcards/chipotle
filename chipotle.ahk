@@ -45,12 +45,12 @@ FileGetTime, exeDT, chipotle.exe
 iniDT -= %exeDT%, Seconds										; Will be negative if chipotle.ini is older.
 FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.exe is newer (and contains newer .ini)
 ;FileInstall, pscp.exe, pscp.exe								; Necessary files (?)
-;FileInstall, chai.exe, chai.exe
+;FileInstall, queso.exe, queso.exe
 ;FileInstall, printer.png, printer.png
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.5.6"
+vers := "1.5.7"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -357,12 +357,12 @@ SeekWordErr:
 {
 if (Word_win2 := WinExist("User Name")) {
 	ControlSend,, {Enter}, ahk_id %Word_win2%
-	MsgBox,,Win 2, %Word_win2%
+	;MsgBox,,Win 2, %Word_win2%
 	return
 }
 If (Word_win1 := WinExist("Microsoft Office Word", "The command cannot be performed because a dialog box is open.")) {
 	ControlSend,, {Esc}, ahk_id %Word_win1%
-	MsgBox,,Win 1, %Word_win1%
+	;MsgBox,,Win 1, %Word_win1%
 	return
 }
 Return
@@ -465,7 +465,7 @@ return
 }
 
 ButtonAdmin:
-	Run, chai.exe
+	Run, queso.exe
 return
 
 QueryList:
@@ -2173,7 +2173,8 @@ GetIt:
 		IfWinExist ahk_id %consWin% 
 		{
 			ControlSend,, {y}{Enter}, ahk_id %consWin%
-			Progress,, Console %consWin% found
+			;Progress,, Console %consWin% found
+			Progress,, Lost and found...
 		}
 		WinWaitClose ahk_id %consWin%
 	}
@@ -2183,6 +2184,8 @@ GetIt:
 		StringReplace, templist, templist, `r`n,, All	; AHK XML cannot handle the UNIX format when modified on server.
 		StringReplace, templist, templist, `n,, All	
 	z := new XML(templist)								; convert templist into XML object Z
+	Progress,, Mixing metaphors...
+	
 
 	if !(FileExist("currlist.xml")) {
 		z.save("currlist.xml")
@@ -2215,6 +2218,8 @@ GetIt:
 			locPath.replaceChild(clone,locNode)
 		}
 	}
+	Progress,, Being John Malkovich...
+	
 	
 /*	 Cycle through ID@MRN's
 		<demog> - never modified. local info always newest.
@@ -2303,7 +2308,7 @@ GetIt:
 		loc[str,"date"] := y.getAtt("/root/lists/" . str, "date")
 	}
 	DateCORES := y.getAtt("/root/lists/cores", "date")
-	Progress 80, Processing...
+	Progress 80, Cranking it up...
 
 	yArch := new XML("archlist.xml")
 	if !IsObject(yArch.selectSingleNode("/root")) {			; if yArch is empty,
@@ -2327,7 +2332,7 @@ GetIt:
 		ArchiveNode("notes")
 		ArchiveNode("plan")
 	}
-	Progress, 100
+	Progress, 100, Raising the roof...
 	yArch.save("archlist.xml")											; Write out
 	Sleep 500
 	Progress, off
@@ -2343,14 +2348,15 @@ SignOut:
 		k := y.selectSingleNode("/root/id[@mrn='" soMRN "']")
 		so := ptParse(soMRN)
 		soSumm := so.NameL ", " so.NameF "`t" so.Unit " " so.Room "`t" so.MRN "`t" so.Sex "`t" so.Age "`t" so.Svc "`n"
-			. ((so.dxCard) ? "[DX] " so.dxCard " " : "")
-			. ((so.dxEP) ? "[EP] " so.dxEP " " : "")
+			. ((so.dxCard) ? "[DX] " so.dxCard "`n" : "")
+			. ((so.dxEP) ? "[EP] " so.dxEP "`n" : "")
+			. ((so.dxSurg) ? "[Surg] " so.dxSurg "`n" : "")
 		loop, % (soNotes := y.selectNodes("/root/id[@mrn='" soMRN "']/notes/weekly/summary")).length {	; loop through each Weekly Summary note.
 			soNote := soNotes.item(A_Index-1)
 			soDate := breakDate(soNote.getAttribute("date"))
-			soSumm .= "[" soDate.MM "/" soDate.DD "] "soNote.text . " "
+			soSumm .= "[" soDate.MM "/" soDate.DD "] "soNote.text . "`n"
 		}
-		soText .= soSumm "`n`n"
+		soText .= soSumm "`n"
 	}
 	Clipboard := soText
 	MsgBox Text has been copied to clipboard.
@@ -2421,15 +2427,15 @@ Return
 PrintIt:
 {
 	TblC:="\cellx", tw:=1440							; Measured in twips (1440 = 1", 720 = 1/2", 360 = 1/4")
-	rtfTblCols := 	  TblC . round(tw * 1.5)			; MRN (e.g. tab stop at 1.5")
-					. TblC . round(tw * 2.40)			; Name
+	rtfTblCols := 	  TblC . round(tw * 2.25)			; Location (e.g. tab stop at 1.5")
+					. TblC . round(tw * 3.75)			; MRN
 					. TblC . round(tw * 4.625)			; Sex/Age
 					. TblC . round(tw * 5.625)			; DOB
 					. TblC . round(tw * 6.5)			; Days
 					. TblC . round(tw * 7.0)			; Admit date
 					. TblC . round(tw * 7.875)			; Right margin
 
-	rtfTblCol2 :=	  TblC . round(tw * 2.40)			; Diagnoses (below NAME)
+	rtfTblCol2 :=	  TblC . round(tw * 2.25)			; Diagnoses (below NAME)
 					. TblC . round(tw * 5.625)			; Todo later (below DOB)
 					. TblC . round(tw * 7.875)			; Right margin
 
@@ -2481,9 +2487,9 @@ PrintIt:
 				. ((pr.dxNotes) ? "[[Notes]] " pr.dxNotes : "")
 		
 		rtfList .= "\keepn\trowd\trgaph144\trkeep" rtfTblCols "`n\b"
+			. "\intbl " . pr.nameL ", " pr.nameF ((pr.provCard) ? "\fs12  (" pr.provCard . ((pr.provSchCard) ? "//" pr.provSchCard : "") ")\fs18" : "") "\cell`n"
 			. "\intbl " . pr.Unit " " pr.Room "\cell`n"
 			. "\intbl " . kMRN "\cell`n"
-			. "\intbl " . pr.nameL ", " pr.nameF ((pr.provCard) ? "\fs12  (" pr.provCard . ((pr.provSchCard) ? "//" pr.provSchCard : "") ")\fs18" : "") "\cell`n"
 			. "\intbl " . SubStr(pr.Sex,1,1) " " pr.Age "\cell`n" 
 			. "\intbl " . pr.DOB "\cell`n"
 			. "\intbl " . CIS_los "\cell`n"
@@ -2495,6 +2501,7 @@ PrintIt:
 			. "\intbl\fs12 " . pr_todo "\fs18\cell`n"
 			. "\row`n"
 	}
+
 	FormatTime, rtfNow, A_Now, yyyyMMdd
 	onCall := getCall(rtfNow)
 	rtfCall := ((tmp:=onCall.Ward_A) ? "Ward: " tmp "   " : "")
@@ -2504,14 +2511,13 @@ PrintIt:
 			. ((tmp:=onCall.TXP) ? "Txp: " tmp "   " : "")
 			. ((tmp:=onCall.EP) ? "EP: " tmp "   " : "")
 			. ((tmp:=onCall.TEE) ? "TEE: " tmp "   " : "")
+	rtfCall .= ((rtfCall) ? "`n\line`n" : "")
 			. ((tmp:=onCall.ARNP_CL) ? "ARNP Cath: " tmp "   " : "")
 			. ((tmp:=onCall.ARNP_IP) ? "ARNP RC6: " tmp " 7-4594   " : "")
 			. ((tmp:=onCall.CICU) ? "CICU: " tmp " 7-6503, Fellow: 7-6507   " : "")
 			. ((tmp:=onCall.Reg_Con) ? "Reg Cons: " tmp "   " : "")
-	if (rtfCall) {
-		rtfCall .= "`n\line`n"
-	}
-	rtfCall .= "\ul HC Fax: 987-3839   Clinic RN: 7-5389   Echo Lab: 7-2019   RC6.Charge RN: 7-2810,7-6200   RC6.UC Desk: 7-2021   FA6.Charge RN: 7-2475   FA6.UC Desk: 7-2040\ul0"
+	rtfCall .= ((rtfCall) ? "`n\line`n" : "")
+			. "\ul HC Fax: 987-3839   Clinic RN: 7-5389   Echo Lab: 7-2019   RC6.Charge RN: 7-2810,7-6200   RC6.UC Desk: 7-2021   FA6.Charge RN: 7-2475   FA6.UC Desk: 7-2040\ul0"
 	
 	rtfOut =
 (
@@ -2522,8 +2528,7 @@ PrintIt:
 )%rtfCall%
 (
 \par\line\fs18\b
-CHIPOTLE work-list\line
-Patient list:\~
+CHIPOTLE Patient List:\~
 )%locString%
 (
 \par\ql\b0
@@ -2531,12 +2536,24 @@ Patient list:\~
 {\trowd\trgaph144
 )%rtfTblCols%
 (
-\intbl\b Location\cell\intbl MR\cell\intbl Name\cell\intbl Sex/Age\cell\intbl DOB\cell\intbl Day\cell\intbl Admit\cell\b0
+\intbl\b Name
+\cell\intbl Location
+\cell\intbl MRN
+\cell\intbl Sex/Age
+\cell\intbl DOB
+\cell\intbl Day
+\cell\intbl Admit
+\cell\b0
 \row}
 \fs2\posx144\tx11160\ul\tab\ul0\par
 }
 {\footer\viewkind4\uc1\pard\f0\fs18\qc
-Page \chpgn\~\~\~\~\chdate\~\~\~\~\chtime
+Page \chpgn\~\~\~\~
+)%user%
+(
+\~\~\~\~
+\chdate\~\~\~\~
+\chtime
 \par\ql}
 
 )%rtfList%

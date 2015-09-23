@@ -1,4 +1,5 @@
-/* CHipotle Admin Interface (CHAI)
+/*	QUESO - QUEry for System Operations
+	formerly CHipotle Admin Interface (CHAI)
 */
 #NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
 Clipboard = 	; Empty the clipboard
@@ -24,7 +25,7 @@ MainGUI:
 	Gui, main:Add, Button, wp, Clean archive
 	Gui, main:Add, Button, wp gEnvInfo, Env Info
 	Gui, main:Add, Button, wp gActiveWindow, ActiveWindowInfo
-	Gui, main:Show, AutoSize, Admin
+	Gui, main:Show, AutoSize, QUESO Admin
 Return
 }
 
