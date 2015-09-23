@@ -357,12 +357,12 @@ SeekWordErr:
 {
 if (Word_win2 := WinExist("User Name")) {
 	ControlSend,, {Enter}, ahk_id %Word_win2%
-	MsgBox,,Win 2, %Word_win2%
+	;MsgBox,,Win 2, %Word_win2%
 	return
 }
 If (Word_win1 := WinExist("Microsoft Office Word", "The command cannot be performed because a dialog box is open.")) {
 	ControlSend,, {Esc}, ahk_id %Word_win1%
-	MsgBox,,Win 1, %Word_win1%
+	;MsgBox,,Win 1, %Word_win1%
 	return
 }
 Return
@@ -2173,7 +2173,8 @@ GetIt:
 		IfWinExist ahk_id %consWin% 
 		{
 			ControlSend,, {y}{Enter}, ahk_id %consWin%
-			Progress,, Console %consWin% found
+			;Progress,, Console %consWin% found
+			Progress,, Lost and found...
 		}
 		WinWaitClose ahk_id %consWin%
 	}
@@ -2183,6 +2184,8 @@ GetIt:
 		StringReplace, templist, templist, `r`n,, All	; AHK XML cannot handle the UNIX format when modified on server.
 		StringReplace, templist, templist, `n,, All	
 	z := new XML(templist)								; convert templist into XML object Z
+	Progress,, Mixing metaphors...
+	
 
 	if !(FileExist("currlist.xml")) {
 		z.save("currlist.xml")
@@ -2215,6 +2218,8 @@ GetIt:
 			locPath.replaceChild(clone,locNode)
 		}
 	}
+	Progress,, Being John Malkovich...
+	
 	
 /*	 Cycle through ID@MRN's
 		<demog> - never modified. local info always newest.
@@ -2303,7 +2308,7 @@ GetIt:
 		loc[str,"date"] := y.getAtt("/root/lists/" . str, "date")
 	}
 	DateCORES := y.getAtt("/root/lists/cores", "date")
-	Progress 80, Processing...
+	Progress 80, Cranking it up...
 
 	yArch := new XML("archlist.xml")
 	if !IsObject(yArch.selectSingleNode("/root")) {			; if yArch is empty,
@@ -2327,7 +2332,7 @@ GetIt:
 		ArchiveNode("notes")
 		ArchiveNode("plan")
 	}
-	Progress, 100
+	Progress, 100, Raising the roof...
 	yArch.save("archlist.xml")											; Write out
 	Sleep 500
 	Progress, off
