@@ -40,14 +40,17 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 WinClose, View Downloads - Windows Internet Explorer
 LV_Colors.OnMessage()
 
-FileInstall, chipotle.ini, chipotle.ini
-;FileInstall, pscp.exe, pscp.exe		; Necessary files 
+FileGetTime, iniDT, chipotle.ini
+FileGetTime, exeDT, chipotle.exe
+iniDT -= %exeDT%, Seconds										; Will be negative if chipotle.ini is older.
+FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.exe is newer (and contains newer .ini)
+;FileInstall, pscp.exe, pscp.exe								; Necessary files (?)
 ;FileInstall, chai.exe, chai.exe
 ;FileInstall, printer.png, printer.png
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.5.5"
+vers := "1.5.6"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -323,10 +326,10 @@ If (nLen>10000) {
 Return
 }
 
-^F12::
-	FileSelectFile , clipname,, %A_ScriptDir%, Select file:, AHK clip files (*.clip)
-	FileRead, Clipboard, *c %clipname%
-Return
+;~ ^F12::
+	;~ FileSelectFile , clipname,, %A_ScriptDir%, Select file:, AHK clip files (*.clip)
+	;~ FileRead, Clipboard, *c %clipname%
+;~ Return
 
 ;	===========================================================================================
 
