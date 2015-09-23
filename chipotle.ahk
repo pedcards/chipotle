@@ -2548,7 +2548,12 @@ CHIPOTLE Patient List:\~
 \fs2\posx144\tx11160\ul\tab\ul0\par
 }
 {\footer\viewkind4\uc1\pard\f0\fs18\qc
-Page \chpgn\~\~\~\~\chdate\~\~\~\~\chtime
+Page \chpgn\~\~\~\~
+)%user%
+(
+\~\~\~\~
+\chdate\~\~\~\~
+\chtime
 \par\ql}
 
 )%rtfList%
