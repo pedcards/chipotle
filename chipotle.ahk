@@ -2427,15 +2427,15 @@ Return
 PrintIt:
 {
 	TblC:="\cellx", tw:=1440							; Measured in twips (1440 = 1", 720 = 1/2", 360 = 1/4")
-	rtfTblCols := 	  TblC . round(tw * 1.5)			; MRN (e.g. tab stop at 1.5")
-					. TblC . round(tw * 2.40)			; Name
+	rtfTblCols := 	  TblC . round(tw * 2.25)			; Location (e.g. tab stop at 1.5")
+					. TblC . round(tw * 3.75)			; MRN
 					. TblC . round(tw * 4.625)			; Sex/Age
 					. TblC . round(tw * 5.625)			; DOB
 					. TblC . round(tw * 6.5)			; Days
 					. TblC . round(tw * 7.0)			; Admit date
 					. TblC . round(tw * 7.875)			; Right margin
 
-	rtfTblCol2 :=	  TblC . round(tw * 2.40)			; Diagnoses (below NAME)
+	rtfTblCol2 :=	  TblC . round(tw * 2.25)			; Diagnoses (below NAME)
 					. TblC . round(tw * 5.625)			; Todo later (below DOB)
 					. TblC . round(tw * 7.875)			; Right margin
 
@@ -2487,9 +2487,9 @@ PrintIt:
 				. ((pr.dxNotes) ? "[[Notes]] " pr.dxNotes : "")
 		
 		rtfList .= "\keepn\trowd\trgaph144\trkeep" rtfTblCols "`n\b"
+			. "\intbl " . pr.nameL ", " pr.nameF ((pr.provCard) ? "\fs12  (" pr.provCard . ((pr.provSchCard) ? "//" pr.provSchCard : "") ")\fs18" : "") "\cell`n"
 			. "\intbl " . pr.Unit " " pr.Room "\cell`n"
 			. "\intbl " . kMRN "\cell`n"
-			. "\intbl " . pr.nameL ", " pr.nameF ((pr.provCard) ? "\fs12  (" pr.provCard . ((pr.provSchCard) ? "//" pr.provSchCard : "") ")\fs18" : "") "\cell`n"
 			. "\intbl " . SubStr(pr.Sex,1,1) " " pr.Age "\cell`n" 
 			. "\intbl " . pr.DOB "\cell`n"
 			. "\intbl " . CIS_los "\cell`n"
@@ -2501,6 +2501,7 @@ PrintIt:
 			. "\intbl\fs12 " . pr_todo "\fs18\cell`n"
 			. "\row`n"
 	}
+
 	FormatTime, rtfNow, A_Now, yyyyMMdd
 	onCall := getCall(rtfNow)
 	rtfCall := ((tmp:=onCall.Ward_A) ? "Ward: " tmp "   " : "")
@@ -2527,8 +2528,7 @@ PrintIt:
 )%rtfCall%
 (
 \par\line\fs18\b
-CHIPOTLE work-list\line
-Patient list:\~
+CHIPOTLE Patient List:\~
 )%locString%
 (
 \par\ql\b0
@@ -2536,7 +2536,14 @@ Patient list:\~
 {\trowd\trgaph144
 )%rtfTblCols%
 (
-\intbl\b Location\cell\intbl MR\cell\intbl Name\cell\intbl Sex/Age\cell\intbl DOB\cell\intbl Day\cell\intbl Admit\cell\b0
+\intbl\b Name
+\cell\intbl Location
+\cell\intbl MRN
+\cell\intbl Sex/Age
+\cell\intbl DOB
+\cell\intbl Day
+\cell\intbl Admit
+\cell\b0
 \row}
 \fs2\posx144\tx11160\ul\tab\ul0\par
 }
