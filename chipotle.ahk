@@ -2348,14 +2348,15 @@ SignOut:
 		k := y.selectSingleNode("/root/id[@mrn='" soMRN "']")
 		so := ptParse(soMRN)
 		soSumm := so.NameL ", " so.NameF "`t" so.Unit " " so.Room "`t" so.MRN "`t" so.Sex "`t" so.Age "`t" so.Svc "`n"
-			. ((so.dxCard) ? "[DX] " so.dxCard " " : "")
-			. ((so.dxEP) ? "[EP] " so.dxEP " " : "")
+			. ((so.dxCard) ? "[DX] " so.dxCard "`n" : "")
+			. ((so.dxEP) ? "[EP] " so.dxEP "`n" : "")
+			. ((so.dxSurg) ? "[Surg] " so.dxSurg "`n" : "")
 		loop, % (soNotes := y.selectNodes("/root/id[@mrn='" soMRN "']/notes/weekly/summary")).length {	; loop through each Weekly Summary note.
 			soNote := soNotes.item(A_Index-1)
 			soDate := breakDate(soNote.getAttribute("date"))
-			soSumm .= "[" soDate.MM "/" soDate.DD "] "soNote.text . " "
+			soSumm .= "[" soDate.MM "/" soDate.DD "] "soNote.text . "`n"
 		}
-		soText .= soSumm "`n`n"
+		soText .= soSumm "`n"
 	}
 	Clipboard := soText
 	MsgBox Text has been copied to clipboard.
