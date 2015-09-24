@@ -1,26 +1,10 @@
 /* 	Patient List Updater (C)2014-2015 TC
 	CHIPOTLE = Children's Heart Center InPatient Online Task List Environment
-	CHIPS&SALSA = Computerized Health Information Portable Server & Sign-Aught Lists Synced Amalgamator
-	CHIPS&SALSA = Children's Hospital Information Process Server & Sign-Aught Linked Sources Amalgamator
-	COLETTE = Children's Online List and Electronic Task Tracking Environment
-	CHUNDER = Children's Hospital Unified kNowledge Daily Electronic Record
-	CheCKMATE = Children's Heart Center Knowledge Management AND Tasklist Environment
-	BESOARS = Blended Electronic Sign-Out And Rounding System
-	BEDSORES = Blended Electronic Daily Sign-Out and Rounding Effectiveness System
-	SOARS = Sign-Out And Rounding System
-	SORES = Sign-Out and Rounding Electronic System
-	CHIRP = Children's Hospital Inpatient Rounding Program
-	CHICA = Children's Hospital Inpatient CORES Aggregator
 */
 
 /*	Todo lists: 
 	AHK:
-		- Word user dialog is back
-		- Handling "Transplant Surgery" and "Cardiac Transplant and Heart Failure" as medical services
 		- List order (consults at end of list)
-		- Change column order on print
-		- Reformat weekly signout
-		- Reformat phone list banner
 	PHP:
 		- Tasks
 		- Problem list editor
@@ -176,9 +160,11 @@ cicuUsers:=[]
 arnpUsers:=[]
 txpDocs:=[]
 csrDocs:=[]
+cicuDocs:=[]
 loc:=Object()
 CIS_cols:=[]
 CIS_colvals:=[]
+teamSort:=[]
 meds1:=[]
 meds2:=[]
 Forecast_svc:=[]
@@ -211,6 +197,9 @@ Forecast_val:=[]
 		if (sec="CSRDOCS") {
 			csrDocs.Insert(i)
 		}
+		if (sec="CICUDOCS") {
+			cicuDocs.Insert(i)
+		}
 		if (sec="LOCATIONS") {
 			splitIni(i,c1,c2)
 			StringLower, c3, c1
@@ -229,6 +218,9 @@ Forecast_val:=[]
 		if (sec="CORES_struc") {
 			splitIni(i,c1,c2)
 			%c1% := c2
+		}
+		if (sec="Team sort") {
+			teamSort.Insert(i)
 		}
 		if (sec="MEDS1") {
 			meds1.Insert(i)
@@ -669,15 +661,27 @@ TeamList:
 	Gui, teamL:Destroy
 	location := substr(A_GuiControl,2)
 	locString := loc[location,"name"]
-	Gui, teamL:Add, ListView, -Multi Grid x10 y35 gPatListGet vTeamLV, MRN|Name|Unit|Room|Service
+	Gui, teamL:Add, ListView, -Multi Grid x10 y35 gPatListGet vTeamLV, MRN|Name|Unit|Room|Service|C|svcIdx
 	Gui, teamL:Default
 	i:=0
 	Loop, % (plist := y.selectNodes("/root/lists/" . location . "/mrn")).length {
 		kMRN := plist.item(i:=A_Index-1).text
+		;svcSort = ObjHasValue(teamSort,pl.Svc)
 		pl := PtParse(kMRN)
+		if (ObjHasValue(cicuDocs,pl.attg)) {
+			;pl.Unit := "CICU"
+			pl.Svc := "Cardiac Surgery"
+		}
+		svcSort := (inList:=objHasValue(teamSort,pl.Svc)) + (pl.statCons * 100) + (!(inList)*100)
+		
 		LV_Add(""
-			, kMRN, pl.nameL ", " pl.nameF
-			, pl.Unit, pl.Room, pl.Svc)
+			, kMRN
+			, pl.nameL ", " pl.nameF
+			, pl.Unit
+			, pl.Room
+			, pl.Svc
+			, pl.statCons ? "X" : ""
+			, svcSort)
 	}
 	Gui, teamL:Font, s12,
 	GuiControl, teamL:Font, TeamLV
@@ -685,6 +689,7 @@ TeamList:
 	LV_ModifyCol(1, "Integer")  ; For sorting purposes.
 	LV_ModifyCol(4, "Sort")
 	LV_ModifyCol(5, "Sort")
+	LV_ModifyCol(7, "0 Integer Sort")
 	j = 0
 	Gui +LastFound
 	Loop % LV_GetCount("Column")
@@ -2714,6 +2719,7 @@ PtParse(mrn) {
 		, "Unit":pl.selectSingleNode("demog/data/unit").text
 		, "Room":pl.selectSingleNode("demog/data/room").text
 		, "Admit":pl.selectSingleNode("demog/data/admit").text
+		, "Attg":pl.selectSingleNode("demog/data/attg").text
 		, "dxCard":pl.selectSingleNode("diagnoses/card").text
 		, "dxEP":pl.selectSingleNode("diagnoses/ep").text
 		, "dxSurg":pl.selectSingleNode("diagnoses/surg").text
