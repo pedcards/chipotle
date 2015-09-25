@@ -379,8 +379,8 @@ Gui, Main:Add, Text, x22 yp+30 w210 h20 +Center, % MainTitle2
 Gui, Main:Add, Text, xp yp+14 wp hp +Center, % MainTitle3
 Gui, Main:Font, wNorm
 
-while (str := loc[i:=A_Index]) {
-	strDT := breakDate(loc[str,"date"])
+while (str := loc[i:=A_Index]) {					; get the dates for each of the lists
+	strDT := breakDate(loc[str,"date"] := y.getAtt("/root/lists/" . str, "date"))
 	Gui, Main:Add, Button, % "x20 y" (posy:=55+(i*25)) " w110 h20 gTeamList vE" str, % loc[str,"name"]
 	Gui, Main:Add, Text, % "v" loc[str,"datevar"] " x170 y" (posy+4) " w70 h20" 
 		, % strDT.MM "/" strDT.DD "  " strDT.HH ":" strDT.Min
@@ -405,7 +405,7 @@ if (isCICU or isARNP) {																				; CICU interface
 	Gui, Main:Add, Text, % "x170 y" (posy+4) " w70 h20", % callCt
 }
 
-strCO := breakDate(DateCORES)
+strCO := breakDate(DateCORES := y.getAtt("/root/lists/cores", "date"))
 posy += 35
 Gui, Main:Add, Text, x40 y%posy% vGUIcoresChk
 Gui, Main:Add, Text, x50 y%posy% w100 h20 , CORES:
@@ -2352,10 +2352,10 @@ GetIt:
 	}
 	x.save("currlist.xml")
 	y := new XML("currlist.xml")							; open fresh currlist.XML into Y
-	while (str := loc[i:=A_Index]) {						; get the dates for each of the lists
-		loc[str,"date"] := y.getAtt("/root/lists/" . str, "date")
-	}
-	DateCORES := y.getAtt("/root/lists/cores", "date")
+	;~ while (str := loc[i:=A_Index]) {						; get the dates for each of the lists
+		;~ loc[str,"date"] := y.getAtt("/root/lists/" . str, "date")
+	;~ }
+	;~ DateCORES := y.getAtt("/root/lists/cores", "date")
 	Progress 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 
 
