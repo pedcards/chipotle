@@ -3078,11 +3078,24 @@ fieldType(x) {
 	return error
 }
 
+FilePrepend( Text, Filename ) { 
+/*	from haichen http://www.autohotkey.com/board/topic/80342-fileprependa-insert-text-at-begin-of-file-ansi-text/?p=510640
+*/
+    file:= FileOpen(Filename, "rw")
+    text .= File.Read()
+    file.pos:=0
+    File.Write(text)
+    File.Close()
+}
+
 eventlog(event) {
 	global user, sessdate
 	comp := A_ComputerName
 	FormatTime, timenow, A_Now, yyyy.MM.dd.HH:mm:ss
-	FileAppend, % timenow " ["  user "/" comp "] " event "`n", % "logs/" . sessdate . ".log"
+	name := "logs/" . sessdate . ".log"
+	txt := timenow " [" user "/" comp "] " event "`n"
+	filePrepend(txt,name)
+;	FileAppend, % timenow " ["  user "/" comp "] " event "`n", % "logs/" . sessdate . ".log"
 }
 
 #Include xml.ahk
