@@ -59,7 +59,7 @@ if (ObjHasValue(admins,user)) {
 		tmp:=CMsgBox("Test system","Use test system?","&Local|&Test Server|Production","Q","V")
 		if (tmp="Local") {
 			isLocal := true
-			FileDelete, currlist.xml
+			;FileDelete, currlist.xml
 		}
 		if (tmp="Test Server") {
 			isLocal := false
@@ -665,19 +665,17 @@ TeamList:
 	Gui, teamL:Destroy
 	location := substr(A_GuiControl,2)
 	locString := loc[location,"name"]
-	Gui, teamL:Add, ListView, -Multi Grid x10 y35 gPatListGet vTeamLV, MRN|Name|Unit|Room|Service|C|svcIdx
+	;listsort(location)
+	Gui, teamL:Add, ListView, -Multi NoSortHdr Grid x10 y35 gPatListGet vTeamLV, MRN|Name|Unit|Room|Service|C|T
 	Gui, teamL:Default
 	i:=0
 	Loop, % (plist := y.selectNodes("/root/lists/" . location . "/mrn")).length {
 		kMRN := plist.item(i:=A_Index-1).text
-		;svcSort = ObjHasValue(teamSort,pl.Svc)
 		pl := PtParse(kMRN)
-		if (ObjHasValue(cicuDocs,pl.attg)) {
-			;pl.Unit := "CICU"
-			pl.Svc := "Cardiac Surgery"
-		}
-		svcSort := (inList:=objHasValue(teamSort,pl.Svc)) + (pl.statCons * 100) + (!(inList)*100)
-		
+		;~ if (ObjHasValue(cicuDocs,pl.attg)) {
+			;~ ;pl.Unit := "CICU"
+			;~ pl.Svc := "Cardiac Surgery"
+		;~ }
 		LV_Add(""
 			, kMRN
 			, pl.nameL ", " pl.nameF
@@ -685,15 +683,15 @@ TeamList:
 			, pl.Room
 			, pl.Svc
 			, pl.statCons ? "X" : ""
-			, svcSort)
+			, pl.statTrans ? "X" : "")
 	}
 	Gui, teamL:Font, s12,
 	GuiControl, teamL:Font, TeamLV
 	LV_ModifyCol()  ; Auto-size each column to fit its contents.
-	LV_ModifyCol(1, "Integer")  ; For sorting purposes.
-	LV_ModifyCol(4, "Sort")
-	LV_ModifyCol(5, "Sort")
-	LV_ModifyCol(7, "0 Integer Sort")
+;	LV_ModifyCol(1, "Integer")  ; For sorting purposes.
+;	LV_ModifyCol(4, "Sort")
+;	LV_ModifyCol(5, "Sort")
+;	LV_ModifyCol(7, "0 Integer Sort")
 	j = 0
 	Gui +LastFound
 	Loop % LV_GetCount("Column")
@@ -2025,30 +2023,65 @@ listsort(list,parm="",ord:="") {
 */
 	global y, teamSort
 	global i:=parm, j:=ord
+	var := Object()
+	col := {Room:3,Unit:4,Svc:5}
 	node := y.selectSingleNode("/root/lists/" . list)
 	Loop % (mrns := node.selectNodes("mrn")).length 
 	{
 		mrn := mrns.Item(A_index-1).text
 		pt := ptParse(mrn)
 		ptSort := (inList:=ObjHasValue(teamSort,pt.svc))*10 + (pt.statcons) + (!(inList))*100
-		var .= mrn "``" ((parm) ? pt[parm] : ptSort) "`n"
+		;var .= mrn "``" ptSort "``" pt.Room "``" pt.Unit "``" pt.Svc "`n"
+		;vsave .= "{mrn:""" mrn """,sort:""" ptSort """,room:""" pt.Room """,unit:""" pt.Unit """,svc:""" pt.svc """}`n,"
+		var[A_Index] := {mrn:mrn,sort:ptSort,room:pt.Room,unit:pt.Unit,svc:pt.svc}
 	}
-	MsgBox % var
-	Sort, var, D`n F Mysort
+	sort2D(var,"sort")
+	for key,val in var {
+		vsave .= var[key].mrn " " var[key].ptSort " " var[key].room " " var[key].unit " " var[key].svc "`n"
+	}
+	MsgBox % vsave
+	;~ if !(parm) {
+		;~ i:=5
+;~ ;		MsgBox,,Start,% var
+		;~ while i>1 {
+			;~ Sort, var, D`n F Mysort
+;~ ;			MsgBox,,% i,% var
+			;~ i -= 1
+		;~ }
+	;~ } else {
+		;~ i:=col[parm]
+		;~ Sort, var, D`n F Mysort
+	;~ }
 	removeNode("/root/lists/" list)
 	FormatTime, timenow, A_Now, yyyyMMddHHmm
-	node := y.addElement(list,"/root/lists",{date:A_now})
+	node := y.addElement(list,"/root/lists",{date:timenow})
 	Loop, parse, var, `n
 	{
-		y.addElement("mrn", "/root/lists/" list, strX(A_LoopField,,1,0,"``",1,1))
+		if (A_loopfield)
+			y.addElement("mrn", "/root/lists/" list, strX(A_LoopField,,1,0,"``",1,1))
 	}
+;	y.viewXML()
 }
 
-MySort(A,B) {
-   global i, j
-   StringSplit, ArrA, A, ``
-   StringSplit, ArrB, B, ``
-   return ((ArrA2 > ArrB2) ? 1 : ((ArrA2 = ArrB2) ? 0 : -1)) * ((j=-1) ? -1 : 1)	; use ArrA%i% to sort column i
+Sort2D(Byref TDArray, KeyName, Order=1) {
+/*	From https://sites.google.com/site/ahkref/custom-functions/sort2darray	
+	TDArray : a two dimensional TDArray
+	KeyName : the key name to be sorted
+	Order: 1:Ascending 0:Descending
+*/
+	For index2, obj2 in TDArray {           
+		For index, obj in TDArray {
+			if (lastIndex = index)
+				break
+			if !(A_Index = 1) && ((Order=1) ? (TDArray[prevIndex][KeyName] > TDArray[index][KeyName]) : (TDArray[prevIndex][KeyName] < TDArray[index][KeyName])) {    
+			   tmp := TDArray[index]
+			   TDArray[index] := TDArray[prevIndex]
+			   TDArray[prevIndex] := tmp  
+			}         
+			prevIndex := index
+		}     
+		lastIndex := prevIndex
+	}
 }
 
 readForecast:
@@ -2213,7 +2246,7 @@ GetIt:
 	Progress, 20
 	
 	if (isLocal) {
-		FileCopy, oldlist.xml, templist.xml
+		FileCopy, currlist.xml, templist.xml
 	} else {
 		Run pscp.exe -sftp -i chipotle-pr.ppk -p pedcards@homer.u.washington.edu:public_html/%servfold%/currlist.xml templist.xml,, Min
 		sleep 500
