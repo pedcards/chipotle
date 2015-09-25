@@ -145,7 +145,6 @@ SetTimer, SeekWordErr, 250
 initDone = true
 eventlog(">>>>> Session started.")
 Gosub GetIt
-listsort("CICU","svc",-1)
 Gosub MainGUI
 WinWaitClose, CHIPOTLE main
 Gosub SaveIt
@@ -165,6 +164,7 @@ cicuDocs:=[]
 loc:=Object()
 CIS_cols:=[]
 CIS_colvals:=[]
+dialogVals:=[]
 teamSort:=[]
 meds1:=[]
 meds2:=[]
@@ -210,6 +210,9 @@ Forecast_val:=[]
 		if (sec="CIS_strings") {
 			splitIni(i,c1,c2)
 			%c1% := c2
+		}
+		if (sec="Dialog_Str") {
+			dialogVals.Insert(i)
 		}
 		if (sec="CIS_cols") {
 			splitIni(i,c1,c2)
@@ -2011,7 +2014,14 @@ labSecType(block) {
 }
 
 listsort(list,parm="",ord:="") {
-/*	Sort the given list with CSR-CRD-CDM-PICU-NICU-others
+/*	Sort a given list:
+		arg list =	location list to sort (e.g. CICUSur, EP, ICUCons, CSR, CICU, TXP, Cards, Ward, PHTN)
+		opt parm =	sort key from ptParse (e.g. Svc, Unit, Room, StatCons)
+					if "", calcs service sort order (CSR, CRD, TXP, PICU, NICU, etc), adds points for consult and not on list.
+		opt ord =	-1 for descending
+	Reads MRNs from existing /root/lists/list node.
+	Sorts list by criteria.
+	Rewrites old node with newly sorted order.
 */
 	global y, teamSort
 	global i:=parm, j:=ord
@@ -2021,25 +2031,24 @@ listsort(list,parm="",ord:="") {
 		mrn := mrns.Item(A_index-1).text
 		pt := ptParse(mrn)
 		ptSort := (inList:=ObjHasValue(teamSort,pt.svc))*10 + (pt.statcons) + (!(inList))*100
-		var .= mrn " " ((parm) ? pt[parm] : ptSort) "`n"
+		var .= mrn "``" ((parm) ? pt[parm] : ptSort) "`n"
 	}
+	MsgBox % var
 	Sort, var, D`n F Mysort
 	removeNode("/root/lists/" list)
 	FormatTime, timenow, A_Now, yyyyMMddHHmm
-	node := y.addElement(list,"/root/lists",{date:timenow})
+	node := y.addElement(list,"/root/lists",{date:A_now})
 	Loop, parse, var, `n
 	{
-		y.addElement("mrn", "/root/lists/" list, strX(A_LoopField,,1,0," ",1,1))
+		y.addElement("mrn", "/root/lists/" list, strX(A_LoopField,,1,0,"``",1,1))
 	}
-	;y.transformXML()
-	y.viewXML()
 }
 
 MySort(A,B) {
    global i, j
-   StringSplit, ArrA, A, %A_Space%%A_Tab%
-   StringSplit, ArrB, B, %A_Space%%A_Tab%
-   return ((ArrA2 > ArrB2) ? 1 : ((ArrA2 = ArrB2) ? 0 : -1)) * ((j=-1) ? -1 : 1)
+   StringSplit, ArrA, A, ``
+   StringSplit, ArrB, B, ``
+   return ((ArrA2 > ArrB2) ? 1 : ((ArrA2 = ArrB2) ? 0 : -1)) * ((j=-1) ? -1 : 1)	; use ArrA%i% to sort column i
 }
 
 readForecast:
@@ -2213,17 +2222,17 @@ GetIt:
 		{
 			ControlSend,, {y}{Enter}, ahk_id %consWin%
 			;Progress,, Console %consWin% found
-			Progress,, Lost and found...
+			Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 		}
 		WinWaitClose ahk_id %consWin%
 	}
-	Progress, 60
+	Progress, 60, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 
 	FileRead, templist, templist.xml					; the downloaded list.
 		StringReplace, templist, templist, `r`n,, All	; AHK XML cannot handle the UNIX format when modified on server.
 		StringReplace, templist, templist, `n,, All	
 	z := new XML(templist)								; convert templist into XML object Z
-	Progress,, Mixing metaphors...
+	Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	
 
 	if !(FileExist("currlist.xml")) {
@@ -2257,7 +2266,7 @@ GetIt:
 			locPath.replaceChild(clone,locNode)
 		}
 	}
-	Progress,, Being John Malkovich...
+	Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	
 	
 /*	 Cycle through ID@MRN's
@@ -2347,7 +2356,8 @@ GetIt:
 		loc[str,"date"] := y.getAtt("/root/lists/" . str, "date")
 	}
 	DateCORES := y.getAtt("/root/lists/cores", "date")
-	Progress 80, Cranking it up...
+	Progress 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+
 
 	yArch := new XML("archlist.xml")
 	if !IsObject(yArch.selectSingleNode("/root")) {			; if yArch is empty,
@@ -2371,7 +2381,8 @@ GetIt:
 		ArchiveNode("notes")
 		ArchiveNode("plan")
 	}
-	Progress, 100, Raising the roof...
+	Progress, 100, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+
 	yArch.save("archlist.xml")											; Write out
 	Sleep 500
 	Progress, off
@@ -2849,8 +2860,9 @@ filecheck() {
 }
 
 compareDates(path,node) {
-	progress,,%node%
-	global x, y, z, zWND, kMRNstring
+	global x, y, z, zWND, kMRNstring, dialogVals
+	;progress,,%node%
+	progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	if !IsObject(z.selectSingleNode(path "/" node))					; If does not exist in Z, return
 		return
 	if !IsObject(x.selectSingleNode(path "/" node)) {				; If no node exists in X, create a placeholder
@@ -3006,6 +3018,19 @@ parseDate(x) {
 	;~ }
 	StringSplit, DHM, DT2, :
 	return {"MM":zDigit(DY1), "DD":zDigit(DY2), "YYYY":DY3, "hr":zDigit(DHM1), "min":zDigit(DHM2), "Date":DT1, "Time":DT2}
+}
+
+Rand( a=0.0, b=1 ) {
+/*	from VxE http://www.autohotkey.com/board/topic/50564-why-no-built-in-random-function-in-ahk/?p=315957
+	Rand() ; - A random float between 0.0 and 1.0 (many uses)
+	Rand(6) ; - A random integer between 1 and 6 (die roll)
+	Rand("") ; - New random seed (selected randomly)
+	Rand("", 12345) ; - New random seed (set explicitly)
+	Rand(50, 100) ; - Random integer between 50 and 100 (typical use)
+*/
+	IfEqual,a,,Random,,% r := b = 1 ? Rand(0,0xFFFFFFFF) : b
+	Else Random,r,a,b
+	Return r
 }
 
 niceDate(x) {
