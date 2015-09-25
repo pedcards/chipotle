@@ -1,26 +1,10 @@
 /* 	Patient List Updater (C)2014-2015 TC
 	CHIPOTLE = Children's Heart Center InPatient Online Task List Environment
-	CHIPS&SALSA = Computerized Health Information Portable Server & Sign-Aught Lists Synced Amalgamator
-	CHIPS&SALSA = Children's Hospital Information Process Server & Sign-Aught Linked Sources Amalgamator
-	COLETTE = Children's Online List and Electronic Task Tracking Environment
-	CHUNDER = Children's Hospital Unified kNowledge Daily Electronic Record
-	CheCKMATE = Children's Heart Center Knowledge Management AND Tasklist Environment
-	BESOARS = Blended Electronic Sign-Out And Rounding System
-	BEDSORES = Blended Electronic Daily Sign-Out and Rounding Effectiveness System
-	SOARS = Sign-Out And Rounding System
-	SORES = Sign-Out and Rounding Electronic System
-	CHIRP = Children's Hospital Inpatient Rounding Program
-	CHICA = Children's Hospital Inpatient CORES Aggregator
 */
 
 /*	Todo lists: 
 	AHK:
-		- Word user dialog is back
-		- Handling "Transplant Surgery" and "Cardiac Transplant and Heart Failure" as medical services
 		- List order (consults at end of list)
-		- Change column order on print
-		- Reformat weekly signout
-		- Reformat phone list banner
 	PHP:
 		- Tasks
 		- Problem list editor
@@ -50,7 +34,7 @@ FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.ex
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.5.7"
+vers := "1.6.0"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -75,7 +59,7 @@ if (ObjHasValue(admins,user)) {
 		tmp:=CMsgBox("Test system","Use test system?","&Local|&Test Server|Production","Q","V")
 		if (tmp="Local") {
 			isLocal := true
-			FileDelete, currlist.xml
+			;FileDelete, currlist.xml
 		}
 		if (tmp="Test Server") {
 			isLocal := false
@@ -176,9 +160,12 @@ cicuUsers:=[]
 arnpUsers:=[]
 txpDocs:=[]
 csrDocs:=[]
+cicuDocs:=[]
 loc:=Object()
 CIS_cols:=[]
 CIS_colvals:=[]
+dialogVals:=[]
+teamSort:=[]
 meds1:=[]
 meds2:=[]
 Forecast_svc:=[]
@@ -211,6 +198,9 @@ Forecast_val:=[]
 		if (sec="CSRDOCS") {
 			csrDocs.Insert(i)
 		}
+		if (sec="CICUDOCS") {
+			cicuDocs.Insert(i)
+		}
 		if (sec="LOCATIONS") {
 			splitIni(i,c1,c2)
 			StringLower, c3, c1
@@ -221,6 +211,9 @@ Forecast_val:=[]
 			splitIni(i,c1,c2)
 			%c1% := c2
 		}
+		if (sec="Dialog_Str") {
+			dialogVals.Insert(i)
+		}
 		if (sec="CIS_cols") {
 			splitIni(i,c1,c2)
 			CIS_cols.Insert(c1)
@@ -229,6 +222,9 @@ Forecast_val:=[]
 		if (sec="CORES_struc") {
 			splitIni(i,c1,c2)
 			%c1% := c2
+		}
+		if (sec="Team sort") {
+			teamSort.Insert(i)
 		}
 		if (sec="MEDS1") {
 			meds1.Insert(i)
@@ -383,8 +379,8 @@ Gui, Main:Add, Text, x22 yp+30 w210 h20 +Center, % MainTitle2
 Gui, Main:Add, Text, xp yp+14 wp hp +Center, % MainTitle3
 Gui, Main:Font, wNorm
 
-while (str := loc[i:=A_Index]) {
-	strDT := breakDate(loc[str,"date"])
+while (str := loc[i:=A_Index]) {					; get the dates for each of the lists
+	strDT := breakDate(loc[str,"date"] := y.getAtt("/root/lists/" . str, "date"))
 	Gui, Main:Add, Button, % "x20 y" (posy:=55+(i*25)) " w110 h20 gTeamList vE" str, % loc[str,"name"]
 	Gui, Main:Add, Text, % "v" loc[str,"datevar"] " x170 y" (posy+4) " w70 h20" 
 		, % strDT.MM "/" strDT.DD "  " strDT.HH ":" strDT.Min
@@ -409,7 +405,7 @@ if (isCICU or isARNP) {																				; CICU interface
 	Gui, Main:Add, Text, % "x170 y" (posy+4) " w70 h20", % callCt
 }
 
-strCO := breakDate(DateCORES)
+strCO := breakDate(DateCORES := y.getAtt("/root/lists/cores", "date"))
 posy += 35
 Gui, Main:Add, Text, x40 y%posy% vGUIcoresChk
 Gui, Main:Add, Text, x50 y%posy% w100 h20 , CORES:
@@ -667,24 +663,32 @@ TeamList:
 {
 	;Gui, 1:-AlwaysOnTop
 	Gui, teamL:Destroy
-	location := substr(A_GuiControl,2)
+	if (A_GuiControl)
+		location := substr(A_GuiControl,2)
 	locString := loc[location,"name"]
-	Gui, teamL:Add, ListView, -Multi Grid x10 y35 gPatListGet vTeamLV, MRN|Name|Unit|Room|Service
+	listsort(location)
+	Gui, teamL:Add, ListView, -Multi NoSortHdr Grid x10 y35 gPatListGet vTeamLV, MRN|Name|Unit|Room|Service|C|T
 	Gui, teamL:Default
 	i:=0
 	Loop, % (plist := y.selectNodes("/root/lists/" . location . "/mrn")).length {
 		kMRN := plist.item(i:=A_Index-1).text
 		pl := PtParse(kMRN)
 		LV_Add(""
-			, kMRN, pl.nameL ", " pl.nameF
-			, pl.Unit, pl.Room, pl.Svc)
+			, kMRN
+			, pl.nameL ", " pl.nameF
+			, pl.Unit
+			, pl.Room
+			, pl.Svc
+			, pl.statCons ? "X" : ""
+			, pl.statTrans ? "X" : "")
 	}
 	Gui, teamL:Font, s12,
 	GuiControl, teamL:Font, TeamLV
 	LV_ModifyCol()  ; Auto-size each column to fit its contents.
-	LV_ModifyCol(1, "Integer")  ; For sorting purposes.
-	LV_ModifyCol(4, "Sort")
-	LV_ModifyCol(5, "Sort")
+;	LV_ModifyCol(1, "Integer")  ; For sorting purposes.
+;	LV_ModifyCol(4, "Sort")
+;	LV_ModifyCol(5, "Sort")
+;	LV_ModifyCol(7, "0 Integer Sort")
 	j = 0
 	Gui +LastFound
 	Loop % LV_GetCount("Column")
@@ -1060,7 +1064,8 @@ plSave:
 	}
 	WriteOut("/root","id[@mrn='" mrn "']")
 	eventlog(mrn " saved.")
-	Gui, teamL:Show
+	;Gui, teamL:Show
+	gosub TeamList
 Return
 }
 
@@ -1707,7 +1712,7 @@ processCIS:										;*** Parse CIS patient list
 			if (CIS_loc_room="") {
 				CIS_loc_room := CIS_loc_unit
 				CIS_loc_unit := ((CIS_loc_unit ~= "FA\.6\.2\d{2}\b") 
-					? "CICU"
+					? "CICU-F6"
 					: ((CIS_loc_unit ~= "RC\.6\.\d{3}\b")
 						? "SUR-R6" 
 						: ""))
@@ -1721,6 +1726,10 @@ processCIS:										;*** Parse CIS patient list
 		CIS_age := clip_elem[clip_num,colIdx["Age"]]					; Age
 		CIS_svc := clip_elem[clip_num,colIdx["Svc"]]					; Service
 		CIS_dob := clip_elem[clip_num,colIdx["DOB"]]					; DOB
+		;															Now fix some issues we have with CIS labelling
+		if (ObjHasValue(cicuDocs,CIS_attg) and !(RegExMatch(CIS_svc,"i)(Cardiology)|(Cardiac Surgery)|(Cardiac Transplant)"))) {
+			CIS_svc := "Cardiac Surgery"
+		}
 		if (CIS_name_last="ZTEST")
 			continue
 		if !IsObject(y.selectSingleNode(MRNstring)) {				; If no MRN node exists, create it.
@@ -1759,6 +1768,7 @@ processCIS:										;*** Parse CIS patient list
 			y.selectSingleNode(MRNstring "/status").setAttribute("txp", "on")				; Set status flag.
 		}
 	}
+	listsort(location)
 	y.save("currlist.xml")
 	eventlog(location " list updated.")
 	FileDelete, .currlock
@@ -2003,6 +2013,66 @@ labSecType(block) {
 	}
 }
 
+listsort(list,parm="",ord:="") {
+/*	Sort a given list:
+		arg list =	location list to sort (e.g. CICUSur, EP, ICUCons, CSR, CICU, TXP, Cards, Ward, PHTN)
+		opt parm =	sort key from ptParse (e.g. Svc, Unit, Room, StatCons)
+					if "", calcs service sort order (CSR, CRD, TXP, PICU, NICU, etc), adds points for consult and not on list.
+		opt ord =	-1 for descending
+	Reads MRNs from existing /root/lists/list node.
+	Sorts list by criteria.
+	Rewrites old node with newly sorted order.
+*/
+	global y, teamSort
+	var := Object()
+	col := ["mrn","sort","Room","Unit","Svc"]
+	node := y.selectSingleNode("/root/lists/" . list)
+	Loop % (mrns := node.selectNodes("mrn")).length 
+	{
+		mrn := mrns.Item(A_index-1).text
+		pt := ptParse(mrn)
+		ptSort := (inList:=ObjHasValue(teamSort,pt.svc))*10 + (pt.statcons) + (!(inList))*100
+		var[A_Index] := {mrn:mrn,sort:ptSort,room:pt.Room,unit:pt.Unit,svc:pt.svc}
+	}
+	if !(parm) {									; special sort: Svc->Unit->Room->ptSort
+		i:=5
+		while i>1 {
+			sort2D(var,col[i])
+			i -= 1
+		}
+	} else {
+		sort2D(var,ObjHasValue(col,parm))
+	}
+	removeNode("/root/lists/" list)
+	FormatTime, timenow, A_Now, yyyyMMddHHmm
+	node := y.addElement(list,"/root/lists",{date:timenow})
+	for key,val in var {
+		y.addElement("mrn","/root/lists/" list,var[A_index].mrn)
+	}
+;	y.viewXML()
+}
+
+Sort2D(Byref TDArray, KeyName, Order=1) {
+/*	modified from https://sites.google.com/site/ahkref/custom-functions/sort2darray	
+	TDArray : a two dimensional TDArray
+	KeyName : the key name to be sorted
+	Order: 1:Ascending 0:Descending
+*/
+	For index2, obj2 in TDArray {           
+		For index, obj in TDArray {
+			if (lastIndex = index)
+				break
+			if !(A_Index = 1) && ((Order=1) ? (TDArray[prevIndex][KeyName] > TDArray[index][KeyName]) : (TDArray[prevIndex][KeyName] < TDArray[index][KeyName])) {    
+			   tmp := TDArray[index]
+			   TDArray[index] := TDArray[prevIndex]
+			   TDArray[prevIndex] := tmp  
+			}         
+			prevIndex := index
+		}     
+		lastIndex := prevIndex
+	}
+}
+
 readForecast:
 {
 /*	Parse the block into another table:
@@ -2165,7 +2235,7 @@ GetIt:
 	Progress, 20
 	
 	if (isLocal) {
-		FileCopy, oldlist.xml, templist.xml
+		FileCopy, currlist.xml, templist.xml
 	} else {
 		Run pscp.exe -sftp -i chipotle-pr.ppk -p pedcards@homer.u.washington.edu:public_html/%servfold%/currlist.xml templist.xml,, Min
 		sleep 500
@@ -2174,17 +2244,17 @@ GetIt:
 		{
 			ControlSend,, {y}{Enter}, ahk_id %consWin%
 			;Progress,, Console %consWin% found
-			Progress,, Lost and found...
+			Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 		}
 		WinWaitClose ahk_id %consWin%
 	}
-	Progress, 60
+	Progress, 60, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 
 	FileRead, templist, templist.xml					; the downloaded list.
 		StringReplace, templist, templist, `r`n,, All	; AHK XML cannot handle the UNIX format when modified on server.
 		StringReplace, templist, templist, `n,, All	
 	z := new XML(templist)								; convert templist into XML object Z
-	Progress,, Mixing metaphors...
+	Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	
 
 	if !(FileExist("currlist.xml")) {
@@ -2218,7 +2288,7 @@ GetIt:
 			locPath.replaceChild(clone,locNode)
 		}
 	}
-	Progress,, Being John Malkovich...
+	Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	
 	
 /*	 Cycle through ID@MRN's
@@ -2304,11 +2374,12 @@ GetIt:
 	}
 	x.save("currlist.xml")
 	y := new XML("currlist.xml")							; open fresh currlist.XML into Y
-	while (str := loc[i:=A_Index]) {						; get the dates for each of the lists
-		loc[str,"date"] := y.getAtt("/root/lists/" . str, "date")
-	}
-	DateCORES := y.getAtt("/root/lists/cores", "date")
-	Progress 80, Cranking it up...
+	;~ while (str := loc[i:=A_Index]) {						; get the dates for each of the lists
+		;~ loc[str,"date"] := y.getAtt("/root/lists/" . str, "date")
+	;~ }
+	;~ DateCORES := y.getAtt("/root/lists/cores", "date")
+	Progress 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+
 
 	yArch := new XML("archlist.xml")
 	if !IsObject(yArch.selectSingleNode("/root")) {			; if yArch is empty,
@@ -2332,7 +2403,8 @@ GetIt:
 		ArchiveNode("notes")
 		ArchiveNode("plan")
 	}
-	Progress, 100, Raising the roof...
+	Progress, 100, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+
 	yArch.save("archlist.xml")											; Write out
 	Sleep 500
 	Progress, off
@@ -2714,6 +2786,7 @@ PtParse(mrn) {
 		, "Unit":pl.selectSingleNode("demog/data/unit").text
 		, "Room":pl.selectSingleNode("demog/data/room").text
 		, "Admit":pl.selectSingleNode("demog/data/admit").text
+		, "Attg":pl.selectSingleNode("demog/data/attg").text
 		, "dxCard":pl.selectSingleNode("diagnoses/card").text
 		, "dxEP":pl.selectSingleNode("diagnoses/ep").text
 		, "dxSurg":pl.selectSingleNode("diagnoses/surg").text
@@ -2809,8 +2882,9 @@ filecheck() {
 }
 
 compareDates(path,node) {
-	progress,,%node%
-	global x, y, z, zWND, kMRNstring
+	global x, y, z, zWND, kMRNstring, dialogVals
+	;progress,,%node%
+	progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	if !IsObject(z.selectSingleNode(path "/" node))					; If does not exist in Z, return
 		return
 	if !IsObject(x.selectSingleNode(path "/" node)) {				; If no node exists in X, create a placeholder
@@ -2966,6 +3040,19 @@ parseDate(x) {
 	;~ }
 	StringSplit, DHM, DT2, :
 	return {"MM":zDigit(DY1), "DD":zDigit(DY2), "YYYY":DY3, "hr":zDigit(DHM1), "min":zDigit(DHM2), "Date":DT1, "Time":DT2}
+}
+
+Rand( a=0.0, b=1 ) {
+/*	from VxE http://www.autohotkey.com/board/topic/50564-why-no-built-in-random-function-in-ahk/?p=315957
+	Rand() ; - A random float between 0.0 and 1.0 (many uses)
+	Rand(6) ; - A random integer between 1 and 6 (die roll)
+	Rand("") ; - New random seed (selected randomly)
+	Rand("", 12345) ; - New random seed (set explicitly)
+	Rand(50, 100) ; - Random integer between 50 and 100 (typical use)
+*/
+	IfEqual,a,,Random,,% r := b = 1 ? Rand(0,0xFFFFFFFF) : b
+	Else Random,r,a,b
+	Return r
 }
 
 niceDate(x) {

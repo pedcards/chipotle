@@ -18,6 +18,12 @@ Exit
 MainGUI:
 {
 	Gui, main:Destroy
+	Gui, main:Font, s16 wBold
+	Gui, main:Add, Text, y0 w150 h20 +Center, -= QUESO =-
+	Gui, main:Font, wNorm s8 wItalic
+	Gui, main:Add, Text, yp+30 w150 +Center, QUEry tool and`nSystem Operations
+	;Gui, main:Add, Text, xp yp+14 wp hp +Center, System Operations
+	Gui, main:Font, wNorm
 	Gui, main:Add, Button, w150 gStatsGUI, Statistics
 	Gui, main:Add, Button, wp gViewLog, View logs
 	Gui, main:Add, Button, wp gUnlock, Release lock
