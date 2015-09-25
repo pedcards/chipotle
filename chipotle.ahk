@@ -663,19 +663,16 @@ TeamList:
 {
 	;Gui, 1:-AlwaysOnTop
 	Gui, teamL:Destroy
-	location := substr(A_GuiControl,2)
+	if (A_GuiControl)
+		location := substr(A_GuiControl,2)
 	locString := loc[location,"name"]
-	;listsort(location)
+	listsort(location)
 	Gui, teamL:Add, ListView, -Multi NoSortHdr Grid x10 y35 gPatListGet vTeamLV, MRN|Name|Unit|Room|Service|C|T
 	Gui, teamL:Default
 	i:=0
 	Loop, % (plist := y.selectNodes("/root/lists/" . location . "/mrn")).length {
 		kMRN := plist.item(i:=A_Index-1).text
 		pl := PtParse(kMRN)
-		;~ if (ObjHasValue(cicuDocs,pl.attg)) {
-			;~ ;pl.Unit := "CICU"
-			;~ pl.Svc := "Cardiac Surgery"
-		;~ }
 		LV_Add(""
 			, kMRN
 			, pl.nameL ", " pl.nameF
@@ -1067,7 +1064,8 @@ plSave:
 	}
 	WriteOut("/root","id[@mrn='" mrn "']")
 	eventlog(mrn " saved.")
-	Gui, teamL:Show
+	;Gui, teamL:Show
+	gosub TeamList
 Return
 }
 
@@ -1728,6 +1726,10 @@ processCIS:										;*** Parse CIS patient list
 		CIS_age := clip_elem[clip_num,colIdx["Age"]]					; Age
 		CIS_svc := clip_elem[clip_num,colIdx["Svc"]]					; Service
 		CIS_dob := clip_elem[clip_num,colIdx["DOB"]]					; DOB
+		;															Now fix some issues we have with CIS labelling
+		if (ObjHasValue(cicuDocs,CIS_attg) and !(RegExMatch(CIS_svc,"i)(Cardiology)|(Cardiac Surgery)|(Cardiac Transplant)"))) {
+			CIS_svc := "Cardiac Surgery"
+		}
 		if (CIS_name_last="ZTEST")
 			continue
 		if !IsObject(y.selectSingleNode(MRNstring)) {				; If no MRN node exists, create it.
@@ -2022,49 +2024,36 @@ listsort(list,parm="",ord:="") {
 	Rewrites old node with newly sorted order.
 */
 	global y, teamSort
-	global i:=parm, j:=ord
 	var := Object()
-	col := {Room:3,Unit:4,Svc:5}
+	col := ["mrn","sort","Room","Unit","Svc"]
 	node := y.selectSingleNode("/root/lists/" . list)
 	Loop % (mrns := node.selectNodes("mrn")).length 
 	{
 		mrn := mrns.Item(A_index-1).text
 		pt := ptParse(mrn)
 		ptSort := (inList:=ObjHasValue(teamSort,pt.svc))*10 + (pt.statcons) + (!(inList))*100
-		;var .= mrn "``" ptSort "``" pt.Room "``" pt.Unit "``" pt.Svc "`n"
-		;vsave .= "{mrn:""" mrn """,sort:""" ptSort """,room:""" pt.Room """,unit:""" pt.Unit """,svc:""" pt.svc """}`n,"
 		var[A_Index] := {mrn:mrn,sort:ptSort,room:pt.Room,unit:pt.Unit,svc:pt.svc}
 	}
-	sort2D(var,"sort")
-	for key,val in var {
-		vsave .= var[key].mrn " " var[key].ptSort " " var[key].room " " var[key].unit " " var[key].svc "`n"
+	if !(parm) {									; special sort: Svc->Unit->Room->ptSort
+		i:=5
+		while i>1 {
+			sort2D(var,col[i])
+			i -= 1
+		}
+	} else {
+		sort2D(var,ObjHasValue(col,parm))
 	}
-	MsgBox % vsave
-	;~ if !(parm) {
-		;~ i:=5
-;~ ;		MsgBox,,Start,% var
-		;~ while i>1 {
-			;~ Sort, var, D`n F Mysort
-;~ ;			MsgBox,,% i,% var
-			;~ i -= 1
-		;~ }
-	;~ } else {
-		;~ i:=col[parm]
-		;~ Sort, var, D`n F Mysort
-	;~ }
 	removeNode("/root/lists/" list)
 	FormatTime, timenow, A_Now, yyyyMMddHHmm
 	node := y.addElement(list,"/root/lists",{date:timenow})
-	Loop, parse, var, `n
-	{
-		if (A_loopfield)
-			y.addElement("mrn", "/root/lists/" list, strX(A_LoopField,,1,0,"``",1,1))
+	for key,val in var {
+		y.addElement("mrn","/root/lists/" list,var[A_index].mrn)
 	}
 ;	y.viewXML()
 }
 
 Sort2D(Byref TDArray, KeyName, Order=1) {
-/*	From https://sites.google.com/site/ahkref/custom-functions/sort2darray	
+/*	modified from https://sites.google.com/site/ahkref/custom-functions/sort2darray	
 	TDArray : a two dimensional TDArray
 	KeyName : the key name to be sorted
 	Order: 1:Ascending 0:Descending
