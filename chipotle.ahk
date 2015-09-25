@@ -145,6 +145,7 @@ SetTimer, SeekWordErr, 250
 initDone = true
 eventlog(">>>>> Session started.")
 Gosub GetIt
+listsort("CICU","svc",-1)
 Gosub MainGUI
 WinWaitClose, CHIPOTLE main
 Gosub SaveIt
@@ -2009,50 +2010,36 @@ labSecType(block) {
 	}
 }
 
-listsort(list) {
+listsort(list,parm="",ord:="") {
 /*	Sort the given list with CSR-CRD-CDM-PICU-NICU-others
 */
 	global y, teamSort
-	ptArr := Object()
+	global i:=parm, j:=ord
 	node := y.selectSingleNode("/root/lists/" . list)
 	Loop % (mrns := node.selectNodes("mrn")).length 
 	{
 		mrn := mrns.Item(A_index-1).text
 		pt := ptParse(mrn)
 		ptSort := (inList:=ObjHasValue(teamSort,pt.svc))*10 + (pt.statcons) + (!(inList))*100
-		msg .= mrn " - " ptSort "`n"
-		ptArr[A_Index] := {mrn:mrn, sort:ptSort, svc:pt.svc, room:pt.room}
+		var .= mrn " " ((parm) ? pt[parm] : ptSort) "`n"
 	}
-	Sort2DArray(ptArr,"sort")
-	for index in ptArr {
-		msg2 .= ptArr[index].mrn " = " ptArr[index].sort "`n"
+	Sort, var, D`n F Mysort
+	removeNode("/root/lists/" list)
+	FormatTime, timenow, A_Now, yyyyMMddHHmm
+	node := y.addElement(list,"/root/lists",{date:timenow})
+	Loop, parse, var, `n
+	{
+		y.addElement("mrn", "/root/lists/" list, strX(A_LoopField,,1,0," ",1,1))
 	}
-	;~ Loop % ptArr.MaxIndex()
-	;~ {
-		;~ msg2 .= ptArr[A_index].mrn " - " ptArr[A_index].sort "`n"
-	;~ }
-	MsgBox % msg "`n`n" msg2
+	;y.transformXML()
+	y.viewXML()
 }
 
-Sort2DArray(Byref TDArray, KeyName, Order=1) {
-	;from https://sites.google.com/site/ahkref/custom-functions/sort2darray
-	;TDArray : a two dimensional TDArray
-	;KeyName : the key name to be sorted
-	;Order: 1:Ascending 0:Descending
- 
-    For index2, obj2 in TDArray {           
-        For index, obj in TDArray {
-            if (lastIndex = index)
-                break
-            if !(A_Index = 1) &&  ((Order=1) ? (TDArray[prevIndex][KeyName] > TDArray[index][KeyName]) : (TDArray[prevIndex][KeyName] < TDArray[index][KeyName])) {    
-               tmp := TDArray[index][KeyName] 
-               TDArray[index][KeyName] := TDArray[prevIndex][KeyName]
-               TDArray[prevIndex][KeyName] := tmp  
-            }         
-            prevIndex := index
-        }     
-        lastIndex := prevIndex
-    }
+MySort(A,B) {
+   global i, j
+   StringSplit, ArrA, A, %A_Space%%A_Tab%
+   StringSplit, ArrB, B, %A_Space%%A_Tab%
+   return ((ArrA2 > ArrB2) ? 1 : ((ArrA2 = ArrB2) ? 0 : -1)) * ((j=-1) ? -1 : 1)
 }
 
 readForecast:
