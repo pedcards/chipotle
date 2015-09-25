@@ -1712,7 +1712,7 @@ processCIS:										;*** Parse CIS patient list
 			if (CIS_loc_room="") {
 				CIS_loc_room := CIS_loc_unit
 				CIS_loc_unit := ((CIS_loc_unit ~= "FA\.6\.2\d{2}\b") 
-					? "CICU"
+					? "CICU-F6"
 					: ((CIS_loc_unit ~= "RC\.6\.\d{3}\b")
 						? "SUR-R6" 
 						: ""))
@@ -1764,6 +1764,7 @@ processCIS:										;*** Parse CIS patient list
 			y.selectSingleNode(MRNstring "/status").setAttribute("txp", "on")				; Set status flag.
 		}
 	}
+	listsort(location)
 	y.save("currlist.xml")
 	eventlog(location " list updated.")
 	FileDelete, .currlock
@@ -2006,6 +2007,52 @@ labSecType(block) {
 	} else {
 		return {type:"Other", rest:block}
 	}
+}
+
+listsort(list) {
+/*	Sort the given list with CSR-CRD-CDM-PICU-NICU-others
+*/
+	global y, teamSort
+	ptArr := Object()
+	node := y.selectSingleNode("/root/lists/" . list)
+	Loop % (mrns := node.selectNodes("mrn")).length 
+	{
+		mrn := mrns.Item(A_index-1).text
+		pt := ptParse(mrn)
+		ptSort := (inList:=ObjHasValue(teamSort,pt.svc))*10 + (pt.statcons) + (!(inList))*100
+		msg .= mrn " - " ptSort "`n"
+		ptArr[A_Index] := {mrn:mrn, sort:ptSort, svc:pt.svc, room:pt.room}
+	}
+	Sort2DArray(ptArr,"sort")
+	for index in ptArr {
+		msg2 .= ptArr[index].mrn " = " ptArr[index].sort "`n"
+	}
+	;~ Loop % ptArr.MaxIndex()
+	;~ {
+		;~ msg2 .= ptArr[A_index].mrn " - " ptArr[A_index].sort "`n"
+	;~ }
+	MsgBox % msg "`n`n" msg2
+}
+
+Sort2DArray(Byref TDArray, KeyName, Order=1) {
+	;from https://sites.google.com/site/ahkref/custom-functions/sort2darray
+	;TDArray : a two dimensional TDArray
+	;KeyName : the key name to be sorted
+	;Order: 1:Ascending 0:Descending
+ 
+    For index2, obj2 in TDArray {           
+        For index, obj in TDArray {
+            if (lastIndex = index)
+                break
+            if !(A_Index = 1) &&  ((Order=1) ? (TDArray[prevIndex][KeyName] > TDArray[index][KeyName]) : (TDArray[prevIndex][KeyName] < TDArray[index][KeyName])) {    
+               tmp := TDArray[index][KeyName] 
+               TDArray[index][KeyName] := TDArray[prevIndex][KeyName]
+               TDArray[prevIndex][KeyName] := tmp  
+            }         
+            prevIndex := index
+        }     
+        lastIndex := prevIndex
+    }
 }
 
 readForecast:
