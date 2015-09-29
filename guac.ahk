@@ -16,12 +16,13 @@ gosub ReadIni
 user := A_UserName
 isAdmin := ObjHasValue(admins,user)
 if (InStr(A_WorkingDir,"AutoHotkey")) {
-	confdir := "files/Tuesday Conference"
+	confdir := "files\Tuesday Conference"
+} else {
+	confdir := "\\chmc16\Cardio\Conference\Tuesday Conference"
 }
 
-mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-FormatTime, currdate, A_Now, yyyy``MM``MMM``MMMM``dd``dddd
-StringSplit, currdate, currdate, ``
+;conf := Object()
+;mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
 Gosub MainGUI
 WinWaitClose, GUACAMOLE Main
@@ -124,31 +125,91 @@ splitIni(x, ByRef y, ByRef z) {
 
 MainGUI:
 {
-	Gui, main:Destroy
-	Gui, main:Font, s16 wBold
-	Gui, main:Add, Text, y0 w250 h20 +Center, .-= GUACAMOLE =-.
-	Gui, main:Font, wNorm s8 wItalic
-	Gui, main:Add, Text, yp+30 wp +Center, General Use Access tool for Conference
-	Gui, main:Add, Text, xp yp+14 wp hp +Center, System Operations
-	Gui, main:Font, wNorm
-;	Gui, main:Add, Button, w150 gStatsGUI, Statistics
-;	Gui, main:Add, Button, wp gViewLog, View logs
-;	Gui, main:Add, Button, wp gUnlock, Release lock
-	Gui, main:Add, Button, wp, % currdate1 " " currdate2
-	Gui, main:Add, Button, wp, % isAdmin
-;	Gui, main:Add, Button, wp gEnvInfo, Env Info
-;	Gui, main:Add, Button, wp gActiveWindow, ActiveWindowInfo
-	Gui, main:Show, AutoSize, GUACAMOLE Main
+	dt := GetConfDate()
+	confdate := dt.YYYY "\" dt.MMM "\" dt.DD
+	Gui, main:Default
+	Gui, Destroy
+	Gui, Font, s16 wBold
+	Gui, Add, Text, y0 w250 h20 +Center, .-= GUACAMOLE =-.
+	Gui, Font, wNorm s8 wItalic
+	Gui, Add, Text, yp+30 wp +Center, General Use Access tool for Conference Archive
+	Gui, Add, Text, xp yp+14 wp hp +Center, Merged OnLine Encounters
+	Gui, Font, wNorm
+	Gui, Add, Button, wp gGetConfDir, % confdate
+	Gui, Add, Button, wp, Date browser
+	Gui, Add, Button, wp, Search archive
+	Gui, Show, AutoSize, GUACAMOLE Main
 Return
 }
 
 mainGuiClose:
 ExitApp
 
+GetConfDir:
+{
+	dt := GetConfDate()
+	filelist =
+	confdate := dt.YYYY "\" dt.MMM "\" dt.DD
+	Loop, %confdir%\%confdate%\* , 2	
+	{
+		filelist .= A_LoopFileName "|"
+	}
+	Gui, ConfL:Default
+	Gui, Destroy
+	Gui, Font, s16
+	Gui, Add, ListBox, vPatName gPatData, %filelist%
+	Gui, Show, AutoSize, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
+	Return
+}
 
+PatData:
+{
+	if !(A_GuiEvent = "DoubleClick")
+		return
+	Gui, ConfL:Submit
+;	Gui, ConfL:Hide
+	filelist =
+	filenum =
+	Loop, %confdir%\%confdate%\%patname%\*, 1
+	{
+		filelist .= (A_LoopFileName) ? A_LoopFileName "|" : ""
+		filenum ++
+	}
+	if !(filelist) {
+		MsgBox No files
+		return
+	}
+	Gui, PatL:Default
+	Gui, Destroy
+	Gui, Font, s16
+	Gui, Add, ListBox, r%filenum% vPatFile gPatFileGet,%filelist%
+	Gui, Font, s12
+	Gui, Add, Button, wP, Open all...
+	Gui, Show, AutoSize, % "Patient " PatName
+	return
+}
 
+PatFileGet:
+{
+	Gui, PatL:Submit
+Return
+}
 
-
+GetConfDate(dt:="") {
+/*	Get next conference date. If not argument, assume today
+*/
+	if !(dt) {
+		dt:=A_Now
+	}
+	FormatTime, Wday,%dt%, Wday										; Today's day of the week (Sun=1)
+	if (Wday > 3) {													; if Wed-Sat, next Tue
+		dt += (10-Wday), days
+	} else {														; if Sun-Tue, this Tue
+		dt += (3-Wday), days
+	}
+	conf := breakdate(dt)
+	return {YYYY:conf.YYYY, MM:conf.MM, MMM:conf.MMM, DD:conf.DD}
+}
 
 breakDate(x) {
 ; Disassembles 201502150831 into Yr=2015 Mo=02 Da=15 Hr=08 Min=31 Sec=00
@@ -159,8 +220,13 @@ breakDate(x) {
 	D_Min := substr(x,11,2)
 	D_Sec := substr(x,13,2)
 	FormatTime, D_day, x, ddd
-	return {"YYYY":D_Yr, "MM":D_Mo, "DD":D_Da, "ddd":D_day
+	FormatTime, D_Mon, x, MMM
+	return {"YYYY":D_Yr, "MM":D_Mo, "MMM":D_Mon, "DD":D_Da, "ddd":D_day
 		, "HH":D_Hr, "min":D_Min, "sec":D_sec}
+}
+zDigit(x) {
+; Add leading zero to a number
+	return SubStr("0" . x, -1)
 }
 ObjHasValue(aObj, aValue, rx:="") {
 ; modified from http://www.autohotkey.com/board/topic/84006-ahk-l-containshasvalue-method/	
