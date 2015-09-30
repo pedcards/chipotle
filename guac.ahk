@@ -133,7 +133,7 @@ MainGUI:
 	Gui, Add, Text, y0 w250 h20 +Center, .-= GUACAMOLE =-.
 	Gui, Font, wNorm s8 wItalic
 	Gui, Add, Text, yp+30 wp +Center, General Use Access tool for Conference Archive
-	Gui, Add, Text, xp yp+14 wp hp +Center, Merged OnLine Encounters
+	Gui, Add, Text, xp yp+14 wp hp +Center, Merged OnLine Elements
 	Gui, Font, wNorm
 	Gui, Add, Button, wp gGetConfDir, % dt.MMM " " dt.DD
 	Gui, Add, Button, wp, Date browser
@@ -164,7 +164,6 @@ GetConfDir:
 NetConfDir(yyyy:="",mmm:="",dd:="") {
 	global netdir, mo, datedir
 	if (IsObject(datedir[yyyy,mmm])) {
-		MsgBox Exists!
 		return yyyy "\" datedir[yyyy,mmm].dir "\" datedir[yyyy,mmm,dd]
 	}
 	Loop, % netdir "\" yyyy "\*" , 2								; Get the month dirs in YYYY
