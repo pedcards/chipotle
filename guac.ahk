@@ -15,14 +15,15 @@ LV_Colors.OnMessage()
 gosub ReadIni
 user := A_UserName
 isAdmin := ObjHasValue(admins,user)
-if (InStr(A_WorkingDir,"AutoHotkey")) {
-	confdir := "files\Tuesday Conference"
+;~ if (InStr(A_WorkingDir,"-AutoHotkey")) {
+if (user="TC") {
+	netdir := "files\Tuesday Conference"
 } else {
-	confdir := "\\chmc16\Cardio\Conference\Tuesday Conference"
+	netdir := "\\chmc16\Cardio\Conference\Tuesday Conference"
 }
 
-;conf := Object()
-;mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+datedir := Object()
+mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
 Gosub MainGUI
 WinWaitClose, GUACAMOLE Main
@@ -125,8 +126,7 @@ splitIni(x, ByRef y, ByRef z) {
 
 MainGUI:
 {
-	dt := GetConfDate()
-	confdate := dt.YYYY "\" dt.MMM "\" dt.DD
+	dt := GetConfDate()									; determine next conference date into array dt
 	Gui, main:Default
 	Gui, Destroy
 	Gui, Font, s16 wBold
@@ -135,7 +135,7 @@ MainGUI:
 	Gui, Add, Text, yp+30 wp +Center, General Use Access tool for Conference Archive
 	Gui, Add, Text, xp yp+14 wp hp +Center, Merged OnLine Encounters
 	Gui, Font, wNorm
-	Gui, Add, Button, wp gGetConfDir, % confdate
+	Gui, Add, Button, wp gGetConfDir, % dt.MMM " " dt.DD
 	Gui, Add, Button, wp, Date browser
 	Gui, Add, Button, wp, Search archive
 	Gui, Show, AutoSize, GUACAMOLE Main
@@ -147,10 +147,9 @@ ExitApp
 
 GetConfDir:
 {
-	dt := GetConfDate()
+	confDir := NetConfDir(dt.YYYY,dt.mmm,dt.dd)
 	filelist =
-	confdate := dt.YYYY "\" dt.MMM "\" dt.DD
-	Loop, %confdir%\%confdate%\* , 2	
+	Loop, % netdir "\" confDir "\*" , 2
 	{
 		filelist .= A_LoopFileName "|"
 	}
@@ -162,17 +161,50 @@ GetConfDir:
 	Return
 }
 
+NetConfDir(yyyy:="",mmm:="",dd:="") {
+	global netdir, mo, datedir
+	if (IsObject(datedir[yyyy,mmm])) {
+		MsgBox Exists!
+		return yyyy "\" datedir[yyyy,mmm].dir "\" datedir[yyyy,mmm,dd]
+	}
+	Loop, % netdir "\" yyyy "\*" , 2								; Get the month dirs in YYYY
+	{
+		file := A_LoopFileName
+		for key,obj in mo											; Compare "file" name with Mo abbrevs
+		{
+			if (instr(file,obj)) {									; mo MMM abbrev is in A_loopfilename
+				datedir[yyyy,obj,"dir"] := file						; insert wonky name as yr[yyyy,mmm,{dir:filename}]
+			}
+		}
+	}
+	Loop, % netdir "\" yyyy "\" datedir[yyyy,mmm].dir "\*" , 2		; check for conf dates within that month (dir:filename)
+	{
+		file := A_LoopFileName
+		if (regexmatch(file,"\d{1,2}\.\d{1,2}\.\d{1,2}")) {			; sometimes named "6.21.15"
+			dd := zdigit(strX(file,".",1,1,".",1,1))
+			datedir[yyyy,mmm,dd] := file
+		} else if (RegExMatch(file,"\w\s\d{1,2}")){					; sometimes named "Jun 21" or "June 21"
+			dd := zdigit(strX(file," ",1,1,"",1,0))
+			datedir[yyyy,mmm,dd] := file
+		} else if (regexmatch(file,"\b\d{1,2}\b")) {				; sometimes just named "21"
+			dd := zdigit(file)
+			datedir[yyyy,mmm,dd] := file
+		}															; inserts dir name into datedir[yyyy,mmm,dd]
+	}
+return yyyy "\" datedir[yyyy,mmm].dir "\" datedir[yyyy,mmm,dd]		; returns path to that date's conference 
+}
+
 PatData:
 {
 	if !(A_GuiEvent = "DoubleClick")
 		return
 	Gui, ConfL:Submit
-;	Gui, ConfL:Hide
 	filelist =
 	filenum =
-	Loop, %confdir%\%confdate%\%patname%\*, 1
+	Loop, % netdir "\" confdir "\" PatName "\*" , 1
 	{
-		filelist .= (A_LoopFileName) ? A_LoopFileName "|" : ""
+		name := A_LoopFileName
+		filelist .= (name) ? name "|" : ""
 		filenum ++
 	}
 	if !(filelist) {
@@ -196,8 +228,7 @@ Return
 }
 
 GetConfDate(dt:="") {
-/*	Get next conference date. If not argument, assume today
-*/
+; Get next conference date. If not argument, assume today
 	if !(dt) {
 		dt:=A_Now
 	}
@@ -219,8 +250,8 @@ breakDate(x) {
 	D_Hr := substr(x,9,2)
 	D_Min := substr(x,11,2)
 	D_Sec := substr(x,13,2)
-	FormatTime, D_day, x, ddd
-	FormatTime, D_Mon, x, MMM
+	FormatTime, D_day, %x%, ddd
+	FormatTime, D_Mon, %x%, MMM
 	return {"YYYY":D_Yr, "MM":D_Mo, "MMM":D_Mon, "DD":D_Da, "ddd":D_day
 		, "HH":D_Hr, "min":D_Min, "sec":D_sec}
 }
