@@ -249,15 +249,17 @@ PatFileGet:
 		,"\bECG","\bCXR","\bECHO","\bMRI","\bCT","\bCath/Angio","\bEP","\bExercise","\bHolter","\bOp Note"
 		,"Other Studies / Details:"]
 	filetxt =
-	if (instr(patFileExt,"doc")) {
-		MsgBox, 262404, Parse file, Harvest info?
-		IfMsgBox, Yes
+	if ((instr(patFileExt,"doc")) and (instr(PatFile,"PCC note"))) {
+		;~ MsgBox, 262404, Parse file, Harvest info?
+		;~ IfMsgBox, Yes
+		if (patfile)								
 		{
-			filetxt := parsePatDoc(patDirFile)
-			;MsgBox % patfiletxt
+			tx := parsePatDoc(patDirFile)
+			MsgBox % "'" tx.Cardiologist "'"
 		} else {
-			Run, %patDirFile%
 		}
+	} else {
+		Run, %patDirFile%
 	}
 Return
 }
@@ -266,14 +268,11 @@ parsePatDoc(doc) {
 	;~ IfNotExist %doc% {
 		;~ return Error
 	;~ }
-	;MsgBox % doc
 	SplitPath, doc, docName, docDir, docExt, docNoExt
 	Progress, 100,% docNoExt, Reading...
 	txt := ComObjGet(doc).Range.Text
 	Progress, hide
-	tx := fieldvals(txt)
-	MsgBox % tx.MR
-	return
+	return fieldvals(txt)
 }
 
 breakDate(x) {
@@ -318,11 +317,16 @@ fieldvals(x) {
 	{
 		j := fields[k+1]
 		m := trim(stRegX(x,i,n,1,j,1,n)," `r`n`t")
-		lbl := trim(cleanColon(i)," `r`n`t#")
-		lbl := RegExReplace(lbl,"\\[\w()]")
-		lbl := RegExReplace(lbl,"HEART CENTER CARE COORDINATION NOTE","Name")
-		if (lbl="MR") 
+		lbl := RegExReplace(trim(cleanColon(i)," `r`n`t#"),"\\[\w()]")
+		if (lbl="MR") {
 			m := LTrim(RegExReplace(m,"\-"),"0")
+		}
+		if (lbl="HEART CENTER CARE COORDINATION NOTE") {
+			StringLower, m, m, T
+			out.nameL := strX(m,,1,0, ",",1,1)
+			lbl := "nameF"
+			m := strX(m,",",1,2, " ",1,1)
+		}
 		out[lbl] := m
 		;Inputbox , z, % lbl , % out[lbl] ,,,,,,,, % out[lbl]
 		;MsgBox,, % "'" lbl "'", % "'" out[lbl] "'"
