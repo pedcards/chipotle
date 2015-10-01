@@ -17,7 +17,7 @@ user := A_UserName
 isAdmin := ObjHasValue(admins,user)
 ;~ if (InStr(A_WorkingDir,"-AutoHotkey")) {
 if (user="TC") {
-	netdir := "files\Tuesday Conference"
+	netdir := A_WorkingDir "\files\Tuesday Conference"
 } else {
 	netdir := "\\chmc16\Cardio\Conference\Tuesday Conference"
 }
@@ -136,14 +136,29 @@ MainGUI:
 	Gui, Add, Text, xp yp+14 wp hp +Center, Merged OnLine Elements
 	Gui, Font, wNorm
 	Gui, Add, Button, wp gGetConfDir, % dt.MMM " " dt.DD
-	Gui, Add, Button, wp, Date browser
-	Gui, Add, Button, wp, Search archive
+	Gui, Add, Button, wp Disabled, Date browser
+	Gui, Add, Button, wp Disabled, AHK %A_AhkVersion%
 	Gui, Show, AutoSize, GUACAMOLE Main
 Return
 }
 
 mainGuiClose:
 ExitApp
+
+GetConfDate(dt:="") {
+; Get next conference date. If not argument, assume today
+	if !(dt) {
+		dt:=A_Now
+	}
+	FormatTime, Wday,%dt%, Wday										; Today's day of the week (Sun=1)
+	if (Wday > 3) {													; if Wed-Sat, next Tue
+		dt += (10-Wday), days
+	} else {														; if Sun-Tue, this Tue
+		dt += (3-Wday), days
+	}
+	conf := breakdate(dt)
+	return {YYYY:conf.YYYY, MM:conf.MM, MMM:conf.MMM, DD:conf.DD}
+}
 
 GetConfDir:
 {
@@ -156,7 +171,7 @@ GetConfDir:
 	Gui, ConfL:Default
 	Gui, Destroy
 	Gui, Font, s16
-	Gui, Add, ListBox, vPatName gPatData, %filelist%
+	Gui, Add, ListBox, vPatName gPatDir, %filelist%
 	Gui, Show, AutoSize, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
 	Return
 }
@@ -193,7 +208,7 @@ NetConfDir(yyyy:="",mmm:="",dd:="") {
 return yyyy "\" datedir[yyyy,mmm].dir "\" datedir[yyyy,mmm,dd]		; returns path to that date's conference 
 }
 
-PatData:
+PatDir:
 {
 	if !(A_GuiEvent = "DoubleClick")
 		return
@@ -216,29 +231,49 @@ PatData:
 	Gui, Add, ListBox, r%filenum% vPatFile gPatFileGet,%filelist%
 	Gui, Font, s12
 	Gui, Add, Button, wP, Open all...
-	Gui, Show, AutoSize, % "Patient " PatName
+	Gui, Show, AutoSize, % "Patient: " PatName
 	return
 }
 
 PatFileGet:
 {
+	if !(A_GuiEvent = "DoubleClick")
+		return
 	Gui, PatL:Submit
+	SplitPath, PatFile, , , PatFileExt
+	patdirfile := netdir "\" confdir "\" PatName "\" PatFile
+	fields := ["Result Title:","Performed By:","HEART CENTER CARE COORDINATION NOTE","DOB:","MR #:","AGE:"
+		,"PRESENTING CARDIOLOGIST:","\bCARDIOLOGIST:","SURGEON\(s\):","PRIMARY CARE PHYSICIAN:","REQUEST FOR:","DIAGNOSIS:"
+		,"PURPOSE OF PRESENTATION:","CLINICAL HISTORY:","HISTORY \(SURGICAL AND INTERVENTIONS\):","OPERATIVE REPORTS:"
+		,"BRIEF FINDINGS \(see below for further detail\)"
+		,"\bECG","\bCXR","\bECHO","\bMRI","\bCT","\bCath/Angio","\bEP","\bExercise","\bHolter","\bOp Note"
+		,"Other Studies / Details:"]
+	filetxt =
+	if (instr(patFileExt,"doc")) {
+		MsgBox, 262404, Parse file, Harvest info?
+		IfMsgBox, Yes
+		{
+			filetxt := parsePatDoc(patDirFile)
+			;MsgBox % patfiletxt
+		} else {
+			Run, %patDirFile%
+		}
+	}
 Return
 }
 
-GetConfDate(dt:="") {
-; Get next conference date. If not argument, assume today
-	if !(dt) {
-		dt:=A_Now
-	}
-	FormatTime, Wday,%dt%, Wday										; Today's day of the week (Sun=1)
-	if (Wday > 3) {													; if Wed-Sat, next Tue
-		dt += (10-Wday), days
-	} else {														; if Sun-Tue, this Tue
-		dt += (3-Wday), days
-	}
-	conf := breakdate(dt)
-	return {YYYY:conf.YYYY, MM:conf.MM, MMM:conf.MMM, DD:conf.DD}
+parsePatDoc(doc) {
+	;~ IfNotExist %doc% {
+		;~ return Error
+	;~ }
+	;MsgBox % doc
+	SplitPath, doc, docName, docDir, docExt, docNoExt
+	Progress, 100,% docNoExt, Reading...
+	txt := ComObjGet(doc).Range.Text
+	Progress, hide
+	tx := fieldvals(txt)
+	MsgBox % tx.MR
+	return
 }
 
 breakDate(x) {
@@ -271,6 +306,65 @@ ObjHasValue(aObj, aValue, rx:="") {
 			}
 		}
     return, false, errorlevel := 1
+}
+
+fieldvals(x) {
+/*	Matches field values and results. Gets text between FIELDS[k] to FIELDS[k+1]. Excess whitespace removed. Returns results as array.
+	x	= input text
+*/
+	global fields
+	out := object()
+	for k, i in fields
+	{
+		j := fields[k+1]
+		m := trim(stRegX(x,i,n,1,j,1,n)," `r`n`t")
+		lbl := trim(cleanColon(i)," `r`n`t#")
+		lbl := RegExReplace(lbl,"\\[\w()]")
+		lbl := RegExReplace(lbl,"HEART CENTER CARE COORDINATION NOTE","Name")
+		if (lbl="MR") 
+			m := LTrim(RegExReplace(m,"\-"),"0")
+		out[lbl] := m
+		;Inputbox , z, % lbl , % out[lbl] ,,,,,,,, % out[lbl]
+		;MsgBox,, % "'" lbl "'", % "'" out[lbl] "'"
+	}
+	return out
+}
+
+stRegX(h,BS="",BO=1,BT=0, ES="",ET=0, ByRef N="") {
+/*	modified version: searches from BS to "   "
+	h = Haystack
+	BS = beginning string
+	BO = beginning offset
+	BT = beginning trim, TRUE or FALSE
+	ES = ending string
+	ET = ending trim, TRUE or FALSE
+	N = variable for next offset
+*/
+	;BS .= "(.*?)\s{3}"
+	rem:="[OPimsxADJUXPSC(\`n)(\`r)(\`a)]+\)"
+	pos0 := RegExMatch(h,((BS~=rem)?"Oim"BS:"Oim)"BS),bPat,((BO<1)?1:BO))
+	pos1 := RegExMatch(h,((ES~=rem)?"Oim"ES:"Oim)"ES),ePat,pos0+bPat.len)
+	N := pos1+((ET)?0:(ePat.len))
+	return substr(h,pos0+((BT)?(bPat.len):0),N-pos0-bPat.len)
+}
+
+cleancolon(ByRef txt) {
+	n := InStr(txt,":")
+	txt:=strX(txt,"",1,1,":",1,1)
+	txt = %txt%
+	return txt
+}
+
+cleanspace(ByRef txt) {
+	StringReplace txt,txt,`n,%A_Space%, All
+	StringReplace txt,txt,%A_Space%.%A_Space%,.%A_Space%, All
+	loop
+	{
+		StringReplace txt,txt,%A_Space%%A_Space%,%A_Space%, UseErrorLevel
+		if ErrorLevel = 0	
+			break
+	}
+	return txt
 }
 
 #Include xml.ahk
