@@ -34,7 +34,7 @@ FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.ex
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.6.0"
+vers := "1.6.1"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -94,7 +94,7 @@ if (isCICU) {
 	loc["CICU"] := {"name":"Cardiac ICU", "datevar":"GUIicuTXT"}
 	callLoc := "CSR"
 	mainTitle1 := "CON CARNE"
-	mainTitle2 := "Computerized Organized Notebook"
+	mainTitle2 := "Collective Organized Notebook"
 	mainTitle3 := "for Cardiac ARNP Efficiency"
 } else {
 	mainTitle1 := "CHIPOTLE"
@@ -827,11 +827,11 @@ plInputNote:
 		gosub PatListGet
 		return
 	}
-	if (isARNP) {
-		MsgBox % "Cannot edit in ARNP mode"
-		gosub PatListGet
-		return
-	}
+	;~ if (isARNP) {
+		;~ MsgBox % "Cannot edit in ARNP mode"
+		;~ gosub PatListGet
+		;~ return
+	;~ }
 	if (substr(i:=A_GuiControl,4,4)="stat") {
 		plEditStat = true
 		eventlog(mrn " status " i " changed.")
@@ -3078,11 +3078,24 @@ fieldType(x) {
 	return error
 }
 
+FilePrepend( Text, Filename ) { 
+/*	from haichen http://www.autohotkey.com/board/topic/80342-fileprependa-insert-text-at-begin-of-file-ansi-text/?p=510640
+*/
+    file:= FileOpen(Filename, "rw")
+    text .= File.Read()
+    file.pos:=0
+    File.Write(text)
+    File.Close()
+}
+
 eventlog(event) {
 	global user, sessdate
 	comp := A_ComputerName
 	FormatTime, timenow, A_Now, yyyy.MM.dd.HH:mm:ss
-	FileAppend, % timenow " ["  user "/" comp "] " event "`n", % "logs/" . sessdate . ".log"
+	name := "logs/" . sessdate . ".log"
+	txt := timenow " [" user "/" comp "] " event "`n"
+	filePrepend(txt,name)
+;	FileAppend, % timenow " ["  user "/" comp "] " event "`n", % "logs/" . sessdate . ".log"
 }
 
 #Include xml.ahk
