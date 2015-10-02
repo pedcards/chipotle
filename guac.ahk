@@ -25,6 +25,9 @@ if (user="TC") {
 datedir := Object()
 mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
+y := new XML("currlist.xml")												; Get latest local currlist into memory
+arch := new XML("archlist.xml")												; Get archive.xml
+
 Gosub MainGUI
 WinWaitClose, GUACAMOLE Main
 ExitApp
@@ -194,13 +197,13 @@ NetConfDir(yyyy:="",mmm:="",dd:="") {
 	Loop, % netdir "\" yyyy "\" datedir[yyyy,mmm].dir "\*" , 2		; check for conf dates within that month (dir:filename)
 	{
 		file := A_LoopFileName
-		if (regexmatch(file,"\d{1,2}\.\d{1,2}\.\d{1,2}")) {			; sometimes named "6.21.15"
+		if (regexmatch(file,"\d{1,2}\.\d{1,2}\.\d{1,2}")) {			; sometimes named "6.19.15"
 			dd := zdigit(strX(file,".",1,1,".",1,1))
 			datedir[yyyy,mmm,dd] := file
-		} else if (RegExMatch(file,"\w\s\d{1,2}")){					; sometimes named "Jun 21" or "June 21"
+		} else if (RegExMatch(file,"\w\s\d{1,2}")){					; sometimes named "Jun 19" or "June 19"
 			dd := zdigit(strX(file," ",1,1,"",1,0))
 			datedir[yyyy,mmm,dd] := file
-		} else if (regexmatch(file,"\b\d{1,2}\b")) {				; sometimes just named "21"
+		} else if (regexmatch(file,"\b\d{1,2}\b")) {				; sometimes just named "19"
 			dd := zdigit(file)
 			datedir[yyyy,mmm,dd] := file
 		}															; inserts dir name into datedir[yyyy,mmm,dd]
@@ -240,22 +243,20 @@ PatFileGet:
 	if !(A_GuiEvent = "DoubleClick")
 		return
 	Gui, PatL:Submit
+		
 	SplitPath, PatFile, , , PatFileExt
 	patdirfile := netdir "\" confdir "\" PatName "\" PatFile
-	fields := ["Result Title:","Performed By:","HEART CENTER CARE COORDINATION NOTE","DOB:","MR #:","AGE:"
-		,"PRESENTING CARDIOLOGIST:","\bCARDIOLOGIST:","SURGEON\(s\):","PRIMARY CARE PHYSICIAN:","REQUEST FOR:","DIAGNOSIS:"
-		,"PURPOSE OF PRESENTATION:","CLINICAL HISTORY:","HISTORY \(SURGICAL AND INTERVENTIONS\):","OPERATIVE REPORTS:"
-		,"BRIEF FINDINGS \(see below for further detail\)"
-		,"\bECG","\bCXR","\bECHO","\bMRI","\bCT","\bCath/Angio","\bEP","\bExercise","\bHolter","\bOp Note"
-		,"Other Studies / Details:"]
 	filetxt =
 	if ((instr(patFileExt,"doc")) and (instr(PatFile,"PCC note"))) {
 		;~ MsgBox, 262404, Parse file, Harvest info?
 		;~ IfMsgBox, Yes
 		if (patfile)								
 		{
-			tx := parsePatDoc(patDirFile)
-			MsgBox % "'" tx.Cardiologist "'"
+			pt := parsePatDoc(patDirFile)
+			checkChip(pt)
+			MsgBox % arch
+			;~ lbl := "mrn"
+			;~ MsgBox,, % lbl, % "'" tx[lbl] "'"
 		} else {
 		}
 	} else {
@@ -269,10 +270,25 @@ parsePatDoc(doc) {
 		;~ return Error
 	;~ }
 	SplitPath, doc, docName, docDir, docExt, docNoExt
-	Progress, 100,% docNoExt, Reading...
+	Progress,,% docNoExt, Reading...
 	txt := ComObjGet(doc).Range.Text
 	Progress, hide
 	return fieldvals(txt)
+}
+
+checkChip(pt) {
+	global y, arch
+	mrn := "1431528"
+	if IsObject(y.selectSingleNode("//id[@mrn='" mrn "']")) {			; present in any active list?
+		getPatXml
+	} else if IsObject(arch.selectSingleNode("//id[@mrn='" mrn "']")) {			; check the archives
+		MsgBox Archive list
+	} else {
+		MsgBox Not on any list
+	}
+	
+	;lbl := "cardiologist"
+	;MsgBox,, % lbl, % "'" pt[lbl] "'"
 }
 
 breakDate(x) {
@@ -311,7 +327,13 @@ fieldvals(x) {
 /*	Matches field values and results. Gets text between FIELDS[k] to FIELDS[k+1]. Excess whitespace removed. Returns results as array.
 	x	= input text
 */
-	global fields
+	;global fields
+	fields := ["Result Title:","Performed By:","HEART CENTER CARE COORDINATION NOTE","DOB:","MR #:","AGE:"
+		,"PRESENTING CARDIOLOGIST:","\bCARDIOLOGIST:","SURGEON\(s\):","PRIMARY CARE PHYSICIAN:","REQUEST FOR:","DIAGNOSIS:"
+		,"PURPOSE OF PRESENTATION:","CLINICAL HISTORY:","HISTORY \(SURGICAL AND INTERVENTIONS\):","OPERATIVE REPORTS:"
+		,"BRIEF FINDINGS \(see below for further detail\)"
+		,"\bECG","\bCXR","\bECHO","\bMRI","\bCT","\bCath/Angio","\bEP","\bExercise","\bHolter","\bOp Note"
+		,"Other Studies / Details:"]
 	out := object()
 	for k, i in fields
 	{
@@ -320,6 +342,7 @@ fieldvals(x) {
 		lbl := RegExReplace(trim(cleanColon(i)," `r`n`t#"),"\\[\w()]")
 		if (lbl="MR") {
 			m := LTrim(RegExReplace(m,"\-"),"0")
+			lbl := "MRN"
 		}
 		if (lbl="HEART CENTER CARE COORDINATION NOTE") {
 			StringLower, m, m, T
@@ -327,9 +350,11 @@ fieldvals(x) {
 			lbl := "nameF"
 			m := strX(m,",",1,2, " ",1,1)
 		}
+		if (lbl="CARDIOLOGIST") {
+			m := strX(m,"",1,1,", ",1,2)
+			m := SubStr(m,1,1) ". " strX(m," ",0,1,"",0,1)
+		}
 		out[lbl] := m
-		;Inputbox , z, % lbl , % out[lbl] ,,,,,,,, % out[lbl]
-		;MsgBox,, % "'" lbl "'", % "'" out[lbl] "'"
 	}
 	return out
 }
