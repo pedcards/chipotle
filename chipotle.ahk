@@ -94,7 +94,7 @@ if (isCICU) {
 	loc["CICU"] := {"name":"Cardiac ICU", "datevar":"GUIicuTXT"}
 	callLoc := "CSR"
 	mainTitle1 := "CON CARNE"
-	mainTitle2 := "Computerized Organized Notebook"
+	mainTitle2 := "Collective Organized Notebook"
 	mainTitle3 := "for Cardiac ARNP Efficiency"
 } else {
 	mainTitle1 := "CHIPOTLE"
@@ -827,11 +827,11 @@ plInputNote:
 		gosub PatListGet
 		return
 	}
-	if (isARNP) {
-		MsgBox % "Cannot edit in ARNP mode"
-		gosub PatListGet
-		return
-	}
+	;~ if (isARNP) {
+		;~ MsgBox % "Cannot edit in ARNP mode"
+		;~ gosub PatListGet
+		;~ return
+	;~ }
 	if (substr(i:=A_GuiControl,4,4)="stat") {
 		plEditStat = true
 		eventlog(mrn " status " i " changed.")
