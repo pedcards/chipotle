@@ -2,40 +2,25 @@
 */
 
 scr:=screenDim()
-MsgBox % scr.W " x " scr.H " @ " scr.DPI " DPI" . "`n"
-	. scr.OR
+win:=winDim(scr)
+;MsgBox % scr.W " x " scr.H " @ " scr.DPI " DPI" . "`n" . scr.OR
+
+DrawWin:
+{
+	demo_h := win.rH*6
+	Gui, main:Default
+	Gui, Add, GroupBox, % "x"win.bor " y"win.bor " w"win.boxH " h"demo_h, here
+	Gui, Add, GroupBox, % "x"win.bor+win.boxH+win.boxQ+win.bor " y"win.bor " w"win.boxQ-win.bor " h"demo_h
+	Gui, Add, GroupBox, % "x"win.bor+win.boxH " y"win.bor " w"win.boxQ " h"demo_h/2+4
+	Gui, Add, GroupBox, % "xP yP+"demo_h/2-4 " wP hP"
+	Gui, Add, GroupBox, % "x"win.bor " y"win.bor+demo_h-4 " w"win.boxF " h"demo_h*4
+	Gui, Show, % "w"win.wX " h"win.wY-80, Window
+}
+
+;MsgBox % win.wx " x " win.wy
 
 PatListGet:
 {
-	Gui, plistG:Destroy
-	;pl := ptParse(mrn)
-	pl_mrnstring := "/root/id[@mrn='" mrn "']"
-	pl_NameL := pl.nameL
-	pl_NameF := pl.nameF
-	pl_DOB := pl.DOB
-	pl_Age := pl.Age
-	pl_Sex := pl.Sex
-	pl_Admit := pl.Admit
-	pl_Svc := pl.Svc
-	pl_Unit := pl.Unit
-	pl_Room := pl.Room
-	pl_dxCard := pl.dxCard
-	pl_dxEP := pl.dxEP
-	pl_dxSurg := pl.dxSurg
-	pl_dxNotes := pl.dxNotes
-	pl_dxProb := pl.dxProb
-	pl_statCons := pl.statCons
-	pl_statTxp := pl.statTxp
-	pl_statRes := pl.statRes
-	pl_statScamp := pl.statScamp
-	pl_CORES := pl.CORES
-	pl_MAR := pl.MAR
-	pl_ProvCard := pl.provCard
-	pl_ProvSchCard := pl.provSchCard
-	pl_ProvEP := pl.provEP
-	pl_ProvPCP := pl.provPCP
-	pl_Call_L := pl.callL
-	pl_Call_N := pl.callN
 	pl_demo := ""
 		. "DOB: " pl_DOB 
 		. "   Age: " (instr(pl_Age,"month")?RegExReplace(pl_Age,"i)month","mo"):instr(pl_Age,"year")?RegExReplace(pl_Age,"i)year","yr"):pl_Age) 
@@ -92,6 +77,9 @@ plEditStat =
 Return
 }
 
+pListGGuiClose:
+ExitApp
+
 screenDim() {
 	W := A_ScreenWidth
 	H := A_ScreenHeight
@@ -99,4 +87,22 @@ screenDim() {
 	Orient := (W>H)?"L":"P"
 	
 	return {W:W, H:H, DPI:DPI, OR:Orient}
+}
+winDim(scr) {
+	if (scr.or="L") {
+		wX := scr.H
+		wY := scr.H
+		bor := 10
+		bWf := wX-2*bor
+		bWh := bWf/2
+		bWq := bWf/4
+	} else {
+		wX := scr.W
+		wY := scr.H
+	}
+	return { BOR:Bor, wX:wX, wY:wY
+		,	boxF:bWf
+		,	boxH:bWh
+		,	boxQ:bWq
+		,	rH:20}
 }
