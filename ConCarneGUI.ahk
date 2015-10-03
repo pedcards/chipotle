@@ -1,23 +1,69 @@
 /*	CON CARNE interface test
 */
 
-scr:=screenDim()
+scr:=screenDims()
 win:=winDim(scr)
-;MsgBox % scr.W " x " scr.H " @ " scr.DPI " DPI" . "`n" . scr.OR
+gosub DrawWin
+MsgBox % scr.W " x " scr.H " @ " scr.DPI " DPI" . "`n" . scr.OR
+
+ExitApp
 
 DrawWin:
 {
-	demo_h := win.rH*6
 	Gui, main:Default
-	Gui, Add, GroupBox, % "x"win.bor " y"win.bor " w"win.boxH " h"demo_h, here
-	Gui, Add, GroupBox, % "x"win.bor+win.boxH+win.boxQ+win.bor " y"win.bor " w"win.boxQ-win.bor " h"demo_h
-	Gui, Add, GroupBox, % "x"win.bor+win.boxH " y"win.bor " w"win.boxQ " h"demo_h/2+4
-	Gui, Add, GroupBox, % "xP yP+"demo_h/2-4 " wP hP"
-	Gui, Add, GroupBox, % "x"win.bor " y"win.bor+demo_h-4 " w"win.boxF " h"demo_h*4
-	Gui, Show, % "w"win.wX " h"win.wY-80, Window
+	Gui, Add, GroupBox, % "x"win.bor " y"win.bor " w"win.boxH " h"win.demo_h, here
+	Gui, Add, GroupBox, % "x"win.bor+win.boxH+win.boxQ+win.bor " y"win.bor " w"win.boxQ-win.bor " h"win.demo_h
+	Gui, Add, GroupBox, % "x"win.bor+win.boxH " y"win.bor " w"win.boxQ " h"win.demo_h/2+4
+	Gui, Add, GroupBox, % "xP yP+"win.demo_h/2-4 " wP hP"
+	;Gui, Add, GroupBox, % "x"win.bor " y"win.bor+win.demo_h-4 " w"win.boxF " h"win.cont_h
+	drawptsys("FEN")
+	drawptsys("RESP")
+	drawptsys("CV")
+	drawptsys("ID")
+	drawptsys("HEME")
+	drawptsys("ENDO_MET")
+	drawptsys("NEURO")
+	drawptsys("SOCIAL")
+	drawptsys("NOTES")
+	Gui, Show, % "w"win.wX " h"win.wY, CON CARNE
+	return
 }
 
-;MsgBox % win.wx " x " win.wy
+DrawWinGuiClose:
+Exitapp
+
+DrawPtSys(sys:="") {
+	global win
+	static y
+	if !(y) {
+		y := win.bor+win.demo_h+win.bor
+	}	
+	col := 100
+	x0 := win.bor
+	y0 := win.bor+win.demo_h-4
+	w0 := win.boxF
+	h0 := 80
+
+	x1 := win.bor
+	w1 := col
+	h1 := h0
+	
+	x2 := x1+col
+	w2 := win.boxF-col
+;	box1 := "x"x1 " y"y " w"w1 " h"h0
+;	box2 := "x"x2 " y"y " w"w2 " h"h0
+	box1 := "x"x1 " y"y " w"w0 " h"h0
+	edVar := "cSys_"sys
+;	global %edVar
+	edit1 := "x"x1 " y"y " w"w0 " h"h0 " v"edVar
+	
+	Gui, main:Default
+	Gui, Add, GroupBox, % box1, % RegExReplace(sys,"_","/")
+	Gui, Add, Edit, % edit1, % edVar
+;	Gui, Add, GroupBox, % box2
+	y += h0
+	return
+}
 
 PatListGet:
 {
@@ -80,7 +126,7 @@ Return
 pListGGuiClose:
 ExitApp
 
-screenDim() {
+screenDims() {
 	W := A_ScreenWidth
 	H := A_ScreenHeight
 	DPI := A_ScreenDPI
@@ -91,18 +137,22 @@ screenDim() {
 winDim(scr) {
 	if (scr.or="L") {
 		wX := scr.H
-		wY := scr.H
+		wY := scr.H-80
 		bor := 10
-		bWf := wX-2*bor
-		bWh := bWf/2
-		bWq := bWf/4
+		boxWf := wX-2*bor
+		boxWh := boxWf/2
+		boxWq := boxWf/4
+		rH := 20
+		demo_h := rH*6
 	} else {
 		wX := scr.W
 		wY := scr.H
 	}
 	return { BOR:Bor, wX:wX, wY:wY
-		,	boxF:bWf
-		,	boxH:bWh
-		,	boxQ:bWq
-		,	rH:20}
+		,	boxF:boxWf
+		,	boxH:boxWh
+		,	boxQ:boxWq
+		,	demo_H:demo_H
+		,	cont_H:wY-demo_H-bor
+		,	rH:rH}
 }
