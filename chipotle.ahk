@@ -882,7 +882,6 @@ PatListGUIcc:
 	Gui, Add, GroupBox, % "xP yP+"win.demo_h/2-4 " wP hP"
 	y0 := win.bor+win.demo_h+win.bor
 	for key,obj in ccFields {
-		;PatListCcSys(obj)
 		x0 := win.bor
 		w0 := win.boxF
 		h0 := win.field_H
@@ -901,31 +900,6 @@ PatListGUIcc:
 	Gui, Show, % "w"win.wX*1.5 " h"win.wY, CON CARNE
 	
 	
-	return
-}
-
-PatListCCSys(sys:="") {
-	global 
-	static y
-	local col, x0, y0, w0, h0, edVar, edit1
-	if !(y) {
-		y := win.bor+win.demo_h+win.bor
-	}	
-	col := 100
-	x0 := win.bor
-	w0 := win.boxF
-	h0 := win.field_H
-
-	box1 := "x"x0 " y"y " w"w0 " h"h0
-	edVar := "cc"sys
-	edit1 := "x"x0+3 " y"y+12 " w"w0-5 " h"h0-16 " -VScroll v"edVar
-	
-	Gui, patlistG:Default
-	Gui, Font, Bold
-	Gui, Add, GroupBox, % box1, % RegExReplace(sys,"_","/")
-	Gui, Font, Normal
-	Gui, Add, Edit, % edit1, % %edVar%
-	y += h0
 	return
 }
 
