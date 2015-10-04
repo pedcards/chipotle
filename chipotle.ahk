@@ -51,6 +51,8 @@ FormatTime, sessdate, A_Now, yyyyMM
 	Forecast = strings for recognizing Electronic Forecast fields
 */
 gosub ReadIni
+scr:=screenDims()
+win:=winDim(scr)
 
 servfold := "patlist"
 if (ObjHasValue(admins,user)) {
@@ -166,6 +168,7 @@ CIS_cols:=[]
 CIS_colvals:=[]
 dialogVals:=[]
 teamSort:=[]
+ccFields:=[]
 meds1:=[]
 meds2:=[]
 Forecast_svc:=[]
@@ -226,6 +229,9 @@ Forecast_val:=[]
 		if (sec="Team sort") {
 			teamSort.Insert(i)
 		}
+		if (sec="CC Systems") {
+			ccFields.Insert(i)
+		}
 		if (sec="MEDS1") {
 			meds1.Insert(i)
 		}
@@ -245,6 +251,43 @@ splitIni(x, ByRef y, ByRef z) {
 	y := trim(substr(x,1,(k := instr(x, "="))), " `t=")
 	z := trim(substr(x,k), " `t=""")
 	return
+}
+
+screenDims() {
+	W := A_ScreenWidth
+	H := A_ScreenHeight
+	DPI := A_ScreenDPI
+	Orient := (W>H)?"L":"P"
+	
+	return {W:W, H:H, DPI:DPI, OR:Orient}
+}
+winDim(scr) {
+	global ccFields
+	num := ccFields.MaxIndex()
+	if (scr.or="L") {
+		wX := scr.H
+		wY := scr.H-80
+		bor := 10
+		boxWf := wX-2*bor
+		boxWh := boxWf/2
+		boxWq := boxWf/4
+		rH := 12
+		demo_h := rH*6
+		butn_h := rh*6
+		cont_h := wY-demo_H-bor-butn_h
+		field_h := (cont_h-20)/num
+	} else {
+		wX := scr.W
+		wY := scr.H
+	}
+	return { BOR:Bor, wX:wX, wY:wY
+		,	boxF:boxWf
+		,	boxH:boxWh
+		,	boxQ:boxWq
+		,	demo_H:demo_H
+		,	cont_H:cont_H
+		,	field_H:field_H
+		,	rH:rH}
 }
 
 ;	===========================================================================================
@@ -733,7 +776,6 @@ PatListGet:
 	}
 	if (mrn="MRN") 								; blank field
 		return
-	;Gui, 1:Show
 	Gui, teamL:Hide
 	Gui, plistG:Destroy
 	pl := ptParse(mrn)
@@ -771,53 +813,120 @@ PatListGet:
 		. pl_Unit " :: " pl_Room "`n"
 		. pl_Svc "`n`n"
 		. "Admitted: " pl_Admit "`n"
-Gui, plistG:Add, Text, x26 y38 w200 h80 , % pl_demo
-;Gui, plistG:Add, Text, x26 y74 w200 h40 , go here
-Gui, plistG:Add, Text, x266 y24 w150 h30 gplInputCard, Primary Cardiologist:
-Gui, plistG:Add, Text, xp yp+14 cBlue w150 vpl_card, % pl_ProvCard
-Gui, plistG:Add, Text, xp yp+20 w150 h30 gplInputCard, Continuity Cardiologist:
-Gui, plistG:Add, Text, xp yp+14 cBlue w150 vpl_SCHcard, % pl_ProvSchCard
-Gui, plistG:Add, Text, xp y100 w150 h28 , Last call:
-Gui, plistG:Add, Text, xp+50 yp w80 vCrdCall_L , % ((pl_Call_L) ? niceDate(pl_Call_L) : "---")		;substr(pl_Call_L,1,8)
-Gui, plistG:Add, Text, xp-50 yp+14 , Next call:
-Gui, plistG:Add, Text, xp+50 yp w80 vCrdCall_N, % ((pl_Call_N) ? niceDate(pl_Call_N) : "---")
+	if (isARNP) {
+		gosub PatListGUIcc
+	} else {
+		gosub PatListGUI
+	}
+	return
+}
+	
+PatListGUI:
+{
+	Gui, plistG:Default
+	Gui, Add, Text, x26 y38 w200 h80 , % pl_demo
+	;Gui, Add, Text, x26 y74 w200 h40 , go here
+	Gui, Add, Text, x266 y24 w150 h30 gplInputCard, Primary Cardiologist:
+	Gui, Add, Text, xp yp+14 cBlue w150 vpl_card, % pl_ProvCard
+	Gui, Add, Text, xp yp+20 w150 h30 gplInputCard, Continuity Cardiologist:
+	Gui, Add, Text, xp yp+14 cBlue w150 vpl_SCHcard, % pl_ProvSchCard
+	Gui, Add, Text, xp y100 w150 h28 , Last call:
+	Gui, Add, Text, xp+50 yp w80 vCrdCall_L , % ((pl_Call_L) ? niceDate(pl_Call_L) : "---")		;substr(pl_Call_L,1,8)
+	Gui, Add, Text, xp-50 yp+14 , Next call:
+	Gui, Add, Text, xp+50 yp w80 vCrdCall_N, % ((pl_Call_N) ? niceDate(pl_Call_N) : "---")
 
-Gui, plistG:Add, CheckBox, x446 y34 w120 h20 Checked%pl_statCons% vpl_statCons gplInputNote, Consult
-Gui, plistG:Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statTxp% vpl_statTxp gplInputNote, Transplant
-Gui, plistG:Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statRes% vpl_statRes gplInputNote, Research
-Gui, plistG:Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statScamp% vpl_statScamp gplInputNote, SCAMP
+	Gui, Add, CheckBox, x446 y34 w120 h20 Checked%pl_statCons% vpl_statCons gplInputNote, Consult
+	Gui, Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statTxp% vpl_statTxp gplInputNote, Transplant
+	Gui, Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statRes% vpl_statRes gplInputNote, Research
+	Gui, Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statScamp% vpl_statScamp gplInputNote, SCAMP
 
-Gui, plistG:Add, Edit, x26 y160 w540 h48 vpl_dxNotes gplInputNote, %pl_dxNotes%
-Gui, plistG:Add, Edit, x26 yp+70 w540 h48 vpl_dxCard gplInputNote, %pl_dxCard%
-Gui, plistG:Add, Edit, x26 yp+70 w540 h48 vpl_dxEP gplInputNote, %pl_dxEP%
-Gui, plistG:Add, Edit, x26 yp+70 w540 h48 vpl_dxSurg gplInputNote, %pl_dxSurg%
-Gui, plistG:Add, Edit, x26 yp+70 w540 h48 vpl_dxProb gplInputNote, %pl_dxProb%
+	Gui, Add, Edit, x26 y160 w540 h48 vpl_dxNotes gplInputNote, %pl_dxNotes%
+	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxCard gplInputNote, %pl_dxCard%
+	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxEP gplInputNote, %pl_dxEP%
+	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxSurg gplInputNote, %pl_dxSurg%
+	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxProb gplInputNote, %pl_dxProb%
 
-Gui, plistG:Add, Button, x36 y504 w160 h40 gplTasksList, Tasks/Todos
-Gui, plistG:Add, Button, xp+180 yp w160 h40 gplDataList Disabledd, Data highlights
-Gui, plistG:Add, Button, xp+180 yp w160 h40 gplUpdates, Summary Notes
-Gui, plistG:Add, Button, x36 y554 w240 h40 v1 gplCORES, Patient History (CORES)
-Gui, plistG:Add, Button, x316 y554 w240 h40 v2 gplMAR, Meds/Diet (CORES)
+	Gui, Add, Button, x36 y504 w160 h40 gplTasksList, Tasks/Todos
+	Gui, Add, Button, xp+180 yp w160 h40 gplDataList Disabledd, Data highlights
+	Gui, Add, Button, xp+180 yp w160 h40 gplUpdates, Summary Notes
+	Gui, Add, Button, x36 y554 w240 h40 v1 gplCORES, Patient History (CORES)
+	Gui, Add, Button, x316 y554 w240 h40 v2 gplMAR, Meds/Diet (CORES)
 
-Gui, plistG:Font, wBold
-Gui, plistG:Add, GroupBox, x16 y14 w400 h120 , % pl_NameL . ", " . pl_NameF
-Gui, plistG:Add, GroupBox, x256 yp w160 h80
-Gui, plistG:Add, GroupBox, xp yp+70 w160 h50 
+	Gui, Font, wBold
+	Gui, Add, GroupBox, x16 y14 w400 h120 , % pl_NameL . ", " . pl_NameF
+	Gui, Add, GroupBox, x256 yp w160 h80
+	Gui, Add, GroupBox, xp yp+70 w160 h50 
 
-Gui, plistG:Add, GroupBox, x436 y14 w140 h120 , Status Flags
-Gui, plistG:Add, GroupBox, x16 y144 w560 h70 , Quick Notes
-Gui, plistG:Add, GroupBox, x16 yp+70 w560 h70 , Diagnoses && Problems
-Gui, plistG:Add, GroupBox, x16 yp+70 w560 h70 , EP diagnoses/problems
-Gui, plistG:Add, GroupBox, x16 yp+70 w560 h70 , Surgeries/Caths/Interventions
-Gui, plistG:Add, GroupBox, x16 yp+70 w560 h70 , Problem List
-Gui, plistG:Font, wNormal
-Gui, plistG:Add, Button, x176 y614 w240 h40 gplSave, SAVE
+	Gui, Add, GroupBox, x436 y14 w140 h120 , Status Flags
+	Gui, Add, GroupBox, x16 y144 w560 h70 , Quick Notes
+	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Diagnoses && Problems
+	Gui, Add, GroupBox, x16 yp+70 w560 h70 , EP diagnoses/problems
+	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Surgeries/Caths/Interventions
+	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Problem List
+	Gui, Font, wNormal
+	Gui, Add, Button, x176 y614 w240 h40 gplSave, SAVE
 
-Gui, plistG:Show, w600 h670, % "Patient Information - " pl_NameL
-plEditNote = 
-plEditStat =
+	Gui, Show, w600 h670, % "Patient Information - " pl_NameL
+	plEditNote = 
+	plEditStat =
 
 Return
+}
+
+PatListGUIcc:
+{
+	Gui, patlistG:Default
+	Gui, Add, GroupBox, % "x"win.bor " y"win.bor " w"win.boxH " h"win.demo_h, here
+	Gui, Add, GroupBox, % "x"win.bor+win.boxH+win.boxQ+win.bor " y"win.bor " w"win.boxQ-win.bor " h"win.demo_h
+	Gui, Add, GroupBox, % "x"win.bor+win.boxH " y"win.bor " w"win.boxQ " h"win.demo_h/2+4
+	Gui, Add, GroupBox, % "xP yP+"win.demo_h/2-4 " wP hP"
+	y0 := win.bor+win.demo_h+win.bor
+	for key,obj in ccFields {
+		;PatListCcSys(obj)
+		x0 := win.bor
+		w0 := win.boxF
+		h0 := win.field_H
+		box1 := "x"x0 " y"y0 " w"w0 " h"h0
+		edVar := "cc"obj
+		edit1 := "x"x0+3 " y"y0+12 " w"w0-5 " h"h0-16 " -VScroll v"edVar
+		Gui, Font, Bold
+		Gui, Add, GroupBox, % box1, % RegExReplace(obj,"_","/")
+		Gui, Font, Normal
+		Gui, Add, Edit, % edit1, % %edVar%
+		y0 += h0
+	}
+	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5,Hello
+	Gui, Add, Button, % "x"win.bor+win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5,Hello
+	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5,Hello
+	Gui, Show, % "w"win.wX*1.5 " h"win.wY, CON CARNE
+	
+	
+	return
+}
+
+PatListCCSys(sys:="") {
+	global 
+	static y
+	local col, x0, y0, w0, h0, edVar, edit1
+	if !(y) {
+		y := win.bor+win.demo_h+win.bor
+	}	
+	col := 100
+	x0 := win.bor
+	w0 := win.boxF
+	h0 := win.field_H
+
+	box1 := "x"x0 " y"y " w"w0 " h"h0
+	edVar := "cc"sys
+	edit1 := "x"x0+3 " y"y+12 " w"w0-5 " h"h0-16 " -VScroll v"edVar
+	
+	Gui, patlistG:Default
+	Gui, Font, Bold
+	Gui, Add, GroupBox, % box1, % RegExReplace(sys,"_","/")
+	Gui, Font, Normal
+	Gui, Add, Edit, % edit1, % %edVar%
+	y += h0
+	return
 }
 
 plInputNote:

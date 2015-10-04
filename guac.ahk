@@ -280,7 +280,7 @@ checkChip(pt) {
 	global y, arch
 	mrn := "1431528"
 	if IsObject(y.selectSingleNode("//id[@mrn='" mrn "']")) {			; present in any active list?
-		getPatXml
+		;getPatXml
 	} else if IsObject(arch.selectSingleNode("//id[@mrn='" mrn "']")) {			; check the archives
 		MsgBox Archive list
 	} else {
