@@ -800,6 +800,8 @@ PatListGet:
 	pl_statScamp := pl.statScamp
 	pl_CORES := pl.CORES
 	pl_MAR := pl.MAR
+	pl_daily := pl.daily
+	pl_ccSys := pl.ccSys
 	pl_ProvCard := pl.provCard
 	pl_ProvSchCard := pl.provSchCard
 	pl_ProvEP := pl.provEP
@@ -852,7 +854,7 @@ PatListGUI:
 	Gui, Add, Button, x36 y554 w240 h40 v1 gplCORES, Patient History (CORES)
 	Gui, Add, Button, x316 y554 w240 h40 v2 gplMAR, Meds/Diet (CORES)
 
-	Gui, Font, wBold
+	Gui, Font, Bold
 	Gui, Add, GroupBox, x16 y14 w400 h120 , % pl_NameL . ", " . pl_NameF
 	Gui, Add, GroupBox, x256 yp w160 h80
 	Gui, Add, GroupBox, xp yp+70 w160 h50 
@@ -863,7 +865,7 @@ PatListGUI:
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , EP diagnoses/problems
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Surgeries/Caths/Interventions
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Problem List
-	Gui, Font, wNormal
+	Gui, Font, Normal
 	Gui, Add, Button, x176 y614 w240 h40 gplSave, SAVE
 
 	Gui, Show, w600 h670, % "Patient Information - " pl_NameL
@@ -882,7 +884,7 @@ PatListGUIcc:
 		. pl_Unit " :: " pl_Room "`n"
 		. pl_Svc "`n"
 		. "Admitted: " pl_Admit
-	Gui, patlistG:Default
+	Gui, plistG:Default
 	Gui, Font, Bold
 	Gui, Add, GroupBox, % "x"win.bor " y"win.bor " w"win.boxH " h"win.demo_h, % pl_NameL . ", " . pl_NameF "  ---  " MRN
 	Gui, Add, GroupBox, % "x"win.bor+win.boxH+win.boxQ+win.bor " y"win.bor " w"win.boxQ-win.bor " h"win.demo_h
@@ -890,29 +892,30 @@ PatListGUIcc:
 	Gui, Add, GroupBox, % "xP yP+"win.demo_h/2-4 " wP hP"
 	Gui, Font, Normal
 	Gui, Add, Text, % "x"win.bor+10 " y"win.bor+20, % pl_demo
-
-y0 := win.bor+win.demo_h+win.bor
+	y0 := win.bor+win.demo_h+win.bor
 	for key,obj in ccFields {
 		x0 := win.bor
 		w0 := win.boxF
 		h0 := win.field_H
 		box1 := "x"x0 " y"y0 " w"w0 " h"h0
 		edVar := "cc"obj
-		edit1 := "x"x0+3 " y"y0+12 " w"w0-5 " h"h0-16 " -VScroll v"edVar
+		edVal := pl_ccSys.selectSingleNode(obj).text
+		edit1 := "x"x0+3 " y"y0+12 " w"w0-5 " h"h0-16 " -VScroll gplInputNote v"edVar
 		Gui, Font, Bold
 		Gui, Add, GroupBox, % box1, % RegExReplace(obj,"_","/")
 		Gui, Font, Normal
-		Gui, Add, Edit, % edit1, % %edVar%
+		Gui, Add, Edit, % edit1, % edVal
 		y0 += h0
 	}
 	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5,Hello
 	Gui, Add, Button, % "x"win.bor+win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5,Hello
-	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5,Hello
+	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gplSave", SAVE
 	Gui, Show, % "w"win.wX*1.5 " h"win.wY, CON CARNE
 	
 	
 	return
-/*	Will include daily data in /id/notes/daily/day date="20150926"
+/*	Include daily data in /id/notes/daily date="20150926"
+	Include ccSystems in /id/notes/ccSys ed="201509261109"/FEN ed="201509261109" au="lsabou"
 	Would be helpful to have a means to translate/insert back to CIS progress note
 */
 }
@@ -929,10 +932,18 @@ plInputNote:
 		;~ gosub PatListGet
 		;~ return
 	;~ }
-	if (substr(i:=A_GuiControl,4,4)="stat") {
+	i:=A_GuiControl
+	if (substr(i,4,4)="stat") {							; var name "pl_statCons"
 		plEditStat = true
 		eventlog(mrn " status " i " changed.")
-	} else {
+		return
+	}
+	if (substr(i,1,2))="cc" {							; var name "ccFEN"
+		if !(plEditSys) {
+			eventlog(mrn " " i " changed.")
+		}
+		plEditSys = true
+	} else {											; otherwise editing dx notes
 		if !(plEditNote) {
 			eventlog(mrn " " i " note changed.")
 		}
@@ -1145,7 +1156,18 @@ plSave:
 		ReplacePatNode(pl_mrnstring "/diagnoses","prob",pl_dxProb)
 		y.setAtt(pl_mrnstring "/diagnoses", {ed: editdate})
 		y.setAtt(pl_mrnstring "/diagnoses", {au: user})
-		plEditNote = ""
+		plEditNote = 
+	}
+	if (plEditsys) {
+		if !isObject(y.selectSingleNode(pl_mrnstring "/notes/ccSys")) {
+			y.addElement("ccSys", pl_mrnstring "/notes")
+		}
+		for key,val in ccFields {
+			ReplacePatNode(pl_mrnstring "/notes/ccSys",val,cc%val%)
+		}
+		y.setAtt(pl_mrnstring "/notes/ccSys", {ed: editdate})
+		y.setAtt(pl_mrnstring "/notes/ccSys", {au: user})
+		plEditSys = 
 	}
 	if (plEditStat) {
 		if !IsObject(y.selectSingleNode(pl_mrnstring "/status")) {
@@ -1157,7 +1179,7 @@ plSave:
 		SetStatus(mrn,"status","scamp",pl_statScamp)
 		y.setAtt(pl_mrnstring "/status", {ed: editdate})
 		y.setAtt(pl_mrnstring "/status", {au: user})
-		plEditStat = ""
+		plEditStat = 
 	}
 	WriteOut("/root","id[@mrn='" mrn "']")
 	eventlog(mrn " saved.")
@@ -2899,6 +2921,7 @@ PtParse(mrn) {
 		, "CORES":pl.selectSingleNode("info/hx").text
 		, "MAR":pl.selectSingleNode("MAR")
 		, "daily":pl.selectSingleNode("notes/daily")
+		, "ccSys":pl.selectSingleNode("notes/ccSys")
 		, "ProvCard":y.getAtt(mrnstring "/prov","provCard")
 		, "ProvSchCard":y.getAtt(mrnstring "/prov","SchCard")
 		, "ProvEP":y.getAtt(mrnstring "/prov","provEP")
