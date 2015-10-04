@@ -272,7 +272,7 @@ winDim(scr) {
 		boxWh := boxWf/2
 		boxWq := boxWf/4
 		rH := 12
-		demo_h := rH*6
+		demo_h := rH*8
 		butn_h := rh*6
 		cont_h := wY-demo_H-bor-butn_h
 		field_h := (cont_h-20)/num
@@ -806,13 +806,6 @@ PatListGet:
 	pl_ProvPCP := pl.provPCP
 	pl_Call_L := pl.callL
 	pl_Call_N := pl.callN
-	pl_demo := ""
-		. "DOB: " pl_DOB 
-		. "   Age: " (instr(pl_Age,"month")?RegExReplace(pl_Age,"i)month","mo"):instr(pl_Age,"year")?RegExReplace(pl_Age,"i)year","yr"):pl_Age) 
-		. "   Sex: " substr(pl_Sex,1,1) "`n`n"
-		. pl_Unit " :: " pl_Room "`n"
-		. pl_Svc "`n`n"
-		. "Admitted: " pl_Admit "`n"
 	if (isARNP) {
 		gosub PatListGUIcc
 	} else {
@@ -823,6 +816,13 @@ PatListGet:
 	
 PatListGUI:
 {
+	pl_demo := ""
+		. "DOB: " pl_DOB 
+		. "   Age: " (instr(pl_Age,"month")?RegExReplace(pl_Age,"i)month","mo"):instr(pl_Age,"year")?RegExReplace(pl_Age,"i)year","yr"):pl_Age) 
+		. "   Sex: " substr(pl_Sex,1,1) "`n`n"
+		. pl_Unit " :: " pl_Room "`n"
+		. pl_Svc "`n`n"
+		. "Admitted: " pl_Admit "`n"
 	Gui, plistG:Default
 	Gui, Add, Text, x26 y38 w200 h80 , % pl_demo
 	;Gui, Add, Text, x26 y74 w200 h40 , go here
@@ -875,12 +875,23 @@ Return
 
 PatListGUIcc:
 {
+	pl_demo := ""
+		. "DOB: " pl_DOB 
+		. "   Age: " (instr(pl_Age,"month")?RegExReplace(pl_Age,"i)month","mo"):instr(pl_Age,"year")?RegExReplace(pl_Age,"i)year","yr"):pl_Age) 
+		. "   Sex: " substr(pl_Sex,1,1) "`n`n"
+		. pl_Unit " :: " pl_Room "`n"
+		. pl_Svc "`n"
+		. "Admitted: " pl_Admit
 	Gui, patlistG:Default
-	Gui, Add, GroupBox, % "x"win.bor " y"win.bor " w"win.boxH " h"win.demo_h, here
+	Gui, Font, Bold
+	Gui, Add, GroupBox, % "x"win.bor " y"win.bor " w"win.boxH " h"win.demo_h, % pl_NameL . ", " . pl_NameF "  ---  " MRN
 	Gui, Add, GroupBox, % "x"win.bor+win.boxH+win.boxQ+win.bor " y"win.bor " w"win.boxQ-win.bor " h"win.demo_h
 	Gui, Add, GroupBox, % "x"win.bor+win.boxH " y"win.bor " w"win.boxQ " h"win.demo_h/2+4
 	Gui, Add, GroupBox, % "xP yP+"win.demo_h/2-4 " wP hP"
-	y0 := win.bor+win.demo_h+win.bor
+	Gui, Font, Normal
+	Gui, Add, Text, % "x"win.bor+10 " y"win.bor+20, % pl_demo
+
+y0 := win.bor+win.demo_h+win.bor
 	for key,obj in ccFields {
 		x0 := win.bor
 		w0 := win.boxF
@@ -901,6 +912,9 @@ PatListGUIcc:
 	
 	
 	return
+/*	Will include daily data in /id/notes/daily/day date="20150926"
+	Would be helpful to have a means to translate/insert back to CIS progress note
+*/
 }
 
 plInputNote:
@@ -2242,7 +2256,7 @@ SaveIt:
 	filecheck()
 	FileOpen(".currlock", "W")													; Create lock file.
 
-	Progress, b w200, Processing...
+	Progress, b w300, Processing...
 	y := new XML("currlist.xml")									; Load freshest copy of Currlist
 	yArch := new XML("archlist.xml")
 	; Save all MRN, Dx, Notes, ToDo, etc in arch.xml
@@ -2312,9 +2326,9 @@ GetIt:
 	filecheck()
 	FileOpen(".currlock", "W")													; Create lock file.
 	if !(vSaveIt=true)
-		Progress, b w200, Reading data..., % "- = C H I P O T L E = -`nversion " vers
+		Progress, b w300, Reading data..., % "- = C H I P O T L E = -`nversion " vers
 	else
-		Progress, b w200, Consolidating data..., 
+		Progress, b w300, Consolidating data..., 
 	Progress, 20
 	
 	if (isLocal) {
@@ -2884,6 +2898,7 @@ PtParse(mrn) {
 		, "callBy":pl.selectSingleNode("plan/call").getAttribute("by")
 		, "CORES":pl.selectSingleNode("info/hx").text
 		, "MAR":pl.selectSingleNode("MAR")
+		, "daily":pl.selectSingleNode("notes/daily")
 		, "ProvCard":y.getAtt(mrnstring "/prov","provCard")
 		, "ProvSchCard":y.getAtt(mrnstring "/prov","SchCard")
 		, "ProvEP":y.getAtt(mrnstring "/prov","provEP")
