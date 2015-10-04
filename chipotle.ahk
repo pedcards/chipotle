@@ -915,7 +915,7 @@ PatListGUIcc:
 	
 	return
 /*	Include daily data in /id/notes/daily date="20150926"
-	Include ccSystems in /id/notes/ccSys ed="201509261109"/FEN ed="201509261109" au="lsabou"
+	Include ccSystems in /id/ccSys ed="201509261109"/FEN ed="201509261109" au="lsabou"
 	Would be helpful to have a means to translate/insert back to CIS progress note
 */
 }
@@ -1159,14 +1159,14 @@ plSave:
 		plEditNote = 
 	}
 	if (plEditsys) {
-		if !isObject(y.selectSingleNode(pl_mrnstring "/notes/ccSys")) {
-			y.addElement("ccSys", pl_mrnstring "/notes")
+		if !isObject(y.selectSingleNode(pl_mrnstring "/ccSys")) {
+			y.addElement("ccSys", pl_mrnstring)
 		}
 		for key,val in ccFields {
-			ReplacePatNode(pl_mrnstring "/notes/ccSys",val,cc%val%)
+			ReplacePatNode(pl_mrnstring "/ccSys",val,cc%val%)
 		}
-		y.setAtt(pl_mrnstring "/notes/ccSys", {ed: editdate})
-		y.setAtt(pl_mrnstring "/notes/ccSys", {au: user})
+		y.setAtt(pl_mrnstring "/ccSys", {ed: editdate})
+		y.setAtt(pl_mrnstring "/ccSys", {au: user})
 		plEditSys = 
 	}
 	if (plEditStat) {
@@ -1189,7 +1189,7 @@ Return
 }
 
 pListGGuiClose:
-	if (plEditNote) {
+	if ((plEditNote) or (plEditSys) or (plEditStat)) {
 		MsgBox, 308, Changes not saved!, % "Are you sure?`n`nYes = Close without saving.`nNo = Try again."
 		IfMsgBox No
 			return
@@ -2921,7 +2921,7 @@ PtParse(mrn) {
 		, "CORES":pl.selectSingleNode("info/hx").text
 		, "MAR":pl.selectSingleNode("MAR")
 		, "daily":pl.selectSingleNode("notes/daily")
-		, "ccSys":pl.selectSingleNode("notes/ccSys")
+		, "ccSys":pl.selectSingleNode("ccSys")
 		, "ProvCard":y.getAtt(mrnstring "/prov","provCard")
 		, "ProvSchCard":y.getAtt(mrnstring "/prov","SchCard")
 		, "ProvEP":y.getAtt(mrnstring "/prov","provEP")
