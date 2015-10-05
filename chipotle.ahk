@@ -916,6 +916,7 @@ PatListGUIcc:
 	Gui, Add, Text, % "xp+10 yp+16 wp-20", % (vs:=ccData(pl_info,"VS"))
 	Gui, Add, Text, % "xP yp+"(CountLines(vs)+3)*12
 		ccData(pl_info,"labs")
+	
 	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5,Hello
 	Gui, Add, Button, % "x"win.bor+win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5,Hello >---<  \____/
 	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gplSave", SAVE
@@ -974,7 +975,8 @@ ccData(pl,sec) {
 		global plistG
 		x := pl.selectSingleNode("labs")
 		if (i:=x.selectSingleNode("CBC")) {
-			Gui, Add, Text, % "xp yp", % i
+			txt := "CBC`tb" i.selectSingleNode("legend").text "begin`n`n`n`n`nend"
+			Gui, Add, Text, % "xp yp wp Center", % txt
 		}
 	}
 	return txt
@@ -2113,7 +2115,12 @@ parseLabs(block) {
 				y.addElement("BUN", MRNstring "/info/labs/Lytes", labs.BUN)
 				y.addElement("Cr", MRNstring "/info/labs/Lytes", labs.Cr)
 				y.addElement("Glu", MRNstring "/info/labs/Lytes", labs.glu)
-				y.addElement("ABG", MRNstring "/info/labs/Lytes", labs.ABG)
+				(labs.ABG) ? y.addElement("ABG", MRNstring "/info/labs/Lytes", labs.ABG) : ""
+				(labs.iCA) ? y.addElement("iCA", MRNstring "/info/labs/Lytes", labs.iCA) : ""
+				(labs.ALT) ? y.addElement("ALT", MRNstring "/info/labs/Lytes", labs.ALT) : ""
+				(labs.AST) ? y.addElement("AST", MRNstring "/info/labs/Lytes", labs.AST) : ""
+				(labs.PTT) ? y.addElement("PTT", MRNstring "/info/labs/Lytes", labs.PTT) : ""
+				(labs.INR) ? y.addElement("INR", MRNstring "/info/labs/Lytes", labs.INR) : ""
 				y.addElement("rest", MRNstring "/info/labs/Lytes", labs.rest)
 		}
 		if (labs.type="Other") {
@@ -2190,9 +2197,25 @@ labSecType(block) {
 	if (RegExMatch(botsec,"O)[67]\.\d+\s\/\s\d+\s\/\s\d+\s.*",abg)) {
 		botsec := RegExReplace(botsec,"[67]\.\d{1,2}\s\/\s\d+\s\/\s\d+\s.*","")
 	}
+	if (RegExMatch(botsec,"O)(ICa\:)(.*)\d{1,2}",iCA)) {
+		botsec := RegExReplace(botsec,"(ICa\:)(.*)\d{1,2}","")
+	}
+	if (RegExMatch(botsec,"O)ALT\s(.*)\d{2,4}",ALT)) {
+		botsec := RegExReplace(botsec,"ALT\s(.*)\d{2,4}","")
+	}
+	if (RegExMatch(botsec,"O)AST\s(.*)\d{2,4}",AST)) {
+		botsec := RegExReplace(botsec,"AST\s(.*)\d{2,4}","")
+	}
+	if (RegExMatch(botsec,"O)PTT\s\d{2,3}",PTT)) {
+		botsec := RegExReplace(botsec,"PTT\s\d{2,3}","")
+	}
+	if (RegExMatch(botsec,"O)PT.INR\s[0-9\.]+",INR)) {
+		botsec := RegExReplace(botsec,"PT.INR\s[0-9\.]+","")
+	}
 	
 	if (fing ~= "WW.?NDW.?N") {
-		return {type:"Lytes", Na:x[1,1], HCO3:x[1,2], BUN:x[1,3], K:x[2,1], Cl:x[2,2], Cr:x[2,3], Glu:x[3,1], ABG:abg.value(), rest:botsec}
+		return {type:"Lytes", Na:x[1,1], HCO3:x[1,2], BUN:x[1,3], K:x[2,1], Cl:x[2,2], Cr:x[2,3], Glu:x[3,1]
+			, ABG:abg.value(), iCA:iCA.value(), ALT:ALT.value(), AST:AST.value(), PTT:PTT.value(), INR:INR.value(), rest:botsec}
 	} else if (fing ~= "DDNDNWN") {
 		return {type:"CBC", WBC:x[1,1], Hgb:x[1,2], Hct:x[2,1], Plt:x[3,1], rest:botsec}
 	} else {
