@@ -798,6 +798,7 @@ PatListGet:
 	pl_statTxp := pl.statTxp
 	pl_statRes := pl.statRes
 	pl_statScamp := pl.statScamp
+	pl_info := pl.info
 	pl_CORES := pl.CORES
 	pl_MAR := pl.MAR
 	pl_daily := pl.daily
@@ -884,6 +885,8 @@ PatListGUIcc:
 		. pl_Unit " :: " pl_Room "`n"
 		. pl_Svc "`n"
 		. "Admitted: " pl_Admit
+	pl_infoDT := breakdate(pl_info.getAttribute("date"))
+	winFW := win.wX*1.5
 	Gui, plistG:Default
 	Gui, Font, Bold
 	Gui, Add, GroupBox, % "x"win.bor " y"win.bor " w"win.boxH " h"win.demo_h, % pl_NameL . ", " . pl_NameF "  ---  " MRN
@@ -893,24 +896,30 @@ PatListGUIcc:
 	Gui, Font, Normal
 	Gui, Add, Text, % "x"win.bor+10 " y"win.bor+20, % pl_demo
 	y0 := win.bor+win.demo_h+win.bor
-	for key,obj in ccFields {
+	for key,val in ccFields {
 		x0 := win.bor
 		w0 := win.boxF
 		h0 := win.field_H
 		box1 := "x"x0 " y"y0 " w"w0 " h"h0
-		edVar := "cc"obj
-		edVal := pl_ccSys.selectSingleNode(obj).text
+		edVar := "cc"val
+		edVal := pl_ccSys.selectSingleNode(val).text
 		edit1 := "x"x0+3 " y"y0+12 " w"w0-5 " h"h0-16 " -VScroll gplInputNote v"edVar
 		Gui, Font, Bold
-		Gui, Add, GroupBox, % box1, % RegExReplace(obj,"_","/")
+		Gui, Add, GroupBox, % box1, % RegExReplace(val,"_","/")
 		Gui, Font, Normal
 		Gui, Add, Edit, % edit1, % edVal
 		y0 += h0
 	}
+	Gui, Add, GroupBox
+		, % "x"win.bor+win.boxF+win.bor " y"win.bor " w"winFW-win.boxF-win.bor*3 " h"win.demo_H+win.cont_H-win.bor
+		, % pl_infoDT.mm "/" pl_infoDT.dd "/" pl_infoDT.yyyy " @ " pl_infoDT.hh ":" pl_infoDT.min
+	Gui, Add, Text, % "xp+10 yp+16 wp-20", % (vs:=ccData(pl_info,"VS"))
+	Gui, Add, Text, % "xP yp+"(CountLines(vs)+3)*12
+		ccData(pl_info,"labs")
 	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5,Hello
-	Gui, Add, Button, % "x"win.bor+win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5,Hello
+	Gui, Add, Button, % "x"win.bor+win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5,Hello >---<  \____/
 	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gplSave", SAVE
-	Gui, Show, % "w"win.wX*1.5 " h"win.wY, CON CARNE
+	Gui, Show, % "w"winFw " h"win.wY, CON CARNE
 	
 	
 	return
@@ -919,6 +928,63 @@ PatListGUIcc:
 	Would be helpful to have a means to translate/insert back to CIS progress note
 */
 }
+
+ccData(pl,sec) {
+	if (sec="VS") {
+		x := pl.selectSingleNode("vs")
+			if (i:=x.selectSingleNode("wt")) {
+				txt .= "Wt:`t" i.text ((j:=i.getAttribute("change")) ? " is "j : "")
+			}
+			if (i:=x.selectSingleNode("temp")) {
+				txt .= "`nTemp:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+			}
+			if (i:=x.selectSingleNode("hr")) {
+				txt .= "`nHR:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+			}
+			if (i:=x.selectSingleNode("rr")) {
+				txt .= "`nRR:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+			}
+			if (i:=x.selectSingleNode("bp")) {
+				txt .= "`nBP:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+			}
+			if (i:=x.selectSingleNode("spo2")) {
+				txt .= "`nspO2:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+			}
+			if (i:=x.selectSingleNode("pain")) {
+				txt .= "`nPain:`t" i.text
+			}
+		if (x := pl.selectSingleNode("io")) {
+			txt .= "`n"
+		}
+			if (i:=x.selectSingleNode("in")) {
+				txt .= "`nIn:`t" i.text 
+			}
+			if (i:=x.selectSingleNode("out")) {
+				txt .= "`nOut:`t" i.text
+			}
+			if (i:=x.selectSingleNode("net")) {
+				txt .= "`nNet:`t" i.text
+			}
+			if (i:=x.selectSingleNode("uop")) {
+				txt .= "`nUOP:`t" i.text
+			}
+		return txt
+	} 
+	if (sec="labs") {
+		global plistG
+		x := pl.selectSingleNode("labs")
+		if (i:=x.selectSingleNode("CBC")) {
+			Gui, Add, Text, % "xp yp", % i
+		}
+	}
+	return txt
+}
+
+CountLines(Text)
+	{ 
+ 	 StringReplace, Text, Text, `n, `n, UseErrorLevel
+	 Return ErrorLevel + 1
+	}
 
 plInputNote:
 {
@@ -2029,7 +2095,8 @@ parseLabs(block) {
 		labsec := labGetSection(block)
 		labs := labSecType(labsec.res)
 		if (labs.type="CBC") {
-			y.addElement("CBC", MRNstring "/info/labs", {old:labsec.old, new:labsec.new}, labsec.date)
+			y.addElement("CBC", MRNstring "/info/labs", {old:labsec.old, new:labsec.new})
+				y.addElement("legend", MRNstring "/info/labs/CBC", labsec.date)
 				y.addElement("WBC", MRNstring "/info/labs/CBC", labs.wbc)
 				y.addElement("Hgb", MRNstring "/info/labs/CBC", labs.hgb)
 				y.addElement("Hct", MRNstring "/info/labs/CBC", labs.hct)
@@ -2037,7 +2104,8 @@ parseLabs(block) {
 				y.addElement("rest", MRNstring "/info/labs/CBC", labs.rest)
 		}
 		if (labs.type="Lytes") {
-			y.addElement("Lytes", MRNstring "/info/labs", {old:labsec.old, new:labsec.new}, labsec.date)
+			y.addElement("Lytes", MRNstring "/info/labs", {old:labsec.old, new:labsec.new})
+				y.addElement("legend", MRNstring "/info/labs/Lytes", labsec.date)
 				y.addElement("Na", MRNstring "/info/labs/Lytes", labs.na)
 				y.addElement("K", MRNstring "/info/labs/Lytes", labs.k)
 				y.addElement("HCO3", MRNstring "/info/labs/Lytes", labs.HCO3)
@@ -2919,6 +2987,7 @@ PtParse(mrn) {
 		, "callL":pl.selectSingleNode("plan/call").getAttribute("last")
 		, "callBy":pl.selectSingleNode("plan/call").getAttribute("by")
 		, "CORES":pl.selectSingleNode("info/hx").text
+		, "info":pl.selectSingleNode("info")
 		, "MAR":pl.selectSingleNode("MAR")
 		, "daily":pl.selectSingleNode("notes/daily")
 		, "ccSys":pl.selectSingleNode("ccSys")
