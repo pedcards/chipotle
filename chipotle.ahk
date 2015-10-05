@@ -34,7 +34,7 @@ FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.ex
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.6.1"
+vers := "1.6.2"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -51,6 +51,8 @@ FormatTime, sessdate, A_Now, yyyyMM
 	Forecast = strings for recognizing Electronic Forecast fields
 */
 gosub ReadIni
+scr:=screenDims()
+win:=winDim(scr)
 
 servfold := "patlist"
 if (ObjHasValue(admins,user)) {
@@ -166,6 +168,7 @@ CIS_cols:=[]
 CIS_colvals:=[]
 dialogVals:=[]
 teamSort:=[]
+ccFields:=[]
 meds1:=[]
 meds2:=[]
 Forecast_svc:=[]
@@ -226,6 +229,9 @@ Forecast_val:=[]
 		if (sec="Team sort") {
 			teamSort.Insert(i)
 		}
+		if (sec="CC Systems") {
+			ccFields.Insert(i)
+		}
 		if (sec="MEDS1") {
 			meds1.Insert(i)
 		}
@@ -245,6 +251,43 @@ splitIni(x, ByRef y, ByRef z) {
 	y := trim(substr(x,1,(k := instr(x, "="))), " `t=")
 	z := trim(substr(x,k), " `t=""")
 	return
+}
+
+screenDims() {
+	W := A_ScreenWidth
+	H := A_ScreenHeight
+	DPI := A_ScreenDPI
+	Orient := (W>H)?"L":"P"
+	
+	return {W:W, H:H, DPI:DPI, OR:Orient}
+}
+winDim(scr) {
+	global ccFields
+	num := ccFields.MaxIndex()
+	if (scr.or="L") {
+		wX := scr.H
+		wY := scr.H-80
+		bor := 10
+		boxWf := wX-2*bor
+		boxWh := boxWf/2
+		boxWq := boxWf/4
+		rH := 12
+		demo_h := rH*8
+		butn_h := rh*6
+		cont_h := wY-demo_H-bor-butn_h
+		field_h := (cont_h-20)/num
+	} else {
+		wX := scr.W
+		wY := scr.H
+	}
+	return { BOR:Bor, wX:wX, wY:wY
+		,	boxF:boxWf
+		,	boxH:boxWh
+		,	boxQ:boxWq
+		,	demo_H:demo_H
+		,	cont_H:cont_H
+		,	field_H:field_H
+		,	rH:rH}
 }
 
 ;	===========================================================================================
@@ -733,7 +776,6 @@ PatListGet:
 	}
 	if (mrn="MRN") 								; blank field
 		return
-	;Gui, 1:Show
 	Gui, teamL:Hide
 	Gui, plistG:Destroy
 	pl := ptParse(mrn)
@@ -756,14 +798,27 @@ PatListGet:
 	pl_statTxp := pl.statTxp
 	pl_statRes := pl.statRes
 	pl_statScamp := pl.statScamp
+	pl_info := pl.info
 	pl_CORES := pl.CORES
 	pl_MAR := pl.MAR
+	pl_daily := pl.daily
+	pl_ccSys := pl.ccSys
 	pl_ProvCard := pl.provCard
 	pl_ProvSchCard := pl.provSchCard
 	pl_ProvEP := pl.provEP
 	pl_ProvPCP := pl.provPCP
 	pl_Call_L := pl.callL
 	pl_Call_N := pl.callN
+	if (isARNP) {
+		gosub PatListGUIcc
+	} else {
+		gosub PatListGUI
+	}
+	return
+}
+	
+PatListGUI:
+{
 	pl_demo := ""
 		. "DOB: " pl_DOB 
 		. "   Age: " (instr(pl_Age,"month")?RegExReplace(pl_Age,"i)month","mo"):instr(pl_Age,"year")?RegExReplace(pl_Age,"i)year","yr"):pl_Age) 
@@ -771,54 +826,165 @@ PatListGet:
 		. pl_Unit " :: " pl_Room "`n"
 		. pl_Svc "`n`n"
 		. "Admitted: " pl_Admit "`n"
-Gui, plistG:Add, Text, x26 y38 w200 h80 , % pl_demo
-;Gui, plistG:Add, Text, x26 y74 w200 h40 , go here
-Gui, plistG:Add, Text, x266 y24 w150 h30 gplInputCard, Primary Cardiologist:
-Gui, plistG:Add, Text, xp yp+14 cBlue w150 vpl_card, % pl_ProvCard
-Gui, plistG:Add, Text, xp yp+20 w150 h30 gplInputCard, Continuity Cardiologist:
-Gui, plistG:Add, Text, xp yp+14 cBlue w150 vpl_SCHcard, % pl_ProvSchCard
-Gui, plistG:Add, Text, xp y100 w150 h28 , Last call:
-Gui, plistG:Add, Text, xp+50 yp w80 vCrdCall_L , % ((pl_Call_L) ? niceDate(pl_Call_L) : "---")		;substr(pl_Call_L,1,8)
-Gui, plistG:Add, Text, xp-50 yp+14 , Next call:
-Gui, plistG:Add, Text, xp+50 yp w80 vCrdCall_N, % ((pl_Call_N) ? niceDate(pl_Call_N) : "---")
+	Gui, plistG:Default
+	Gui, Add, Text, x26 y38 w200 h80 , % pl_demo
+	;Gui, Add, Text, x26 y74 w200 h40 , go here
+	Gui, Add, Text, x266 y24 w150 h30 gplInputCard, Primary Cardiologist:
+	Gui, Add, Text, xp yp+14 cBlue w150 vpl_card, % pl_ProvCard
+	Gui, Add, Text, xp yp+20 w150 h30 gplInputCard, Continuity Cardiologist:
+	Gui, Add, Text, xp yp+14 cBlue w150 vpl_SCHcard, % pl_ProvSchCard
+	Gui, Add, Text, xp y100 w150 h28 , Last call:
+	Gui, Add, Text, xp+50 yp w80 vCrdCall_L , % ((pl_Call_L) ? niceDate(pl_Call_L) : "---")		;substr(pl_Call_L,1,8)
+	Gui, Add, Text, xp-50 yp+14 , Next call:
+	Gui, Add, Text, xp+50 yp w80 vCrdCall_N, % ((pl_Call_N) ? niceDate(pl_Call_N) : "---")
 
-Gui, plistG:Add, CheckBox, x446 y34 w120 h20 Checked%pl_statCons% vpl_statCons gplInputNote, Consult
-Gui, plistG:Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statTxp% vpl_statTxp gplInputNote, Transplant
-Gui, plistG:Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statRes% vpl_statRes gplInputNote, Research
-Gui, plistG:Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statScamp% vpl_statScamp gplInputNote, SCAMP
+	Gui, Add, CheckBox, x446 y34 w120 h20 Checked%pl_statCons% vpl_statCons gplInputNote, Consult
+	Gui, Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statTxp% vpl_statTxp gplInputNote, Transplant
+	Gui, Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statRes% vpl_statRes gplInputNote, Research
+	Gui, Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statScamp% vpl_statScamp gplInputNote, SCAMP
 
-Gui, plistG:Add, Edit, x26 y160 w540 h48 vpl_dxNotes gplInputNote, %pl_dxNotes%
-Gui, plistG:Add, Edit, x26 yp+70 w540 h48 vpl_dxCard gplInputNote, %pl_dxCard%
-Gui, plistG:Add, Edit, x26 yp+70 w540 h48 vpl_dxEP gplInputNote, %pl_dxEP%
-Gui, plistG:Add, Edit, x26 yp+70 w540 h48 vpl_dxSurg gplInputNote, %pl_dxSurg%
-Gui, plistG:Add, Edit, x26 yp+70 w540 h48 vpl_dxProb gplInputNote, %pl_dxProb%
+	Gui, Add, Edit, x26 y160 w540 h48 vpl_dxNotes gplInputNote, %pl_dxNotes%
+	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxCard gplInputNote, %pl_dxCard%
+	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxEP gplInputNote, %pl_dxEP%
+	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxSurg gplInputNote, %pl_dxSurg%
+	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxProb gplInputNote, %pl_dxProb%
 
-Gui, plistG:Add, Button, x36 y504 w160 h40 gplTasksList, Tasks/Todos
-Gui, plistG:Add, Button, xp+180 yp w160 h40 gplDataList Disabledd, Data highlights
-Gui, plistG:Add, Button, xp+180 yp w160 h40 gplUpdates, Summary Notes
-Gui, plistG:Add, Button, x36 y554 w240 h40 v1 gplCORES, Patient History (CORES)
-Gui, plistG:Add, Button, x316 y554 w240 h40 v2 gplMAR, Meds/Diet (CORES)
+	Gui, Add, Button, x36 y504 w160 h40 gplTasksList, Tasks/Todos
+	Gui, Add, Button, xp+180 yp w160 h40 gplDataList Disabledd, Data highlights
+	Gui, Add, Button, xp+180 yp w160 h40 gplUpdates, Summary Notes
+	Gui, Add, Button, x36 y554 w240 h40 v1 gplCORES, Patient History (CORES)
+	Gui, Add, Button, x316 y554 w240 h40 v2 gplMAR, Meds/Diet (CORES)
 
-Gui, plistG:Font, wBold
-Gui, plistG:Add, GroupBox, x16 y14 w400 h120 , % pl_NameL . ", " . pl_NameF
-Gui, plistG:Add, GroupBox, x256 yp w160 h80
-Gui, plistG:Add, GroupBox, xp yp+70 w160 h50 
+	Gui, Font, Bold
+	Gui, Add, GroupBox, x16 y14 w400 h120 , % pl_NameL . ", " . pl_NameF
+	Gui, Add, GroupBox, x256 yp w160 h80
+	Gui, Add, GroupBox, xp yp+70 w160 h50 
 
-Gui, plistG:Add, GroupBox, x436 y14 w140 h120 , Status Flags
-Gui, plistG:Add, GroupBox, x16 y144 w560 h70 , Quick Notes
-Gui, plistG:Add, GroupBox, x16 yp+70 w560 h70 , Diagnoses && Problems
-Gui, plistG:Add, GroupBox, x16 yp+70 w560 h70 , EP diagnoses/problems
-Gui, plistG:Add, GroupBox, x16 yp+70 w560 h70 , Surgeries/Caths/Interventions
-Gui, plistG:Add, GroupBox, x16 yp+70 w560 h70 , Problem List
-Gui, plistG:Font, wNormal
-Gui, plistG:Add, Button, x176 y614 w240 h40 gplSave, SAVE
+	Gui, Add, GroupBox, x436 y14 w140 h120 , Status Flags
+	Gui, Add, GroupBox, x16 y144 w560 h70 , Quick Notes
+	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Diagnoses && Problems
+	Gui, Add, GroupBox, x16 yp+70 w560 h70 , EP diagnoses/problems
+	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Surgeries/Caths/Interventions
+	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Problem List
+	Gui, Font, Normal
+	Gui, Add, Button, x176 y614 w240 h40 gplSave, SAVE
 
-Gui, plistG:Show, w600 h670, % "Patient Information - " pl_NameL
-plEditNote = 
-plEditStat =
+	Gui, Show, w600 h670, % "Patient Information - " pl_NameL
+	plEditNote = 
+	plEditStat =
 
 Return
 }
+
+PatListGUIcc:
+{
+	pl_demo := ""
+		. "DOB: " pl_DOB 
+		. "   Age: " (instr(pl_Age,"month")?RegExReplace(pl_Age,"i)month","mo"):instr(pl_Age,"year")?RegExReplace(pl_Age,"i)year","yr"):pl_Age) 
+		. "   Sex: " substr(pl_Sex,1,1) "`n`n"
+		. pl_Unit " :: " pl_Room "`n"
+		. pl_Svc "`n"
+		. "Admitted: " pl_Admit
+	pl_infoDT := breakdate(pl_info.getAttribute("date"))
+	winFW := win.wX*1.5
+	Gui, plistG:Default
+	Gui, Font, Bold
+	Gui, Add, GroupBox, % "x"win.bor " y"win.bor " w"win.boxH " h"win.demo_h, % pl_NameL . ", " . pl_NameF "  ---  " MRN
+	Gui, Add, GroupBox, % "x"win.bor+win.boxH+win.boxQ+win.bor " y"win.bor " w"win.boxQ-win.bor " h"win.demo_h
+	Gui, Add, GroupBox, % "x"win.bor+win.boxH " y"win.bor " w"win.boxQ " h"win.demo_h/2+4
+	Gui, Add, GroupBox, % "xP yP+"win.demo_h/2-4 " wP hP"
+	Gui, Font, Normal
+	Gui, Add, Text, % "x"win.bor+10 " y"win.bor+20, % pl_demo
+	y0 := win.bor+win.demo_h+win.bor
+	for key,val in ccFields {
+		x0 := win.bor
+		w0 := win.boxF
+		h0 := win.field_H
+		box1 := "x"x0 " y"y0 " w"w0 " h"h0
+		edVar := "cc"val
+		edVal := pl_ccSys.selectSingleNode(val).text
+		edit1 := "x"x0+3 " y"y0+12 " w"w0-5 " h"h0-16 " -VScroll gplInputNote v"edVar
+		Gui, Font, Bold
+		Gui, Add, GroupBox, % box1, % RegExReplace(val,"_","/")
+		Gui, Font, Normal
+		Gui, Add, Edit, % edit1, % edVal
+		y0 += h0
+	}
+	Gui, Add, GroupBox
+		, % "x"win.bor+win.boxF+win.bor " y"win.bor " w"winFW-win.boxF-win.bor*3 " h"win.demo_H+win.cont_H-win.bor
+		, % pl_infoDT.mm "/" pl_infoDT.dd "/" pl_infoDT.yyyy " @ " pl_infoDT.hh ":" pl_infoDT.min
+	Gui, Add, Text, % "xp+10 yp+16 wp-20", % (vs:=ccData(pl_info,"VS"))
+	Gui, Add, Text, % "xP yp+"(CountLines(vs)+3)*12
+		ccData(pl_info,"labs")
+	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5,Hello
+	Gui, Add, Button, % "x"win.bor+win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5,Hello >---<  \____/
+	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gplSave", SAVE
+	Gui, Show, % "w"winFw " h"win.wY, CON CARNE
+	
+	
+	return
+/*	Include daily data in /id/notes/daily date="20150926"
+	Include ccSystems in /id/ccSys ed="201509261109"/FEN ed="201509261109" au="lsabou"
+	Would be helpful to have a means to translate/insert back to CIS progress note
+*/
+}
+
+ccData(pl,sec) {
+	if (sec="VS") {
+		x := pl.selectSingleNode("vs")
+			if (i:=x.selectSingleNode("wt")) {
+				txt .= "Wt:`t" i.text ((j:=i.getAttribute("change")) ? " is "j : "")
+			}
+			if (i:=x.selectSingleNode("temp")) {
+				txt .= "`nTemp:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+			}
+			if (i:=x.selectSingleNode("hr")) {
+				txt .= "`nHR:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+			}
+			if (i:=x.selectSingleNode("rr")) {
+				txt .= "`nRR:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+			}
+			if (i:=x.selectSingleNode("bp")) {
+				txt .= "`nBP:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+			}
+			if (i:=x.selectSingleNode("spo2")) {
+				txt .= "`nspO2:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+			}
+			if (i:=x.selectSingleNode("pain")) {
+				txt .= "`nPain:`t" i.text
+			}
+		if (x := pl.selectSingleNode("io")) {
+			txt .= "`n"
+		}
+			if (i:=x.selectSingleNode("in")) {
+				txt .= "`nIn:`t" i.text 
+			}
+			if (i:=x.selectSingleNode("out")) {
+				txt .= "`nOut:`t" i.text
+			}
+			if (i:=x.selectSingleNode("net")) {
+				txt .= "`nNet:`t" i.text
+			}
+			if (i:=x.selectSingleNode("uop")) {
+				txt .= "`nUOP:`t" i.text
+			}
+		return txt
+	} 
+	if (sec="labs") {
+		global plistG
+		x := pl.selectSingleNode("labs")
+		if (i:=x.selectSingleNode("CBC")) {
+			Gui, Add, Text, % "xp yp", % i
+		}
+	}
+	return txt
+}
+
+CountLines(Text)
+	{ 
+ 	 StringReplace, Text, Text, `n, `n, UseErrorLevel
+	 Return ErrorLevel + 1
+	}
 
 plInputNote:
 {
@@ -832,10 +998,18 @@ plInputNote:
 		;~ gosub PatListGet
 		;~ return
 	;~ }
-	if (substr(i:=A_GuiControl,4,4)="stat") {
+	i:=A_GuiControl
+	if (substr(i,4,4)="stat") {							; var name "pl_statCons"
 		plEditStat = true
 		eventlog(mrn " status " i " changed.")
-	} else {
+		return
+	}
+	if (substr(i,1,2))="cc" {							; var name "ccFEN"
+		if !(plEditSys) {
+			eventlog(mrn " " i " changed.")
+		}
+		plEditSys = true
+	} else {											; otherwise editing dx notes
 		if !(plEditNote) {
 			eventlog(mrn " " i " note changed.")
 		}
@@ -1048,7 +1222,18 @@ plSave:
 		ReplacePatNode(pl_mrnstring "/diagnoses","prob",pl_dxProb)
 		y.setAtt(pl_mrnstring "/diagnoses", {ed: editdate})
 		y.setAtt(pl_mrnstring "/diagnoses", {au: user})
-		plEditNote = ""
+		plEditNote = 
+	}
+	if (plEditsys) {
+		if !isObject(y.selectSingleNode(pl_mrnstring "/ccSys")) {
+			y.addElement("ccSys", pl_mrnstring)
+		}
+		for key,val in ccFields {
+			ReplacePatNode(pl_mrnstring "/ccSys",val,cc%val%)
+		}
+		y.setAtt(pl_mrnstring "/ccSys", {ed: editdate})
+		y.setAtt(pl_mrnstring "/ccSys", {au: user})
+		plEditSys = 
 	}
 	if (plEditStat) {
 		if !IsObject(y.selectSingleNode(pl_mrnstring "/status")) {
@@ -1060,7 +1245,7 @@ plSave:
 		SetStatus(mrn,"status","scamp",pl_statScamp)
 		y.setAtt(pl_mrnstring "/status", {ed: editdate})
 		y.setAtt(pl_mrnstring "/status", {au: user})
-		plEditStat = ""
+		plEditStat = 
 	}
 	WriteOut("/root","id[@mrn='" mrn "']")
 	eventlog(mrn " saved.")
@@ -1070,7 +1255,7 @@ Return
 }
 
 pListGGuiClose:
-	if (plEditNote) {
+	if ((plEditNote) or (plEditSys) or (plEditStat)) {
 		MsgBox, 308, Changes not saved!, % "Are you sure?`n`nYes = Close without saving.`nNo = Try again."
 		IfMsgBox No
 			return
@@ -1910,7 +2095,8 @@ parseLabs(block) {
 		labsec := labGetSection(block)
 		labs := labSecType(labsec.res)
 		if (labs.type="CBC") {
-			y.addElement("CBC", MRNstring "/info/labs", {old:labsec.old, new:labsec.new}, labsec.date)
+			y.addElement("CBC", MRNstring "/info/labs", {old:labsec.old, new:labsec.new})
+				y.addElement("legend", MRNstring "/info/labs/CBC", labsec.date)
 				y.addElement("WBC", MRNstring "/info/labs/CBC", labs.wbc)
 				y.addElement("Hgb", MRNstring "/info/labs/CBC", labs.hgb)
 				y.addElement("Hct", MRNstring "/info/labs/CBC", labs.hct)
@@ -1918,7 +2104,8 @@ parseLabs(block) {
 				y.addElement("rest", MRNstring "/info/labs/CBC", labs.rest)
 		}
 		if (labs.type="Lytes") {
-			y.addElement("Lytes", MRNstring "/info/labs", {old:labsec.old, new:labsec.new}, labsec.date)
+			y.addElement("Lytes", MRNstring "/info/labs", {old:labsec.old, new:labsec.new})
+				y.addElement("legend", MRNstring "/info/labs/Lytes", labsec.date)
 				y.addElement("Na", MRNstring "/info/labs/Lytes", labs.na)
 				y.addElement("K", MRNstring "/info/labs/Lytes", labs.k)
 				y.addElement("HCO3", MRNstring "/info/labs/Lytes", labs.HCO3)
@@ -2159,7 +2346,7 @@ SaveIt:
 	filecheck()
 	FileOpen(".currlock", "W")													; Create lock file.
 
-	Progress, b w200, Processing...
+	Progress, b w300, Processing...
 	y := new XML("currlist.xml")									; Load freshest copy of Currlist
 	yArch := new XML("archlist.xml")
 	; Save all MRN, Dx, Notes, ToDo, etc in arch.xml
@@ -2229,9 +2416,9 @@ GetIt:
 	filecheck()
 	FileOpen(".currlock", "W")													; Create lock file.
 	if !(vSaveIt=true)
-		Progress, b w200, Reading data..., % "- = C H I P O T L E = -`nversion " vers
+		Progress, b w300, Reading data..., % "- = C H I P O T L E = -`nversion " vers
 	else
-		Progress, b w200, Consolidating data..., 
+		Progress, b w300, Consolidating data..., 
 	Progress, 20
 	
 	if (isLocal) {
@@ -2800,7 +2987,10 @@ PtParse(mrn) {
 		, "callL":pl.selectSingleNode("plan/call").getAttribute("last")
 		, "callBy":pl.selectSingleNode("plan/call").getAttribute("by")
 		, "CORES":pl.selectSingleNode("info/hx").text
+		, "info":pl.selectSingleNode("info")
 		, "MAR":pl.selectSingleNode("MAR")
+		, "daily":pl.selectSingleNode("notes/daily")
+		, "ccSys":pl.selectSingleNode("ccSys")
 		, "ProvCard":y.getAtt(mrnstring "/prov","provCard")
 		, "ProvSchCard":y.getAtt(mrnstring "/prov","SchCard")
 		, "ProvEP":y.getAtt(mrnstring "/prov","provEP")
