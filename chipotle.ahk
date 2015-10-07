@@ -258,17 +258,20 @@ screenDims() {
 	H := A_ScreenHeight
 	DPI := A_ScreenDPI
 	Orient := (W>H)?"L":"P"
-	
+	;MsgBox % "W: "W "`nH: "H "`nDPI: "DPI
 	return {W:W, H:H, DPI:DPI, OR:Orient}
 }
 winDim(scr) {
 	global ccFields
 	num := ccFields.MaxIndex()
 	if (scr.or="L") {
-		wX := scr.H
+		aspect := (scr.W/scr.H >= 1.5) ? "W" : "N"	; 1.50-1.75 probable 16:9 aspect, 1.25-1.33 probable 4:3 aspect
+		;MsgBox,, % aspect, % W/H
+		wX := scr.H * ((aspect="W") ? 1.5 : 1)
 		wY := scr.H-80
+		rCol := wX/4						; R column is 1/4 width
 		bor := 10
-		boxWf := wX-2*bor
+		boxWf := wX-rCol-2*bor				; box fullwidth is remaining 3/4
 		boxWh := boxWf/2
 		boxWq := boxWf/4
 		rH := 12
@@ -287,6 +290,7 @@ winDim(scr) {
 		,	demo_H:demo_H
 		,	cont_H:cont_H
 		,	field_H:field_H
+		,	rCol:rCol
 		,	rH:rH}
 }
 
@@ -886,8 +890,9 @@ PatListGUIcc:
 		. pl_Svc "`n"
 		. "Admitted: " pl_Admit
 	pl_infoDT := breakdate(pl_info.getAttribute("date"))
-	winFW := win.wX*1.5
+	winFW := win.wX
 	Gui, plistG:Default
+	Gui, -DPIScale
 	Gui, Font, Bold
 	Gui, Add, GroupBox, % "x"win.bor " y"win.bor " w"win.boxH " h"win.demo_h, % pl_NameL . ", " . pl_NameF "  ---  " MRN
 	Gui, Add, GroupBox, % "x"win.bor+win.boxH+win.boxQ+win.bor " y"win.bor " w"win.boxQ-win.bor " h"win.demo_h
@@ -911,16 +916,19 @@ PatListGUIcc:
 		y0 += h0
 	}
 	Gui, Add, GroupBox
-		, % "x"win.bor+win.boxF+win.bor " y"win.bor " w"winFW-win.boxF-win.bor*3 " h"win.demo_H+win.cont_H-win.bor
+		, % "x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor
 		, % pl_infoDT.mm "/" pl_infoDT.dd "/" pl_infoDT.yyyy " @ " pl_infoDT.hh ":" pl_infoDT.min
-	Gui, Add, Text, % "xp+10 yp+16 wp-20", % (vs:=ccData(pl_info,"VS"))
-	Gui, Add, Text, % "xP yp+"(CountLines(vs)+3)*12
+	Gui, Add, Text, % "xp+10 yp+16 wp-14 -Wrap vccDataVS", % (vs:=ccData(pl_info,"VS"))
+	GuiControlGet, tmpData, Pos, ccDataVS
+	Gui, Add, Text, % "x"tmpDataX " yp+"tmpDataH " wP", HERE
 		ccData(pl_info,"labs")
 	
 	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5,Hello
 	Gui, Add, Button, % "x"win.bor+win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5,Hello >---<  \____/
 	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gplSave", SAVE
 	Gui, Show, % "w"winFw " h"win.wY, CON CARNE
+	
+	;MsgBox % tmpDataX " " tmpDataY "`n" tmpDataW " " tmpDataH
 	
 	
 	return
@@ -2799,7 +2807,7 @@ PrintIt:
 			. ((tmp:=onCall.CICU) ? "CICU: " tmp " 7-6503, Fellow: 7-6507   " : "")
 			. ((tmp:=onCall.Reg_Con) ? "Reg Cons: " tmp "   " : "")
 	rtfCall .= ((rtfCall) ? "`n\line`n" : "")
-			. "\ul HC Fax: 987-3839   Clinic RN: 7-5389   Echo Lab: 7-2019   RC6.Charge RN: 7-2810,7-6200   RC6.UC Desk: 7-2021   FA6.Charge RN: 7-2475   FA6.UC Desk: 7-2040\ul0"
+			. "\ul HC Fax: 987-3839   Clinic RN: 7-5389   Echo Lab: 7-2019   RC6.Charge RN: 7-2108,7-6200   RC6.UC Desk: 7-2021   FA6.Charge RN: 7-2475   FA6.UC Desk: 7-2040\ul0"
 	
 	rtfOut =
 (
