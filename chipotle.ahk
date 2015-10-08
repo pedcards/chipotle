@@ -2799,7 +2799,7 @@ PrintIt:
 			. ((tmp:=onCall.CICU) ? "CICU: " tmp " 7-6503, Fellow: 7-6507   " : "")
 			. ((tmp:=onCall.Reg_Con) ? "Reg Cons: " tmp "   " : "")
 	rtfCall .= ((rtfCall) ? "`n\line`n" : "")
-			. "\ul HC Fax: 987-3839   Clinic RN: 7-5389   Echo Lab: 7-2019   RC6.Charge RN: 7-2810,7-6200   RC6.UC Desk: 7-2021   FA6.Charge RN: 7-2475   FA6.UC Desk: 7-2040\ul0"
+			. "\ul HC Fax: 987-3839   Clinic RN: 7-7693   Echo Lab: 7-2019   RC6.Charge RN: 7-2108,7-6200   RC6.UC Desk: 7-2021   FA6.Charge RN: 7-2475   FA6.UC Desk: 7-2040\ul0"
 	
 	rtfOut =
 (
