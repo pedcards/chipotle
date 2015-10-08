@@ -269,9 +269,9 @@ winDim(scr) {
 		;MsgBox,, % aspect, % W/H
 		wX := scr.H * ((aspect="W") ? 1.5 : 1)
 		wY := scr.H-80
-		rCol := wX/4						; R column is 1/4 width
+		rCol := wX*.3						; R column is 1/3 width
 		bor := 10
-		boxWf := wX-rCol-2*bor				; box fullwidth is remaining 3/4
+		boxWf := wX-rCol-2*bor				; box fullwidth is remaining 2/3
 		boxWh := boxWf/2
 		boxWq := boxWf/4
 		rH := 12
@@ -916,23 +916,22 @@ PatListGUIcc:
 		y0 += h0
 	}
 	Gui, Add, GroupBox
-		, % "x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor
+		, % "Section x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor
 		, % pl_infoDT.mm "/" pl_infoDT.dd "/" pl_infoDT.yyyy " @ " pl_infoDT.hh ":" pl_infoDT.min
-	Gui, Add, Text, % "xp+10 yp+16 wp-14 -Wrap vccDataVS", % (vs:=ccData(pl_info,"VS"))
-	GuiControlGet, tmpData, Pos, ccDataVS
-	Gui, Add, Text, % "x"tmpDataX " yp+"tmpDataH " wP", HERE
+	Gui, Add, Text, % "xs+10 ys+16 wp-14 -Wrap vccDataVS", % ccData(pl_info,"VS")
+	GuiControlGet, tmpPos, Pos, ccDataVS
+	Gui, Add, Text, % "x"tmpPosX " yp+"tmpPosH " wP"
 		ccData(pl_info,"labs")
 	
 	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5,Hello
-	Gui, Add, Button, % "x"win.bor+win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5,Hello >---<  \____/
+	Gui, Add, Button, % "x"win.bor+win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5,Hello >---<  \____/ /¯¯¯¯\
 	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gplSave", SAVE
 	Gui, Show, % "w"winFw " h"win.wY, CON CARNE
 	
-	;MsgBox % tmpDataX " " tmpDataY "`n" tmpDataW " " tmpDataH
-	
-	
 	return
 /*	Include daily data in /id/notes/daily date="20150926"
+	Clone vs, labs to daily notes
+	RCol as tab with dates up to past 7 days
 	Include ccSystems in /id/ccSys ed="201509261109"/FEN ed="201509261109" au="lsabou"
 	Would be helpful to have a means to translate/insert back to CIS progress note
 */
@@ -980,11 +979,28 @@ ccData(pl,sec) {
 		return txt
 	} 
 	if (sec="labs") {
-		global plistG
+		global plistG, win
 		x := pl.selectSingleNode("labs")
 		if (i:=x.selectSingleNode("CBC")) {
-			txt := "CBC`tb" i.selectSingleNode("legend").text "begin`n`n`n`n`nend"
-			Gui, Add, Text, % "xp yp wp Center", % txt
+			Hgb:=i.selectSingleNode("Hgb").text
+			Hct:=i.selectSingleNode("Hct").text
+			WBC:=i.selectSingleNode("WBC").text 
+			Plt:=i.selectSingleNode("Plt").text 
+			txtln := (strlen(Hgb)>strlen(Hct)) ? strlen(Hgb) : strlen(Hct)
+			Gui, Add, Text,wP, % "CBC`t" i.selectSingleNode("legend").text
+			Gui, Add, Text, Center Section wP, % Hgb "`n>" substr("————————————————————————————————————————",1,txtln) "<`n" Hct
+			Gui, Add, Text,% "xS+" (win.rCol/2)-(strlen(WBC)*10) " yS", % "`n" WBC
+			Gui, Add, Text,% "xS+" (win.rCol/2)+(strlen(Plt)*10) " yS", % "`n" Plt
+			Gui, Add, Text,xS, % "`t" i.selectSingleNode("rest").text
+		}
+		if (i:=x.selectSingleNode("Lytes")) {
+			Gui, Add, Text,% "w"win.rCol-win.bor, % "Lytes`t" i.selectSingleNode("legend").text
+			Na:=i.selectSingleNode("Na").text 
+			K:=i.selectSingleNode("K").text 
+			HCO3:=i.selectSingleNode("HCO3").text 
+			Cl:=i.selectSingleNode("Cl").text 
+			BUN:=i.selectSingleNode("BUN").text 
+			Cr:=i.selectSingleNode("Cr").text 
 		}
 	}
 	return txt
@@ -2807,7 +2823,7 @@ PrintIt:
 			. ((tmp:=onCall.CICU) ? "CICU: " tmp " 7-6503, Fellow: 7-6507   " : "")
 			. ((tmp:=onCall.Reg_Con) ? "Reg Cons: " tmp "   " : "")
 	rtfCall .= ((rtfCall) ? "`n\line`n" : "")
-			. "\ul HC Fax: 987-3839   Clinic RN: 7-5389   Echo Lab: 7-2019   RC6.Charge RN: 7-2108,7-6200   RC6.UC Desk: 7-2021   FA6.Charge RN: 7-2475   FA6.UC Desk: 7-2040\ul0"
+			. "\ul HC Fax: 987-3839   Clinic RN: 7-7693   Echo Lab: 7-2019   RC6.Charge RN: 7-2108,7-6200   RC6.UC Desk: 7-2021   FA6.Charge RN: 7-2475   FA6.UC Desk: 7-2040\ul0"
 	
 	rtfOut =
 (
