@@ -986,13 +986,14 @@ ccData(pl,sec) {
 			Hct:=i.selectSingleNode("Hct").text
 			WBC:=i.selectSingleNode("WBC").text 
 			Plt:=i.selectSingleNode("Plt").text 
-			txtln := (strlen(Hgb)>strlen(Hct)) ? strlen(Hgb) : strlen(Hct)
+			;txtln := (strlen(Hgb)>strlen(Hct)) ? strlen(Hgb) : strlen(Hct)
+			txtln := compStr(Hgb,Hct)
 			Gui, Add, Text,wP, % "CBC`t" i.selectSingleNode("legend").text
-			Gui, Add, Text, Center Section wP, % Hgb "`n>" substr("————————————————————————————————————————",1,txtln) "<`n" Hct
-			Gui, Add, Text,% "xS+" (win.rCol/2)-(strlen(WBC)*10) " yS", % "`n" WBC
-			Gui, Add, Text,% "xS+" (win.rCol/2)+(strlen(Plt)*10) " yS", % "`n" Plt
+			Gui, Add, Text, Center Section wP, % Hgb "`n>" substr("————————————————————————————————————————",1,txtln.ln) "<`n" Hct
+			Gui, Add, Text,% "xS+" (win.rCol/2)-txtln.px-ln(strlen(WBC))*10 " yS", % "`n" WBC
+			Gui, Add, Text,% "xS+" (win.rCol/2)+(txtln.px/2) " yS", % "`n" Plt
 			Gui, Add, Text,xS, % "`t" i.selectSingleNode("rest").text
-		}
+		} 
 		if (i:=x.selectSingleNode("Lytes")) {
 			Gui, Add, Text,% "w"win.rCol-win.bor, % "Lytes`t" i.selectSingleNode("legend").text
 			Na:=i.selectSingleNode("Na").text 
@@ -1001,9 +1002,52 @@ ccData(pl,sec) {
 			Cl:=i.selectSingleNode("Cl").text 
 			BUN:=i.selectSingleNode("BUN").text 
 			Cr:=i.selectSingleNode("Cr").text 
+			Glu:=i.selectSingleNode("Glu").text
+			ch1 := compStr(Na,K)
+			ch2 := compStr(HCO3,Cl)
+			ch3 := compStr(BUN,Cr)
+			Gui, Add, Text, Center Section, % "`t" Na "`n`n`t" K
+			Gui, Add, Text, % "Center xS+"ch1.px+10 " yS", % HCO3 "`n`n" Cl
+			Gui, Add, Text, % "Center xS+"ch1.px+ch2.px " yS", % Bun "`n`n" Cr
+			Gui, Add, Text, xS yS+14, % "`t" substr("————————————————————————————————————————",1,ch1.ln) 
+			Gui, Add, Text, % "xS+"ch1.px " yS+14", % substr("————————————————————————————————————————",1,ch2.ln+4) 
+			Gui, Add, Text, % "xS+"ch1.px+ch2.px-20 " yS+14", % substr("————————————————————————————————————————",1,ch3.ln+2) "<    " Glu
+			Gui, Add, Text, % "xS+"ch1.px " yS", % "|`n|`n|"
+			Gui, Add, Text, % "xS+"ch1.px+ch2.px-20 " yS", % "|`n|`n|`n"
+			ABG:=i.selectSingleNode("ABG").text
+			iCA:=i.selectSingleNode("iCA").text
+			ALT:=i.selectSingleNode("ALT").text
+			AST:=i.selectSingleNode("AST").text
+			PTT:=i.selectSingleNode("PTT").text
+			INR:=i.selectSingleNode("INR").text
+			rest:=i.selectSingleNode("rest").text
+			if (ABG) {
+				Gui, Add, text, xS, % ABG
+			}
+			if (iCA) {
+				Gui, Add, text, xS, % iCA
+			}
+			if (ALT) {
+				Gui, Add, text, xS, % ALT "`t" AST
+			}
+			if (PTT) {
+				Gui, Add, text, xS, % PTT "`t" INR
+			}
+			if (rest) {
+				Gui, Add, text, xS, % rest
+			}
 		}
 	}
 	return txt
+}
+
+compStr(a,b) {
+	lnA := strlen(a)
+	lnB := strlen(b)
+	max := (lnA>lnB) ? a : b
+	maxln := strlen(max)
+	maxPx := log(maxln)*100
+	return {max:max,ln:maxln,px:maxPx}
 }
 
 CountLines(Text)
