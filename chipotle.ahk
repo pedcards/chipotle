@@ -1006,7 +1006,7 @@ ccData(pl,sec) {
 			ch1 := compStr(Na,K)
 			ch2 := compStr(HCO3,Cl)
 			ch3 := compStr(BUN,Cr)
-			Gui, Add, Text, Center Section, % "`t" Na "`n`n`t" K
+			Gui, Add, Text, % "Center Section", % "`t" Na "`n`n`t" K
 			Gui, Add, Text, % "Center xS+"ch1.px+10 " yS", % HCO3 "`n`n" Cl
 			Gui, Add, Text, % "Center xS+"ch1.px+ch2.px " yS", % Bun "`n`n" Cr
 			Gui, Add, Text, xS yS+14, % "`t" substr("————————————————————————————————————————",1,ch1.ln) 
@@ -1014,27 +1014,20 @@ ccData(pl,sec) {
 			Gui, Add, Text, % "xS+"ch1.px+ch2.px-20 " yS+14", % substr("————————————————————————————————————————",1,ch3.ln+2) "<    " Glu
 			Gui, Add, Text, % "xS+"ch1.px " yS", % "|`n|`n|"
 			Gui, Add, Text, % "xS+"ch1.px+ch2.px-20 " yS", % "|`n|`n|`n"
-			ABG:=i.selectSingleNode("ABG").text
-			iCA:=i.selectSingleNode("iCA").text
-			ALT:=i.selectSingleNode("ALT").text
-			AST:=i.selectSingleNode("AST").text
-			PTT:=i.selectSingleNode("PTT").text
-			INR:=i.selectSingleNode("INR").text
-			rest:=i.selectSingleNode("rest").text
-			if (ABG) {
+			if (ABG:=i.selectSingleNode("ABG").text) {
 				Gui, Add, text, xS, % ABG
 			}
-			if (iCA) {
+			if (iCA:=i.selectSingleNode("iCA").text) {
 				Gui, Add, text, xS, % iCA
 			}
-			if (ALT) {
-				Gui, Add, text, xS, % ALT "`t" AST
+			if ((ALT:=i.selectSingleNode("ALT").text) or (AST:=i.selectSingleNode("AST").text)){
+				Gui, Add, text, xS, % ALT "`t" ALT
 			}
-			if (PTT) {
+			if ((PTT:=i.selectSingleNode("PTT").text) or (INR:=i.selectSingleNode("INR").text)) {
 				Gui, Add, text, xS, % PTT "`t" INR
 			}
-			if (rest) {
-				Gui, Add, text, xS, % rest
+			if (rest:=i.selectSingleNode("rest").text) {
+				Gui, Add, text, % "+Wrap xS w"win.rCol-win.bor, % rest
 			}
 		}
 	}
@@ -2094,15 +2087,16 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 				}
 			CORES_vsTmp := RTrim(StrX( CORES_vsBlock, "`r`nT ",NN,4, "HR " ,1,3, NN), " M")
 			CORES_vsHR := StrX(StrX( CORES_vsBlock, "HR ",NN,3, "RR", 1,3, NN),"",0,0,"MHR",1,3)
-			CORES_vsRR := StrX( CORES_vsBlock, "RR",NN,3, "NIBP", 1,5, NN)
+			CORES_vsRR := StrX( CORES_vsBlock, "RR",NN,3, "`r`n", 1,1, NN)
 			CORES_vsNBP := StrX( CORES_vsBlock, "NIBP",NN,5, "`r`n", 1,1, NN)
 			CORES_vsSat := StrX( CORES_vsBlock, "SpO2",NN,5, "`r`n",1,1, NN)
 			CORES_vsPain := StrX( CORES_vsBlock, "`r`n" ,NN-1 ,1, "",1,1, NN)
 		CORES_IOBlock := StrX( ptBlock, "Ins/Outs" ,NN,8, "Labs (72 Hrs)" ,1,14)
-			CORES_ioIn := StrX( ptBlock, "In=",NN,0, "Out=",1,5, NN)
-			CORES_ioOut := StrX( ptBlock, "Out=",NN,0, "IO Net=",1,8, NN)
-			CORES_ioNet := StrX( ptBlock, "IO Net=",NN,8, "UOP=",1,5, NN)
-			CORES_ioUOP := StrX( ptBlock, "UOP=",NN,5, "Labs (72 Hrs)",1,14, NN)
+			CORES_ioIn := StrX( CORES_IOBlock, "In=",NN,0, "`r`n",1,1, NN)
+			CORES_ioOut := StrX( CORES_IOBlock, "Out=",NN,0, "`r`n",1,1, NN)
+			CORES_ioCT := StrX( CORES_IOBlock, "Chest Tube=",NN,0, "`r`n",1,1, NN)
+			CORES_ioNet := StrX( CORES_IOBlock, "IO Net=",NN,8, "`r`n",1,1, NN)
+			CORES_ioUOP := StrX( CORES_IOBlock, "UOP=",NN,5, "`r`n",1,1, NN)
 		CORES_LabsBlock := StrX( ptBlock, "Labs (72 Hrs)" ,NN,24, "Notes`r" ,1,6, NN )
 		CORES_NotesBlock := StrX( ptBlock, "Notes`r" ,NN,6, "CORES Round" ,1,12, NN )
 		
