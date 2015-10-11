@@ -369,10 +369,10 @@ If (nLen>10000) {
 Return
 }
 
-;~ ^F12::
-	;~ FileSelectFile , clipname,, %A_ScriptDir%, Select file:, AHK clip files (*.clip)
-	;~ FileRead, Clipboard, *c %clipname%
-;~ Return
+^F12::
+	FileSelectFile , clipname,, %A_ScriptDir%, Select file:, AHK clip files (*.clip)
+	FileRead, Clipboard, *c %clipname%
+Return
 
 ;	===========================================================================================
 
@@ -970,6 +970,9 @@ ccData(pl,sec) {
 			if (i:=x.selectSingleNode("out")) {
 				txt .= "`nOut:`t" i.text
 			}
+			if (i:=x.selectSingleNode("ct")) {
+				txt .= "`nCT:`t" i.text
+			}
 			if (i:=x.selectSingleNode("net")) {
 				txt .= "`nNet:`t" i.text
 			}
@@ -1025,6 +1028,18 @@ ccData(pl,sec) {
 			}
 			if ((PTT:=i.selectSingleNode("PTT").text) or (INR:=i.selectSingleNode("INR").text)) {
 				Gui, Add, text, xS, % PTT "`t" INR
+			}
+			if (iCA:=i.selectSingleNode("iCA").text) {
+				Gui, Add, text, xS, % iCA
+			}
+			if (iCA:=i.selectSingleNode("iCA").text) {
+				Gui, Add, text, xS, % iCA
+			}
+			if (iCA:=i.selectSingleNode("iCA").text) {
+				Gui, Add, text, xS, % iCA
+			}
+			if (iCA:=i.selectSingleNode("iCA").text) {
+				Gui, Add, text, xS, % iCA
 			}
 			if (rest:=i.selectSingleNode("rest").text) {
 				Gui, Add, text, % "+Wrap xS w"win.rCol-win.bor, % rest
@@ -2080,23 +2095,23 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			StringSplit, CORES_PRNdiet, CORES_PRN, ``
 			CORES_PRN := CORES_PRNdiet1
 			CORES_Diet := CORES_PRNdiet2
-		CORES_vsBlock := StrX( ptBlock, "Vitals`r" ,NN,7, "Ins/Outs" ,1,8) ; ...,1,8, NN)
-			CORES_vsWt := StrX( CORES_vsBlock, "Meas Wt:",0,8, "`r`nT " ,1,4, NN)
+		CORES_vsBlock := StrX( ptBlock, "Vitals`r" ,NN,7, "Ins/Outs" ,1,8, NN ) ; ...,1,8, NN)
+			CORES_vsWt := StrX( CORES_vsBlock, "Meas Wt:",0,8, "`r`nT " ,1,4, NNN)
 				if (instr(CORES_vsWt,"No current data available")) {
 					CORES_vsWt := "n/a"
 				}
-			CORES_vsTmp := RTrim(StrX( CORES_vsBlock, "`r`nT ",NN,4, "HR " ,1,3, NN), " M")
-			CORES_vsHR := StrX(StrX( CORES_vsBlock, "HR ",NN,3, "RR", 1,3, NN),"",0,0,"MHR",1,3)
-			CORES_vsRR := StrX( CORES_vsBlock, "RR",NN,3, "`r`n", 1,1, NN)
-			CORES_vsNBP := StrX( CORES_vsBlock, "NIBP",NN,5, "`r`n", 1,1, NN)
-			CORES_vsSat := StrX( CORES_vsBlock, "SpO2",NN,5, "`r`n",1,1, NN)
-			CORES_vsPain := StrX( CORES_vsBlock, "`r`n" ,NN-1 ,1, "",1,1, NN)
-		CORES_IOBlock := StrX( ptBlock, "Ins/Outs" ,NN,8, "Labs (72 Hrs)" ,1,14)
-			CORES_ioIn := StrX( CORES_IOBlock, "In=",NN,0, "`r`n",1,1, NN)
-			CORES_ioOut := StrX( CORES_IOBlock, "Out=",NN,0, "`r`n",1,1, NN)
-			CORES_ioCT := StrX( CORES_IOBlock, "Chest Tube=",NN,0, "`r`n",1,1, NN)
-			CORES_ioNet := StrX( CORES_IOBlock, "IO Net=",NN,8, "`r`n",1,1, NN)
-			CORES_ioUOP := StrX( CORES_IOBlock, "UOP=",NN,5, "`r`n",1,1, NN)
+			CORES_vsTmp := RTrim(StrX( CORES_vsBlock, "`r`nT ",NNN,4, "HR " ,1,3, NNN), " M")
+			CORES_vsHR := StrX(StrX( CORES_vsBlock, "HR ",NNN,3, "RR", 1,3, NNN),"",0,0,"MHR",1,3)
+			CORES_vsRR := StrX( CORES_vsBlock, "RR",NNN,3, "`r`n", 1,1, NNN)
+			CORES_vsNBP := StrX( CORES_vsBlock, "NIBP",NNN,5, "`r`n", 1,1, NNN)
+			CORES_vsSat := StrX( CORES_vsBlock, "SpO2",NNN,5, "`r`n",1,1, NNN)
+			CORES_vsPain := StrX( CORES_vsBlock, "`r`n" ,NNN-1 ,1, "",1,1, NNN)
+		CORES_IOBlock := StrX( ptBlock, "Ins/Outs" ,NN,8, "Labs (72 Hrs)" ,1,14, NN)
+			CORES_ioIn := StrX( CORES_IOBlock, "In=",0,4, "`r`n",1,1, NNN)
+			CORES_ioOut := StrX( CORES_IOBlock, "Out=",NNN,5, "`r`n",1,1, NNN)
+			CORES_ioCT := StrX( CORES_IOBlock, "Chest Tube=",NNN,11, "`r`n",1,1, NNN)
+			CORES_ioNet := StrX( CORES_IOBlock, "IO Net=",NNN,8, "`r`n",1,1, NNN)
+			CORES_ioUOP := StrX( CORES_IOBlock, "UOP=",NNN,5, "`r`n",1,1, NNN)
 		CORES_LabsBlock := StrX( ptBlock, "Labs (72 Hrs)" ,NN,24, "Notes`r" ,1,6, NN )
 		CORES_NotesBlock := StrX( ptBlock, "Notes`r" ,NN,6, "CORES Round" ,1,12, NN )
 		
@@ -2133,6 +2148,7 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			y.addElement("io", MRNstring . "/info")
 				y.addElement("in", MRNstring "/info/io", CORES_ioIn)
 				y.addElement("out", MRNstring "/info/io", CORES_ioOut)
+				y.addElement("ct", MRNstring "/info/io", CORES_ioCT)
 				y.addElement("net", MRNstring "/info/io", CORES_ioNet)
 				y.addElement("uop", MRNstring "/info/io", CORES_ioUOP)
 			y.addElement("labs", MRNstring . "/info")
@@ -2183,6 +2199,12 @@ parseLabs(block) {
 				(labs.AST) ? y.addElement("AST", MRNstring "/info/labs/Lytes", labs.AST) : ""
 				(labs.PTT) ? y.addElement("PTT", MRNstring "/info/labs/Lytes", labs.PTT) : ""
 				(labs.INR) ? y.addElement("INR", MRNstring "/info/labs/Lytes", labs.INR) : ""
+				(labs.Alb) ? y.addElement("Alb", MRNstring "/info/labs/Lytes", labs.Alb) : ""
+				(labs.Lac) ? y.addElement("Lac", MRNstring "/info/labs/Lytes", labs.Lac) : ""
+				(labs.CRP) ? y.addElement("CRP", MRNstring "/info/labs/Lytes", labs.CRP) : ""
+				(labs.ESR) ? y.addElement("ESR", MRNstring "/info/labs/Lytes", labs.ESR) : ""
+				(labs.DBil) ? y.addElement("DBil", MRNstring "/info/labs/Lytes", labs.DBil) : ""
+				(labs.IBil) ? y.addElement("IBil", MRNstring "/info/labs/Lytes", labs.IBil) : ""
 				y.addElement("rest", MRNstring "/info/labs/Lytes", labs.rest)
 		}
 		if (labs.type="Other") {
@@ -2268,16 +2290,45 @@ labSecType(block) {
 	if (RegExMatch(botsec,"O)AST\s(.*)\d{2,4}",AST)) {
 		botsec := RegExReplace(botsec,"AST\s(.*)\d{2,4}","")
 	}
-	if (RegExMatch(botsec,"O)PTT\s\d{2,3}",PTT)) {
-		botsec := RegExReplace(botsec,"PTT\s\d{2,3}","")
+	if (RegExMatch(botsec,"O)PTT\s>?\d{2,3}",PTT)) {
+		botsec := RegExReplace(botsec,"PTT\s>?\d{2,3}","")
 	}
-	if (RegExMatch(botsec,"O)PT.INR\s[0-9\.]+",INR)) {
-		botsec := RegExReplace(botsec,"PT.INR\s[0-9\.]+","")
+	if (RegExMatch(botsec,"O)Pt.INR\s[0-9\.]+",INR)) {
+		botsec := RegExReplace(botsec,"Pt.INR\s[0-9\.]+","")
 	}
+	if (RegExMatch(botsec,"O)Alb\s[0-9\.]+",Alb)) {
+		botsec := RegExReplace(botsec,"Alb\s[0-9\.]+","")
+	}
+	if (RegExMatch(botsec,"O)Lac\s[0-9\.]+",Lac)) {
+		botsec := RegExReplace(botsec,"Lac\s[0-9\.]+","")
+	}
+	if (RegExMatch(botsec,"O)CRP\s[0-9\.]+.*",CRP)) {
+		botsec := RegExReplace(botsec,"CRP\s[0-9\.]+.*","")
+	}
+	if (RegExMatch(botsec,"O)ESR\s[0-9\.]+.*",ESR)) {
+		botsec := RegExReplace(botsec,"ESR\s[0-9\.]+.*","")
+	}
+	if (RegExMatch(botsec,"O)D Bili\s[0-9\.]+.*",DBil)) {
+		botsec := RegExReplace(botsec,"D Bili\s[0-9\.]+.*","")
+	}
+	if (RegExMatch(botsec,"O)I Bili\s[0-9\.]+.*",IBil)) {
+		botsec := RegExReplace(botsec,"I Bili\s[0-9\.]+.*","")
+	}
+	;~ if (RegExMatch(botsec,"O)CRP\s[0-9\.]+.*",CRP)) {
+		;~ botsec := RegExReplace(botsec,"CRP\s[0-9\.]+.*","")
+	;~ }
+	if (RegExMatch(botsec,"O)^(\[)?[0-9.]+(\])?(\s)?$")) {
+		botsec := RegExReplace(botsec,"^(\[)?[0-9.]+(\])?(\s)?$","")
+	}
+	;~ if (RegExMatch(botsec,"O)PTT\s\d{2,3}",PTT)) {
+		;~ botsec := RegExReplace(botsec,"PTT\s\d{2,3}","")
+	;~ }
 	
 	if (fing ~= "WW.?NDW.?N") {
 		return {type:"Lytes", Na:x[1,1], HCO3:x[1,2], BUN:x[1,3], K:x[2,1], Cl:x[2,2], Cr:x[2,3], Glu:x[3,1]
-			, ABG:abg.value(), iCA:iCA.value(), ALT:ALT.value(), AST:AST.value(), PTT:PTT.value(), INR:INR.value(), rest:botsec}
+			, ABG:abg.value(), iCA:iCA.value(), ALT:ALT.value(), AST:AST.value(), PTT:PTT.value(), INR:INR.value()
+			, Alb:Alb.value(), Lac:Lac.value(), CRP:CRP.value(), ESR:ESR.value(),DBil:DBil.value(), IBil:IBil.value()
+			, rest:botsec}
 	} else if (fing ~= "DDNDNWN") {
 		return {type:"CBC", WBC:x[1,1], Hgb:x[1,2], Hct:x[2,1], Plt:x[3,1], rest:botsec}
 	} else {
