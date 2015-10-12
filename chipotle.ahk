@@ -2129,37 +2129,54 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			y.addElement("plan", MRNstring)
 			n1 += 1
 		}
-		RemoveNode(MRNstring . "/info")
+		; Remove the old Info and MAR nodes
+		Loop % (infos := y.selectNodes(MRNstring "/info")).length
+		{
+			;cinf := infos.Item(A_index-1)
+			tmpdt := infos.Item(A_index-1).getAttribute("date")
+			tmpTD := tmpdt
+			tmpTD -= A_now, Days
+			if ((tmpTD < -7) or (tmpTD = 0)) {						; remove old nodes or replace info/mar from today.
+			;if (tmpTD < -7)  {										; remove old nodes.
+				RemoveNode(MRNstring "/info[@date='" tmpdt "']")
+				RemoveNode(MRNstring "/MAR[@date='" tmpdt "']")
+			}
+		}
+	
+		;RemoveNode(MRNstring . "/info")
 		y.addElement("info", MRNstring, {date: timenow})	; Create a new /info node
-			y.addElement("dcw", MRNstring . "/info", CORES_DCW)
-			y.addElement("allergies", MRNstring . "/info", CORES_Alls)
-			y.addElement("code", MRNstring . "/info", CORES_Code)
-			y.addElement("hx", MRNstring . "/info", CORES_HX)
-			y.addElement("vs", MRNstring . "/info")
-				y.addElement("wt", MRNstring "/info/vs", StrX(CORES_vsWt,,1,1,"kg",1,2,NN))
+		yInfoDt := MRNstring . "/info[@date='" timenow "']"
+			y.addElement("dcw", yInfoDt, CORES_DCW)
+			y.addElement("allergies", yInfoDt, CORES_Alls)
+			y.addElement("code", yInfoDt, CORES_Code)
+			y.addElement("hx", yInfoDt, CORES_HX)
+			y.addElement("vs", yInfoDt)
+				y.addElement("wt", yInfoDt "/vs", StrX(CORES_vsWt,,1,1,"kg",1,2,NN))
 				if (tmp:=StrX(CORES_vsWt,"(",NN,2,")",1,1))
-					y.selectSingleNode(MRNstring "/info/vs/wt").setAttribute("change", tmp)
-				y.addElement("temp", MRNstring "/info/vs", CORES_vsTmp)
-				y.addElement("hr", MRNstring "/info/vs", CORES_vsHR)
-				y.addElement("rr", MRNstring "/info/vs", CORES_vsRR)
-				y.addElement("bp", MRNstring "/info/vs", CORES_vsNBP)
-				y.addElement("spo2", MRNstring "/info/vs", CORES_vsSat)
-				y.addElement("pain", MRNstring "/info/vs", CORES_vsPain)
-			y.addElement("io", MRNstring . "/info")
-				y.addElement("in", MRNstring "/info/io", CORES_ioIn)
-				y.addElement("out", MRNstring "/info/io", CORES_ioOut)
-				y.addElement("ct", MRNstring "/info/io", CORES_ioCT)
-				y.addElement("net", MRNstring "/info/io", CORES_ioNet)
-				y.addElement("uop", MRNstring "/info/io", CORES_ioUOP)
-			y.addElement("labs", MRNstring . "/info")
+					y.selectSingleNode(yInfoDt "/vs/wt").setAttribute("change", tmp)
+				y.addElement("temp", yInfoDt "/vs", CORES_vsTmp)
+				y.addElement("hr",   yInfoDt "/vs", CORES_vsHR)
+				y.addElement("rr",   yInfoDt "/vs", CORES_vsRR)
+				y.addElement("bp",   yInfoDt "/vs", CORES_vsNBP)
+				y.addElement("spo2", yInfoDt "/vs", CORES_vsSat)
+				y.addElement("pain", yInfoDt "/vs", CORES_vsPain)
+			y.addElement("io", yInfoDt )
+				y.addElement("in",  yInfoDt "/io", CORES_ioIn)
+				y.addElement("out", yInfoDt "/io", CORES_ioOut)
+				;y.addElement("ct",  yInfoDt "/io", CORES_ioCT)
+				y.addElement("ct",  yInfoDt "/io", "TTTTT")
+				y.addElement("net", yInfoDt "/io", CORES_ioNet)
+				y.addElement("uop", yInfoDt "/io", CORES_ioUOP)
+			y.addElement("labs", yInfoDt )
 				parseLabs(CORES_labsBlock)
-			y.addElement("notes", MRNstring . "/info", CORES_NotesBlock)
-		RemoveNode(MRNstring . "/MAR")
+			y.addElement("notes", yInfoDt , CORES_NotesBlock)
+		;RemoveNode(MRNstring . "/MAR")
 		y.addElement("MAR", MRNstring, {date: timenow})	; Create a new /MAR node
-			MedListParse("drips",CORES_Drips,CORES_mrn,y)
-			MedListParse("meds",CORES_Meds,CORES_mrn,y)
-			MedListParse("prn",CORES_PRN,CORES_mrn,y)
-			MedListParse("diet",CORES_Diet,CORES_mrn,y)
+		yMarDt := MRNstring "/MAR[@date='" timenow "']"
+			MedListParse("drips",CORES_Drips)
+			MedListParse("meds",CORES_Meds)
+			MedListParse("prn",CORES_PRN)
+			MedListParse("diet",CORES_Diet)
 		}
 	}
 	Progress off
@@ -2170,46 +2187,47 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 }
 
 parseLabs(block) {
-	global y, MRNstring
+	global y, MRNstring, timenow
+	yLabDt := MRNstring "/info[@date='" timenow "']/labs"
 	while (block) {																	; iterate through each section of the lab block
 		labsec := labGetSection(block)
 		labs := labSecType(labsec.res)
 		if (labs.type="CBC") {
-			y.addElement("CBC", MRNstring "/info/labs", {old:labsec.old, new:labsec.new})
-				y.addElement("legend", MRNstring "/info/labs/CBC", labsec.date)
-				y.addElement("WBC", MRNstring "/info/labs/CBC", labs.wbc)
-				y.addElement("Hgb", MRNstring "/info/labs/CBC", labs.hgb)
-				y.addElement("Hct", MRNstring "/info/labs/CBC", labs.hct)
-				y.addElement("Plt", MRNstring "/info/labs/CBC", labs.plt)
-				y.addElement("rest", MRNstring "/info/labs/CBC", labs.rest)
+			y.addElement("CBC", yLabDt, {old:labsec.old, new:labsec.new})
+				y.addElement("legend", yLabDt "/CBC", labsec.date)
+				y.addElement("WBC", yLabDt "/CBC", labs.wbc)
+				y.addElement("Hgb", yLabDt "/CBC", labs.hgb)
+				y.addElement("Hct", yLabDt "/CBC", labs.hct)
+				y.addElement("Plt", yLabDt "/CBC", labs.plt)
+				y.addElement("rest", yLabDt "/CBC", labs.rest)
 		}
 		if (labs.type="Lytes") {
-			y.addElement("Lytes", MRNstring "/info/labs", {old:labsec.old, new:labsec.new})
-				y.addElement("legend", MRNstring "/info/labs/Lytes", labsec.date)
-				y.addElement("Na", MRNstring "/info/labs/Lytes", labs.na)
-				y.addElement("K", MRNstring "/info/labs/Lytes", labs.k)
-				y.addElement("HCO3", MRNstring "/info/labs/Lytes", labs.HCO3)
-				y.addElement("Cl", MRNstring "/info/labs/Lytes", labs.Cl)
-				y.addElement("BUN", MRNstring "/info/labs/Lytes", labs.BUN)
-				y.addElement("Cr", MRNstring "/info/labs/Lytes", labs.Cr)
-				y.addElement("Glu", MRNstring "/info/labs/Lytes", labs.glu)
-				(labs.ABG) ? y.addElement("ABG", MRNstring "/info/labs/Lytes", labs.ABG) : ""
-				(labs.iCA) ? y.addElement("iCA", MRNstring "/info/labs/Lytes", labs.iCA) : ""
-				(labs.ALT) ? y.addElement("ALT", MRNstring "/info/labs/Lytes", labs.ALT) : ""
-				(labs.AST) ? y.addElement("AST", MRNstring "/info/labs/Lytes", labs.AST) : ""
-				(labs.PTT) ? y.addElement("PTT", MRNstring "/info/labs/Lytes", labs.PTT) : ""
-				(labs.INR) ? y.addElement("INR", MRNstring "/info/labs/Lytes", labs.INR) : ""
-				(labs.Alb) ? y.addElement("Alb", MRNstring "/info/labs/Lytes", labs.Alb) : ""
-				(labs.Lac) ? y.addElement("Lac", MRNstring "/info/labs/Lytes", labs.Lac) : ""
-				(labs.CRP) ? y.addElement("CRP", MRNstring "/info/labs/Lytes", labs.CRP) : ""
-				(labs.ESR) ? y.addElement("ESR", MRNstring "/info/labs/Lytes", labs.ESR) : ""
-				(labs.DBil) ? y.addElement("DBil", MRNstring "/info/labs/Lytes", labs.DBil) : ""
-				(labs.IBil) ? y.addElement("IBil", MRNstring "/info/labs/Lytes", labs.IBil) : ""
-				y.addElement("rest", MRNstring "/info/labs/Lytes", labs.rest)
+			y.addElement("Lytes", yLabDt, {old:labsec.old, new:labsec.new})
+				y.addElement("legend", yLabDt "/Lytes", labsec.date)
+				y.addElement("Na", yLabDt "/Lytes", labs.na)
+				y.addElement("K", yLabDt "/Lytes", labs.k)
+				y.addElement("HCO3", yLabDt "/Lytes", labs.HCO3)
+				y.addElement("Cl", yLabDt "/Lytes", labs.Cl)
+				y.addElement("BUN", yLabDt "/Lytes", labs.BUN)
+				y.addElement("Cr", yLabDt "/Lytes", labs.Cr)
+				y.addElement("Glu", yLabDt "/Lytes", labs.glu)
+				(labs.ABG) ? y.addElement("ABG", yLabDt "/Lytes", labs.ABG) : ""
+				(labs.iCA) ? y.addElement("iCA", yLabDt "/Lytes", labs.iCA) : ""
+				(labs.ALT) ? y.addElement("ALT", yLabDt "/Lytes", labs.ALT) : ""
+				(labs.AST) ? y.addElement("AST", yLabDt "/Lytes", labs.AST) : ""
+				(labs.PTT) ? y.addElement("PTT", yLabDt "/Lytes", labs.PTT) : ""
+				(labs.INR) ? y.addElement("INR", yLabDt "/Lytes", labs.INR) : ""
+				(labs.Alb) ? y.addElement("Alb", yLabDt "/Lytes", labs.Alb) : ""
+				(labs.Lac) ? y.addElement("Lac", yLabDt "/Lytes", labs.Lac) : ""
+				(labs.CRP) ? y.addElement("CRP", yLabDt "/Lytes", labs.CRP) : ""
+				(labs.ESR) ? y.addElement("ESR", yLabDt "/Lytes", labs.ESR) : ""
+				(labs.DBil) ? y.addElement("DBil", yLabDt "/Lytes", labs.DBil) : ""
+				(labs.IBil) ? y.addElement("IBil", yLabDt "/Lytes", labs.IBil) : ""
+				y.addElement("rest", yLabDt "/Lytes", labs.rest)
 		}
 		if (labs.type="Other") {
-			y.addElement("Other", MRNstring "/info/labs", {old:labsec.old, new:labsec.new}, labsec.date)
-				y.addElement("rest", MRNstring "/info/labs/Other", labs.rest)
+			y.addElement("Other", yLabDt, {old:labsec.old, new:labsec.new}, labsec.date)
+				y.addElement("rest", yLabDt "/Other", labs.rest)
 		}
 	}
 	return
@@ -2361,8 +2379,8 @@ listsort(list,parm="",ord:="") {
 		sort2D(var,ObjHasValue(col,parm))
 	}
 	removeNode("/root/lists/" list)
-	FormatTime, timenow, A_Now, yyyyMMddHHmm
-	node := y.addElement(list,"/root/lists",{date:timenow})
+	FormatTime, now, A_Now, yyyyMMddHHmm
+	node := y.addElement(list,"/root/lists",{date:now})
 	for key,val in var {
 		y.addElement("mrn","/root/lists/" list,var[A_index].mrn)
 	}
@@ -3298,8 +3316,8 @@ RemoveNode(node) {
 	q.parentNode.removeChild(q)
 }
 
-MedListParse(medList,bList,mrn,yl) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR")
-	global meds1, meds2
+MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR")
+	global meds1, meds2, y, MRNstring, yMarDt
 	tempArray = 
 	medWords =
 	StringReplace, bList, bList, •%A_space%, ``, ALL
@@ -3310,15 +3328,15 @@ MedListParse(medList,bList,mrn,yl) {								; may bake in y.ssn(//id[@mrn='" mrn
 			continue
 		medName:=RegExReplace(medName,"[0-9\.]+\sm(g|Eq).*Rate..IV","gtt.")
 		if ObjHasValue(meds1, medName, "RX") {
-			yl.addElement(medlist, "//id[@mrn='" mrn "']/MAR", {class: "Cardiac"}, medName)
+			y.addElement(medlist, yMarDt, {class: "Cardiac"}, medName)
 			continue
 		}
 		if ObjHasValue(meds2, medName, "RX") {
-			yl.addElement(medlist, "//id[@mrn='" mrn "']/MAR", {class: "Arrhythmia"}, medName)
+			y.addElement(medlist, yMarDt, {class: "Arrhythmia"}, medName)
 			continue
 		}
 		else
-			yl.addElement(medlist, "//id[@mrn='" mrn "']/MAR", {class: "Other"}, medName)
+			y.addElement(medlist, yMarDt, {class: "Other"}, medName)
 	}
 }
 
@@ -3411,9 +3429,9 @@ FilePrepend( Text, Filename ) {
 eventlog(event) {
 	global user, sessdate
 	comp := A_ComputerName
-	FormatTime, timenow, A_Now, yyyy.MM.dd.HH:mm:ss
+	FormatTime, now, A_Now, yyyy.MM.dd.HH:mm:ss
 	name := "logs/" . sessdate . ".log"
-	txt := timenow " [" user "/" comp "] " event "`n"
+	txt := now " [" user "/" comp "] " event "`n"
 	filePrepend(txt,name)
 ;	FileAppend, % timenow " ["  user "/" comp "] " event "`n", % "logs/" . sessdate . ".log"
 }
