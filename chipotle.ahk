@@ -34,7 +34,7 @@ FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.ex
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.6.3.1"
+vers := "1.6.4"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -258,17 +258,20 @@ screenDims() {
 	H := A_ScreenHeight
 	DPI := A_ScreenDPI
 	Orient := (W>H)?"L":"P"
-	
+	;MsgBox % "W: "W "`nH: "H "`nDPI: "DPI
 	return {W:W, H:H, DPI:DPI, OR:Orient}
 }
 winDim(scr) {
 	global ccFields
 	num := ccFields.MaxIndex()
 	if (scr.or="L") {
-		wX := scr.H
+		aspect := (scr.W/scr.H >= 1.5) ? "W" : "N"	; 1.50-1.75 probable 16:9 aspect, 1.25-1.33 probable 4:3 aspect
+		;MsgBox,, % aspect, % W/H
+		wX := scr.H * ((aspect="W") ? 1.5 : 1)
 		wY := scr.H-80
+		rCol := wX*.3						; R column is 1/3 width
 		bor := 10
-		boxWf := wX-2*bor
+		boxWf := wX-rCol-2*bor				; box fullwidth is remaining 2/3
 		boxWh := boxWf/2
 		boxWq := boxWf/4
 		rH := 12
@@ -287,6 +290,7 @@ winDim(scr) {
 		,	demo_H:demo_H
 		,	cont_H:cont_H
 		,	field_H:field_H
+		,	rCol:rCol
 		,	rH:rH}
 }
 
@@ -365,10 +369,10 @@ If (nLen>10000) {
 Return
 }
 
-;~ ^F12::
-	;~ FileSelectFile , clipname,, %A_ScriptDir%, Select file:, AHK clip files (*.clip)
-	;~ FileRead, Clipboard, *c %clipname%
-;~ Return
+^F12::
+	FileSelectFile , clipname,, %A_ScriptDir%, Select file:, AHK clip files (*.clip)
+	FileRead, Clipboard, *c %clipname%
+Return
 
 ;	===========================================================================================
 
@@ -826,6 +830,7 @@ PatListGUI:
 		. pl_Unit " :: " pl_Room "`n"
 		. pl_Svc "`n`n"
 		. "Admitted: " pl_Admit "`n"
+	Gui, plistG:Destroy
 	Gui, plistG:Default
 	Gui, Add, Text, x26 y38 w200 h80 , % pl_demo
 	;Gui, Add, Text, x26 y74 w200 h40 , go here
@@ -886,8 +891,10 @@ PatListGUIcc:
 		. pl_Svc "`n"
 		. "Admitted: " pl_Admit
 	pl_infoDT := breakdate(pl_info.getAttribute("date"))
-	winFW := win.wX*1.5
+	winFW := win.wX
+	Gui, plistG:Destroy
 	Gui, plistG:Default
+	Gui, -DPIScale
 	Gui, Font, Bold
 	Gui, Add, GroupBox, % "x"win.bor " y"win.bor " w"win.boxH " h"win.demo_h, % pl_NameL . ", " . pl_NameF "  ---  " MRN
 	Gui, Add, GroupBox, % "x"win.bor+win.boxH+win.boxQ+win.bor " y"win.bor " w"win.boxQ-win.bor " h"win.demo_h
@@ -910,21 +917,37 @@ PatListGUIcc:
 		Gui, Add, Edit, % edit1, % edVal
 		y0 += h0
 	}
-	Gui, Add, GroupBox
-		, % "x"win.bor+win.boxF+win.bor " y"win.bor " w"winFW-win.boxF-win.bor*3 " h"win.demo_H+win.cont_H-win.bor
-		, % pl_infoDT.mm "/" pl_infoDT.dd "/" pl_infoDT.yyyy " @ " pl_infoDT.hh ":" pl_infoDT.min
-	Gui, Add, Text, % "xp+10 yp+16 wp-20", % (vs:=ccData(pl_info,"VS"))
-	Gui, Add, Text, % "xP yp+"(CountLines(vs)+3)*12
-		ccData(pl_info,"labs")
-	
-	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5,Hello
-	Gui, Add, Button, % "x"win.bor+win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5,Hello >---<  \____/
-	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gplSave", SAVE
+	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gPatListGUI", Other info
+	Gui, Add, Button, % "x"win.bor+win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5 " gPlTasksList", Tasks/Todo
+	Gui, Add, Button, % "x"win.bor+win.boxF " yP w"win.boxQ-20 " h"win.rh*2.5,Hello >'o'<
+	Gui, Add, Button, % "x"win.bor+win.boxF " w"win.boxQ-20 " h"win.rh*2.5 " gplSave", SAVE
 	Gui, Show, % "w"winFw " h"win.wY, CON CARNE
-	
+
+;	Gui, Add, GroupBox
+;		, % "Section x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor
+;		, % pl_infoDT.mm "/" pl_infoDT.dd "/" pl_infoDT.yyyy " @ " pl_infoDT.hh ":" pl_infoDT.min
+	tmpDt =
+	Loop % (yInfo:=y.selectNodes("//id[@mrn='" MRN "']/info")).length
+	{
+		yInfoDt := yInfo.Item(A_index-1).getAttribute("date")
+		tmpDt .= yInfoDt "|"
+	}
+	Gui, Add, Tab2, % "Section x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor, % tmpDt
+	loop, parse, tmpDt, |
+	{
+		tmpG := A_LoopField
+		tmpB := A_index
+		Gui, Tab, %tmpB%
+		Gui, Add, Text, % "xs+10 ys+16 w"win.rCol-win.bor-14 " -Wrap vccDataVS"tmpB, % ccData(pl_info,"VS")
+		GuiControlGet, tmpPos, Pos, ccDataVS%tmpB%
+		Gui, Add, Text, % "x"tmpPosX " yp+"tmpPosH " wP"
+			ccData(pl_info,"labs")
+	}
 	
 	return
 /*	Include daily data in /id/notes/daily date="20150926"
+	Clone vs, labs to daily notes
+	RCol as tab with dates up to past 7 days
 	Include ccSystems in /id/ccSys ed="201509261109"/FEN ed="201509261109" au="lsabou"
 	Would be helpful to have a means to translate/insert back to CIS progress note
 */
@@ -963,6 +986,9 @@ ccData(pl,sec) {
 			if (i:=x.selectSingleNode("out")) {
 				txt .= "`nOut:`t" i.text
 			}
+			if (i:=x.selectSingleNode("ct")) {
+				txt .= "`nCT:`t" i.text
+			}
 			if (i:=x.selectSingleNode("net")) {
 				txt .= "`nNet:`t" i.text
 			}
@@ -972,14 +998,83 @@ ccData(pl,sec) {
 		return txt
 	} 
 	if (sec="labs") {
-		global plistG
+		global plistG, win
 		x := pl.selectSingleNode("labs")
 		if (i:=x.selectSingleNode("CBC")) {
-			txt := "CBC`tb" i.selectSingleNode("legend").text "begin`n`n`n`n`nend"
-			Gui, Add, Text, % "xp yp wp Center", % txt
+			Hgb:=i.selectSingleNode("Hgb").text
+			Hct:=i.selectSingleNode("Hct").text
+			WBC:=i.selectSingleNode("WBC").text 
+			Plt:=i.selectSingleNode("Plt").text 
+			;txtln := (strlen(Hgb)>strlen(Hct)) ? strlen(Hgb) : strlen(Hct)
+			txtln := compStr(Hgb,Hct)
+			Gui, Add, Text,wP, % "CBC`t" i.selectSingleNode("legend").text
+			Gui, Add, Text, Center Section wP, % Hgb "`n>" substr("————————————————————————————————————————",1,txtln.ln) "<`n" Hct
+			Gui, Add, Text,% "xS+" (win.rCol/2)-txtln.px-ln(strlen(WBC))*10 " yS", % "`n" WBC
+			Gui, Add, Text,% "xS+" (win.rCol/2)+(txtln.px/2) " yS", % "`n" Plt
+			Gui, Add, Text,xS, % "`t" i.selectSingleNode("rest").text
+		} 
+		if (i:=x.selectSingleNode("Lytes")) {
+			Gui, Add, Text,% "w"win.rCol-win.bor, % "Lytes`t" i.selectSingleNode("legend").text
+			Na:=i.selectSingleNode("Na").text 
+			K:=i.selectSingleNode("K").text 
+			HCO3:=i.selectSingleNode("HCO3").text 
+			Cl:=i.selectSingleNode("Cl").text 
+			BUN:=i.selectSingleNode("BUN").text 
+			Cr:=i.selectSingleNode("Cr").text 
+			Glu:=i.selectSingleNode("Glu").text
+			ch1 := compStr(Na,K)
+			ch2 := compStr(HCO3,Cl)
+			ch3 := compStr(BUN,Cr)
+			Gui, Add, Text, % "Center Section", % "`t" Na "`n`n`t" K
+			Gui, Add, Text, % "Center xS+"ch1.px+10 " yS", % HCO3 "`n`n" Cl
+			Gui, Add, Text, % "Center xS+"ch1.px+ch2.px " yS", % Bun "`n`n" Cr
+			Gui, Add, Text, xS yS+14, % "`t" substr("————————————————————————————————————————",1,ch1.ln) 
+			Gui, Add, Text, % "xS+"ch1.px " yS+14", % substr("————————————————————————————————————————",1,ch2.ln+4) 
+			Gui, Add, Text, % "xS+"ch1.px+ch2.px-20 " yS+14", % substr("————————————————————————————————————————",1,ch3.ln+2) "<    " Glu
+			Gui, Add, Text, % "xS+"ch1.px " yS", % "|`n|`n|"
+			Gui, Add, Text, % "xS+"ch1.px+ch2.px-20 " yS", % "|`n|`n|`n"
+			if (ABG:=i.selectSingleNode("ABG").text) {
+				Gui, Add, text, xS, % ABG
+			}
+			if (iCA:=i.selectSingleNode("iCA").text) {
+				Gui, Add, text, xS, % iCA
+			}
+			if ((ALT:=i.selectSingleNode("ALT").text) or (AST:=i.selectSingleNode("AST").text)){
+				Gui, Add, text, xS, % ALT "`t" ALT
+			}
+			if ((PTT:=i.selectSingleNode("PTT").text) or (INR:=i.selectSingleNode("INR").text)) {
+				Gui, Add, text, xS, % PTT "`t" INR
+			}
+			if (Alb:=i.selectSingleNode("Alb").text) {
+				Gui, Add, text, xS, % Alb
+			}
+			if (Lac:=i.selectSingleNode("Lac").text) {
+				Gui, Add, text, xS, % Lac
+			}
+			if (CRP:=i.selectSingleNode("CRP").text) {
+				Gui, Add, text, xS, % CRP
+			}
+			if (ESR:=i.selectSingleNode("ESR").text) {
+				Gui, Add, text, xS, % ESR
+			}
+			if ((DBil:=i.selectSingleNode("DBil").text) or (IBil:=i.selectSingleNode("IBil").text)) {
+				Gui, Add, text, xS, % DBil "`t" IBil
+			}
+			if (rest:=i.selectSingleNode("rest").text) {
+				Gui, Add, text, % "+Wrap xS w"win.rCol-win.bor, % rest
+			}
 		}
 	}
 	return txt
+}
+
+compStr(a,b) {
+	lnA := strlen(a)
+	lnB := strlen(b)
+	max := (lnA>lnB) ? a : b
+	maxln := strlen(max)
+	maxPx := log(maxln)*100
+	return {max:max,ln:maxln,px:maxPx}
 }
 
 CountLines(Text)
@@ -2019,22 +2114,23 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			StringSplit, CORES_PRNdiet, CORES_PRN, ``
 			CORES_PRN := CORES_PRNdiet1
 			CORES_Diet := CORES_PRNdiet2
-		CORES_vsBlock := StrX( ptBlock, "Vitals`r" ,NN,7, "Ins/Outs" ,1,8) ; ...,1,8, NN)
-			CORES_vsWt := StrX( CORES_vsBlock, "Meas Wt:",0,8, "`r`nT " ,1,4, NN)
+		CORES_vsBlock := StrX( ptBlock, "Vitals`r" ,NN,7, "Ins/Outs" ,1,8, NN ) ; ...,1,8, NN)
+			CORES_vsWt := StrX( CORES_vsBlock, "Meas Wt:",0,8, "`r`nT " ,1,4, NNN)
 				if (instr(CORES_vsWt,"No current data available")) {
 					CORES_vsWt := "n/a"
 				}
-			CORES_vsTmp := RTrim(StrX( CORES_vsBlock, "`r`nT ",NN,4, "HR " ,1,3, NN), " M")
-			CORES_vsHR := StrX(StrX( CORES_vsBlock, "HR ",NN,3, "RR", 1,3, NN),"",0,0,"MHR",1,3)
-			CORES_vsRR := StrX( CORES_vsBlock, "RR",NN,3, "NIBP", 1,5, NN)
-			CORES_vsNBP := StrX( CORES_vsBlock, "NIBP",NN,5, "`r`n", 1,1, NN)
-			CORES_vsSat := StrX( CORES_vsBlock, "SpO2",NN,5, "`r`n",1,1, NN)
-			CORES_vsPain := StrX( CORES_vsBlock, "`r`n" ,NN-1 ,1, "",1,1, NN)
-		CORES_IOBlock := StrX( ptBlock, "Ins/Outs" ,NN,8, "Labs (72 Hrs)" ,1,14)
-			CORES_ioIn := StrX( ptBlock, "In=",NN,0, "Out=",1,5, NN)
-			CORES_ioOut := StrX( ptBlock, "Out=",NN,0, "IO Net=",1,8, NN)
-			CORES_ioNet := StrX( ptBlock, "IO Net=",NN,8, "UOP=",1,5, NN)
-			CORES_ioUOP := StrX( ptBlock, "UOP=",NN,5, "Labs (72 Hrs)",1,14, NN)
+			CORES_vsTmp := RTrim(StrX( CORES_vsBlock, "`r`nT ",NNN,4, "HR " ,1,3, NNN), " M")
+			CORES_vsHR := StrX(StrX( CORES_vsBlock, "HR ",NNN,3, "RR", 1,3, NNN),"",0,0,"MHR",1,3)
+			CORES_vsRR := StrX( CORES_vsBlock, "RR",NNN,3, "`r`n", 1,1, NNN)
+			CORES_vsNBP := StrX( CORES_vsBlock, "NIBP",NNN,5, "`r`n", 1,1, NNN)
+			CORES_vsSat := StrX( CORES_vsBlock, "SpO2",NNN,5, "`r`n",1,1, NNN)
+			CORES_vsPain := StrX( CORES_vsBlock, "`r`n" ,NNN-1 ,1, "",1,1, NNN)
+		CORES_IOBlock := StrX( ptBlock, "Ins/Outs" ,NN,8, "Labs (72 Hrs)" ,1,14, NN)
+			CORES_ioIn := StrX( CORES_IOBlock, "In=",0,4, "`r`n",1,1)
+			CORES_ioOut := StrX( CORES_IOBlock, "Out=",0,5, "`r`n",1,1)
+			CORES_ioCT := StrX( CORES_IOBlock, "Chest Tube=",0,11, "`r`n",1,1)
+			CORES_ioNet := StrX( CORES_IOBlock, "IO Net=",0,8, "`r`n",1,1)
+			CORES_ioUOP := StrX( CORES_IOBlock, "UOP=",0,5, "`r`n",1,1)
 		CORES_LabsBlock := StrX( ptBlock, "Labs (72 Hrs)" ,NN,24, "Notes`r" ,1,6, NN )
 		CORES_NotesBlock := StrX( ptBlock, "Notes`r" ,NN,6, "CORES Round" ,1,12, NN )
 		
@@ -2052,36 +2148,53 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			y.addElement("plan", MRNstring)
 			n1 += 1
 		}
-		RemoveNode(MRNstring . "/info")
+		; Remove the old Info and MAR nodes
+		Loop % (infos := y.selectNodes(MRNstring "/info")).length
+		{
+			;cinf := infos.Item(A_index-1)
+			tmpdt := infos.Item(A_index-1).getAttribute("date")
+			tmpTD := tmpdt
+			tmpTD -= A_now, Days
+			if ((tmpTD < -7) or (tmpTD = 0)) {						; remove old nodes or replace info/mar from today.
+			;if (tmpTD < -7)  {										; remove old nodes.
+				RemoveNode(MRNstring "/info[@date='" tmpdt "']")
+				RemoveNode(MRNstring "/MAR[@date='" tmpdt "']")
+			}
+		}
+	
+		;RemoveNode(MRNstring . "/info")
 		y.addElement("info", MRNstring, {date: timenow})	; Create a new /info node
-			y.addElement("dcw", MRNstring . "/info", CORES_DCW)
-			y.addElement("allergies", MRNstring . "/info", CORES_Alls)
-			y.addElement("code", MRNstring . "/info", CORES_Code)
-			y.addElement("hx", MRNstring . "/info", CORES_HX)
-			y.addElement("vs", MRNstring . "/info")
-				y.addElement("wt", MRNstring "/info/vs", StrX(CORES_vsWt,,1,1,"kg",1,2,NN))
+		yInfoDt := MRNstring . "/info[@date='" timenow "']"
+			y.addElement("dcw", yInfoDt, CORES_DCW)
+			y.addElement("allergies", yInfoDt, CORES_Alls)
+			y.addElement("code", yInfoDt, CORES_Code)
+			y.addElement("hx", yInfoDt, CORES_HX)
+			y.addElement("vs", yInfoDt)
+				y.addElement("wt", yInfoDt "/vs", StrX(CORES_vsWt,,1,1,"kg",1,2,NN))
 				if (tmp:=StrX(CORES_vsWt,"(",NN,2,")",1,1))
-					y.selectSingleNode(MRNstring "/info/vs/wt").setAttribute("change", tmp)
-				y.addElement("temp", MRNstring "/info/vs", CORES_vsTmp)
-				y.addElement("hr", MRNstring "/info/vs", CORES_vsHR)
-				y.addElement("rr", MRNstring "/info/vs", CORES_vsRR)
-				y.addElement("bp", MRNstring "/info/vs", CORES_vsNBP)
-				y.addElement("spo2", MRNstring "/info/vs", CORES_vsSat)
-				y.addElement("pain", MRNstring "/info/vs", CORES_vsPain)
-			y.addElement("io", MRNstring . "/info")
-				y.addElement("in", MRNstring "/info/io", CORES_ioIn)
-				y.addElement("out", MRNstring "/info/io", CORES_ioOut)
-				y.addElement("net", MRNstring "/info/io", CORES_ioNet)
-				y.addElement("uop", MRNstring "/info/io", CORES_ioUOP)
-			y.addElement("labs", MRNstring . "/info")
+					y.selectSingleNode(yInfoDt "/vs/wt").setAttribute("change", tmp)
+				y.addElement("temp", yInfoDt "/vs", CORES_vsTmp)
+				y.addElement("hr",   yInfoDt "/vs", CORES_vsHR)
+				y.addElement("rr",   yInfoDt "/vs", CORES_vsRR)
+				y.addElement("bp",   yInfoDt "/vs", CORES_vsNBP)
+				y.addElement("spo2", yInfoDt "/vs", CORES_vsSat)
+				y.addElement("pain", yInfoDt "/vs", CORES_vsPain)
+			y.addElement("io", yInfoDt )
+				y.addElement("in",  yInfoDt "/io", CORES_ioIn)
+				y.addElement("out", yInfoDt "/io", CORES_ioOut)
+				y.addElement("ct",  yInfoDt "/io", CORES_ioCT)
+				y.addElement("net", yInfoDt "/io", CORES_ioNet)
+				y.addElement("uop", yInfoDt "/io", CORES_ioUOP)
+			y.addElement("labs", yInfoDt )
 				parseLabs(CORES_labsBlock)
-			y.addElement("notes", MRNstring . "/info", CORES_NotesBlock)
-		RemoveNode(MRNstring . "/MAR")
+			y.addElement("notes", yInfoDt , CORES_NotesBlock)
+		;RemoveNode(MRNstring . "/MAR")
 		y.addElement("MAR", MRNstring, {date: timenow})	; Create a new /MAR node
-			MedListParse("drips",CORES_Drips,CORES_mrn,y)
-			MedListParse("meds",CORES_Meds,CORES_mrn,y)
-			MedListParse("prn",CORES_PRN,CORES_mrn,y)
-			MedListParse("diet",CORES_Diet,CORES_mrn,y)
+		yMarDt := MRNstring "/MAR[@date='" timenow "']"
+			MedListParse("drips",CORES_Drips)
+			MedListParse("meds",CORES_Meds)
+			MedListParse("prn",CORES_PRN)
+			MedListParse("diet",CORES_Diet)
 		}
 	}
 	Progress off
@@ -2092,40 +2205,47 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 }
 
 parseLabs(block) {
-	global y, MRNstring
+	global y, MRNstring, timenow
+	yLabDt := MRNstring "/info[@date='" timenow "']/labs"
 	while (block) {																	; iterate through each section of the lab block
 		labsec := labGetSection(block)
 		labs := labSecType(labsec.res)
 		if (labs.type="CBC") {
-			y.addElement("CBC", MRNstring "/info/labs", {old:labsec.old, new:labsec.new})
-				y.addElement("legend", MRNstring "/info/labs/CBC", labsec.date)
-				y.addElement("WBC", MRNstring "/info/labs/CBC", labs.wbc)
-				y.addElement("Hgb", MRNstring "/info/labs/CBC", labs.hgb)
-				y.addElement("Hct", MRNstring "/info/labs/CBC", labs.hct)
-				y.addElement("Plt", MRNstring "/info/labs/CBC", labs.plt)
-				y.addElement("rest", MRNstring "/info/labs/CBC", labs.rest)
+			y.addElement("CBC", yLabDt, {old:labsec.old, new:labsec.new})
+				y.addElement("legend", yLabDt "/CBC", labsec.date)
+				y.addElement("WBC", yLabDt "/CBC", labs.wbc)
+				y.addElement("Hgb", yLabDt "/CBC", labs.hgb)
+				y.addElement("Hct", yLabDt "/CBC", labs.hct)
+				y.addElement("Plt", yLabDt "/CBC", labs.plt)
+				y.addElement("rest", yLabDt "/CBC", labs.rest)
 		}
 		if (labs.type="Lytes") {
-			y.addElement("Lytes", MRNstring "/info/labs", {old:labsec.old, new:labsec.new})
-				y.addElement("legend", MRNstring "/info/labs/Lytes", labsec.date)
-				y.addElement("Na", MRNstring "/info/labs/Lytes", labs.na)
-				y.addElement("K", MRNstring "/info/labs/Lytes", labs.k)
-				y.addElement("HCO3", MRNstring "/info/labs/Lytes", labs.HCO3)
-				y.addElement("Cl", MRNstring "/info/labs/Lytes", labs.Cl)
-				y.addElement("BUN", MRNstring "/info/labs/Lytes", labs.BUN)
-				y.addElement("Cr", MRNstring "/info/labs/Lytes", labs.Cr)
-				y.addElement("Glu", MRNstring "/info/labs/Lytes", labs.glu)
-				(labs.ABG) ? y.addElement("ABG", MRNstring "/info/labs/Lytes", labs.ABG) : ""
-				(labs.iCA) ? y.addElement("iCA", MRNstring "/info/labs/Lytes", labs.iCA) : ""
-				(labs.ALT) ? y.addElement("ALT", MRNstring "/info/labs/Lytes", labs.ALT) : ""
-				(labs.AST) ? y.addElement("AST", MRNstring "/info/labs/Lytes", labs.AST) : ""
-				(labs.PTT) ? y.addElement("PTT", MRNstring "/info/labs/Lytes", labs.PTT) : ""
-				(labs.INR) ? y.addElement("INR", MRNstring "/info/labs/Lytes", labs.INR) : ""
-				y.addElement("rest", MRNstring "/info/labs/Lytes", labs.rest)
+			y.addElement("Lytes", yLabDt, {old:labsec.old, new:labsec.new})
+				y.addElement("legend", yLabDt "/Lytes", labsec.date)
+				y.addElement("Na", yLabDt "/Lytes", labs.na)
+				y.addElement("K", yLabDt "/Lytes", labs.k)
+				y.addElement("HCO3", yLabDt "/Lytes", labs.HCO3)
+				y.addElement("Cl", yLabDt "/Lytes", labs.Cl)
+				y.addElement("BUN", yLabDt "/Lytes", labs.BUN)
+				y.addElement("Cr", yLabDt "/Lytes", labs.Cr)
+				y.addElement("Glu", yLabDt "/Lytes", labs.glu)
+				(labs.ABG) ? y.addElement("ABG", yLabDt "/Lytes", labs.ABG) : ""
+				(labs.iCA) ? y.addElement("iCA", yLabDt "/Lytes", labs.iCA) : ""
+				(labs.ALT) ? y.addElement("ALT", yLabDt "/Lytes", labs.ALT) : ""
+				(labs.AST) ? y.addElement("AST", yLabDt "/Lytes", labs.AST) : ""
+				(labs.PTT) ? y.addElement("PTT", yLabDt "/Lytes", labs.PTT) : ""
+				(labs.INR) ? y.addElement("INR", yLabDt "/Lytes", labs.INR) : ""
+				(labs.Alb) ? y.addElement("Alb", yLabDt "/Lytes", labs.Alb) : ""
+				(labs.Lac) ? y.addElement("Lac", yLabDt "/Lytes", labs.Lac) : ""
+				(labs.CRP) ? y.addElement("CRP", yLabDt "/Lytes", labs.CRP) : ""
+				(labs.ESR) ? y.addElement("ESR", yLabDt "/Lytes", labs.ESR) : ""
+				(labs.DBil) ? y.addElement("DBil", yLabDt "/Lytes", labs.DBil) : ""
+				(labs.IBil) ? y.addElement("IBil", yLabDt "/Lytes", labs.IBil) : ""
+				y.addElement("rest", yLabDt "/Lytes", labs.rest)
 		}
 		if (labs.type="Other") {
-			y.addElement("Other", MRNstring "/info/labs", {old:labsec.old, new:labsec.new}, labsec.date)
-				y.addElement("rest", MRNstring "/info/labs/Other", labs.rest)
+			y.addElement("Other", yLabDt, {old:labsec.old, new:labsec.new}, labsec.date)
+				y.addElement("rest", yLabDt "/Other", labs.rest)
 		}
 	}
 	return
@@ -2206,16 +2326,39 @@ labSecType(block) {
 	if (RegExMatch(botsec,"O)AST\s(.*)\d{2,4}",AST)) {
 		botsec := RegExReplace(botsec,"AST\s(.*)\d{2,4}","")
 	}
-	if (RegExMatch(botsec,"O)PTT\s\d{2,3}",PTT)) {
-		botsec := RegExReplace(botsec,"PTT\s\d{2,3}","")
+	if (RegExMatch(botsec,"O)PTT\s>?\d{2,3}",PTT)) {
+		botsec := RegExReplace(botsec,"PTT\s>?\d{2,3}","")
 	}
-	if (RegExMatch(botsec,"O)PT.INR\s[0-9\.]+",INR)) {
-		botsec := RegExReplace(botsec,"PT.INR\s[0-9\.]+","")
+	if (RegExMatch(botsec,"O)Pt.INR\s[<>0-9\.]+",INR)) {
+		botsec := RegExReplace(botsec,"Pt.INR\s[<>0-9.]+","")
 	}
+	if (RegExMatch(botsec,"O)Alb\s[<>0-9\.]+",Alb)) {
+		botsec := RegExReplace(botsec,"Alb\s[<>0-9.]+","")
+	}
+	if (RegExMatch(botsec,"O)Lac\s[<>0-9\.]+",Lac)) {
+		botsec := RegExReplace(botsec,"Lac\s[<>0-9.]+","")
+	}
+	if (RegExMatch(botsec,"O)CRP\s[<>0-9\.]+.*",CRP)) {
+		botsec := RegExReplace(botsec,"CRP\s[<>0-9.]+.*","")
+	}
+	if (RegExMatch(botsec,"O)ESR\s[<>0-9\.]+.*",ESR)) {
+		botsec := RegExReplace(botsec,"ESR\s[<>0-9.]+.*","")
+	}
+	if (RegExMatch(botsec,"O)D Bili\s[<>0-9.]+.*",DBil)) {
+		botsec := RegExReplace(botsec,"D Bili\s[<>0-9\.]+.*","")
+	}
+	if (RegExMatch(botsec,"O)I Bili\s[<>0-9.]+.*",IBil)) {
+		botsec := RegExReplace(botsec,"I Bili\s[<>0-9\.]+.*","")
+	}
+	;~ if (RegExMatch(botsec,"O)^\s*\W+\s*\[?[0-9.]+\]?\s*?$")) {
+		;~ botsec := RegExReplace(botsec,"^\s*\W+\s*\[?[0-9.]+\]?\s*?$","")
+	;~ }
 	
 	if (fing ~= "WW.?NDW.?N") {
 		return {type:"Lytes", Na:x[1,1], HCO3:x[1,2], BUN:x[1,3], K:x[2,1], Cl:x[2,2], Cr:x[2,3], Glu:x[3,1]
-			, ABG:abg.value(), iCA:iCA.value(), ALT:ALT.value(), AST:AST.value(), PTT:PTT.value(), INR:INR.value(), rest:botsec}
+			, ABG:abg.value(), iCA:iCA.value(), ALT:ALT.value(), AST:AST.value(), PTT:PTT.value(), INR:INR.value()
+			, Alb:Alb.value(), Lac:Lac.value(), CRP:CRP.value(), ESR:ESR.value(),DBil:DBil.value(), IBil:IBil.value()
+			, rest:botsec}
 	} else if (fing ~= "DDNDNWN") {
 		return {type:"CBC", WBC:x[1,1], Hgb:x[1,2], Hct:x[2,1], Plt:x[3,1], rest:botsec}
 	} else {
@@ -2254,8 +2397,8 @@ listsort(list,parm="",ord:="") {
 		sort2D(var,ObjHasValue(col,parm))
 	}
 	removeNode("/root/lists/" list)
-	FormatTime, timenow, A_Now, yyyyMMddHHmm
-	node := y.addElement(list,"/root/lists",{date:timenow})
+	FormatTime, now, A_Now, yyyyMMddHHmm
+	node := y.addElement(list,"/root/lists",{date:now})
 	for key,val in var {
 		y.addElement("mrn","/root/lists/" list,var[A_index].mrn)
 	}
@@ -3191,8 +3334,8 @@ RemoveNode(node) {
 	q.parentNode.removeChild(q)
 }
 
-MedListParse(medList,bList,mrn,yl) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR")
-	global meds1, meds2
+MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR")
+	global meds1, meds2, y, MRNstring, yMarDt
 	tempArray = 
 	medWords =
 	StringReplace, bList, bList, •%A_space%, ``, ALL
@@ -3203,15 +3346,15 @@ MedListParse(medList,bList,mrn,yl) {								; may bake in y.ssn(//id[@mrn='" mrn
 			continue
 		medName:=RegExReplace(medName,"[0-9\.]+\sm(g|Eq).*Rate..IV","gtt.")
 		if ObjHasValue(meds1, medName, "RX") {
-			yl.addElement(medlist, "//id[@mrn='" mrn "']/MAR", {class: "Cardiac"}, medName)
+			y.addElement(medlist, yMarDt, {class: "Cardiac"}, medName)
 			continue
 		}
 		if ObjHasValue(meds2, medName, "RX") {
-			yl.addElement(medlist, "//id[@mrn='" mrn "']/MAR", {class: "Arrhythmia"}, medName)
+			y.addElement(medlist, yMarDt, {class: "Arrhythmia"}, medName)
 			continue
 		}
 		else
-			yl.addElement(medlist, "//id[@mrn='" mrn "']/MAR", {class: "Other"}, medName)
+			y.addElement(medlist, yMarDt, {class: "Other"}, medName)
 	}
 }
 
@@ -3304,9 +3447,9 @@ FilePrepend( Text, Filename ) {
 eventlog(event) {
 	global user, sessdate
 	comp := A_ComputerName
-	FormatTime, timenow, A_Now, yyyy.MM.dd.HH:mm:ss
+	FormatTime, now, A_Now, yyyy.MM.dd.HH:mm:ss
 	name := "logs/" . sessdate . ".log"
-	txt := timenow " [" user "/" comp "] " event "`n"
+	txt := now " [" user "/" comp "] " event "`n"
 	filePrepend(txt,name)
 ;	FileAppend, % timenow " ["  user "/" comp "] " event "`n", % "logs/" . sessdate . ".log"
 }
