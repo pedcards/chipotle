@@ -2293,35 +2293,29 @@ labSecType(block) {
 	if (RegExMatch(botsec,"O)PTT\s>?\d{2,3}",PTT)) {
 		botsec := RegExReplace(botsec,"PTT\s>?\d{2,3}","")
 	}
-	if (RegExMatch(botsec,"O)Pt.INR\s[0-9\.]+",INR)) {
-		botsec := RegExReplace(botsec,"Pt.INR\s[0-9\.]+","")
+	if (RegExMatch(botsec,"O)Pt.INR\s[<>0-9\.]+",INR)) {
+		botsec := RegExReplace(botsec,"Pt.INR\s[<>0-9.]+","")
 	}
-	if (RegExMatch(botsec,"O)Alb\s[0-9\.]+",Alb)) {
-		botsec := RegExReplace(botsec,"Alb\s[0-9\.]+","")
+	if (RegExMatch(botsec,"O)Alb\s[<>0-9\.]+",Alb)) {
+		botsec := RegExReplace(botsec,"Alb\s[<>0-9.]+","")
 	}
-	if (RegExMatch(botsec,"O)Lac\s[0-9\.]+",Lac)) {
-		botsec := RegExReplace(botsec,"Lac\s[0-9\.]+","")
+	if (RegExMatch(botsec,"O)Lac\s[<>0-9\.]+",Lac)) {
+		botsec := RegExReplace(botsec,"Lac\s[<>0-9.]+","")
 	}
-	if (RegExMatch(botsec,"O)CRP\s[0-9\.]+.*",CRP)) {
-		botsec := RegExReplace(botsec,"CRP\s[0-9\.]+.*","")
+	if (RegExMatch(botsec,"O)CRP\s[<>0-9\.]+.*",CRP)) {
+		botsec := RegExReplace(botsec,"CRP\s[<>0-9.]+.*","")
 	}
-	if (RegExMatch(botsec,"O)ESR\s[0-9\.]+.*",ESR)) {
-		botsec := RegExReplace(botsec,"ESR\s[0-9\.]+.*","")
+	if (RegExMatch(botsec,"O)ESR\s[<>0-9\.]+.*",ESR)) {
+		botsec := RegExReplace(botsec,"ESR\s[<>0-9.]+.*","")
 	}
-	if (RegExMatch(botsec,"O)D Bili\s[0-9\.]+.*",DBil)) {
-		botsec := RegExReplace(botsec,"D Bili\s[0-9\.]+.*","")
+	if (RegExMatch(botsec,"O)D Bili\s[<>0-9.]+.*",DBil)) {
+		botsec := RegExReplace(botsec,"D Bili\s[<>0-9\.]+.*","")
 	}
-	if (RegExMatch(botsec,"O)I Bili\s[0-9\.]+.*",IBil)) {
-		botsec := RegExReplace(botsec,"I Bili\s[0-9\.]+.*","")
+	if (RegExMatch(botsec,"O)I Bili\s[<>0-9.]+.*",IBil)) {
+		botsec := RegExReplace(botsec,"I Bili\s[<>0-9\.]+.*","")
 	}
-	;~ if (RegExMatch(botsec,"O)CRP\s[0-9\.]+.*",CRP)) {
-		;~ botsec := RegExReplace(botsec,"CRP\s[0-9\.]+.*","")
-	;~ }
-	if (RegExMatch(botsec,"O)^(\[)?[0-9.]+(\])?(\s)?$")) {
-		botsec := RegExReplace(botsec,"^(\[)?[0-9.]+(\])?(\s)?$","")
-	}
-	;~ if (RegExMatch(botsec,"O)PTT\s\d{2,3}",PTT)) {
-		;~ botsec := RegExReplace(botsec,"PTT\s\d{2,3}","")
+	;~ if (RegExMatch(botsec,"O)^\s*\W+\s*\[?[0-9.]+\]?\s*?$")) {
+		;~ botsec := RegExReplace(botsec,"^\s*\W+\s*\[?[0-9.]+\]?\s*?$","")
 	;~ }
 	
 	if (fing ~= "WW.?NDW.?N") {
