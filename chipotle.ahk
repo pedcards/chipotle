@@ -830,6 +830,7 @@ PatListGUI:
 		. pl_Unit " :: " pl_Room "`n"
 		. pl_Svc "`n`n"
 		. "Admitted: " pl_Admit "`n"
+	Gui, plistG:Destroy
 	Gui, plistG:Default
 	Gui, Add, Text, x26 y38 w200 h80 , % pl_demo
 	;Gui, Add, Text, x26 y74 w200 h40 , go here
@@ -891,6 +892,7 @@ PatListGUIcc:
 		. "Admitted: " pl_Admit
 	pl_infoDT := breakdate(pl_info.getAttribute("date"))
 	winFW := win.wX
+	Gui, plistG:Destroy
 	Gui, plistG:Default
 	Gui, -DPIScale
 	Gui, Font, Bold
@@ -915,18 +917,32 @@ PatListGUIcc:
 		Gui, Add, Edit, % edit1, % edVal
 		y0 += h0
 	}
-	Gui, Add, GroupBox
-		, % "Section x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor
-		, % pl_infoDT.mm "/" pl_infoDT.dd "/" pl_infoDT.yyyy " @ " pl_infoDT.hh ":" pl_infoDT.min
-	Gui, Add, Text, % "xs+10 ys+16 wp-14 -Wrap vccDataVS", % ccData(pl_info,"VS")
-	GuiControlGet, tmpPos, Pos, ccDataVS
-	Gui, Add, Text, % "x"tmpPosX " yp+"tmpPosH " wP"
-		ccData(pl_info,"labs")
-	
-	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5,Hello
-	Gui, Add, Button, % "x"win.bor+win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5,Hello >---<  \____/ /¯¯¯¯\
-	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gplSave", SAVE
+	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gPatListGUI", Other info
+	Gui, Add, Button, % "x"win.bor+win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5 " gPlTasksList", Tasks/Todo
+	Gui, Add, Button, % "x"win.bor+win.boxF " yP w"win.boxQ-20 " h"win.rh*2.5,Hello >'o'<
+	Gui, Add, Button, % "x"win.bor+win.boxF " w"win.boxQ-20 " h"win.rh*2.5 " gplSave", SAVE
 	Gui, Show, % "w"winFw " h"win.wY, CON CARNE
+
+;	Gui, Add, GroupBox
+;		, % "Section x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor
+;		, % pl_infoDT.mm "/" pl_infoDT.dd "/" pl_infoDT.yyyy " @ " pl_infoDT.hh ":" pl_infoDT.min
+	tmpDt =
+	Loop % (yInfo:=y.selectNodes("//id[@mrn='" MRN "']/info")).length
+	{
+		yInfoDt := yInfo.Item(A_index-1).getAttribute("date")
+		tmpDt .= yInfoDt "|"
+	}
+	Gui, Add, Tab2, % "Section x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor, % tmpDt
+	loop, parse, tmpDt, |
+	{
+		tmpG := A_LoopField
+		tmpB := A_index
+		Gui, Tab, %tmpB%
+		Gui, Add, Text, % "xs+10 ys+16 w"win.rCol-win.bor-14 " -Wrap vccDataVS"tmpB, % ccData(pl_info,"VS")
+		GuiControlGet, tmpPos, Pos, ccDataVS%tmpB%
+		Gui, Add, Text, % "x"tmpPosX " yp+"tmpPosH " wP"
+			ccData(pl_info,"labs")
+	}
 	
 	return
 /*	Include daily data in /id/notes/daily date="20150926"
@@ -1029,17 +1045,20 @@ ccData(pl,sec) {
 			if ((PTT:=i.selectSingleNode("PTT").text) or (INR:=i.selectSingleNode("INR").text)) {
 				Gui, Add, text, xS, % PTT "`t" INR
 			}
-			if (iCA:=i.selectSingleNode("iCA").text) {
-				Gui, Add, text, xS, % iCA
+			if (Alb:=i.selectSingleNode("Alb").text) {
+				Gui, Add, text, xS, % Alb
 			}
-			if (iCA:=i.selectSingleNode("iCA").text) {
-				Gui, Add, text, xS, % iCA
+			if (Lac:=i.selectSingleNode("Lac").text) {
+				Gui, Add, text, xS, % Lac
 			}
-			if (iCA:=i.selectSingleNode("iCA").text) {
-				Gui, Add, text, xS, % iCA
+			if (CRP:=i.selectSingleNode("CRP").text) {
+				Gui, Add, text, xS, % CRP
 			}
-			if (iCA:=i.selectSingleNode("iCA").text) {
-				Gui, Add, text, xS, % iCA
+			if (ESR:=i.selectSingleNode("ESR").text) {
+				Gui, Add, text, xS, % ESR
+			}
+			if ((DBil:=i.selectSingleNode("DBil").text) or (IBil:=i.selectSingleNode("IBil").text)) {
+				Gui, Add, text, xS, % DBil "`t" IBil
 			}
 			if (rest:=i.selectSingleNode("rest").text) {
 				Gui, Add, text, % "+Wrap xS w"win.rCol-win.bor, % rest
