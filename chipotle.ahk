@@ -793,6 +793,7 @@ PatListGet:
 	pl_Svc := pl.Svc
 	pl_Unit := pl.Unit
 	pl_Room := pl.Room
+	pl_Attg := pl.Attg
 	pl_dxCard := pl.dxCard
 	pl_dxEP := pl.dxEP
 	pl_dxSurg := pl.dxSurg
@@ -902,6 +903,8 @@ PatListGUIcc:
 	Gui, Add, GroupBox, % "xP yP+"win.demo_h/2-4 " wP hP"
 	Gui, Font, Normal
 	Gui, Add, Text, % "x"win.bor+10 " y"win.bor+20, % pl_demo
+	Gui, Add, Text, % "x"win.bor+win.boxH+10 " y"win.bor+10 " w"win.boxQ-14 , % "CRD: " pl_ProvCard "`n" ((pl_ProvSchCard) ? "CRD(SCH): " pl_ProvSchCard : "")
+	Gui, Add, Text, % "xP yP+"win.demo_h/2-4 " wP", % "CSR: " ((pl_Svc="Cardiac Surgery") ? pl_Attg : "")
 	y0 := win.bor+win.demo_h+win.bor
 	for key,val in ccFields {
 		x0 := win.bor
@@ -917,8 +920,9 @@ PatListGUIcc:
 		Gui, Add, Edit, % edit1, % edVal
 		y0 += h0
 	}
-	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gPatListGUI", Other info
-	Gui, Add, Button, % "x"win.bor+win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5 " gPlTasksList", Tasks/Todo
+	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gPatListGUI", Switch to other view
+	Gui, Add, Button, % "xP+"win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5 " gPlTasksList", Tasks/Todo
+	Gui, Add, Button, % "xP+"win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5 " gplMar", Medications
 	Gui, Add, Button, % "x"win.bor+win.boxF " yP w"win.boxQ-20 " h"win.rh*2.5,Hello >'o'<
 	Gui, Add, Button, % "x"win.bor+win.boxF " w"win.boxQ-20 " h"win.rh*2.5 " gplSave", SAVE
 	Gui, Show, % "w"winFw " h"win.wY, CON CARNE
@@ -932,13 +936,14 @@ PatListGUIcc:
 		yInfoDt := yInfo.Item(A_index-1).getAttribute("date")
 		tmpDt .= yInfoDt "|"
 	}
-	Gui, Add, Tab2, % "Section x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor, % tmpDt
+	Gui, Add, Tab2, % "x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor, % tmpDt
 	loop, parse, tmpDt, |
 	{
 		tmpG := A_LoopField
 		tmpB := A_index
+		pl_info := y.selectSingleNode("//id[@mrn='" MRN "']/info[@date='" tmpG "']")
 		Gui, Tab, %tmpB%
-		Gui, Add, Text, % "xs+10 ys+16 w"win.rCol-win.bor-14 " -Wrap vccDataVS"tmpB, % ccData(pl_info,"VS")
+		Gui, Add, Text, % "x"win.bor+win.boxF+win.bor*2 " y"win.bor+3*win.bor " w"win.rCol-3*win.bor-14 " -Wrap vccDataVS"tmpB, % ccData(pl_info,"VS")
 		GuiControlGet, tmpPos, Pos, ccDataVS%tmpB%
 		Gui, Add, Text, % "x"tmpPosX " yp+"tmpPosH " wP"
 			ccData(pl_info,"labs")
@@ -981,7 +986,7 @@ ccData(pl,sec) {
 			txt .= "`n"
 		}
 			if (i:=x.selectSingleNode("in")) {
-				txt .= "`nIn:`t" i.text 
+				txt .= "`nIn:`t" i.text ((i:=x.selectSingleNode("po")) ? " (" i.text " PO)" : "")
 			}
 			if (i:=x.selectSingleNode("out")) {
 				txt .= "`nOut:`t" i.text
@@ -1383,8 +1388,9 @@ plMAR:
 {
 	Gui, MarGui:Destroy
 	CoresD := pl_MAR.getAttribute("date")
-	CoresD -= A_Now, Hours						; Datediff in hours
-	if (-CoresD/24 > 1) {
+	tmpD := CoresD
+	tmpD -= A_Now, Hours						; Datediff in hours
+	if (tmpD < -24) {
 		Gui, MarGui:Add, Tab, w420 h440, Meds
 		Gui, MarGui:Add, Text, w400 h400 Center, % "`n`n`n`n"
 			. "MAR data is older than 24 hrs`n`n"
@@ -1417,7 +1423,8 @@ plMAR:
 		LV_Add("", "=== PRN ===")
 		plMARlist("prn","Other")
 	}
-	Gui, MarGui:Show, AutoSize, % "CORES " CoresD
+	tmp := breakDate(CoresD)
+	Gui, MarGui:Show, AutoSize, % "CORES " nicedate(CoresD) " @ " tmp.HH ":" tmp.Min
 	return
 }
 
@@ -2127,6 +2134,7 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			CORES_vsPain := StrX( CORES_vsBlock, "`r`n" ,NNN-1 ,1, "",1,1, NNN)
 		CORES_IOBlock := StrX( ptBlock, "Ins/Outs" ,NN,8, "Labs (72 Hrs)" ,1,14, NN)
 			CORES_ioIn := StrX( CORES_IOBlock, "In=",0,4, "`r`n",1,1)
+			CORES_ioPO := StrX( CORES_IOBlock, "Oral=",0,6, "`r`n",1,1)
 			CORES_ioOut := StrX( CORES_IOBlock, "Out=",0,5, "`r`n",1,1)
 			CORES_ioCT := StrX( CORES_IOBlock, "Chest Tube=",0,11, "`r`n",1,1)
 			CORES_ioNet := StrX( CORES_IOBlock, "IO Net=",0,8, "`r`n",1,1)
@@ -2148,21 +2156,18 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			y.addElement("plan", MRNstring)
 			n1 += 1
 		}
-		; Remove the old Info and MAR nodes
+		; Remove the old Info nodes
 		Loop % (infos := y.selectNodes(MRNstring "/info")).length
 		{
-			;cinf := infos.Item(A_index-1)
 			tmpdt := infos.Item(A_index-1).getAttribute("date")
 			tmpTD := tmpdt
 			tmpTD -= A_now, Days
 			if ((tmpTD < -7) or (tmpTD = 0)) {						; remove old nodes or replace info/mar from today.
 			;if (tmpTD < -7)  {										; remove old nodes.
 				RemoveNode(MRNstring "/info[@date='" tmpdt "']")
-				RemoveNode(MRNstring "/MAR[@date='" tmpdt "']")
 			}
 		}
 	
-		;RemoveNode(MRNstring . "/info")
 		y.addElement("info", MRNstring, {date: timenow})	; Create a new /info node
 		yInfoDt := MRNstring . "/info[@date='" timenow "']"
 			y.addElement("dcw", yInfoDt, CORES_DCW)
@@ -2181,6 +2186,7 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 				y.addElement("pain", yInfoDt "/vs", CORES_vsPain)
 			y.addElement("io", yInfoDt )
 				y.addElement("in",  yInfoDt "/io", CORES_ioIn)
+				y.addElement("po",  yInfoDt "/io", CORES_ioPO)
 				y.addElement("out", yInfoDt "/io", CORES_ioOut)
 				y.addElement("ct",  yInfoDt "/io", CORES_ioCT)
 				y.addElement("net", yInfoDt "/io", CORES_ioNet)
@@ -2188,9 +2194,9 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			y.addElement("labs", yInfoDt )
 				parseLabs(CORES_labsBlock)
 			y.addElement("notes", yInfoDt , CORES_NotesBlock)
-		;RemoveNode(MRNstring . "/MAR")
+		RemoveNode(MRNstring . "/MAR")
 		y.addElement("MAR", MRNstring, {date: timenow})	; Create a new /MAR node
-		yMarDt := MRNstring "/MAR[@date='" timenow "']"
+		yMarDt := MRNstring "/MAR"
 			MedListParse("drips",CORES_Drips)
 			MedListParse("meds",CORES_Meds)
 			MedListParse("prn",CORES_PRN)
