@@ -1077,8 +1077,9 @@ plHealthMaint:
 		opt := strX(val,,0,0,":",1,1)
 		res := strX(val,":",1,1,"",1,1)
 		chk := y.selectSingleNode(pl_mrnstring "/ccHMT/" opt).getAttribute("set")
-		Gui, Add, Checkbox, % "x"win.bor " Checked"chk " vhMT"opt , % res
-		Gui, Add, Edit, % "x"hmtCol " yP-4 w"hmtW " vhMT" opt "Txt", % hMT%opt%Txt
+		txt := y.selectSingleNode(pl_mrnstring "/ccHMT/" opt).text
+		Gui, Add, Checkbox, % "x"win.bor " Checked"((chk)?"1":"0") " vhMT"opt , % res
+		Gui, Add, Edit, % "x"hmtCol " yP-4 w"hmtW " vhMT"opt "Txt", % txt
 	}
 	Gui, Show, AutoSize, Health Maintenance
 	return
@@ -1095,15 +1096,27 @@ hMaintGuiClose:
 	for key,val in hmtList {
 		opt := strX(val,,0,0,":",1,1)
 		res := strX(val,":",1,1,"",1,1)
-		;MsgBox,,% opt " = " hMT%opt%, % hMT%opt%Txt
 		if !IsObject(y.selectSingleNode(pl_mrnstring "/ccHMT/" opt)) {
 			y.addElement(opt, pl_mrnstring "/ccHMT")
 		}
-		y.setAtt(pl_mrnstring "/ccHMT/" opt, {set: hMT%opt%})
-		y.setText(pl_mrnstring "/ccHMT/" opt, hMT%opt%Txt)
+		yHMT := y.selectSingleNode(pl_mrnstring "/ccHMT/" opt)
+		ySet := yHMT.getAttribute("set")
+		yRes := yHMT.text
+		if !(hMT%opt%=ySet) {
+			yHMT.setAttribute("set",hMT%opt%)
+			eventlog(mrn " Health Maint " opt " changed.")
+			yHMTchg = true
+		}
+		if !(hMT%opt%Txt=yRes) {
+			y.setText(pl_mrnstring "/ccHMT/" opt,hMT%opt%Txt)
+			eventlog(mrn " Health Maint " opt " info changed.")
+			yHMTchg = true
+		}
 	}
-	WriteOut(pl_mrnstring,"ccHMT")
-	eventlog(mrn " Health Maint changed.")
+	if (yHMTchg) {
+		WriteOut(pl_mrnstring,"ccHMT")
+		yHMTchg = false
+	}
 	return
 }
 
