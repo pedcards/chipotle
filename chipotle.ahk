@@ -34,7 +34,7 @@ FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.ex
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.6.4.1"
+vers := "1.6.4.2"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -924,19 +924,17 @@ PatListGUIcc:
 	Gui, Add, Button, % "xP+"win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5 " gPlTasksList", Tasks/Todo
 	Gui, Add, Button, % "xP+"win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5 " gplMar", Medications
 	Gui, Add, Button, % "x"win.bor+win.boxF " yP w"win.boxQ-20 " h"win.rh*2.5,Hello >'o'<
-	Gui, Add, Button, % "x"win.bor+win.boxF " w"win.boxQ-20 " h"win.rh*2.5 " gplSave", SAVE
+	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gplHealthMaint", Health Maintenance
+	Gui, Add, Button, % "x"win.bor+win.boxF " yP w"win.boxQ-20 " h"win.rh*2.5 " gplSave", SAVE
 	Gui, Show, % "w"winFw " h"win.wY, CON CARNE
 
-;	Gui, Add, GroupBox
-;		, % "Section x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor
-;		, % pl_infoDT.mm "/" pl_infoDT.dd "/" pl_infoDT.yyyy " @ " pl_infoDT.hh ":" pl_infoDT.min
 	tmpDt =
 	Loop % (yInfo:=y.selectNodes("//id[@mrn='" MRN "']/info")).length
 	{
 		yInfoDt := yInfo.Item(A_index-1).getAttribute("date")
 		tmpDt .= yInfoDt "|"
 	}
-	Gui, Add, Tab2, % "x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor, % tmpDt
+	Gui, Add, Tab2, % "x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor " Choose"A_Index, % tmpDt
 	loop, parse, tmpDt, |
 	{
 		tmpG := A_LoopField
@@ -945,17 +943,10 @@ PatListGUIcc:
 		Gui, Tab, %tmpB%
 		Gui, Add, Text, % "x"win.bor+win.boxF+win.bor*2 " y"win.bor+3*win.bor " w"win.rCol-3*win.bor-14 " -Wrap vccDataVS"tmpB, % ccData(pl_info,"VS")
 		GuiControlGet, tmpPos, Pos, ccDataVS%tmpB%
-		Gui, Add, Text, % "x"tmpPosX " yp+"tmpPosH " wP"
+		Gui, Add, Text, % "x"tmpPosX " yp+"tmpPosH " wP-10"
 			ccData(pl_info,"labs")
 	}
-	
 	return
-/*	Include daily data in /id/notes/daily date="20150926"
-	Clone vs, labs to daily notes
-	RCol as tab with dates up to past 7 days
-	Include ccSystems in /id/ccSys ed="201509261109"/FEN ed="201509261109" au="lsabou"
-	Would be helpful to have a means to translate/insert back to CIS progress note
-*/
 }
 
 ccData(pl,sec) {
@@ -986,7 +977,7 @@ ccData(pl,sec) {
 			txt .= "`n"
 		}
 			if (i:=x.selectSingleNode("in")) {
-				txt .= "`nIn:`t" i.text ((i:=x.selectSingleNode("po")) ? " (" i.text " PO)" : "")
+				txt .= "`nIn:`t" i.text ((j:=x.selectSingleNode("po").text) ? " (" j " PO)" : "")
 			}
 			if (i:=x.selectSingleNode("out")) {
 				txt .= "`nOut:`t" i.text
@@ -1072,6 +1063,50 @@ ccData(pl,sec) {
 	}
 	return txt
 }
+
+plHealthMaint:
+{
+	hmtList := ["Nbs1:NBS#1 sent","Nbs2:NBS#2 sent","Baer:BAER passed","Oph:Ophtho","Gt:GT teaching","Seat:Car seat"
+				, "Pcp:PCP","Crd:Cardiology","Ndv:Neurodev","OTPT:OT/PT/Speech"
+				, "Synagis:Synagis candidate","Imms:Immunications","DC:Discharge plan"]
+	hmtCol := 120
+	hmtW := 250
+	Gui, hMaint:Default
+	Gui, Destroy
+	for key,val in hmtList {
+		opt := strX(val,,0,0,":",1,1)
+		res := strX(val,":",1,1,"",1,1)
+		chk := y.selectSingleNode(pl_mrnstring "/ccHMT/" opt).getAttribute("set")
+		Gui, Add, Checkbox, % "x"win.bor " Checked"chk " vhMT"opt , % res
+		Gui, Add, Edit, % "x"hmtCol " yP-4 w"hmtW " vhMT" opt "Txt", % hMT%opt%Txt
+	}
+	Gui, Show, AutoSize, Health Maintenance
+	return
+}
+hMaintGuiClose:
+{
+	Gui, hMaint:Submit
+	if !IsObject(y.selectSingleNode(pl_mrnstring "/ccHMT")) {
+		y.addElement("ccHMT", pl_mrnstring)
+	}
+	FormatTime, editdate, A_Now, yyyyMMddHHmmss
+	y.setAtt(pl_mrnstring "/ccHMT", {ed: editdate},{au: user})
+
+	for key,val in hmtList {
+		opt := strX(val,,0,0,":",1,1)
+		res := strX(val,":",1,1,"",1,1)
+		;MsgBox,,% opt " = " hMT%opt%, % hMT%opt%Txt
+		if !IsObject(y.selectSingleNode(pl_mrnstring "/ccHMT/" opt)) {
+			y.addElement(opt, pl_mrnstring "/ccHMT")
+		}
+		y.setAtt(pl_mrnstring "/ccHMT/" opt, {set: hMT%opt%})
+		y.setText(pl_mrnstring "/ccHMT/" opt, hMT%opt%Txt)
+	}
+	WriteOut(pl_mrnstring,"ccHMT")
+	eventlog(mrn " Health Maint changed.")
+	return
+}
+
 
 compStr(a,b) {
 	lnA := strlen(a)
@@ -2162,8 +2197,8 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			tmpdt := infos.Item(A_index-1).getAttribute("date")
 			tmpTD := tmpdt
 			tmpTD -= A_now, Days
-			if ((tmpTD < -7) or (tmpTD = 0)) {						; remove old nodes or replace info/mar from today.
-			;if (tmpTD < -7)  {										; remove old nodes.
+			if ((tmpTD < -7) or (substr(tmpdt,1,8) = substr(A_now,1,8))) {			; remove old nodes or replace info/mar from today.
+			;if (tmpTD < -7)  {														; remove old nodes.
 				RemoveNode(MRNstring "/info[@date='" tmpdt "']")
 			}
 		}
@@ -2194,7 +2229,7 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			y.addElement("labs", yInfoDt )
 				parseLabs(CORES_labsBlock)
 			y.addElement("notes", yInfoDt , CORES_NotesBlock)
-		RemoveNode(MRNstring . "/MAR")
+		RemoveNode(MRNstring "/MAR")
 		y.addElement("MAR", MRNstring, {date: timenow})	; Create a new /MAR node
 		yMarDt := MRNstring "/MAR"
 			MedListParse("drips",CORES_Drips)
