@@ -1368,11 +1368,11 @@ plSave:
 	Gui, plistG:Destroy
 	FormatTime, editdate, A_Now, yyyyMMddHHmmss
 	if (plEditNote) {
-		ReplacePatNode(pl_mrnstring "/diagnoses","notes",pl_dxNotes)
-		ReplacePatNode(pl_mrnstring "/diagnoses","card",pl_dxCard)
-		ReplacePatNode(pl_mrnstring "/diagnoses","ep",pl_dxEP)
-		ReplacePatNode(pl_mrnstring "/diagnoses","surg",pl_dxSurg)
-		ReplacePatNode(pl_mrnstring "/diagnoses","prob",pl_dxProb)
+		ReplacePatNode(pl_mrnstring "/diagnoses","notes",cleanString(pl_dxNotes))
+		ReplacePatNode(pl_mrnstring "/diagnoses","card",cleanString(pl_dxCard))
+		ReplacePatNode(pl_mrnstring "/diagnoses","ep",cleanString(pl_dxEP))
+		ReplacePatNode(pl_mrnstring "/diagnoses","surg",cleanString(pl_dxSurg))
+		ReplacePatNode(pl_mrnstring "/diagnoses","prob",cleanString(pl_dxProb))
 		y.setAtt(pl_mrnstring "/diagnoses", {ed: editdate})
 		y.setAtt(pl_mrnstring "/diagnoses", {au: user})
 		plEditNote = 
@@ -1382,7 +1382,7 @@ plSave:
 			y.addElement("ccSys", pl_mrnstring)
 		}
 		for key,val in ccFields {
-			ReplacePatNode(pl_mrnstring "/ccSys",val,cc%val%)
+			ReplacePatNode(pl_mrnstring "/ccSys",val,cleanString(cc%val%))
 		}
 		y.setAtt(pl_mrnstring "/ccSys", {ed: editdate})
 		y.setAtt(pl_mrnstring "/ccSys", {au: user})
@@ -3478,6 +3478,15 @@ niceDate(x) {
 zDigit(x) {
 ; Add leading zero to a number
 	return SubStr("0" . x, -1)
+}
+
+cleanString(x) {
+	replace := {"{":"[","}":"]","\":"/"}
+	for what, with in replace
+	{
+		StringReplace, x, x, %what%, %with%, All
+	}
+	return x
 }
 
 fieldType(x) {
