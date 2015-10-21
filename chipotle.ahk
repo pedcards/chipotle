@@ -928,18 +928,21 @@ PatListGUIcc:
 	Gui, Add, Button, % "x"win.bor+win.boxF " yP w"win.boxQ-20 " h"win.rh*2.5 " gplSave", SAVE
 	Gui, Show, % "w"winFw " h"win.wY, CON CARNE
 
+	tmpDarr := Object()
 	tmpDt =
 	Loop % (yInfo:=y.selectNodes("//id[@mrn='" MRN "']/info")).length
 	{
 		yInfoDt := yInfo.Item(A_index-1).getAttribute("date")
-		tmpDt .= yInfoDt "|"
+		tmpD := breakdate(yInfoDt)
+		tmpDarr[tmpD.MM "/" tmpD.DD] := yInfoDt
+		tmpDt .= tmpD.MM "/" tmpD.DD "|"
 	}
-	Gui, Add, Tab2, % "x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor " Choose"A_Index, % tmpDt
+	Gui, Add, Tab2, % "x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor " -Wrap Choose"A_Index, % tmpDt
 	loop, parse, tmpDt, |
 	{
 		tmpG := A_LoopField
 		tmpB := A_index
-		pl_info := y.selectSingleNode("//id[@mrn='" MRN "']/info[@date='" tmpG "']")
+		pl_info := y.selectSingleNode("//id[@mrn='" MRN "']/info[@date='" tmpDarr[tmpG] "']")
 		Gui, Tab, %tmpB%
 		Gui, Add, Text, % "x"win.bor+win.boxF+win.bor*2 " y"win.bor+3*win.bor " w"win.rCol-3*win.bor-14 " -Wrap vccDataVS"tmpB, % ccData(pl_info,"VS")
 		GuiControlGet, tmpPos, Pos, ccDataVS%tmpB%
