@@ -2218,6 +2218,7 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			if ((tmpTD < -7) or (substr(tmpdt,1,8) = substr(A_now,1,8))) {			; remove old nodes or replace info/mar from today.
 			;if (tmpTD < -7)  {														; remove old nodes.
 				RemoveNode(MRNstring "/info[@date='" tmpdt "']")
+				RemoveNode(MRNstring "/MAR[@date='" tmpdt "']")
 			}
 		}
 	
