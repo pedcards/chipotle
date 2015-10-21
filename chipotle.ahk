@@ -58,7 +58,7 @@ servfold := "patlist"
 if (ObjHasValue(admins,user)) {
 	isAdmin := true
 	if (InStr(A_WorkingDir,"AutoHotkey")) {
-		tmp:=CMsgBox("Test system","Use test system?","&Local|&Test Server|Production","Q","V")
+		tmp:=CMsgBox("Data source","Data from which system?","&Local|&Test Server|Production","Q","V")
 		if (tmp="Local") {
 			isLocal := true
 			;FileDelete, currlist.xml
@@ -68,8 +68,10 @@ if (ObjHasValue(admins,user)) {
 			servfold := "testlist"
 			FileDelete, currlist.xml
 		}
-		if (tmp="Production")
+		if (tmp="Production") {
 			isLocal := false
+			FileDelete, currlist.xml
+		}
 	}
 	tmp:=CMsgBox("Administrator","Which user role?","*&Normal CHIPOTLE|&CICU CHILI|&ARNP Con Carne","Q","V")
 	if (tmp~="CHILI")
@@ -2247,7 +2249,7 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			y.addElement("notes", yInfoDt , CORES_NotesBlock)
 		RemoveNode(MRNstring "/MAR")
 		y.addElement("MAR", MRNstring, {date: timenow})	; Create a new /MAR node
-		yMarDt := MRNstring "/MAR"
+		yMarDt := MRNstring "/MAR[@date='" timenow "']"
 			MedListParse("drips",CORES_Drips)
 			MedListParse("meds",CORES_Meds)
 			MedListParse("prn",CORES_PRN)
