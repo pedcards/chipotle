@@ -2218,6 +2218,12 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			if ((tmpTD < -7) or (substr(tmpdt,1,8) = substr(A_now,1,8))) {			; remove old nodes or replace info/mar from today.
 			;if (tmpTD < -7)  {														; remove old nodes.
 				RemoveNode(MRNstring "/info[@date='" tmpdt "']")
+			}
+		}
+		Loop % (infos := y.selectNodes(MRNstring "/MAR")).length					; remove old MAR except for this run.
+		{
+			tmpdt := infos.Item(A_Index-1).getAttribute("date")
+			if (tmpdt!=timenow) {
 				RemoveNode(MRNstring "/MAR[@date='" tmpdt "']")
 			}
 		}
@@ -2227,7 +2233,8 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			y.addElement("dcw", yInfoDt, CORES_DCW)
 			y.addElement("allergies", yInfoDt, CORES_Alls)
 			y.addElement("code", yInfoDt, CORES_Code)
-			y.addElement("hx", yInfoDt, CORES_HX)
+			if !(y.selectSingleNode(yInfoDt "/hx").text)
+				y.addElement("hx", yInfoDt, CORES_HX)
 			y.addElement("vs", yInfoDt)
 				y.addElement("wt", yInfoDt "/vs", StrX(CORES_vsWt,,1,1,"kg",1,2,NN))
 				if (tmp:=StrX(CORES_vsWt,"(",NN,2,")",1,1))
@@ -2248,13 +2255,16 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			y.addElement("labs", yInfoDt )
 				parseLabs(CORES_labsBlock)
 			y.addElement("notes", yInfoDt , CORES_NotesBlock)
-		RemoveNode(MRNstring "/MAR")
-		y.addElement("MAR", MRNstring, {date: timenow})	; Create a new /MAR node
-		yMarDt := MRNstring "/MAR[@date='" timenow "']"
-			MedListParse("drips",CORES_Drips)
-			MedListParse("meds",CORES_Meds)
-			MedListParse("prn",CORES_PRN)
-			MedListParse("diet",CORES_Diet)
+		if !isobject(y.selectSingleNode(MRNstring "/MAR"))
+			y.addElement("MAR", MRNstring)											; Create a new /MAR node
+		y.selectSingleNode(MRNstring "/MAR").setAttribute("date", timenow)			; Change date to now
+		if !(y.selectNodes(MRNstring "/MAR/*").length) {							; Populate only if empty
+			yMarDt := MRNstring "/MAR[@date='" timenow "']"
+				MedListParse("drips",CORES_Drips)
+				MedListParse("meds",CORES_Meds)
+				MedListParse("prn",CORES_PRN)
+				MedListParse("diet",CORES_Diet)
+			}
 		}
 	}
 	Progress off
