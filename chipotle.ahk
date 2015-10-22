@@ -34,7 +34,7 @@ FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.ex
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.6.4.3"
+vers := "1.6.5"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -58,7 +58,7 @@ servfold := "patlist"
 if (ObjHasValue(admins,user)) {
 	isAdmin := true
 	if (InStr(A_WorkingDir,"AutoHotkey")) {
-		tmp:=CMsgBox("Test system","Use test system?","&Local|&Test Server|Production","Q","V")
+		tmp:=CMsgBox("Data source","Data from which system?","&Local|&Test Server|Production","Q","V")
 		if (tmp="Local") {
 			isLocal := true
 			;FileDelete, currlist.xml
@@ -68,8 +68,10 @@ if (ObjHasValue(admins,user)) {
 			servfold := "testlist"
 			FileDelete, currlist.xml
 		}
-		if (tmp="Production")
+		if (tmp="Production") {
 			isLocal := false
+			FileDelete, currlist.xml
+		}
 	}
 	tmp:=CMsgBox("Administrator","Which user role?","*&Normal CHIPOTLE|&CICU CHILI|&ARNP Con Carne","Q","V")
 	if (tmp~="CHILI")
@@ -171,6 +173,7 @@ teamSort:=[]
 ccFields:=[]
 meds1:=[]
 meds2:=[]
+meds0:=[]
 Forecast_svc:=[]
 Forecast_val:=[]
 
@@ -237,6 +240,9 @@ Forecast_val:=[]
 		}
 		if (sec="MEDS2") {
 			meds2.Insert(i)
+		}
+		if (sec="MEDS0") {
+			meds0.Insert(i)
 		}
 		if (sec="Forecast") {
 			splitIni(i,c1,c2)
@@ -928,18 +934,21 @@ PatListGUIcc:
 	Gui, Add, Button, % "x"win.bor+win.boxF " yP w"win.boxQ-20 " h"win.rh*2.5 " gplSave", SAVE
 	Gui, Show, % "w"winFw " h"win.wY, CON CARNE
 
+	tmpDarr := Object()
 	tmpDt =
 	Loop % (yInfo:=y.selectNodes("//id[@mrn='" MRN "']/info")).length
 	{
 		yInfoDt := yInfo.Item(A_index-1).getAttribute("date")
-		tmpDt .= yInfoDt "|"
+		tmpD := breakdate(yInfoDt)
+		tmpDarr[tmpD.MM "/" tmpD.DD] := yInfoDt
+		tmpDt .= tmpD.MM "/" tmpD.DD "|"
 	}
-	Gui, Add, Tab2, % "x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor " Choose"A_Index, % tmpDt
+	Gui, Add, Tab2, % "x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor " -Wrap Choose"A_Index, % tmpDt
 	loop, parse, tmpDt, |
 	{
 		tmpG := A_LoopField
 		tmpB := A_index
-		pl_info := y.selectSingleNode("//id[@mrn='" MRN "']/info[@date='" tmpG "']")
+		pl_info := y.selectSingleNode("//id[@mrn='" MRN "']/info[@date='" tmpDarr[tmpG] "']")
 		Gui, Tab, %tmpB%
 		Gui, Add, Text, % "x"win.bor+win.boxF+win.bor*2 " y"win.bor+3*win.bor " w"win.rCol-3*win.bor-14 " -Wrap vccDataVS"tmpB, % ccData(pl_info,"VS")
 		GuiControlGet, tmpPos, Pos, ccDataVS%tmpB%
@@ -1365,11 +1374,11 @@ plSave:
 	Gui, plistG:Destroy
 	FormatTime, editdate, A_Now, yyyyMMddHHmmss
 	if (plEditNote) {
-		ReplacePatNode(pl_mrnstring "/diagnoses","notes",pl_dxNotes)
-		ReplacePatNode(pl_mrnstring "/diagnoses","card",pl_dxCard)
-		ReplacePatNode(pl_mrnstring "/diagnoses","ep",pl_dxEP)
-		ReplacePatNode(pl_mrnstring "/diagnoses","surg",pl_dxSurg)
-		ReplacePatNode(pl_mrnstring "/diagnoses","prob",pl_dxProb)
+		ReplacePatNode(pl_mrnstring "/diagnoses","notes",cleanString(pl_dxNotes))
+		ReplacePatNode(pl_mrnstring "/diagnoses","card",cleanString(pl_dxCard))
+		ReplacePatNode(pl_mrnstring "/diagnoses","ep",cleanString(pl_dxEP))
+		ReplacePatNode(pl_mrnstring "/diagnoses","surg",cleanString(pl_dxSurg))
+		ReplacePatNode(pl_mrnstring "/diagnoses","prob",cleanString(pl_dxProb))
 		y.setAtt(pl_mrnstring "/diagnoses", {ed: editdate})
 		y.setAtt(pl_mrnstring "/diagnoses", {au: user})
 		plEditNote = 
@@ -1379,7 +1388,7 @@ plSave:
 			y.addElement("ccSys", pl_mrnstring)
 		}
 		for key,val in ccFields {
-			ReplacePatNode(pl_mrnstring "/ccSys",val,cc%val%)
+			ReplacePatNode(pl_mrnstring "/ccSys",val,cleanString(cc%val%))
 		}
 		y.setAtt(pl_mrnstring "/ccSys", {ed: editdate})
 		y.setAtt(pl_mrnstring "/ccSys", {au: user})
@@ -2215,13 +2224,21 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 				RemoveNode(MRNstring "/info[@date='" tmpdt "']")
 			}
 		}
+		Loop % (infos := y.selectNodes(MRNstring "/MAR")).length					; remove old MAR except for this run.
+		{
+			tmpdt := infos.Item(A_Index-1).getAttribute("date")
+			if (tmpdt!=timenow) {
+				RemoveNode(MRNstring "/MAR[@date='" tmpdt "']")
+			}
+		}
 	
 		y.addElement("info", MRNstring, {date: timenow})	; Create a new /info node
 		yInfoDt := MRNstring . "/info[@date='" timenow "']"
 			y.addElement("dcw", yInfoDt, CORES_DCW)
 			y.addElement("allergies", yInfoDt, CORES_Alls)
 			y.addElement("code", yInfoDt, CORES_Code)
-			y.addElement("hx", yInfoDt, CORES_HX)
+			if !(y.selectSingleNode(yInfoDt "/hx").text)
+				y.addElement("hx", yInfoDt, CORES_HX)
 			y.addElement("vs", yInfoDt)
 				y.addElement("wt", yInfoDt "/vs", StrX(CORES_vsWt,,1,1,"kg",1,2,NN))
 				if (tmp:=StrX(CORES_vsWt,"(",NN,2,")",1,1))
@@ -2242,13 +2259,16 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			y.addElement("labs", yInfoDt )
 				parseLabs(CORES_labsBlock)
 			y.addElement("notes", yInfoDt , CORES_NotesBlock)
-		RemoveNode(MRNstring "/MAR")
-		y.addElement("MAR", MRNstring, {date: timenow})	; Create a new /MAR node
-		yMarDt := MRNstring "/MAR"
-			MedListParse("drips",CORES_Drips)
-			MedListParse("meds",CORES_Meds)
-			MedListParse("prn",CORES_PRN)
-			MedListParse("diet",CORES_Diet)
+		if !isobject(y.selectSingleNode(MRNstring "/MAR"))
+			y.addElement("MAR", MRNstring)											; Create a new /MAR node
+		y.selectSingleNode(MRNstring "/MAR").setAttribute("date", timenow)			; Change date to now
+		if !(y.selectNodes(MRNstring "/MAR/*").length) {							; Populate only if empty
+			yMarDt := MRNstring "/MAR[@date='" timenow "']"
+				MedListParse("drips",CORES_Drips)
+				MedListParse("meds",CORES_Meds)
+				MedListParse("prn",CORES_PRN)
+				MedListParse("diet",CORES_Diet)
+			}
 		}
 	}
 	Progress off
@@ -3389,7 +3409,7 @@ RemoveNode(node) {
 }
 
 MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR")
-	global meds1, meds2, y, MRNstring, yMarDt
+	global meds1, meds2, meds0, y, MRNstring, yMarDt
 	tempArray = 
 	medWords =
 	StringReplace, bList, bList, •%A_space%, ``, ALL
@@ -3405,6 +3425,9 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 		}
 		if ObjHasValue(meds2, medName, "RX") {
 			y.addElement(medlist, yMarDt, {class: "Arrhythmia"}, medName)
+			continue
+		}
+		if ObjHasValue(meds0, medName, "RX") {
 			continue
 		}
 		else
@@ -3475,6 +3498,15 @@ niceDate(x) {
 zDigit(x) {
 ; Add leading zero to a number
 	return SubStr("0" . x, -1)
+}
+
+cleanString(x) {
+	replace := {"{":"[","}":"]","\":"/"}
+	for what, with in replace
+	{
+		StringReplace, x, x, %what%, %with%, All
+	}
+	return x
 }
 
 fieldType(x) {
