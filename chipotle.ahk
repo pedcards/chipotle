@@ -173,6 +173,7 @@ teamSort:=[]
 ccFields:=[]
 meds1:=[]
 meds2:=[]
+meds0:=[]
 Forecast_svc:=[]
 Forecast_val:=[]
 
@@ -239,6 +240,9 @@ Forecast_val:=[]
 		}
 		if (sec="MEDS2") {
 			meds2.Insert(i)
+		}
+		if (sec="MEDS0") {
+			meds0.Insert(i)
 		}
 		if (sec="Forecast") {
 			splitIni(i,c1,c2)
@@ -3405,7 +3409,7 @@ RemoveNode(node) {
 }
 
 MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR")
-	global meds1, meds2, y, MRNstring, yMarDt
+	global meds1, meds2, meds0, y, MRNstring, yMarDt
 	tempArray = 
 	medWords =
 	StringReplace, bList, bList, •%A_space%, ``, ALL
@@ -3421,6 +3425,9 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 		}
 		if ObjHasValue(meds2, medName, "RX") {
 			y.addElement(medlist, yMarDt, {class: "Arrhythmia"}, medName)
+			continue
+		}
+		if ObjHasValue(meds0, medName, "RX") {
 			continue
 		}
 		else
