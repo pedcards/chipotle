@@ -157,3 +157,11 @@ tListGuiClose:
 	Gui, plistG:Restore
 	Return
 
+TeamTaskPt:
+{
+	LV_GetText(mrn, A_EventInfo, 3)
+	Gui, ttask:Destroy
+	Gosub PatListGet
+Return	
+}
+
