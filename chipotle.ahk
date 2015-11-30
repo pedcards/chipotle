@@ -1251,6 +1251,7 @@ winDim(scr) {
 #Include labs.ahk
 #Include meds.ahk
 #Include print.ahk
+#Include print-ARNP.ahk
 
 #Include xml.ahk
 #Include StrX.ahk

@@ -36,7 +36,7 @@ TeamList:
 		j += %ErrorLevel%
 	}
 	Gui, teamL:Font
-	Gui, teamL:Add, Button, w100 x10 y5 gPrintIt vP%location%, Print list
+	Gui, teamL:Add, Button, % "w100 x10 y5 g" ((isARNP) ? "PrintARNP" : "PrintIt") " vP" location, Print list
 	Gui, teamL:Add, Button, % "w100 x" ((j+20)*.30)-50 " yP+0 gOpenPrint vO" location, Open temp file
 	Gui, teamL:Add, Button, % "w100 x" ((j+20)*.50)-50 " yP+0 gSignOut vS" location, Weekly Summary
 	Gui, teamL:Add, Button, % "w100 x" ((j+20)*.70)-50 " yP+0 gTeamTasks vT" location, Tasks
