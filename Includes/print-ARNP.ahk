@@ -1,15 +1,17 @@
 PrintARNP:
 {
 	TblC:="\cellx", tw:=1440							; Measured in twips (1440 = 1", 720 = 1/2", 360 = 1/4")
-	rtfTblCols := 	  TblC . round(tw * 0)			; Name
-					. TblC . round(tw * 1)			; Location (e.g. tab stop at 1.5")
-					. TblC . round(tw * 2)			; Diagnosis
-					. TblC . round(tw * 4)			; MRN
-					. TblC . round(tw * 5)			; DOB
-					. TblC . round(tw * 6)			; Admitted
-					. TblC . round(tw * 7)			; Cardiologist/Surgeon
-					. TblC . round(tw * 7.5)		; Notes
-					. TblC . round(tw * 7.875)		; Right margin
+	TblBrdr:="\clbrdrt\brdrs\clbrdrl\brdrs\clbrdrb\brdrs\clbrdrr\brdrs"
+	TcelX:=0
+	rtfTblCol1 :=	TblBrdr "`n"										; Name
+					. TblC . round(tw * (TcelX+=1)) . TblBrdr "`n"		; Location (e.g. tab stop at 1.5")
+					. TblC . round(tw * (TcelX+=0.75)) . TblBrdr "`n"		; Diagnosis
+					. TblC . round(tw * (TcelX+=1.5)) . TblBrdr "`n"	; MRN
+					. TblC . round(tw * (TcelX+=0.75)) . TblBrdr "`n"		; DOB
+					. TblC . round(tw * (TcelX+=1)) . TblBrdr "`n"		; Admitted
+					. TblC . round(tw * (TcelX+=1)) . TblBrdr "`n"		; Cardiologist/Surgeon
+					. TblC . round(tw * (TcelX+=1)) . TblBrdr "`n"		; Notes
+					. TblC . round(tw * 8) "`n"							; Right margin
 
 	rtfTblCol2 :=	  TblC . round(tw * 2)			; Textfield (below LOCATION)
 					. TblC . round(tw * 7.875)			; Right margin
@@ -61,7 +63,7 @@ PrintARNP:
 				. ((pr.dxEP) ? "[[EP]] " pr.dxEP "\line " : "")
 				. ((pr.dxNotes) ? "[[Notes]] " pr.dxNotes : "")
 		
-		rtfList .= "\keepn\trowd\trgaph144\trkeep" rtfTblCols "`n\b"
+		rtfList .= "\keepn\trowd\trgaph144\trkeep" rtfTblCol1 "`n\b"
 			. "\intbl " . pr.nameL ", " pr.nameF ((pr.provCard) ? "\fs12  (" pr.provCard . ((pr.provSchCard) ? "//" pr.provSchCard : "") ")\fs18" : "") "\cell`n"
 			. "\intbl " . pr.Unit " " pr.Room "\cell`n"
 			. "\intbl " . kMRN "\cell`n"
@@ -107,22 +109,8 @@ CHIPOTLE Patient List:\~
 )%locString%
 (
 \par\ql\b0
-\par
-{\trowd\trgaph144
-)%rtfTblCols%
-(
-\cell\intbl\b Name
-\cell\intbl Location
-\cell\intbl Diagnosis
-\cell\intbl MRN
-\cell\intbl DOB
-\cell\intbl Admitted
-\cell\intbl Cardiologist
-\cell\intbl Notes
-\cell\b0
-\row}
-\fs2\posx144\tx11160\ul\tab\ul0\par
-}
+\par}
+
 {\footer\viewkind4\uc1\pard\f0\fs18\qc
 Page \chpgn\~\~\~\~
 )%user%
@@ -131,6 +119,32 @@ Page \chpgn\~\~\~\~
 \chdate\~\~\~\~
 \chtime
 \par\ql}
+
+{\trowd\trgaph144
+)%rtfTblCol1%
+(
+\b
+\intbl Name\cell
+\intbl Location\cell
+\intbl Diagnosis\cell
+\intbl MRN\cell
+\intbl DOB\cell
+\intbl Admitted\cell
+\intbl Cardiologist\cell
+\intbl Notes\cell
+\b0
+\row
+\intbl Name\cell
+\intbl Location\cell
+\intbl Diagnosis\cell
+\intbl MRN\cell
+\intbl DOB\cell
+\intbl Admitted\cell
+\intbl Cardiologist\cell
+\intbl Notes\cell
+\row
+}
+\fs2\posx144\tx11160\ul\tab\ul0\par
 
 )%rtfList0%					; nope
 (

@@ -110,14 +110,15 @@ CHIPOTLE Patient List:\~
 {\trowd\trgaph144
 )%rtfTblCols%
 (
-\intbl\b Name
-\cell\intbl Location
-\cell\intbl MRN
-\cell\intbl Sex/Age
-\cell\intbl DOB
-\cell\intbl Day
-\cell\intbl Admit
-\cell\b0
+\b
+\intbl Name\cell
+\intbl Location\cell
+\intbl MRN\cell
+\intbl Sex/Age\cell
+\intbl DOB\cell
+\intbl Day\cell
+\intbl Admit\cell
+\b0
 \row}
 \fs2\posx144\tx11160\ul\tab\ul0\par
 }
