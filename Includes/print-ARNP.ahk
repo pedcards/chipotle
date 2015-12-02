@@ -4,17 +4,18 @@ PrintARNP:
 	TblBrdr:="\clbrdrt\brdrs\clbrdrl\brdrs\clbrdrb\brdrs\clbrdrr\brdrs"
 	TcelX:=0
 	rtfTblCol1 :=	TblBrdr "`n"										; Name
-					. TblC . round(tw * (TcelX+=1)) . TblBrdr "`n"		; Location (e.g. tab stop at 1.5")
-					. TblC . round(tw * (TcelX+=0.75)) . TblBrdr "`n"		; Diagnosis
+					. TblC . round(tw * (TcelX+=1.25)) . TblBrdr "`n"		; Location (e.g. tab stop at 1.5")
+					. TblC . round(tw * (TcelX+=1.1)) . TblBrdr "`n"		; Diagnosis
 					. TblC . round(tw * (TcelX+=1.5)) . TblBrdr "`n"	; MRN
 					. TblC . round(tw * (TcelX+=0.75)) . TblBrdr "`n"		; DOB
-					. TblC . round(tw * (TcelX+=1)) . TblBrdr "`n"		; Admitted
-					. TblC . round(tw * (TcelX+=1)) . TblBrdr "`n"		; Cardiologist/Surgeon
-					. TblC . round(tw * (TcelX+=1)) . TblBrdr "`n"		; Notes
+					. TblC . round(tw * (TcelX+=0.85)) . TblBrdr "`n"		; Admitted
+					. TblC . round(tw * (TcelX+=0.85)) . TblBrdr "`n"		; Cardiologist/Surgeon
+					. TblC . round(tw * (TcelX+=0.85)) . TblBrdr "`n"		; Notes
 					. TblC . round(tw * 8) "`n"							; Right margin
 
-	rtfTblCol2 :=	  TblC . round(tw * 2)			; Textfield (below LOCATION)
-					. TblC . round(tw * 7.875)			; Right margin
+	rtfTblCol2 :=	TblBrdr "`n"										; ccSys field
+					. TblC . round(tw * 1.25) . TblBrdr "`n"				; Textfield (below LOCATION)
+					. TblC . round(tw * 8) . TblBrdr "`n"			; Right margin
 
 	rtfList :=
 	CIS_dx :=
@@ -89,14 +90,20 @@ PrintARNP:
 			. "\b0\row`n"
 			. "\intbl " pr.nameL ", " pr.nameF "\cell`n"
 			. "\intbl " pr.Unit "\line" pr.Room "\cell`n"
-			. "\intbl " pr.dxCard "\cell`n"
+			. "\intbl " ((StrLen(pr.dxCard)>512) ? SubStr(pr.dxCard,1,512) "..." : pr.dxCard) "\cell`n"
 			. "\intbl " kMRN "\cell`n"
 			. "\intbl " pr.DOB "\cell`n"
 			. "\intbl " pr_adm.Date "\cell`n"
 			. "\intbl " pr.provCard "\cell`n"
 			. "\intbl blah blah blah\cell`n"
 			. "\row}`n"
-			. "\par`n"
+		rtfList .= "{\trowd\trgaph144" rtfTblCol2 "`n"
+		for key,val in ccFields {
+			rtfList .= "\intbl\b " val "\b0\cell`n"
+				. "\intbl " pr.ccSys.selectSingleNode(val).text "\cell`n"
+				. "\row`n"
+		}
+		rtfList .= "}`n\page\par`n"
 	}
 
 	FormatTime, rtfNow, A_Now, yyyyMMdd
