@@ -63,7 +63,7 @@ PrintARNP:
 				. ((pr.dxEP) ? "[[EP]] " pr.dxEP "\line " : "")
 				. ((pr.dxNotes) ? "[[Notes]] " pr.dxNotes : "")
 		
-		rtfList .= "\keepn\trowd\trgaph144\trkeep" rtfTblCol1 "`n\b"
+		rtfList0 .= "\keepn\trowd\trgaph144\trkeep" rtfTblCol1 "`n\b"
 			. "\intbl " . pr.nameL ", " pr.nameF ((pr.provCard) ? "\fs12  (" pr.provCard . ((pr.provSchCard) ? "//" pr.provSchCard : "") ")\fs18" : "") "\cell`n"
 			. "\intbl " . pr.Unit " " pr.Room "\cell`n"
 			. "\intbl " . kMRN "\cell`n"
@@ -77,6 +77,26 @@ PrintARNP:
 			. "\intbl\fs12 " . CIS_dx "\line\cell`n"
 			. "\intbl\fs12 " . pr_todo "\fs18\cell`n"
 			. "\row`n"
+		rtfList .= "{\trowd\trgaph144" rtfTblCol1 "\b`n"
+			. "\intbl Name\cell`n"
+			. "\intbl Location\cell`n"
+			. "\intbl Diagnosis\cell`n"
+			. "\intbl MRN\cell`n"
+			. "\intbl DOB\cell`n"
+			. "\intbl Admitted\cell`n"
+			. "\intbl Cardiologist\cell`n"
+			. "\intbl Notes\cell`n"
+			. "\b0\row`n"
+			. "\intbl " pr.nameL ", " pr.nameF "\cell`n"
+			. "\intbl " pr.Unit "\line" pr.Room "\cell`n"
+			. "\intbl " pr.dxCard "\cell`n"
+			. "\intbl " kMRN "\cell`n"
+			. "\intbl " pr.DOB "\cell`n"
+			. "\intbl " pr_adm.Date "\cell`n"
+			. "\intbl " pr.provCard "\cell`n"
+			. "\intbl blah blah blah\cell`n"
+			. "\row}`n"
+			. "\par`n"
 	}
 
 	FormatTime, rtfNow, A_Now, yyyyMMdd
@@ -120,33 +140,7 @@ Page \chpgn\~\~\~\~
 \chtime
 \par\ql}
 
-{\trowd\trgaph144
-)%rtfTblCol1%
-(
-\b
-\intbl Name\cell
-\intbl Location\cell
-\intbl Diagnosis\cell
-\intbl MRN\cell
-\intbl DOB\cell
-\intbl Admitted\cell
-\intbl Cardiologist\cell
-\intbl Notes\cell
-\b0
-\row
-\intbl Name\cell
-\intbl Location\cell
-\intbl Diagnosis\cell
-\intbl MRN\cell
-\intbl DOB\cell
-\intbl Admitted\cell
-\intbl Cardiologist\cell
-\intbl Notes\cell
-\row
-}
-\fs2\posx144\tx11160\ul\tab\ul0\par
-
-)%rtfList0%					; nope
+)%rtfList%					; nope
 (
 }`r`n
 )
