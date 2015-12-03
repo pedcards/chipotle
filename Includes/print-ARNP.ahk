@@ -78,6 +78,9 @@ PrintARNP:
 			. "\intbl\fs12 " . CIS_dx "\line\cell`n"
 			. "\intbl\fs12 " . pr_todo "\fs18\cell`n"
 			. "\row`n"
+		if (A_Index>1) {
+			rtfList .= "\page\par`n"
+		}
 		rtfList .= "{\trowd\trgaph144" rtfTblCol1 "\b`n"
 			. "\intbl Name\cell`n"
 			. "\intbl Location\cell`n"
@@ -103,7 +106,7 @@ PrintARNP:
 				. "\intbl " pr.ccSys.selectSingleNode(val).text "\cell`n"
 				. "\row`n"
 		}
-		rtfList .= "}`n\page\par`n"
+		rtfList .= "}`n"
 	}
 
 	FormatTime, rtfNow, A_Now, yyyyMMdd
