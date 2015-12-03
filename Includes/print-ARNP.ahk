@@ -19,6 +19,9 @@ PrintARNP:
 
 	rtfList :=
 	CIS_dx :=
+	hmtList := ["Nbs1:NBS#1 sent","Nbs2:NBS#2 sent","Baer:BAER passed","Oph:Ophtho","Gt:GT teaching","Seat:Car seat"
+				, "Pcp:PCP","Crd:Cardiology","Ndv:Neurodev","OTPT:OT/PT/Speech"
+				, "Synagis:Synagis candidate","Imms:Immunications","DC:Discharge plan"]
 	
 	Loop, % (prList:=y.selectNodes("/root/lists/" location "/mrn")).length {
 		kMRN := prList.item(i:=A_Index-1).text
@@ -100,11 +103,27 @@ PrintARNP:
 			. "\intbl " pr.provCard "\cell`n"
 			. "\intbl blah blah blah\cell`n"
 			. "\row}`n"
-		rtfList .= "{\trowd\trgaph144" rtfTblCol2 "`n"
+		rtfList .= "{\trowd\trgaph144\trrh320" rtfTblCol2 "`n"
 		for key,val in ccFields {
-			rtfList .= "\intbl\b " val "\b0\cell`n"
+			rtfList .= "\intbl\b " RegExReplace(val,"_","/") "\b0\cell`n"
 				. "\intbl " pr.ccSys.selectSingleNode(val).text "\cell`n"
 				. "\row`n"
+		}
+		pr_dob := parseDate(pr.DOB)
+		pr_dob := pr_dob.YYYY pr_dob.MM pr_dob.DD
+		pr_dob -= A_Now, Days
+		if (-pr_dob < 60) {
+			rtfList .= "\intbl\b Health Maint\b0\cell`n"
+					. "\intbl "
+			for key,val in hmtList {
+				opt := strX(val,,0,0,":",1,1)
+				res := strX(val,":",1,1,"",1,1)
+				chk := k.selectSingleNode("ccHMT/" opt).getAttribute("set")
+				txt := k.selectSingleNode("ccHMT/" opt).text
+				rtfList .= "\f2\'" ((chk)?"FD":"A8") "\f0\~\~" res ": " txt "\line`n"
+			}
+			rtfList .= "\cell`n"
+					. "\row`n"
 		}
 		rtfList .= "}`n"
 	}
