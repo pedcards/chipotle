@@ -82,9 +82,10 @@ if (isCICU) {
 	mainTitle2 := "Children's Heart Center"
 	mainTitle3 := "Inpatient Longitudinal Integrator"
 } else if (isARNP) {
-	loc := ["CSR","CICU"]
+	loc := ["CSR","CICU","SurR6"]
 	loc["CSR"] := {"name":"Cardiac Surgery", "datevar":"GUIcsrTXT"}
 	loc["CICU"] := {"name":"Cardiac ICU", "datevar":"GUIicuTXT"}
+	loc["SurR6"] := {"name":"Surg-R6", "datevar":"GUIr6TXT"}
 	callLoc := "CSR"
 	mainTitle1 := "CON CARNE"
 	mainTitle2 := "Collective Organized Notebook"
@@ -840,7 +841,23 @@ IcuMerge:
 		y.addElement("mrn",cicuSurPath, c1.item(A_Index-1).text)
 	}
 	writeOut("/root/lists","CICUSur")
-
+	
+	SurR6Path := "/root/lists/SurR6"											; Clear old Sur-R6 list
+	if IsObject(y.selectSingleNode(SurR6Path)) {
+		removeNode(SurR6Path)
+	}
+	y.addElement("SurR6","/root/lists", {date:timenow})
+	
+	Loop, % (c1:=y.selectNodes("/root/lists/CSR/mrn")).length {					; Select CSR patients on SUR-R6
+		c1mrn := c1.item(A_Index-1).text
+		c1str := "/root/id[@mrn='" c1mrn "']"
+		c1loc := y.selectSingleNode(c1str "/demog/data/unit").text
+		if (c1loc="SUR-R6") {
+			y.addElement("mrn",SurR6Path,c1mrn)
+			WriteOut("/root/lists","SurR6")
+		}
+	}
+	
 	if (tmpDT_csr=tmpDT_cicu) {													; Scan CSR list for SURGCNTR patients
 		Loop, % (c2:=y.selectNodes("/root/lists/CSR/mrn")).length {
 			c2mrn := c2.item(A_Index-1).text

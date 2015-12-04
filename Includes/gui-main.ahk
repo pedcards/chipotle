@@ -22,7 +22,7 @@ while (str := loc[i:=A_Index]) {					; get the dates for each of the lists
 	loc[str,"ypos"] := posy
 }
 if (isCICU) {
-	Gui, Main:Add, Button, % "x20 y" (posy+=35) " w110 h20 gTeamList vECICUSur", CICU+Surg patients
+	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gTeamList vECICUSur", CICU+Surg patients
 }
 if (isCICU or isARNP) {																				; CICU interface
 	callCt:=0
@@ -35,7 +35,7 @@ if (isCICU or isARNP) {																				; CICU interface
 				callCt += 1
 		}
 	}
-	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gCallList vC" callLoc, Call list
+	Gui, Main:Add, Button, % "x20 y" (posy+=35) " w110 h20 gCallList vC" callLoc, Call list
 	Gui, Main:Add, Text, % "x170 y" (posy+4) " w70 h20", % callCt
 }
 
