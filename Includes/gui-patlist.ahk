@@ -63,12 +63,13 @@ PatListGUI:
 	Gui, plistG:Destroy
 	Gui, plistG:Default
 	Gui, Add, Text, x26 y38 w200 h80 , % pl_demo
-	;Gui, Add, Text, x26 y74 w200 h40 , go here
 	Gui, Add, Text, x266 y24 w150 h30 gplInputCard, Primary Cardiologist:
 	Gui, Add, Text, xp yp+14 cBlue w150 vpl_card, % pl_ProvCard
 	Gui, Add, Text, xp yp+20 w150 h30 gplInputCard, Continuity Cardiologist:
 	Gui, Add, Text, xp yp+14 cBlue w150 vpl_SCHcard, % pl_ProvSchCard
-	Gui, Add, Text, xp y100 w150 h28 , Last call:
+	Gui, Add, Text, xp yp+20 w150 h30 gplInputCard, Cardiac Surgeon:
+	Gui, Add, Text, xp yp+14 cBlue w150 vpl_CSR, % pl_ProvCSR
+	Gui, Add, Text, xp y140 w150 h28 , Last call:
 	Gui, Add, Text, xp+50 yp w80 vCrdCall_L , % ((pl_Call_L) ? niceDate(pl_Call_L) : "---")		;substr(pl_Call_L,1,8)
 	Gui, Add, Text, xp-50 yp+14 , Next call:
 	Gui, Add, Text, xp+50 yp w80 vCrdCall_N, % ((pl_Call_N) ? niceDate(pl_Call_N) : "---")
@@ -77,32 +78,33 @@ PatListGUI:
 	Gui, Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statTxp% vpl_statTxp gplInputNote, Transplant
 	Gui, Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statRes% vpl_statRes gplInputNote, Research
 	Gui, Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statScamp% vpl_statScamp gplInputNote, SCAMP
+	Gui, Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statMil% vpl_statMil gplInputNote, Military
 
-	Gui, Add, Edit, x26 y160 w540 h48 vpl_dxNotes gplInputNote, %pl_dxNotes%
+	Gui, Add, Edit, x26 y196 w540 h48 vpl_dxNotes gplInputNote, %pl_dxNotes%
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxCard gplInputNote, %pl_dxCard%
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxEP gplInputNote, %pl_dxEP%
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxSurg gplInputNote, %pl_dxSurg%
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxProb gplInputNote, %pl_dxProb%
 
-	Gui, Add, Button, x36 y504 w160 h40 gplTasksList, Tasks/Todos
+	Gui, Add, Button, x36 y540 w160 h40 gplTasksList, Tasks/Todos
 	Gui, Add, Button, xp+180 yp w160 h40 gplDataList Disabledd, Data highlights
 	Gui, Add, Button, xp+180 yp w160 h40 gplUpdates, Summary Notes
-	Gui, Add, Button, x36 y554 w240 h40 v1 gplCORES, Patient History (CORES)
-	Gui, Add, Button, x316 y554 w240 h40 v2 gplMAR, Meds/Diet (CORES)
+	Gui, Add, Button, x36 y584 w240 h40 v1 gplCORES, Patient History (CORES)
+	Gui, Add, Button, x316 yp w240 h40 v2 gplMAR, Meds/Diet (CORES)
+	Gui, Add, Button, x176 yp+44 w240 h40 gplSave, SAVE
 
 	Gui, Font, Bold
-	Gui, Add, GroupBox, x16 y14 w400 h120 , % pl_NameL . ", " . pl_NameF
-	Gui, Add, GroupBox, x256 yp w160 h80
-	Gui, Add, GroupBox, xp yp+70 w160 h50 
+	Gui, Add, GroupBox, x16 y14 w400 h160 , % pl_NameL . ", " . pl_NameF
+	Gui, Add, GroupBox, x256 yp w160 h114
+	Gui, Add, GroupBox, xp yp+110 w160 h50 
 
-	Gui, Add, GroupBox, x436 y14 w140 h120 , Status Flags
-	Gui, Add, GroupBox, x16 y144 w560 h70 , Quick Notes
+	Gui, Add, GroupBox, x436 y14 w140 h160 , Status Flags
+	Gui, Add, GroupBox, x16 y180 w560 h70 , Quick Notes
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Diagnoses && Problems
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , EP diagnoses/problems
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Surgeries/Caths/Interventions
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Problem List
 	Gui, Font, Normal
-	Gui, Add, Button, x176 y614 w240 h40 gplSave, SAVE
 
 	Gui, Show, w600 h670, % "Patient Information - " pl_NameL
 	plEditNote = 
