@@ -906,6 +906,7 @@ PtParse(mrn) {
 		, "statTxp":(pl.selectSingleNode("status").getAttribute("txp") == "on")
 		, "statRes":(pl.selectSingleNode("status").getAttribute("res") == "on")
 		, "statScamp":(pl.selectSingleNode("status").getAttribute("scamp") == "on")
+		, "statMil":(pl.selectSingleNode("status").getAttribute("mil") == "on")
 		, "callN":pl.selectSingleNode("plan/call").getAttribute("next")
 		, "callL":pl.selectSingleNode("plan/call").getAttribute("last")
 		, "callBy":pl.selectSingleNode("plan/call").getAttribute("by")
@@ -916,6 +917,7 @@ PtParse(mrn) {
 		, "ccSys":pl.selectSingleNode("ccSys")
 		, "ProvCard":y.getAtt(mrnstring "/prov","provCard")
 		, "ProvSchCard":y.getAtt(mrnstring "/prov","SchCard")
+		, "ProvCSR":y.getAtt(mrnstring "/prov","CSR")
 		, "ProvEP":y.getAtt(mrnstring "/prov","provEP")
 		, "ProvPCP":y.getAtt(mrnstring "/prov","provPCP")}
 }

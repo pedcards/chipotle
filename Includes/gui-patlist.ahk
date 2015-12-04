@@ -32,6 +32,7 @@ PatListGet:
 	pl_statTxp := pl.statTxp
 	pl_statRes := pl.statRes
 	pl_statScamp := pl.statScamp
+	pl_statMil := pl.statMil
 	pl_info := pl.info
 	pl_CORES := pl.CORES
 	pl_MAR := pl.MAR
@@ -39,6 +40,7 @@ PatListGet:
 	pl_ccSys := pl.ccSys
 	pl_ProvCard := pl.provCard
 	pl_ProvSchCard := pl.provSchCard
+	pl_ProvCSR := pl.provCSR
 	pl_ProvEP := pl.provEP
 	pl_ProvPCP := pl.provPCP
 	pl_Call_L := pl.callL
@@ -147,6 +149,7 @@ plSave:
 		SetStatus(mrn,"status","txp",pl_statTxp)
 		SetStatus(mrn,"status","res",pl_statRes)
 		SetStatus(mrn,"status","scamp",pl_statScamp)
+		SetStatus(mrn,"status","mil",pl_statMil)
 		y.setAtt(pl_mrnstring "/status", {ed: editdate})
 		y.setAtt(pl_mrnstring "/status", {au: user})
 		plEditStat = 
