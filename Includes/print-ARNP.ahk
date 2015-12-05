@@ -101,7 +101,7 @@ PrintARNP:
 			. "\intbl " pr.DOB "\cell`n"
 			. "\intbl " pr_adm.Date "\cell`n"
 			. "\intbl " pr.provCard ((pr.provCSR) ? "\line\line\b CSR\b0\line " pr.provCSR : "") "\cell`n"
-			. "\intbl blah blah blah\cell`n"
+			. "\intbl " pr.misc "\cell`n"
 			. "\row}`n"
 		rtfList .= "{\trowd\trgaph144\trrh320" rtfTblCol2 "`n"
 		for key,val in ccFields {
