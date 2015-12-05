@@ -919,6 +919,7 @@ PtParse(mrn) {
 		, "dxSurg":pl.selectSingleNode("diagnoses/surg").text
 		, "dxNotes":pl.selectSingleNode("diagnoses/notes").text
 		, "dxProb":pl.selectSingleNode("diagnoses/prob").text
+		, "misc":pl.selectSingleNode("diagnoses/misc").text
 		, "statCons":(pl.selectSingleNode("status").getAttribute("cons") == "on")
 		, "statTxp":(pl.selectSingleNode("status").getAttribute("txp") == "on")
 		, "statRes":(pl.selectSingleNode("status").getAttribute("res") == "on")
