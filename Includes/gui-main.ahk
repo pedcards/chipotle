@@ -24,6 +24,9 @@ while (str := loc[i:=A_Index]) {					; get the dates for each of the lists
 if (isCICU) {
 	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gTeamList vECICUSur", CICU+Surg patients
 }
+if (isARNP) {
+	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gTeamList vESurR6", Surg R6
+}
 if (isCICU or isARNP) {																				; CICU interface
 	callCt:=0
 	Loop, % (plist := y.selectNodes("/root/lists/" . callLoc . "/mrn")).length {
