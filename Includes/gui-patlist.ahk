@@ -28,6 +28,7 @@ PatListGet:
 	pl_dxSurg := pl.dxSurg
 	pl_dxNotes := pl.dxNotes
 	pl_dxProb := pl.dxProb
+	pl_misc := pl.misc
 	pl_statCons := pl.statCons
 	pl_statTxp := pl.statTxp
 	pl_statRes := pl.statRes
@@ -65,12 +66,13 @@ PatListGUI:
 	Gui, plistG:Destroy
 	Gui, plistG:Default
 	Gui, Add, Text, x26 y38 w200 h80 , % pl_demo
+	Gui, Add, Edit, x16 y132 w240 h40 gplInputNote vpl_misc, %pl_misc%
 	Gui, Add, Text, x266 y24 w150 h30 gplInputCard, Primary Cardiologist:
-	Gui, Add, Text, xp yp+14 cBlue w150 vpl_card, % pl_ProvCard
+	Gui, Add, Text, xp yp+14 cBlue w140 vpl_card, % pl_ProvCard
 	Gui, Add, Text, xp yp+20 w150 h30 gplInputCard, Continuity Cardiologist:
-	Gui, Add, Text, xp yp+14 cBlue w150 vpl_SCHcard, % pl_ProvSchCard
+	Gui, Add, Text, xp yp+14 cBlue w140 vpl_SCHcard, % pl_ProvSchCard
 	Gui, Add, Text, xp yp+20 w150 h30 gplInputCard, Cardiac Surgeon:
-	Gui, Add, Text, xp yp+14 cBlue w150 vpl_CSR, % pl_ProvCSR
+	Gui, Add, Text, xp yp+14 cBlue w140 vpl_CSR, % pl_ProvCSR
 	Gui, Add, Text, xp y140 w150 h28 , Last call:
 	Gui, Add, Text, xp+50 yp w80 vCrdCall_L , % ((pl_Call_L) ? niceDate(pl_Call_L) : "---")		;substr(pl_Call_L,1,8)
 	Gui, Add, Text, xp-50 yp+14 , Next call:
@@ -96,8 +98,9 @@ PatListGUI:
 	Gui, Add, Button, x176 yp+44 w240 h40 gplSave, SAVE
 
 	Gui, Font, Bold
-	Gui, Add, GroupBox, x16 y14 w400 h160 , % pl_NameL . ", " . pl_NameF
-	Gui, Add, GroupBox, x256 yp w160 h114
+	Gui, Add, GroupBox, x16 y14 w240 h160 , % pl_NameL . ", " . pl_NameF
+	;Gui, Add, GroupBox, xp yp+110 w240 h50
+	Gui, Add, GroupBox, x256 y14 w160 h118
 	Gui, Add, GroupBox, xp yp+110 w160 h50 
 
 	Gui, Add, GroupBox, x436 y14 w140 h160 , Status Flags
@@ -126,6 +129,7 @@ plSave:
 		ReplacePatNode(pl_mrnstring "/diagnoses","ep",cleanString(pl_dxEP))
 		ReplacePatNode(pl_mrnstring "/diagnoses","surg",cleanString(pl_dxSurg))
 		ReplacePatNode(pl_mrnstring "/diagnoses","prob",cleanString(pl_dxProb))
+		ReplacePatNode(pl_mrnstring "/diagnoses","misc",cleanString(pl_misc))
 		y.setAtt(pl_mrnstring "/diagnoses", {ed: editdate})
 		y.setAtt(pl_mrnstring "/diagnoses", {au: user})
 		plEditNote = 
@@ -157,6 +161,10 @@ plSave:
 	WriteOut("/root","id[@mrn='" mrn "']")
 	eventlog(mrn " saved.")
 	;Gui, teamL:Show
+	if (adhoc) {
+		adhoc = false
+		return
+	}
 	gosub TeamList
 Return
 }

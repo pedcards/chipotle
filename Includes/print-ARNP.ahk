@@ -5,7 +5,7 @@ PrintARNP:
 	TcelX:=0
 	rtfTblCol1 :=	TblBrdr "`n"										; Name
 					. TblC . round(tw * (TcelX+=1.25)) . TblBrdr "`n"		; Location (e.g. tab stop at 1.5")
-					. TblC . round(tw * (TcelX+=1.1)) . TblBrdr "`n"		; Diagnosis
+					. TblC . round(tw * (TcelX+=0.75)) . TblBrdr "`n"		; Diagnosis
 					. TblC . round(tw * (TcelX+=1.5)) . TblBrdr "`n"	; MRN
 					. TblC . round(tw * (TcelX+=0.75)) . TblBrdr "`n"		; DOB
 					. TblC . round(tw * (TcelX+=0.85)) . TblBrdr "`n"		; Admitted
@@ -94,14 +94,14 @@ PrintARNP:
 			. "\intbl Cardiologist\cell`n"
 			. "\intbl Notes\cell`n"
 			. "\b0\row`n"
-			. "\intbl " pr.nameL ", " pr.nameF "\cell`n"
-			. "\intbl " pr.Unit "\line" pr.Room "\cell`n"
+			. "\intbl " pr.nameL ", " pr.nameF "\line " RegExReplace(RegExReplace(pr.Age,"month","mo"),"year","yr") " " SubStr(pr.Sex,1,1) "\cell`n"
+			. "\intbl " pr.Room "\cell`n"
 			. "\intbl " ((StrLen(pr.dxCard)>512) ? SubStr(pr.dxCard,1,512) "..." : pr.dxCard) "\cell`n"
 			. "\intbl " kMRN "\cell`n"
 			. "\intbl " pr.DOB "\cell`n"
 			. "\intbl " pr_adm.Date "\cell`n"
 			. "\intbl " pr.provCard ((pr.provCSR) ? "\line\line\b CSR\b0\line " pr.provCSR : "") "\cell`n"
-			. "\intbl blah blah blah\cell`n"
+			. "\intbl " pr.misc "\cell`n"
 			. "\row}`n"
 		rtfList .= "{\trowd\trgaph144\trrh320" rtfTblCol2 "`n"
 		for key,val in ccFields {

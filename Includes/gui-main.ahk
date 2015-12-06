@@ -7,6 +7,7 @@ if (isAdmin) {
 }
 Gui, Main:Font, s16 wBold
 Gui, Main:Add, Button, x232 y2 w25 h24 BackgroundTrans gButtonInfo, i
+Gui, Main:Add, Button, xp yp+24 w25 h24 gFindPt, +
 Gui, Main:Add, Text, x40 y0 w180 h20 +Center, % MainTitle1
 Gui, Main:Font, wNorm s8 wItalic
 Gui, Main:Add, Text, x22 yp+30 w210 h20 +Center, % MainTitle2
@@ -23,6 +24,9 @@ while (str := loc[i:=A_Index]) {					; get the dates for each of the lists
 }
 if (isCICU) {
 	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gTeamList vECICUSur", CICU+Surg patients
+}
+if (isARNP) {
+	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gTeamList vESurR6", Surg R6
 }
 if (isCICU or isARNP) {																				; CICU interface
 	callCt:=0
@@ -159,3 +163,73 @@ OpenPrint:
 	Return
 }
 
+FindPt:
+{
+/*	Ad hoc search/add patient
+	1. If window exists with name "1451234 Smith, John - Powerchart...", grab MRN & name.
+	2. Ask for MRN or name.
+	3. If in currlist, pull up patlist card.
+	4. Search archlist for MRN.
+	5. If new record, create MRN, name, DOB, dx list, military, misc info. Save back to archlist with date created. Purge will clean out any records not validated within 2 months.
+*/
+	SetTitleMatchMode RegEx
+	IfWinNotExist, i)-\s\d+\sOpened
+	{
+		SetTitleMatchMode 2
+		MsgBox Must open the proper patient in CIS first!
+		return
+	}
+	SetTitleMatchMode 2
+	WinGetTitle, tmp
+	;WinActivate
+	RegExMatch(tmp,"O)\d{6,8}",tmpMRN)
+	RegExMatch(tmp,"iO)[a-z\-]+,\s[a-z\-]+\s",tmpName)
+	tmpMRN := tmpMRN.value()
+	tmpName := tmpName.value()
+	tmpNameL := strX(tmpName,,1,0,", ",1,2)
+	tmpNameF := strX(tmpName,", ",1,2,"")
+	MsgBox, 35, Select patient, % tmpMRN "`n" tmpNameF " " tmpNameL "`n`nIs this the correct patient to add/search?"
+	IfMsgBox Cancel
+		return
+	IfMsgBox No
+	{
+		MsgBox Open the proper patient in CIS, then try again.
+		return
+	}
+	IfMsgBox Yes
+	{
+		adhoc = true
+		MRN := tmpMRN
+		MRNstring := "/root/id[@mrn='" MRN "']"
+		if IsObject(y.selectSingleNode(MRNstring)) {				; exists in currlist, open PatList
+			gosub PatListGet
+			return
+		} 
+		y.addElement("id", "root", {mrn: MRN})									; No MRN node exists, create it.
+		y.addElement("demog", MRNstring)
+			y.addElement("name_last", MRNstring "/demog", tmpNameL)
+			y.addElement("name_first", MRNstring "/demog", tmpNameF)
+		FetchNode("diagnoses")													; Check for existing node in Archlist,
+		FetchNode("notes")														; retrieve old Dx, Notes, Plan. (Status is discarded)
+		FetchNode("plan")														; Otherwise, create placeholders.
+		FetchNode("prov")
+		WriteOut("/root","id[@mrn='" mrn "']")
+		eventlog(mrn " ad hoc created.")
+		gosub PatListGet
+	}
+	Return
+}
+
+FindPtGui:
+{
+	if !IsObject(yArch.selectSingleNode("/root/id[@mrn='" MRN "']")) {
+		yArch.addElement("id","root", {mrn: MRN})							; then create it
+		yArch.addElement("demog","/root/id[@mrn='" MRN "']")				; along with the placeholder children
+		yArch.addElement("diagnoses","/root/id[@mrn='" MRN "']")
+		yArch.addElement("notes","/root/id[@mrn='" MRN "']")
+		yArch.addElement("plan","/root/id[@mrn='" MRN "']")
+	}
+	aFind := yArch.selectSingleNode("/root/id[@mrn='" MRN "']")
+	
+	Return
+}

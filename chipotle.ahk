@@ -35,7 +35,7 @@ FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.ex
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.7.0"
+vers := "1.7.1"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -82,10 +82,9 @@ if (isCICU) {
 	mainTitle2 := "Children's Heart Center"
 	mainTitle3 := "Inpatient Longitudinal Integrator"
 } else if (isARNP) {
-	loc := ["CSR","CICU","SurR6"]
+	loc := ["CSR","CICU"]
 	loc["CSR"] := {"name":"Cardiac Surgery", "datevar":"GUIcsrTXT"}
 	loc["CICU"] := {"name":"Cardiac ICU", "datevar":"GUIicuTXT"}
-	loc["SurR6"] := {"name":"Surg-R6", "datevar":"GUIr6TXT"}
 	callLoc := "CSR"
 	mainTitle1 := "CON CARNE"
 	mainTitle2 := "Collective Organized Notebook"
@@ -919,6 +918,7 @@ PtParse(mrn) {
 		, "dxSurg":pl.selectSingleNode("diagnoses/surg").text
 		, "dxNotes":pl.selectSingleNode("diagnoses/notes").text
 		, "dxProb":pl.selectSingleNode("diagnoses/prob").text
+		, "misc":pl.selectSingleNode("diagnoses/misc").text
 		, "statCons":(pl.selectSingleNode("status").getAttribute("cons") == "on")
 		, "statTxp":(pl.selectSingleNode("status").getAttribute("txp") == "on")
 		, "statRes":(pl.selectSingleNode("status").getAttribute("res") == "on")
@@ -978,7 +978,11 @@ WriteOut(path,node) {
 
 	z := new XML("currlist.xml")												; open most recent existing currlist.XML into temp Z
 	if !IsObject(z.selectSingleNode(path "/" node)) {
-		z.addElement(node,path)
+		If instr(node,"id[@mrn") {
+			z.addElement("id","root",{mrn: strX(node,"='",1,2,"']",1,2)})
+		} else {
+			z.addElement(node,path)
+		}
 	}
 	zPath := z.selectSingleNode(path)											; find same "node" in z
 	zNode := zPath.selectSingleNode(node)
