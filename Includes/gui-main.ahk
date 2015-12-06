@@ -7,6 +7,7 @@ if (isAdmin) {
 }
 Gui, Main:Font, s16 wBold
 Gui, Main:Add, Button, x232 y2 w25 h24 BackgroundTrans gButtonInfo, i
+Gui, Main:Add, Button, xp yp+24 w25 h24 gFindPt, +
 Gui, Main:Add, Text, x40 y0 w180 h20 +Center, % MainTitle1
 Gui, Main:Font, wNorm s8 wItalic
 Gui, Main:Add, Text, x22 yp+30 w210 h20 +Center, % MainTitle2
@@ -162,3 +163,41 @@ OpenPrint:
 	Return
 }
 
+FindPt:
+{
+/*	Ad hoc search/add patient
+	1. If window exists with name "1451234 Smith, John - Powerchart...", grab MRN & name.
+	2. Ask for MRN or name.
+	3. If in currlist, pull up patlist card.
+	4. Search archlist for MRN.
+	5. If new record, create MRN, name, DOB, dx list, military, misc info. Save back to archlist with date created. Purge will clean out any records not validated within 2 months.
+*/
+	SetTitleMatchMode RegEx
+	IfWinExist, i)-\s\d+\sOpened
+	{
+		WinGetTitle, tmp
+		;WinActivate
+		RegExMatch(tmp,"O)\d{6,8}",tmpMRN)
+		RegExMatch(tmp,"iO)[a-z\-]+, [a-z\-]+",tmpName)
+		tmpName := tmpName.value()
+		tmpMRN := tmpMRN.value()
+		StringLower, tmpName, tmpName, T
+		MsgBox, 35, Select patient, % tmpMRN "`n" tmpName "`n`nIs this name correct?"
+		IfMsgBox Cancel
+			return
+		IfMsgBox No
+		{
+			MsgBox Open the proper patient in CIS, then try again.
+			return
+		}
+		IfMsgBox Yes
+		{
+			if IsObject(y.selectSingleNode("/root/id[@mrn='" tmpMRN "']")) {
+				MsgBox Present
+			}
+		}
+	} else {
+		MsgBox Must open the proper patient in CIS first!
+	}
+	Return
+}
