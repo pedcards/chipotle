@@ -175,14 +175,16 @@ FindPt:
 	SetTitleMatchMode RegEx
 	IfWinExist, i)-\s\d+\sOpened
 	{
+		SetTitleMatchMode 2
 		WinGetTitle, tmp
 		;WinActivate
 		RegExMatch(tmp,"O)\d{6,8}",tmpMRN)
 		RegExMatch(tmp,"iO)[a-z\-]+, [a-z\-]+",tmpName)
 		tmpName := tmpName.value()
+		tmpNameL := strX(tmpName,,1,0,", ",1,2)
+		tmpNameF := strX(tmpName,", ",1,2,"")
 		tmpMRN := tmpMRN.value()
-		StringLower, tmpName, tmpName, T
-		MsgBox, 35, Select patient, % tmpMRN "`n" tmpName "`n`nIs this name correct?"
+		MsgBox, 35, Select patient, % tmpMRN "`n" tmpName "`n" tmpNameF " " tmpNameL "`n`nIs this name correct?"
 		IfMsgBox Cancel
 			return
 		IfMsgBox No
@@ -192,12 +194,39 @@ FindPt:
 		}
 		IfMsgBox Yes
 		{
-			if IsObject(y.selectSingleNode("/root/id[@mrn='" tmpMRN "']")) {
-				MsgBox Present
+			if IsObject(y.selectSingleNode("/root/id[@mrn='" tmpMRN "']")) {				; exists in currlist, open PatList
+				MRN := tmpMRN
+				gosub PatListGet
+				return
+			} else if IsObject(yArch.selectSingleNode("/root/id[@mrn='" tmpMRN "']")) {
+				MsgBox present
 			}
 		}
 	} else {
-		MsgBox Must open the proper patient in CIS first!
+		SetTitleMatchMode 2
+		;MsgBox Must open the proper patient in CIS first!
+		InputBox, MRN,, Enter MRN
+		if IsObject(y.selectSingleNode("/root/id[@mrn='" MRN "']")) {				; exists in currlist, open PatList
+			gosub PatListGet
+			return
+		} else {
+			gosub FindPtGui
+			return
+		}
 	}
+	Return
+}
+
+FindPtGui:
+{
+	if !IsObject(yArch.selectSingleNode("/root/id[@mrn='" MRN "']")) {
+		yArch.addElement("id","root", {mrn: MRN})							; then create it
+		yArch.addElement("demog","/root/id[@mrn='" MRN "']")				; along with the placeholder children
+		yArch.addElement("diagnoses","/root/id[@mrn='" MRN "']")
+		yArch.addElement("notes","/root/id[@mrn='" MRN "']")
+		yArch.addElement("plan","/root/id[@mrn='" MRN "']")
+	}
+	aFind := yArch.selectSingleNode("/root/id[@mrn='" MRN "']")
+	
 	Return
 }
