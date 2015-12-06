@@ -978,7 +978,11 @@ WriteOut(path,node) {
 
 	z := new XML("currlist.xml")												; open most recent existing currlist.XML into temp Z
 	if !IsObject(z.selectSingleNode(path "/" node)) {
-		z.addElement(node,path)
+		If instr(node,"id[@mrn") {
+			z.addElement("id","root",{mrn: strX(node,"='",1,2,"']",1,2)})
+		} else {
+			z.addElement(node,path)
+		}
 	}
 	zPath := z.selectSingleNode(path)											; find same "node" in z
 	zNode := zPath.selectSingleNode(node)

@@ -161,6 +161,10 @@ plSave:
 	WriteOut("/root","id[@mrn='" mrn "']")
 	eventlog(mrn " saved.")
 	;Gui, teamL:Show
+	if (adhoc) {
+		adhoc = false
+		return
+	}
 	gosub TeamList
 Return
 }

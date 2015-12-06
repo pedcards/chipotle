@@ -173,46 +173,49 @@ FindPt:
 	5. If new record, create MRN, name, DOB, dx list, military, misc info. Save back to archlist with date created. Purge will clean out any records not validated within 2 months.
 */
 	SetTitleMatchMode RegEx
-	IfWinExist, i)-\s\d+\sOpened
+	IfWinNotExist, i)-\s\d+\sOpened
 	{
 		SetTitleMatchMode 2
-		WinGetTitle, tmp
-		;WinActivate
-		RegExMatch(tmp,"O)\d{6,8}",tmpMRN)
-		RegExMatch(tmp,"iO)[a-z\-]+, [a-z\-]+",tmpName)
-		tmpName := tmpName.value()
-		tmpNameL := strX(tmpName,,1,0,", ",1,2)
-		tmpNameF := strX(tmpName,", ",1,2,"")
-		tmpMRN := tmpMRN.value()
-		MsgBox, 35, Select patient, % tmpMRN "`n" tmpName "`n" tmpNameF " " tmpNameL "`n`nIs this name correct?"
-		IfMsgBox Cancel
-			return
-		IfMsgBox No
-		{
-			MsgBox Open the proper patient in CIS, then try again.
-			return
-		}
-		IfMsgBox Yes
-		{
-			if IsObject(y.selectSingleNode("/root/id[@mrn='" tmpMRN "']")) {				; exists in currlist, open PatList
-				MRN := tmpMRN
-				gosub PatListGet
-				return
-			} else if IsObject(yArch.selectSingleNode("/root/id[@mrn='" tmpMRN "']")) {
-				MsgBox present
-			}
-		}
-	} else {
-		SetTitleMatchMode 2
-		;MsgBox Must open the proper patient in CIS first!
-		InputBox, MRN,, Enter MRN
-		if IsObject(y.selectSingleNode("/root/id[@mrn='" MRN "']")) {				; exists in currlist, open PatList
+		MsgBox Must open the proper patient in CIS first!
+		return
+	}
+	SetTitleMatchMode 2
+	WinGetTitle, tmp
+	;WinActivate
+	RegExMatch(tmp,"O)\d{6,8}",tmpMRN)
+	RegExMatch(tmp,"iO)[a-z\-]+,\s[a-z\-]+\s",tmpName)
+	tmpMRN := tmpMRN.value()
+	tmpName := tmpName.value()
+	tmpNameL := strX(tmpName,,1,0,", ",1,2)
+	tmpNameF := strX(tmpName,", ",1,2,"")
+	MsgBox, 35, Select patient, % tmpMRN "`n" tmpNameF " " tmpNameL "`n`nIs this the correct patient to add/search?"
+	IfMsgBox Cancel
+		return
+	IfMsgBox No
+	{
+		MsgBox Open the proper patient in CIS, then try again.
+		return
+	}
+	IfMsgBox Yes
+	{
+		adhoc = true
+		MRN := tmpMRN
+		MRNstring := "/root/id[@mrn='" MRN "']"
+		if IsObject(y.selectSingleNode(MRNstring)) {				; exists in currlist, open PatList
 			gosub PatListGet
 			return
-		} else {
-			gosub FindPtGui
-			return
-		}
+		} 
+		y.addElement("id", "root", {mrn: MRN})									; No MRN node exists, create it.
+		y.addElement("demog", MRNstring)
+			y.addElement("name_last", MRNstring "/demog", tmpNameL)
+			y.addElement("name_first", MRNstring "/demog", tmpNameF)
+		FetchNode("diagnoses")													; Check for existing node in Archlist,
+		FetchNode("notes")														; retrieve old Dx, Notes, Plan. (Status is discarded)
+		FetchNode("plan")														; Otherwise, create placeholders.
+		FetchNode("prov")
+		WriteOut("/root","id[@mrn='" mrn "']")
+		eventlog(mrn " ad hoc created.")
+		gosub PatListGet
 	}
 	Return
 }
