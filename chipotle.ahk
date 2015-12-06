@@ -920,10 +920,8 @@ PtParse(mrn) {
 		, "dxProb":pl.selectSingleNode("diagnoses/prob").text
 		, "misc":pl.selectSingleNode("diagnoses/misc").text
 		, "statCons":(pl.selectSingleNode("status").getAttribute("cons") == "on")
-		, "statTxp":(pl.selectSingleNode("status").getAttribute("txp") == "on")
 		, "statRes":(pl.selectSingleNode("status").getAttribute("res") == "on")
 		, "statScamp":(pl.selectSingleNode("status").getAttribute("scamp") == "on")
-		, "statMil":(pl.selectSingleNode("status").getAttribute("mil") == "on")
 		, "callN":pl.selectSingleNode("plan/call").getAttribute("next")
 		, "callL":pl.selectSingleNode("plan/call").getAttribute("last")
 		, "callBy":pl.selectSingleNode("plan/call").getAttribute("by")
@@ -936,7 +934,9 @@ PtParse(mrn) {
 		, "ProvSchCard":y.getAtt(mrnstring "/prov","SchCard")
 		, "ProvCSR":y.getAtt(mrnstring "/prov","CSR")
 		, "ProvEP":y.getAtt(mrnstring "/prov","provEP")
-		, "ProvPCP":y.getAtt(mrnstring "/prov","provPCP")}
+		, "ProvPCP":y.getAtt(mrnstring "/prov","provPCP")
+		, "statMil":(pl.selectSingleNode("prov").getAttribute("mil") == "on")
+		, "statTxp":(pl.selectSingleNode("prov").getAttribute("txp") == "on")}
 }
 
 PatNode(mrn,path,node) {
