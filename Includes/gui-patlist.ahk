@@ -150,10 +150,10 @@ plSave:
 			y.addElement("status", pl_mrnstring)
 		}
 		SetStatus(mrn,"status","cons",pl_statCons)
-		SetStatus(mrn,"status","txp",pl_statTxp)
 		SetStatus(mrn,"status","res",pl_statRes)
 		SetStatus(mrn,"status","scamp",pl_statScamp)
-		SetStatus(mrn,"status","mil",pl_statMil)
+		SetStatus(mrn,"prov","txp",pl_statTxp)
+		SetStatus(mrn,"prov","mil",pl_statMil)
 		y.setAtt(pl_mrnstring "/status", {ed: editdate})
 		y.setAtt(pl_mrnstring "/status", {au: user})
 		plEditStat = 

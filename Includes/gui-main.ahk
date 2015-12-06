@@ -2,13 +2,8 @@ MainGUI:
 {
 Gui, Main:+AlwaysOnTop
 Gui, Main:Color, Maroon
-if (isAdmin) {
-	Gui, Main:Add, Button, x2 y2 w25 h24 gButtonAdmin, A
-}
 Gui, Main:Font, s16 wBold
-Gui, Main:Add, Button, x232 y2 w25 h24 BackgroundTrans gButtonInfo, i
-Gui, Main:Add, Button, xp yp+24 w25 h24 gFindPt, +
-Gui, Main:Add, Text, x40 y0 w180 h20 +Center, % MainTitle1
+Gui, Main:Add, Text, x40 y20 w180 h20 +Center, % MainTitle1
 Gui, Main:Font, wNorm s8 wItalic
 Gui, Main:Add, Text, x22 yp+30 w210 h20 +Center, % MainTitle2
 Gui, Main:Add, Text, xp yp+14 wp hp +Center, % MainTitle3
@@ -16,7 +11,7 @@ Gui, Main:Font, wNorm
 
 while (str := loc[i:=A_Index]) {					; get the dates for each of the lists
 	strDT := breakDate(loc[str,"date"] := y.getAtt("/root/lists/" . str, "date"))
-	Gui, Main:Add, Button, % "x20 y" (posy:=55+(i*25)) " w110 h20 gTeamList vE" str, % loc[str,"name"]
+	Gui, Main:Add, Button, % "x20 y" (posy:=75+(i*25)) " w110 h20 gTeamList vE" str, % loc[str,"name"]
 	Gui, Main:Add, Text, % "v" loc[str,"datevar"] " x170 y" (posy+4) " w70 h20" 
 		, % strDT.MM "/" strDT.DD "  " strDT.HH ":" strDT.Min
 	;Gui, 1:Add, Picture, % "x220 y" (posy+3) " gPrintOut v" str , printer.png
@@ -60,13 +55,79 @@ if (CIS_W) {
 	CIS_H := A_ScreenHeight-posy-120
 }
 
+Menu, menuSys, Add, GUACAMOLE, buttonGuac
+Menu, menuSys, Add, NACHOS, buttonNachos
+Menu, menuSys, Add, QUESO, buttonAdmin
+Menu, menuSys, Add
+Menu, menuSys, Add, Save && Quit..., mainGUIdone
+Menu, menuSys, Add, Quit..., mainGuiclose
+Menu, MenuBar, Add, System, :menuSys
+
+Menu, menuFile, Add, Find/Add a patient, FindPt
+Menu, MenuBar, Add, File, :menuFile
+
+Menu, menuHelp, Add, Help, buttonHelp
+Menu, menuHelp, Add, About CHIPOTLE, buttonInfo
+Menu, MenuBar, Add, Help, :menuHelp
+
+Gui, Main:Menu, MenuBar
 Gui, Main:Show, x%CIS_W% y%CIS_H% w260 , % "CHIPOTLE main" (servfold="testlist" ? " TEST" : "")
 return
 }
 
+ButtonGuac:
+{
+MsgBox,, GUACAMOLE,
+(
+GUACAMOLE!
+The General Use Archive for Conference Access to Merged OnLine Encounters
+Conference access point. Calls up and displays data in organized folders. 
+Conference organizers still put files in the same order and place that they 
+always have. GUACAMOLE will be able to track patients presented through the 
+native DOCX and XLSX.
+
+Still in progress!
+)
+Return
+}
+
+ButtonNachos:
+{
+MsgBox,, NACHOS,
+(
+NACHOS!
+The Networked Aggregator for Consulting Hospitals and Outpatient Services
+Interface for ad hoc entry of non-inpatient list entries. If entry point is 
+via demographic banner triangulation (i.e. demographics are accurate), will 
+add into archive list; data will be available/retrieved/incorporated the next 
+time the patient is admitted. Could use/manage Stork Lists, integrate this 
+information when the baby is admitted. Non-SCH patients (such as outside nursery 
+and NICU consults) can be tracked to improve communication between providers.
+
+Still in progress!
+)
+Return
+}
+
 ButtonInfo:
 {
-$txt = 
+MsgBox, , About CHIPOTLE v%vers%,
+(
+The Children's Heart Center InPatient Organized Task List Environment is a software suite intended to improve communication, continuity of patient care, and facilitate the process for inpatient rounding and sign-outs between the many explicit and implicit Heart Center services. 
+
+This system obviously uses PHI that has been password protected or encrypted at each level. No data is actually stored on any device, whether desktop or mobile. As when using any PHI, be wary of prying eyes.
+
+Also, this is a work in progress. Use at your own risk! I take no responsibility for anything you do with this.
+
+- TUC
+
+)
+Return
+}
+
+ButtonHelp:
+{
+MsgBox, , Basic usage,
 (
 ** For CIS Patient List:
 1. Select a patient list tab in CIS.
@@ -80,27 +141,25 @@ $txt =
 3. CORES recognition will commence.
 4. If it does not automatically update list, just ctrl-A + ctrl-C.
 )
-$txt2 =
-(
-The Children's Heart Center InPatient Organized Task List Environment is a software suite intended to improve communication, continuity of patient care, and facilitate the process for inpatient rounding and sign-outs between the many explicit and implicit Heart Center services. 
-
-This system obviously uses PHI that has been password protected or encrypted at each level. No data is actually stored on any device, whether desktop or mobile. As when using any PHI, be wary of prying eyes.
-
-Also, this is a work in progress. Use at your own risk! I take no responsibility for anything you do with this.
-
-- TUC
-
-)
-Gui, info:Add, Text, x20 y14 w420 , %$txt2%
-Gui, info:Show, w460 , CHIPOTLE v%vers%, %$txt2%
-
-MsgBox,,% "CHIPOTLE v" vers, %$txt%
 return
 }
 
 ButtonAdmin:
+{
+If (isAdmin) {	
 	Run, queso.exe
+} else {
+	MsgBox,, QUESO,
+(
+QUESO!
+QUEry tool and System Operations
+Administrative interface and data analysis tool.
+
+Only available to CHIPOTLE Administrators.
+)
+}
 return
+}
 
 MainGuiClose:
 	MsgBox, 308, Confirm, % "Do you want to quit without committing changes?`n`nYes = Close without saving.`nNo = Try again."
