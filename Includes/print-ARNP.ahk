@@ -104,6 +104,13 @@ PrintARNP:
 			. "\intbl " pr.misc "\cell`n"
 			. "\row}`n"
 		rtfList .= "{\trowd\trgaph144\trrh320" rtfTblCol2 "`n"
+			. "\intbl\b Diagnoses\b0\cell`n"
+			. "\intbl " 
+				. "Dx: " pr.dxCard "\line`n"
+				. "Surg: " pr.dxSurg "\line`n"
+				. "EP: " pr.dxEP "\line`n"
+				. "Notes: " pr.dxNotes
+			. "\cell`n\row`n"
 		for key,val in ccFields {
 			rtfList .= "\intbl\b " RegExReplace(val,"_","/") "\b0\cell`n"
 				. "\intbl " pr.ccSys.selectSingleNode(val).text "\cell`n"
