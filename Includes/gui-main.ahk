@@ -88,6 +88,7 @@ native DOCX and XLSX.
 
 Still in progress!
 )
+Run, guac.ahk
 Return
 }
 
