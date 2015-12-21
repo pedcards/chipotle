@@ -179,11 +179,6 @@ pListGGuiClose:
 	Gui, teamL:Show, Restore
 return
 
-dListGuiClose:
-	Gui, dlist:Destroy
-	Gui, plistG:Show, Restore
-return
-
 plCORES:
 {
 	k := A_GuiControl
@@ -287,4 +282,53 @@ UpdGuiClose:
 	Gui, upd:Destroy
 	Gui, plistG:Restore
 	Return
+
+PtParse(mrn) {
+	global y
+	mrnstring := "/root/id[@mrn='" mrn "']"
+	pl := y.selectSingleNode(mrnstring)
+	return {"NameL":pl.selectSingleNode("demog/name_last").text
+		, "NameF":pl.selectSingleNode("demog/name_first").text
+		, "Sex":pl.selectSingleNode("demog/data/sex").text
+		, "DOB":pl.selectSingleNode("demog/data/dob").text
+		, "Age":pl.selectSingleNode("demog/data/age").text
+		, "Svc":pl.selectSingleNode("demog/data/service").text
+		, "Unit":pl.selectSingleNode("demog/data/unit").text
+		, "Room":pl.selectSingleNode("demog/data/room").text
+		, "Admit":pl.selectSingleNode("demog/data/admit").text
+		, "Attg":pl.selectSingleNode("demog/data/attg").text
+		, "dxCard":pl.selectSingleNode("diagnoses/card").text
+		, "dxEP":pl.selectSingleNode("diagnoses/ep").text
+		, "dxSurg":pl.selectSingleNode("diagnoses/surg").text
+		, "dxNotes":pl.selectSingleNode("diagnoses/notes").text
+		, "dxProb":pl.selectSingleNode("diagnoses/prob").text
+		, "misc":pl.selectSingleNode("diagnoses/misc").text
+		, "statCons":(pl.selectSingleNode("status").getAttribute("cons") == "on")
+		, "statRes":(pl.selectSingleNode("status").getAttribute("res") == "on")
+		, "statScamp":(pl.selectSingleNode("status").getAttribute("scamp") == "on")
+		, "callN":pl.selectSingleNode("plan/call").getAttribute("next")
+		, "callL":pl.selectSingleNode("plan/call").getAttribute("last")
+		, "callBy":pl.selectSingleNode("plan/call").getAttribute("by")
+		, "CORES":pl.selectSingleNode("info/hx").text
+		, "info":pl.selectSingleNode("info")
+		, "MAR":pl.selectSingleNode("MAR")
+		, "daily":pl.selectSingleNode("notes/daily")
+		, "ccSys":pl.selectSingleNode("ccSys")
+		, "ProvCard":y.getAtt(mrnstring "/prov","provCard")
+		, "ProvSchCard":y.getAtt(mrnstring "/prov","SchCard")
+		, "ProvCSR":y.getAtt(mrnstring "/prov","CSR")
+		, "ProvEP":y.getAtt(mrnstring "/prov","provEP")
+		, "ProvPCP":y.getAtt(mrnstring "/prov","provPCP")
+		, "statMil":(pl.selectSingleNode("prov").getAttribute("mil") == "on")
+		, "statTxp":(pl.selectSingleNode("prov").getAttribute("txp") == "on")}
+}
+
+SetStatus(mrn,node,att,value) {
+	global y, user
+	k := y.selectSingleNode("/root/id[@mrn='" mrn "']/" node)
+	k.setAttribute(att, ((value=1) ? "on" : ""))
+	FormatTime, tmpdate, A_Now, yyyyMMddHHmmss
+	k.setAttribute("ed", tmpdate)
+	k.setAttribute("au", user)
+}
 

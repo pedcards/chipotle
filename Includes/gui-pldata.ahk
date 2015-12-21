@@ -94,6 +94,11 @@ plDataEdit:
 Return
 }
 
+dListGuiClose:
+	Gui, dlist:Destroy
+	Gui, plistG:Show, Restore
+return
+
 plData(Dtype) {
 	global
 	local plDlist, plData, plDataIdx, plDataDate, plDataDisp, plDataItem
