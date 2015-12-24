@@ -108,7 +108,7 @@ plNoteEdit:
 			}
 			delmrnstr := noteNode "[@created='" formTS "']"
 			delparstr := strX(noteNode,"",1,0,"/",0,1)
-			delchildstr := strX(noteNode,"/",0,1)
+			;delchildstr := strX(noteNode,"/",0,1)
 			y.selectSingleNode(delmrnstr).setAttribute("del", A_Now)
 			y.selectSingleNode(delmrnstr).setAttribute("au", user)
 			locnode := y.selectSingleNode(delmrnstr)
@@ -116,8 +116,12 @@ plNoteEdit:
 			WriteOut(pl_mrnstring "/notes",strX(delparstr,"/",0,1))
 			y.selectSingleNode(pl_mrnstring "/trash").appendChild(locnode.cloneNode(true))
 			WriteOut(pl_mrnstring, "trash")
-			eventlog(mrn " summary note " tmpD " deleted.")
-			gosub plSumm
+			if (formType="S")
+				tmpType:="summary"
+			if (formType="U")
+				tmpType:="update"
+			eventlog(mrn " " tmpType " note " tmpD " deleted.")
+			gosub plUpdSum
 		}
 		Return
 	}
