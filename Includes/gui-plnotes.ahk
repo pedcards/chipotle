@@ -30,6 +30,61 @@ plInputNote:
 Return
 }
 
+plSumm:
+{
+	formType := "S"
+	noteNode := pl_mrnstring "/notes/weekly/summary"
+	noteGuiHdr := pl_nameL " - Weekly Notes"
+	gosub plUpdSum
+	return
+}
+
+plUpd:
+{
+	formType := "U"
+	noteNode := pl_mrnstring "/notes/updates/note"
+	noteGuiHdr := pl_nameL " - Updates Notes"
+	gosub plUpdSum
+	return
+}
+
+plUpdSum:
+{
+	Gui, updL:Destroy
+	Gui, updL:Default
+	Gui, Add, ListView, -Multi Grid NoSortHdr W780 gplNoteEdit vUpdateLV, Date|Note|DateIdx|Created
+	i:=0
+	Loop, % (plUpdates := y.selectNodes(noteNode)).length {
+		plUpd := plUpdates.item(i:=A_Index-1)
+		plUpdTS := plUpd.getAttribute("created")
+		plUpdD := plUpd.getAttribute("date")
+		tmpD := breakdate(plUpdD)
+		plUpdDate := tmpD.MM "/" tmpD.DD "-" tmpD.HH . tmpD.min
+		LV_Add("", plUpdDate, plUpd.text, plUpdD, plUpdTS)
+	}
+	LV_ModifyCol()  ; Auto-size each column to fit its contents.
+	;LV_ModifyCol(1, "Integer")
+	LV_ModifyCol(2, 680)
+	LV_ModifyCol(3,"0 Sort")						; Sort by this hidden column (w0)
+	LV_ModifyCol(4,0)
+	i+=1
+	if i>25
+		i:=25
+	if i<4
+		i:=4
+	tlvH := i*24
+	GuiControl, Move, UpdateLV, % "H" tlvH
+	Gui, Add, Button, % "w780 x10 y" tlvH+10 " gplNoteEdit", ADD A NOTE...
+	Gui, Show, % "W800 H" tlvH+35 , % noteGuiHdr
+	Gui, plistG:Hide
+	Return
+}
+
+updLGuiClose:
+	Gui, updL:Destroy
+	Gui, plistG:Restore
+	Return
+
 plNoteEdit:
 {
 	LV_GetText(tmpDate, A_EventInfo,1)					; displayed date
@@ -37,10 +92,11 @@ plNoteEdit:
 	LV_GetText(tmpD, A_EventInfo,3)						; full date (for indexing)
 	LV_GetText(tmpTS, A_EventInfo,4)					; created timestamp of edit (necessary?)
 	
-	if (tmpD="DateIdx" and A_GuiControl="WeeklyLV") {
+	if (tmpD="DateIdx" and A_GuiControl="UpdateLV") {
 		return											; click on blank area is null
 	}
-	formW:=700, formR:=5, formtype:="S"
+	formW:=700, formR:=5
+	;formtype:="S"
 	gosub plForm
 	if (formDel) {
 		MsgBox, 20, Confirm, Delete this note?
@@ -50,12 +106,14 @@ plNoteEdit:
 				y.addElement("trash", pl_mrnstring)
 				WriteOut(pl_mrnstring, "trash")
 			}
-			delmrnstr := pl_mrnstring "/notes/weekly/summary[@created='" formTS "']"
+			delmrnstr := noteNode "[@created='" formTS "']"
+			delparstr := strX(noteNode,"",1,0,"/",0,1)
+			delchildstr := strX(noteNode,"/",0,1)
 			y.selectSingleNode(delmrnstr).setAttribute("del", A_Now)
 			y.selectSingleNode(delmrnstr).setAttribute("au", user)
 			locnode := y.selectSingleNode(delmrnstr)
-			y.selectSingleNode(pl_mrnstring "/notes/weekly").removeChild(locnode)
-			WriteOut(pl_mrnstring "/notes","weekly")
+			y.selectSingleNode(delparstr).removeChild(locnode)
+			WriteOut(pl_mrnstring "/notes",strX(delparstr,"/",0,1))
 			y.selectSingleNode(pl_mrnstring "/trash").appendChild(locnode.cloneNode(true))
 			WriteOut(pl_mrnstring, "trash")
 			eventlog(mrn " summary note " tmpD " deleted.")
