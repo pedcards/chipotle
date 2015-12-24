@@ -91,7 +91,7 @@ PatListGUI:
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxProb gplInputNote, %pl_dxProb%
 
 	Gui, Add, Button, x36 y540 w160 h40 gplTasksList, Tasks/Todos
-	Gui, Add, Button, xp+180 yp w160 h40 gplDataList Disabledd, Update notes
+	Gui, Add, Button, xp+180 yp w160 h40 gplupd Disabledd, Update notes
 	Gui, Add, Button, xp+180 yp w160 h40 gplSumm, Summary Notes
 	Gui, Add, Button, x36 yp+44 w160 h40 v1 gplCORES, Patient History (CORES)
 	Gui, Add, Button, xp+180 yp w160 h40 gplDataList Disabled, Data highlights
