@@ -205,16 +205,16 @@ sumListGuiClose:
 plUpd:
 {
 	Gui, updL:Destroy
-	Gui, updL:Add, ListView, -Multi Grid NoSortHdr W780 gplNoteEdit vWeeklyLV, Date|Note|DateIdx|Created
 	Gui, updL:Default
+	Gui, Add, ListView, -Multi Grid NoSortHdr W780 gplNoteEdit vUpdateLV, Date|Note|DateIdx|Created
 	i:=0
-	Loop, % (plWeekly := y.selectNodes(pl_mrnstring "/notes/weekly/summary")).length {
-		plSumm := plWeekly.item(i:=A_Index-1)
-		plSummTS := plSumm.getAttribute("created")
-		plSummD := plSumm.getAttribute("date")
-		plSummDate := substr(plSummD,5,2) . "/" . substr(plSummD,7,2)
-					. " " . substr(plSummD,9,4)
-		LV_Add("", plSummDate, plSumm.text, plSummD, plSummTS)
+	Loop, % (plUpdates := y.selectNodes(pl_mrnstring "/notes/updates/note")).length {
+		plUpd := plUpdates.item(i:=A_Index-1)
+		plUpdTS := plUpd.getAttribute("created")
+		plUpdD := plUpd.getAttribute("date")
+		plUpdDate := substr(plUpdD,5,2) . "/" . substr(plUpdD,7,2)
+					. " " . substr(plUpdD,9,4)
+		LV_Add("", plUpdDate, plUpd.text, plUpdD, plUpdTS)
 	}
 	LV_ModifyCol()  ; Auto-size each column to fit its contents.
 	;LV_ModifyCol(1, "Integer")
@@ -227,9 +227,9 @@ plUpd:
 	if i<4
 		i:=4
 	tlvH := i*24
-	GuiControl, updL:Move, WeeklyLV, % "H" tlvH
-	Gui, updL:Add, Button, % "w780 x10 y" tlvH+10 " gplNoteEdit", ADD A NOTE...
-	Gui, updL:Show, % "W800 H" tlvH+35 , % pl_nameL " - Weekly Notes"
+	GuiControl, Move, UpdateLV, % "H" tlvH
+	Gui, Add, Button, % "w780 x10 y" tlvH+10 " gplNoteEdit", ADD A NOTE...
+	Gui, Show, % "W800 H" tlvH+35 , % pl_nameL " - Updates Notes"
 	Gui, plistG:Hide
 	Return
 }
