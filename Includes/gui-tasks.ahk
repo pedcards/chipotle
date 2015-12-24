@@ -165,3 +165,40 @@ TeamTaskPt:
 Return	
 }
 
+plSumm:
+{
+	Gui, sumList:Destroy
+	Gui, sumList:Add, ListView, -Multi Grid NoSortHdr W780 gplNoteEdit vWeeklyLV, Date|Note|DateIdx|Created
+	Gui, sumList:Default
+	i:=0
+	Loop, % (plWeekly := y.selectNodes(pl_mrnstring "/notes/weekly/summary")).length {
+		plSumm := plWeekly.item(i:=A_Index-1)
+		plSummTS := plSumm.getAttribute("created")
+		plSummD := plSumm.getAttribute("date")
+		plSummDate := substr(plSummD,5,2) . "/" . substr(plSummD,7,2)
+					. " " . substr(plSummD,9,4)
+		LV_Add("", plSummDate, plSumm.text, plSummD, plSummTS)
+	}
+	LV_ModifyCol()  ; Auto-size each column to fit its contents.
+	;LV_ModifyCol(1, "Integer")
+	LV_ModifyCol(2, 680)
+	LV_ModifyCol(3,"0 Sort")						; Sort by this hidden column (w0)
+	LV_ModifyCol(4,0)
+	i+=1
+	if i>25
+		i:=25
+	if i<4
+		i:=4
+	tlvH := i*24
+	GuiControl, sumList:Move, WeeklyLV, % "H" tlvH
+	Gui, sumList:Add, Button, % "w780 x10 y" tlvH+10 " gplNoteEdit", ADD A NOTE...
+	Gui, sumList:Show, % "W800 H" tlvH+35 , % pl_nameL " - Weekly Notes"
+	Gui, plistG:Hide
+	Return
+}
+
+sumListGuiClose:
+	Gui, sumList:Destroy
+	Gui, plistG:Restore
+	Return
+

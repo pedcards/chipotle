@@ -59,7 +59,7 @@ plNoteEdit:
 			y.selectSingleNode(pl_mrnstring "/trash").appendChild(locnode.cloneNode(true))
 			WriteOut(pl_mrnstring, "trash")
 			eventlog(mrn " summary note " tmpD " deleted.")
-			gosub plUpdates
+			gosub plSumm
 		}
 		Return
 	}
@@ -87,7 +87,7 @@ plNoteEdit:
 	y.selectSingleNode(pl_mrnstring "/notes/weekly/summary[@created='" formTS "']").setAttribute("au", user)
 	WriteOut(pl_mrnstring "/notes","weekly")
 	eventlog(mrn " summary notes updated.")
-	gosub plUpdates
+	gosub plSumm
 Return
 }
 

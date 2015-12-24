@@ -66,7 +66,6 @@ PatListGUI:
 	Gui, plistG:Destroy
 	Gui, plistG:Default
 	Gui, Add, Text, x26 y38 w200 h80 , % pl_demo
-	Gui, Add, Edit, x16 y132 w240 h40 gplInputNote vpl_misc, %pl_misc%
 	Gui, Add, Text, x266 y24 w150 h30 gplInputCard, Primary Cardiologist:
 	Gui, Add, Text, xp yp+14 cBlue w140 vpl_card, % pl_ProvCard
 	Gui, Add, Text, xp yp+20 w150 h30 gplInputCard, Continuity Cardiologist:
@@ -84,6 +83,7 @@ PatListGUI:
 	Gui, Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statScamp% vpl_statScamp gplInputNote, SCAMP
 	Gui, Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statMil% vpl_statMil gplInputNote, Military
 
+	Gui, Add, Edit, x16 y132 w240 h40 gplInputNote vpl_misc, %pl_misc%
 	Gui, Add, Edit, x26 y196 w540 h48 vpl_dxNotes gplInputNote, %pl_dxNotes%
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxCard gplInputNote, %pl_dxCard%
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxEP gplInputNote, %pl_dxEP%
@@ -91,10 +91,12 @@ PatListGUI:
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxProb gplInputNote, %pl_dxProb%
 
 	Gui, Add, Button, x36 y540 w160 h40 gplTasksList, Tasks/Todos
-	Gui, Add, Button, xp+180 yp w160 h40 gplDataList Disabledd, Data highlights
-	Gui, Add, Button, xp+180 yp w160 h40 gplUpdates, Summary Notes
-	Gui, Add, Button, x36 y584 w240 h40 v1 gplCORES, Patient History (CORES)
-	Gui, Add, Button, x316 yp w240 h40 v2 gplMAR, Meds/Diet (CORES)
+	Gui, Add, Button, xp+180 yp w160 h40 gplDataList Disabledd, Update notes
+	Gui, Add, Button, xp+180 yp w160 h40 gplSumm, Summary Notes
+	Gui, Add, Button, x36 yp+44 w160 h40 v1 gplCORES, Patient History (CORES)
+	Gui, Add, Button, xp+180 yp w160 h40 gplDataList Disabled, Data highlights
+	Gui, Add, Button, xp+180 yp w160 h40 v2 gplMAR, Meds/Diet (CORES)
+
 	Gui, Add, Button, x176 yp+44 w240 h40 gplSave, SAVE
 
 	Gui, Font, Bold
@@ -245,43 +247,6 @@ plMARlist(group,class) {
 	}
 	;LV_ModifyCol()
 }
-
-plUpdates:
-{
-	Gui, upd:Destroy
-	Gui, upd:Add, ListView, -Multi Grid NoSortHdr W780 gplNoteEdit vWeeklyLV, Date|Note|DateIdx|Created
-	Gui, upd:Default
-	i:=0
-	Loop, % (plWeekly := y.selectNodes(pl_mrnstring "/notes/weekly/summary")).length {
-		plSumm := plWeekly.item(i:=A_Index-1)
-		plSummTS := plSumm.getAttribute("created")
-		plSummD := plSumm.getAttribute("date")
-		plSummDate := substr(plSummD,5,2) . "/" . substr(plSummD,7,2)
-					. " " . substr(plSummD,9,4)
-		LV_Add("", plSummDate, plSumm.text, plSummD, plSummTS)
-	}
-	LV_ModifyCol()  ; Auto-size each column to fit its contents.
-	;LV_ModifyCol(1, "Integer")
-	LV_ModifyCol(2, 680)
-	LV_ModifyCol(3,"0 Sort")						; Sort by this hidden column (w0)
-	LV_ModifyCol(4,0)
-	i+=1
-	if i>25
-		i:=25
-	if i<4
-		i:=4
-	tlvH := i*24
-	GuiControl, upd:Move, WeeklyLV, % "H" tlvH
-	Gui, upd:Add, Button, % "w780 x10 y" tlvH+10 " gplNoteEdit", ADD A NOTE...
-	Gui, upd:Show, % "W800 H" tlvH+35 , % pl_nameL " - Weekly Notes"
-	Gui, plistG:Hide
-	Return
-}
-
-UpdGuiClose:
-	Gui, upd:Destroy
-	Gui, plistG:Restore
-	Return
 
 PtParse(mrn) {
 	global y
