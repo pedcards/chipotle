@@ -34,6 +34,7 @@ PatListGet:
 	pl_statRes := pl.statRes
 	pl_statScamp := pl.statScamp
 	pl_statMil := pl.statMil
+	pl_statPM := pl.statPM
 	pl_info := pl.info
 	pl_CORES := pl.CORES
 	pl_MAR := pl.MAR
@@ -78,10 +79,16 @@ PatListGUI:
 	Gui, Add, Text, xp+50 yp w80 vCrdCall_N, % ((pl_Call_N) ? niceDate(pl_Call_N) : "---")
 
 	Gui, Add, CheckBox, x446 y34 w120 h20 Checked%pl_statCons% vpl_statCons gplInputNote, Consult
-	Gui, Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statTxp% vpl_statTxp gplInputNote, Transplant
-	Gui, Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statRes% vpl_statRes gplInputNote, Research
-	Gui, Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statScamp% vpl_statScamp gplInputNote, SCAMP
-	Gui, Add, CheckBox, x446 yp+20 w120 h20 Checked%pl_statMil% vpl_statMil gplInputNote, Military
+	Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statTxp% vpl_statTxp gplInputNote, Transplant
+	Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statRes% vpl_statRes gplInputNote, Research
+	Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statScamp% vpl_statScamp gplInputNote, SCAMP
+	Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statMil% vpl_statMil gplInputNote, Military
+	Gui, Add, CheckBox, xp yp+20 h20 Checked%pl_statPM% vpl_statPM gplInputNote, Pacemaker
+	if (pl_statPM) {
+		Gui, Font, s6
+		Gui, Add, Button, x+m h8, Settings
+		Gui, Font
+	}
 
 	Gui, Add, Edit, x16 y132 w240 h40 gplInputNote vpl_misc, %pl_misc%
 	Gui, Add, Edit, x26 y196 w540 h48 vpl_dxNotes gplInputNote, %pl_dxNotes%
@@ -156,6 +163,7 @@ plSave:
 		SetStatus(mrn,"status","scamp",pl_statScamp)
 		SetStatus(mrn,"prov","txp",pl_statTxp)
 		SetStatus(mrn,"prov","mil",pl_statMil)
+		SetStatus(mrn,"prov","pm",pl_statPM)
 		y.setAtt(pl_mrnstring "/status", {ed: editdate})
 		y.setAtt(pl_mrnstring "/status", {au: user})
 		plEditStat = 
@@ -284,6 +292,7 @@ PtParse(mrn) {
 		, "ProvCSR":y.getAtt(mrnstring "/prov","CSR")
 		, "ProvEP":y.getAtt(mrnstring "/prov","provEP")
 		, "ProvPCP":y.getAtt(mrnstring "/prov","provPCP")
+		, "statPM":(pl.selectSingleNode("prov").getAttribute("pm") == "on")
 		, "statMil":(pl.selectSingleNode("prov").getAttribute("mil") == "on")
 		, "statTxp":(pl.selectSingleNode("prov").getAttribute("txp") == "on")}
 }
