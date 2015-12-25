@@ -98,6 +98,15 @@ plNoteEdit:
 	formW:=700, formR:=5
 	;formtype:="S"
 	gosub plForm
+	
+	formMrnStr := noteNode "[@created='" formTS "']"
+	formParStr := strX(noteNode,"",1,0,"/",0,1)
+	formChildName := strX(noteNode,"/",0,1)
+	formParName := strX(formParStr,"/",0,1)
+	if (formType="S")
+		formName:="summary"
+	if (formType="U")
+		formName:="update"
 	if (formDel) {
 		MsgBox, 20, Confirm, Delete this note?
 		IfMsgBox Yes 
@@ -106,21 +115,14 @@ plNoteEdit:
 				y.addElement("trash", pl_mrnstring)
 				WriteOut(pl_mrnstring, "trash")
 			}
-			delmrnstr := noteNode "[@created='" formTS "']"
-			delparstr := strX(noteNode,"",1,0,"/",0,1)
-			;delchildstr := strX(noteNode,"/",0,1)
-			y.selectSingleNode(delmrnstr).setAttribute("del", A_Now)
-			y.selectSingleNode(delmrnstr).setAttribute("au", user)
-			locnode := y.selectSingleNode(delmrnstr)
-			y.selectSingleNode(delparstr).removeChild(locnode)
-			WriteOut(pl_mrnstring "/notes",strX(delparstr,"/",0,1))
+			y.selectSingleNode(formMrnStr).setAttribute("del", A_Now)
+			y.selectSingleNode(formMrnStr).setAttribute("au", user)
+			locnode := y.selectSingleNode(formMrnStr)
+			y.selectSingleNode(formParStr).removeChild(locnode)
+			WriteOut(pl_mrnstring "/notes",formParName)
 			y.selectSingleNode(pl_mrnstring "/trash").appendChild(locnode.cloneNode(true))
 			WriteOut(pl_mrnstring, "trash")
-			if (formType="S")
-				tmpType:="summary"
-			if (formType="U")
-				tmpType:="update"
-			eventlog(mrn " " tmpType " note " tmpD " deleted.")
+			eventlog(mrn " " formName " note " tmpD " deleted.")
 			gosub plUpdSum
 		}
 		Return
@@ -135,21 +137,21 @@ plNoteEdit:
 		y.addElement("notes", pl_mrnstring)
 		WriteOut(pl_mrnstring, "notes")
 	}
-	if !IsObject(y.selectSingleNode(pl_mrnstring "/notes/weekly")) {
-		y.addElement("weekly", pl_mrnstring "/notes")
-		WriteOut(pl_mrnstring "/notes", "weekly")
+	if !IsObject(y.selectSingleNode(noteNode)) {
+		y.addElement(formParName, pl_mrnstring "/notes")
+		WriteOut(pl_mrnstring "/notes",formParName)
 	}
 	if (formnew) {
-		y.addelement("summary", pl_mrnstring "/notes/weekly", {date: formDT, created: formTS}, formTxt)
+		y.addelement(formName, noteParStr, {date: formDT, created: formTS}, formTxt)
 	} else {
-		y.selectSingleNode(pl_mrnstring "/notes/weekly/summary[@created='" formTS "']").childNodes[0].nodevalue := formTxt
-		y.selectSingleNode(pl_mrnstring "/notes/weekly/summary[@created='" formTS "']").setAttribute("date", formDT)
+		y.selectSingleNode(formMrnStr).childNodes[0].nodevalue := formTxt
+		y.selectSingleNode(formMrnStr).setAttribute("date", formDT)
 	}
-	y.selectSingleNode(pl_mrnstring "/notes/weekly/summary[@created='" formTS "']").setAttribute("ed", A_Now)
-	y.selectSingleNode(pl_mrnstring "/notes/weekly/summary[@created='" formTS "']").setAttribute("au", user)
-	WriteOut(pl_mrnstring "/notes","weekly")
-	eventlog(mrn " summary notes updated.")
-	gosub plSumm
+	y.selectSingleNode(formMrnStr).setAttribute("ed", A_Now)
+	y.selectSingleNode(formMrnStr).setAttribute("au", user)
+	WriteOut(pl_mrnstring "/notes",formParName)
+	eventlog(mrn " " formName " notes updated.")
+	gosub plUpdSum
 Return
 }
 
