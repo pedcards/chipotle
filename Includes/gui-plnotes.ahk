@@ -177,7 +177,10 @@ plForm:
 	formnew:="", formEdit:="", formSave:="", formDel:=""
 	formtype := SubStr(formtype,1,1)
 	if (formtype="S") {
-		FormHide:="upd"
+		FormHide:="updL"
+	}
+	if (formtype="U") {
+		FormHid:="updL"
 	}
 	if (formtype="T") {
 		FormHide:="tlist"
@@ -197,18 +200,19 @@ plForm:
 	i:=(formW/3)-30
 	Gui, %formHide%:Hide
 	Gui, formUI:Destroy
-	Gui, formUI:New, +hwndFormHwnd
-	Gui, formUI:Add, GroupBox, % "x5 y0 w" (formW-10) " h" (formR*16)+40
-	Gui, formUI:Add, Edit, % "x10 y10 w" (formW-20) " h" (formR*16) " vformTXT gplFormChg", %tmp%
-	Gui, formUI:Add, DateTime, % "x10 y" (formR*16)+12 " w100 vformDT gplFormChg Choose" tmpD, MM/dd/yyyy
+	Gui, formUI:Default
+	Gui, New, +hwndFormHwnd
+	Gui, Add, GroupBox, % "x5 y0 w" (formW-10) " h" (formR*16)+40
+	Gui, Add, Edit, % "x10 y10 w" (formW-20) " h" (formR*16) " vformTXT gplFormChg", %tmp%
+	Gui, Add, DateTime, % "x10 y" (formR*16)+12 " w100 vformDT gplFormChg Choose" tmpD, MM/dd/yyyy
 	If (formtype="S")
-		Gui, formUI:Add, DateTime, % "xp+110 yp w60 vformT gplFormChg", Time
-	Gui, formUI:Add, Button, % "x10 yp+50 w" i " gplFormSave", SAVE
-	Gui, formUI:Add, Button, % "xp+" i+33 " yp w" i " gformUIGuiClose", Cancel
-	Gui, formUI:Add, Button, % (formnew ? "Disabled ":"") "xp+" i+33 " yp w" i " gformUIDelete", Delete
-	GuiControl, formUI:Text, formT, HH:mm
+		Gui, Add, DateTime, % "xp+110 yp w60 vformT gplFormChg", Time
+	Gui, Add, Button, % "x10 yp+50 w" i " gplFormSave", SAVE
+	Gui, Add, Button, % "xp+" i+33 " yp w" i " gformUIGuiClose", Cancel
+	Gui, Add, Button, % (formnew ? "Disabled ":"") "xp+" i+33 " yp w" i " gformUIDelete", Delete
+	GuiControl, Text, formT, HH:mm
 	GuiControl, , formT, %tmpD%
-	Gui, formUI:Show, % "w" formW " h" (formR*16)+100 , % (formnew ? "New ":"") (formtype="S" ? "Summary " tmpdate : (formtype="T" ? "Task " tmpdate : plDataType " " tmpD))
+	Gui, Show, % "w" formW " h" (formR*16)+100 , % (formnew ? "New ":"") (formtype="S" ? "Summary " tmpdate : (formtype="T" ? "Task " tmpdate : plDataType " " tmpD))
 
 	WinWaitClose ahk_id %FormHwnd%
 Return
