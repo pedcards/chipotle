@@ -35,7 +35,7 @@ plSumm:
 	formType := "S"
 	formName := "summary"
 	noteNode := pl_mrnstring "/notes/weekly/summary"
-	noteGuiHdr := pl_nameL " - Weekly Notes"
+	noteName := "Weekly Notes"
 	gosub plUpdSum
 	return
 }
@@ -45,7 +45,7 @@ plUpd:
 	formType := "U"
 	formName := "note"
 	noteNode := pl_mrnstring "/notes/updates/note"
-	noteGuiHdr := pl_nameL " - Updates Notes"
+	noteName := "Updates Notes"
 	gosub plUpdSum
 	return
 }
@@ -77,7 +77,7 @@ plUpdSum:
 	tlvH := i*24
 	GuiControl, Move, UpdateLV, % "H" tlvH
 	Gui, Add, Button, % "w780 x10 y" tlvH+10 " gplNoteEdit", ADD A NOTE...
-	Gui, Show, % "W800 H" tlvH+35 , % noteGuiHdr
+	Gui, Show, % "W800 H" tlvH+35 , % pl_nameL " - " noteName
 	Gui, plistG:Hide
 	Return
 }
@@ -121,7 +121,7 @@ plNoteEdit:
 			WriteOut(pl_mrnstring "/notes",formParName)
 			y.selectSingleNode(pl_mrnstring "/trash").appendChild(locnode.cloneNode(true))
 			WriteOut(pl_mrnstring, "trash")
-			eventlog(mrn " " formName " note " tmpD " deleted.")
+			eventlog(mrn " " noteName " " tmpD " deleted.")
 			gosub plUpdSum
 		}
 		Return
@@ -141,7 +141,7 @@ plNoteEdit:
 		WriteOut(pl_mrnstring "/notes",formParName)
 	}
 	if (formnew) {
-		y.addelement(formName, noteParStr, {date: formDT, created: formTS}, formTxt)
+		y.addelement(formName, formParStr, {date: formDT, created: formTS}, formTxt)
 	} else {
 		y.selectSingleNode(formMrnStr).childNodes[0].nodevalue := formTxt
 		y.selectSingleNode(formMrnStr).setAttribute("date", formDT)
@@ -149,7 +149,7 @@ plNoteEdit:
 	y.selectSingleNode(formMrnStr).setAttribute("ed", A_Now)
 	y.selectSingleNode(formMrnStr).setAttribute("au", user)
 	WriteOut(pl_mrnstring "/notes",formParName)
-	eventlog(mrn " " formName " notes updated.")
+	eventlog(mrn " " noteName " updated.")
 	gosub plUpdSum
 Return
 }
@@ -179,7 +179,7 @@ plForm:
 		FormHide:="updL"
 	}
 	if (formtype="U") {
-		FormHid:="updL"
+		FormHide:="updL"
 	}
 	if (formtype="T") {
 		FormHide:="tlist"
@@ -203,7 +203,7 @@ plForm:
 	Gui, formUI:Add, GroupBox, % "x5 y0 w" (formW-10) " h" (formR*16)+40
 	Gui, formUI:Add, Edit, % "x10 y10 w" (formW-20) " h" (formR*16) " vformTXT gplFormChg", %tmp%
 	Gui, formUI:Add, DateTime, % "x10 y" (formR*16)+12 " w100 vformDT gplFormChg Choose" tmpD, MM/dd/yyyy
-	If (formtype="S")
+	If (formtype~="[SU]")
 		Gui, formUI:Add, DateTime, % "xp+110 yp w60 vformT gplFormChg", Time
 	Gui, formUI:Add, Button, % "x10 yp+50 w" i " gplFormSave", SAVE
 	Gui, formUI:Add, Button, % "xp+" i+33 " yp w" i " gformUIGuiClose", Cancel
