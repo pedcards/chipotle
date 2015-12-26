@@ -13,6 +13,10 @@ plInputNote:
 	i:=A_GuiControl
 	if (substr(i,4,4)="stat") {							; var name "pl_statCons"
 		plEditStat = true
+		if (i="pl_statPM") {
+			GuiControlGet, j, , pl_statPM
+			GuiControl, % (j)?"Enable":"Disable", Settings
+		}
 		eventlog(mrn " status " i " changed.")
 		return
 	}
