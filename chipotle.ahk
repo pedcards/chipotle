@@ -762,6 +762,7 @@ winDim(scr) {
 
 #Include xml.ahk
 #Include StrX.ahk
+#Include StRegX.ahk
 #Include Class_LV_Colors.ahk
 #Include sift3.ahk
 #Include CMsgBox.ahk

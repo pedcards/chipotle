@@ -143,7 +143,7 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 	N:=1, n0:=0, n1:=0
 	
 	While clip {
-		ptBlock := StrX( clip, "Patient Information" ,N,21, "Patient Information" ,1,19, N )
+		ptBlock := StrX( clip, "Patient Information" ,N,19, "Patient Information" ,1,20, N )
 		if instr(ptBlock,"CORES Rounding") {
 			ptBlock := StrX( ptBlock, "",1,1, "CORES Rounding" ,1,15)
 		}
@@ -154,6 +154,8 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			break   ; end of clip reached
 		} else {
 		NN = 1
+		xCores_Demo := StRegX(ptBlock, "",0,0, "DOB:",4)
+		MsgBox % xCores_Demo
 		CORES_Loc := StrX( ptBlock, "" ,NN,2, "`r" ,1,1, NN )			; Line 1
 		CORES_Name := StrX( ptBlock, "`r" ,NN,2, "`r" ,1,1, NN )		; Line 2
 			CORES_name_last := Trim(StrX(CORES_name, ,0,0, ", ",1,2))			
