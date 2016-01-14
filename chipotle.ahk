@@ -183,7 +183,7 @@ If (nLen>10000) {
 	;clip = %Clipboard%
 	clipCkCORES := substr(clip,1,60)
 	If (clipCkCORES ~= CORES_regex) {
-		coresType := StrX(clipCkCORES,"CORES",1,0,"REPORT v2.0",1,0,N)
+		coresType := StrX(clipCkCORES,"CORES",1,0,"REPORT v3.0",1,0,N)
 		if (coresType == CORES_type) {
 			WinClose, % CORES_window
 			gosub initClipSub
