@@ -154,9 +154,13 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			break   ; end of clip reached
 		} else {
 		NN = 1
-		xCores_Demo := StRegX(ptBlock, "",0,0, "DOB:",4)
-		MsgBox % xCores_Demo
-		CORES_Loc := StrX( ptBlock, "" ,NN,2, "`r" ,1,1, NN )			; Line 1
+		Cores_Demo := strX(ptBlock, "",1,0, "DOB:",1,0,NN)
+		CORES_Loc := trim(StrX(Cores_Demo, "",1,0, "`r",1,1))
+		CORES_MRN := trim(RegExMatch(Cores_Demo,"\d{6,7}",xMRN))
+		CORES_Name := trim(StrX(Cores_Demo,CORES_Loc,1,StrLen(CORES_Loc),xMRN,1,8)," `t`r`n")
+		MsgBox % cores_name "`n" cores_loc "`n" xmrn
+		
+		;CORES_Loc := StrX( ptBlock, "" ,NN,2, "`r" ,1,1, NN )			; Line 1
 		CORES_Name := StrX( ptBlock, "`r" ,NN,2, "`r" ,1,1, NN )		; Line 2
 			CORES_name_last := Trim(StrX(CORES_name, ,0,0, ", ",1,2))			
 			CORES_name_first := Trim(StrX(CORES_name, ", ",0,2, " ",1,0))	
