@@ -164,9 +164,9 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 		CORES_DCW := StrX( ptBlock, "DCW: " ,1,5, "`r" ,1,1, NN )				; skip to Line 5
 		CORES_Alls := StrX( ptBlock, "Allergy: " ,1,9, "`r" ,1,1, NN )			; Line 6
 		CORES_Code := StrX( ptBlock, "Code Status: " ,1,13, "`r" ,1,1, NN )		; Line 7
+
 		CORES_HX =
-		;CORES_HX := StrX( ptBlock, "`r" ,NN,2, "`r`nMedications" ,1,12, NN )
-		CORES_HX := StRegX( ptBlock, "`r",NN,2, "Medications",1,NN)
+		CORES_HX := StRegX( ptBlock, "`r",NN,2, "Medications.*(DRIPS|SCH MEDS)",1,NN)
 			StringReplace, CORES_hx, CORES_hx, •%A_space%, *%A_Space%, ALL
 			StringReplace, CORES_hx, CORES_hx, `r`n, <br>, ALL
 			StringReplace, CORES_hx, CORES_hx, Medical History, <hr><b><i>Medical History</i></b>
@@ -174,20 +174,16 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			StringReplace, CORES_hx, CORES_hx, Active Issues, <hr><b><i>Active Issues</i></b>
 			StringReplace, CORES_hx, CORES_hx, Social Hx, <hr><b><i>Social Hx</i></b>
 			StringReplace, CORES_hx, CORES_hx, Action Items - To Dos, <hr><b><i>Action Items - To Dos</i></b>
+		CORES_Diet := substr(cores_hx,RegExMatch(cores_hx,"m)Diet.*\*"))
+		
 		CORES_MedBlock = 
-		CORES_MedBlock := StrX( ptBlock, "" ,NN,0, "Contacts" ,1,9, NN )
+		CORES_MedBlock := StrX( ptBlock, "Medications" ,NN,11, "Vitals" ,1,7, NN )
 		CORES_Drips := StrX( CORES_MedBlock, "`nDRIPS`r" ,1,6, "SCH MEDS" ,1,9 )
 		CORES_Meds := StrX( CORES_MedBlock, "`nSCH MEDS`r" ,1,9, "PRN" ,1,4 )
-		MsgBox % cores_drips
-		CORES_PRN := StrX( CORES_MedBlock, "`nPRN`r" ,1,4, "Contacts" ,1,9 )
-			CORES_PRNdiet1 = 
-			CORES_PRNdiet2 = 
-			StringReplace, CORES_PRN, CORES_PRN, `nDiet, ``, All
-			StringSplit, CORES_PRNdiet, CORES_PRN, ``
-			CORES_PRN := CORES_PRNdiet1
-			CORES_Diet := CORES_PRNdiet2
-		CORES_vsBlock := StrX( ptBlock, "Vitals`r" ,NN,7, "Ins/Outs" ,1,8, NN ) ; ...,1,8, NN)
-			CORES_vsWt := StrX( CORES_vsBlock, "Meas Wt:",0,8, "`r`nT " ,1,4, NNN)
+		CORES_PRN := StrX( CORES_MedBlock, "`nPRN`r" ,1,4, "" ,0,0 )
+		
+		CORES_vsBlock := StrX( ptBlock, "Vitals" ,NN,6, "Ins/Outs" ,1,8, NN ) ; ...,1,8, NN)
+			CORES_vsWt := StrX( CORES_vsBlock, "Meas Wt:",0,8, "`r`n" ,1,2, NNN)
 				if (instr(CORES_vsWt,"No current data available")) {
 					CORES_vsWt := "n/a"
 				}
@@ -195,17 +191,19 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			CORES_vsHR := StrX(StrX( CORES_vsBlock, "HR ",NNN,3, "RR", 1,3, NNN),"",0,0,"MHR",1,3)
 			CORES_vsRR := StrX( CORES_vsBlock, "RR",NNN,3, "`r`n", 1,1, NNN)
 			CORES_vsNBP := StrX( CORES_vsBlock, "NIBP",NNN,5, "`r`n", 1,1, NNN)
+			CORES_vsVent := StrX( CORES_vsBlock, "`r`n",NNN-2,1, "SpO2",1,4, NNN)
 			CORES_vsSat := StrX( CORES_vsBlock, "SpO2",NNN,5, "`r`n",1,1, NNN)
 			CORES_vsPain := StrX( CORES_vsBlock, "`r`n" ,NNN-1 ,1, "",1,1, NNN)
 		CORES_IOBlock := StrX( ptBlock, "Ins/Outs" ,NN,8, "Labs (72 Hrs)" ,1,14, NN)
-			CORES_ioIn := StrX( CORES_IOBlock, "In=",0,4, "`r`n",1,1)
-			CORES_ioPO := StrX( CORES_IOBlock, "Oral=",0,6, "`r`n",1,1)
-			CORES_ioOut := StrX( CORES_IOBlock, "Out=",0,5, "`r`n",1,1)
-			CORES_ioCT := StrX( CORES_IOBlock, "Chest Tube=",0,11, "`r`n",1,1)
-			CORES_ioNet := StrX( CORES_IOBlock, "IO Net=",0,8, "`r`n",1,1)
-			CORES_ioUOP := StrX( CORES_IOBlock, "UOP=",0,5, "`r`n",1,1)
-		CORES_LabsBlock := StrX( ptBlock, "Labs (72 Hrs)" ,NN,24, "Notes`r" ,1,6, NN )
-		CORES_NotesBlock := StrX( ptBlock, "Notes`r" ,NN,6, "CORES Round" ,1,12, NN )
+			CORES_ioIn := StrX( CORES_IOBlock, "In=",1,4, "`r`n",1,1)
+			CORES_ioEnt := StrX( CORES_IOBlock, "Gastric/Enteral=",1,17, "`r`n",1,1)
+			CORES_ioPO := StrX( CORES_IOBlock, "Oral=",1,6, "`r`n",1,1)
+			CORES_ioOut := StrX( CORES_IOBlock, "Out=",1,5, "`r`n",1,1)
+			CORES_ioCT := StrX( CORES_IOBlock, "Chest Tube=",1,11, "`r`n",1,1)
+			CORES_ioNet := StrX( CORES_IOBlock, "IO Net=",1,8, "`r`n",1,1)
+			CORES_ioUOP := StrX( CORES_IOBlock, "UOP=",1,5, "`r`n",1,1)
+		CORES_LabsBlock := StrX( ptBlock, "Labs (72 Hrs) / Studies" ,NN,23, "`nNotes" ,1,6, NN )
+		CORES_NotesBlock := StrX( ptBlock, "`nNotes" ,NN,6, "CORES Round" ,1,12, NN )
 		
 		n0 += 1
 		; List parsed, now place in XML(y)
