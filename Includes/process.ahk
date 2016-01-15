@@ -156,21 +156,17 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 		NN = 1
 		Cores_Demo := strX(ptBlock, "",1,0, "DOB:",1,0,NN)
 		CORES_Loc := trim(StrX(Cores_Demo, "",1,0, "`r",1,1))
-		CORES_MRN := trim(RegExMatch(Cores_Demo,"\d{6,7}",xMRN))
-		CORES_Name := trim(StrX(Cores_Demo,CORES_Loc,1,StrLen(CORES_Loc),xMRN,1,8)," `t`r`n")
-		MsgBox % cores_name "`n" cores_loc "`n" xmrn
-		
-		;CORES_Loc := StrX( ptBlock, "" ,NN,2, "`r" ,1,1, NN )			; Line 1
-		CORES_Name := StrX( ptBlock, "`r" ,NN,2, "`r" ,1,1, NN )		; Line 2
+		CORES_MRNx := trim(RegExMatch(Cores_Demo,"\d{6,7}",CORES_MRN))
+		CORES_Name := trim(StrX(Cores_Demo,CORES_Loc,1,StrLen(CORES_Loc),CORES_MRNx,1,8)," `t`r`n")
 			CORES_name_last := Trim(StrX(CORES_name, ,0,0, ", ",1,2))			
 			CORES_name_first := Trim(StrX(CORES_name, ", ",0,2, " ",1,0))	
 		Progress,,, % CORES_name_last ", " CORES_name_first
-		CORES_MRN := StrX( ptBlock, "`r" ,NN,2, "`r" ,1,4, NN )					; Line 3
 		CORES_DCW := StrX( ptBlock, "DCW: " ,1,5, "`r" ,1,1, NN )				; skip to Line 5
 		CORES_Alls := StrX( ptBlock, "Allergy: " ,1,9, "`r" ,1,1, NN )			; Line 6
 		CORES_Code := StrX( ptBlock, "Code Status: " ,1,13, "`r" ,1,1, NN )		; Line 7
 		CORES_HX =
-		CORES_HX := StrX( ptBlock, "`r" ,NN,2, "Medications`r" ,1,12, NN )
+		;CORES_HX := StrX( ptBlock, "`r" ,NN,2, "`r`nMedications" ,1,12, NN )
+		CORES_HX := StRegX( ptBlock, "`r",NN,2, "Medications",1,NN)
 			StringReplace, CORES_hx, CORES_hx, •%A_space%, *%A_Space%, ALL
 			StringReplace, CORES_hx, CORES_hx, `r`n, <br>, ALL
 			StringReplace, CORES_hx, CORES_hx, Medical History, <hr><b><i>Medical History</i></b>
@@ -179,9 +175,10 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			StringReplace, CORES_hx, CORES_hx, Social Hx, <hr><b><i>Social Hx</i></b>
 			StringReplace, CORES_hx, CORES_hx, Action Items - To Dos, <hr><b><i>Action Items - To Dos</i></b>
 		CORES_MedBlock = 
-		CORES_MedBlock := StrX( ptBlock, "Medications`r" ,NN,12, "Contacts" ,1,9, NN )
+		CORES_MedBlock := StrX( ptBlock, "" ,NN,0, "Contacts" ,1,9, NN )
 		CORES_Drips := StrX( CORES_MedBlock, "`nDRIPS`r" ,1,6, "SCH MEDS" ,1,9 )
 		CORES_Meds := StrX( CORES_MedBlock, "`nSCH MEDS`r" ,1,9, "PRN" ,1,4 )
+		MsgBox % cores_drips
 		CORES_PRN := StrX( CORES_MedBlock, "`nPRN`r" ,1,4, "Contacts" ,1,9 )
 			CORES_PRNdiet1 = 
 			CORES_PRNdiet2 = 
