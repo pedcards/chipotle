@@ -202,7 +202,7 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			CORES_ioCT := StrX( CORES_IOBlock, "Chest Tube=",1,11, "`r`n",1,1)
 			CORES_ioNet := StrX( CORES_IOBlock, "IO Net=",1,8, "`r`n",1,1)
 			CORES_ioUOP := StrX( CORES_IOBlock, "UOP=",1,5, "`r`n",1,1)
-		CORES_LabsBlock := StRegX( ptBlock, "Labs (72 Hrs) / Studies" ,NN,23, "\`n(Studies|Notes)",1,NN )
+		CORES_LabsBlock := StRegX( ptBlock, "Labs \(72 Hrs\) \/ Studies" ,NN,23, "\`n(Studies|Notes)",1,NN )
 		CORES_StudiesBlock := StRegX( ptBlock, "\`nStudies",NN,1, "\`nNotes",1)
 		CORES_NotesBlock := StrX( ptBlock, "`nNotes" ,NN,6, "CORES Round" ,1,12, NN )
 		
