@@ -202,9 +202,10 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			CORES_ioCT := StrX( CORES_IOBlock, "Chest Tube=",1,11, "`r`n",1,1)
 			CORES_ioNet := StrX( CORES_IOBlock, "IO Net=",1,8, "`r`n",1,1)
 			CORES_ioUOP := StrX( CORES_IOBlock, "UOP=",1,5, "`r`n",1,1)
-		CORES_LabsBlock := StRegX( ptBlock, "Labs \(72 Hrs\) \/ Studies" ,NN,23, "\`n(Studies|Notes)",1,NN )
-		CORES_StudiesBlock := StRegX( ptBlock, "\`nStudies",NN,1, "\`nNotes",1)
-		CORES_NotesBlock := StrX( ptBlock, "`nNotes" ,NN,6, "CORES Round" ,1,12, NN )
+		CORES_LabsBlock := strx(ptblock, "Labs (72 Hrs) / Studies",1,23, "",0,0)
+			CORES_Labs := trim(StRegX( CORES_LabsBlock, "" ,1,1, "\`n(Studies|Notes)",1))
+			CORES_Studies := trim(StrX( CORES_LabsBlock, "`nStudies",1,8, "`nNotes",1,6))
+			CORES_Notes := trim(StrX( CORES_LabsBlock, "`nNotes",1,6, "",0,0))
 		
 		n0 += 1
 		; List parsed, now place in XML(y)
@@ -270,9 +271,9 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 				y.addElement("net", yInfoDt "/io", CORES_ioNet)
 				y.addElement("uop", yInfoDt "/io", CORES_ioUOP)
 			y.addElement("labs", yInfoDt )
-				parseLabs(CORES_labsBlock)
-			y.addElement("studies", yInfoDt , CORES_StudiesBlock)
-			y.addElement("notes", yInfoDt , CORES_NotesBlock)
+				parseLabs(CORES_Labs)
+			y.addElement("studies", yInfoDt , CORES_Studies)
+			y.addElement("notes", yInfoDt , CORES_Notes)
 		if !isobject(y.selectSingleNode(MRNstring "/MAR"))
 			y.addElement("MAR", MRNstring)											; Create a new /MAR node
 		y.selectSingleNode(MRNstring "/MAR").setAttribute("date", timenow)			; Change date to now
