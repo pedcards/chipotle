@@ -66,6 +66,8 @@ PatListGUIcc:
 		Gui, Add, Text, % "x"tmpPosX " yp+"tmpPosH " wP-10"
 			ccData(pl_info,"labs")
 	}
+	Gui, Tab, Dx
+	Gui, Add, Button, yP-10 gPatlistGUI, Switch to other view
 	return
 }
 
@@ -127,7 +129,7 @@ ccData(pl,sec) {
 			Gui, Add, Text, Center Section wP, % Hgb "`n>" substr("————————————————————————————————————————",1,txtln.ln) "<`n" Hct
 			Gui, Add, Text,% "xS+" (win.rCol/2)-txtln.px-ln(strlen(WBC))*10 " yS", % "`n" WBC
 			Gui, Add, Text,% "xS+" (win.rCol/2)+(txtln.px/2) " yS", % "`n" Plt
-			Gui, Add, Text,xS, % "`t" i.selectSingleNode("rest").text
+			Gui, Add, Text,xS, % "`t" cleanwhitespace(i.selectSingleNode("rest").text)
 		} 
 		if (i:=x.selectSingleNode("Lytes")) {
 			Gui, Add, Text,% "w" win.rCol-win.bor-20, % "Lytes`t" i.selectSingleNode("legend").text
@@ -177,7 +179,7 @@ ccData(pl,sec) {
 				Gui, Add, text, xS, % DBil "`t" IBil
 			}
 			if (rest:=i.selectSingleNode("rest").text) {
-				Gui, Add, text, % "+Wrap xS w" win.rCol-win.bor-20, % rest
+				Gui, Add, text, % "+Wrap xS w" win.rCol-win.bor-20, % cleanwhitespace(rest)
 			}
 		}
 	}

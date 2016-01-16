@@ -704,10 +704,10 @@ cleanspace(ByRef txt) {
 	return txt
 }
 
-cleanwhitespace(ByRef txt) {
+cleanwhitespace(txt) {
 	Loop, Parse, txt, `n, `r
 	{
-		if (A_LoopField ~= "i)[a-z0-9\/\(\)\*]+") {
+		if (A_LoopField ~= "i)[a-z]+") {
 			nxt .= A_LoopField "`n"
 		}
 	}
