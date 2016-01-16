@@ -45,15 +45,16 @@ PatListGUIcc:
 	Gui, Show, % "w"winFw " h"win.wY, CON CARNE
 
 	tmpDarr := Object()
-	tmpDt =
+	tmpDt := "DX|"
 	Loop % (yInfo:=y.selectNodes("//id[@mrn='" MRN "']/info")).length
 	{
 		yInfoDt := yInfo.Item(A_index-1).getAttribute("date")
 		tmpD := breakdate(yInfoDt)
 		tmpDarr[tmpD.MM "/" tmpD.DD] := yInfoDt
 		tmpDt .= tmpD.MM "/" tmpD.DD "|"
+		tmpCt := A_Index
 	}
-	Gui, Add, Tab2, % "x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor " -Wrap Choose"A_Index, % tmpDt
+	Gui, Add, Tab2, % "x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor " -Wrap Choose"tmpCt+1, % tmpDt
 	loop, parse, tmpDt, |
 	{
 		tmpG := A_LoopField
