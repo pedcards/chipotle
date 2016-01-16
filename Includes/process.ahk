@@ -202,7 +202,8 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			CORES_ioCT := StrX( CORES_IOBlock, "Chest Tube=",1,11, "`r`n",1,1)
 			CORES_ioNet := StrX( CORES_IOBlock, "IO Net=",1,8, "`r`n",1,1)
 			CORES_ioUOP := StrX( CORES_IOBlock, "UOP=",1,5, "`r`n",1,1)
-		CORES_LabsBlock := StrX( ptBlock, "Labs (72 Hrs) / Studies" ,NN,23, "`nNotes" ,1,6, NN )
+		CORES_LabsBlock := StRegX( ptBlock, "Labs (72 Hrs) / Studies" ,NN,23, "\`n(Studies|Notes)",1,NN )
+		CORES_StudiesBlock := StRegX( ptBlock, "\`nStudies",NN,1, "\`nNotes",1)
 		CORES_NotesBlock := StrX( ptBlock, "`nNotes" ,NN,6, "CORES Round" ,1,12, NN )
 		
 		n0 += 1
@@ -262,6 +263,7 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 				y.addElement("pain", yInfoDt "/vs", CORES_vsPain)
 			y.addElement("io", yInfoDt )
 				y.addElement("in",  yInfoDt "/io", CORES_ioIn)
+				y.addElement("ent", yInfoDt "/io", CORES_ioEnt)
 				y.addElement("po",  yInfoDt "/io", CORES_ioPO)
 				y.addElement("out", yInfoDt "/io", CORES_ioOut)
 				y.addElement("ct",  yInfoDt "/io", CORES_ioCT)
@@ -269,6 +271,7 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 				y.addElement("uop", yInfoDt "/io", CORES_ioUOP)
 			y.addElement("labs", yInfoDt )
 				parseLabs(CORES_labsBlock)
+			y.addElement("studies", yInfoDt , CORES_StudiesBlock)
 			y.addElement("notes", yInfoDt , CORES_NotesBlock)
 		if !isobject(y.selectSingleNode(MRNstring "/MAR"))
 			y.addElement("MAR", MRNstring)											; Create a new /MAR node
