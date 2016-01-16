@@ -129,7 +129,7 @@ ccData(pl,sec) {
 			Gui, Add, Text,xS, % "`t" i.selectSingleNode("rest").text
 		} 
 		if (i:=x.selectSingleNode("Lytes")) {
-			Gui, Add, Text,% "w"win.rCol-win.bor, % "Lytes`t" i.selectSingleNode("legend").text
+			Gui, Add, Text,% "w" win.rCol-win.bor-20, % "Lytes`t" i.selectSingleNode("legend").text
 			Na:=i.selectSingleNode("Na").text 
 			K:=i.selectSingleNode("K").text 
 			HCO3:=i.selectSingleNode("HCO3").text 
@@ -149,7 +149,7 @@ ccData(pl,sec) {
 			Gui, Add, Text, % "xS+"ch1.px " yS", % "|`n|`n|"
 			Gui, Add, Text, % "xS+"ch1.px+ch2.px-20 " yS", % "|`n|`n|`n"
 			if (ABG:=i.selectSingleNode("ABG").text) {
-				Gui, Add, text, xS, % ABG
+				Gui, Add, text, xS, % trim(ABG)
 			}
 			if (iCA:=i.selectSingleNode("iCA").text) {
 				Gui, Add, text, xS, % iCA
@@ -176,7 +176,7 @@ ccData(pl,sec) {
 				Gui, Add, text, xS, % DBil "`t" IBil
 			}
 			if (rest:=i.selectSingleNode("rest").text) {
-				Gui, Add, text, % "+Wrap xS w"win.rCol-win.bor, % rest
+				Gui, Add, text, % "+Wrap xS w" win.rCol-win.bor-20, % rest
 			}
 		}
 	}

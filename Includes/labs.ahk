@@ -152,11 +152,11 @@ labSecType(block) {
 		return {type:"Lytes", Na:x[1,1], HCO3:x[1,2], BUN:x[1,3], K:x[2,1], Cl:x[2,2], Cr:x[2,3], Glu:x[3,1]
 			, ABG:abg.value(), iCA:iCA.value(), ALT:ALT.value(), AST:AST.value(), PTT:PTT.value(), INR:INR.value()
 			, Alb:Alb.value(), Lac:Lac.value(), CRP:CRP.value(), ESR:ESR.value(),DBil:DBil.value(), IBil:IBil.value()
-			, rest:botsec}
+			, rest:cleanwhitespace(botsec)}
 	} else if (fing ~= "DDNDNWN") {
-		return {type:"CBC", WBC:x[1,1], Hgb:x[1,2], Hct:x[2,1], Plt:x[3,1], rest:botsec}
+		return {type:"CBC", WBC:x[1,1], Hgb:x[1,2], Hct:x[2,1], Plt:x[3,1], rest:cleanwhitespace(botsec)}
 	} else {
-		return {type:"Other", rest:block}
+		return {type:"Other", rest:cleanwhitespace(block)}
 	}
 }
 

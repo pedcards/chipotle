@@ -692,6 +692,28 @@ cleanString(x) {
 	return x
 }
 
+cleanspace(ByRef txt) {
+	StringReplace txt,txt,`n,%A_Space%, All
+	StringReplace txt,txt,%A_Space%.%A_Space%,.%A_Space%, All
+	loop
+	{
+		StringReplace txt,txt,%A_Space%%A_Space%,%A_Space%, UseErrorLevel
+		if ErrorLevel = 0	
+			break
+	}
+	return txt
+}
+
+cleanwhitespace(ByRef txt) {
+	Loop, Parse, txt, `n, `r
+	{
+		if (A_LoopField ~= "i)[a-z0-9\/\(\)\*]+") {
+			nxt .= A_LoopField "`n"
+		}
+	}
+	return nxt
+}
+
 fieldType(x) {
 	global CIS_cols, CIS_colvals
 	for k in CIS_cols
