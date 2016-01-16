@@ -75,22 +75,22 @@ ccData(pl,sec) {
 				txt .= "Wt:`t" i.text ((j:=i.getAttribute("change")) ? " is "j : "")
 			}
 			if (i:=x.selectSingleNode("temp")) {
-				txt .= "`nTemp:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+				txt .= "`nTemp:`t" vsMean(i.text) 
 			}
 			if (i:=x.selectSingleNode("hr")) {
-				txt .= "`nHR:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+				txt .= "`nHR:`t" vsMean(i.text)
 			}
 			if (i:=x.selectSingleNode("rr")) {
-				txt .= "`nRR:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+				txt .= "`nRR:`t" vsMean(i.text)
 			}
 			if (i:=x.selectSingleNode("bp")) {
-				txt .= "`nBP:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+				txt .= "`nBP:`t" vsMean(i.text)
 			}
 			if (i:=x.selectSingleNode("spo2")) {
-				txt .= "`nspO2:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+				txt .= "`nspO2:`t" vsMean(i.text)
 			}
 			if (i:=x.selectSingleNode("pain")) {
-				txt .= "`nPain:`t" i.text
+				txt .= "`nPain:`t" vsMean(i.text)
 			}
 		if (x := pl.selectSingleNode("io")) {
 			txt .= "`n"
@@ -239,6 +239,14 @@ hMaintGuiClose:
 	return
 }
 
+vsMean(ByRef txt) {
+	StringReplace, txt, txt, -%A_Space%, - , All
+	StringReplace, txt, txt, /%A_Space%, / , All
+	mean := strx(txt, " ",0,1, "",0,0)
+	range := substr(txt,1,0-strlen(mean))
+	StringReplace, range, range, - , %A_Space%-%A_Space%, All
+	return range ((mean) ? "(" mean ")" : "")
+}
 
 compStr(a,b) {
 	lnA := strlen(a)
