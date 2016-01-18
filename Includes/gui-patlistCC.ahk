@@ -67,7 +67,7 @@ PatListGUIcc:
 			ccData(pl_info,"labs")
 	}
 	Gui, Tab, Dx
-	Gui, Add, Button, yP-10 gPatlistGUI, Switch to other view
+	Gui, Add, Button, yP-10 gPatlistGUI, Edit DX fields
 	return
 }
 
