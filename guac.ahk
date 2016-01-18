@@ -9,6 +9,7 @@ Clipboard = 	; Empty the clipboard
 SendMode Input ; Recommended for new scripts due to its superior speed and reliability.
 SetTitleMatchMode, 2
 SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
+#Include Includes
 WinClose, View Downloads - Windows Internet Explorer
 LV_Colors.OnMessage()
 

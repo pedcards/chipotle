@@ -143,7 +143,7 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 	N:=1, n0:=0, n1:=0
 	
 	While clip {
-		ptBlock := StrX( clip, "Patient Information" ,N,21, "Patient Information" ,1,19, N )
+		ptBlock := StrX( clip, "Patient Information" ,N,19, "Patient Information" ,1,20, N )
 		if instr(ptBlock,"CORES Rounding") {
 			ptBlock := StrX( ptBlock, "",1,1, "CORES Rounding" ,1,15)
 		}
@@ -154,17 +154,19 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			break   ; end of clip reached
 		} else {
 		NN = 1
-		CORES_Loc := StrX( ptBlock, "" ,NN,2, "`r" ,1,1, NN )			; Line 1
-		CORES_Name := StrX( ptBlock, "`r" ,NN,2, "`r" ,1,1, NN )		; Line 2
+		Cores_Demo := strX(ptBlock, "",1,0, "DOB:",1,0,NN)
+		CORES_Loc := trim(StrX(Cores_Demo, "",1,0, "`r",1,1))
+		CORES_MRNx := trim(RegExMatch(Cores_Demo,"\d{6,7}",CORES_MRN))
+		CORES_Name := trim(StrX(Cores_Demo,CORES_Loc,1,StrLen(CORES_Loc),CORES_MRNx,1,8)," `t`r`n")
 			CORES_name_last := Trim(StrX(CORES_name, ,0,0, ", ",1,2))			
 			CORES_name_first := Trim(StrX(CORES_name, ", ",0,2, " ",1,0))	
 		Progress,,, % CORES_name_last ", " CORES_name_first
-		CORES_MRN := StrX( ptBlock, "`r" ,NN,2, "`r" ,1,4, NN )					; Line 3
 		CORES_DCW := StrX( ptBlock, "DCW: " ,1,5, "`r" ,1,1, NN )				; skip to Line 5
 		CORES_Alls := StrX( ptBlock, "Allergy: " ,1,9, "`r" ,1,1, NN )			; Line 6
 		CORES_Code := StrX( ptBlock, "Code Status: " ,1,13, "`r" ,1,1, NN )		; Line 7
+
 		CORES_HX =
-		CORES_HX := StrX( ptBlock, "`r" ,NN,2, "Medications`r" ,1,12, NN )
+		CORES_HX := StRegX( ptBlock, "`r",NN,2, "Medications.*(DRIPS|SCH MEDS)",1,NN)
 			StringReplace, CORES_hx, CORES_hx, •%A_space%, *%A_Space%, ALL
 			StringReplace, CORES_hx, CORES_hx, `r`n, <br>, ALL
 			StringReplace, CORES_hx, CORES_hx, Medical History, <hr><b><i>Medical History</i></b>
@@ -172,19 +174,16 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			StringReplace, CORES_hx, CORES_hx, Active Issues, <hr><b><i>Active Issues</i></b>
 			StringReplace, CORES_hx, CORES_hx, Social Hx, <hr><b><i>Social Hx</i></b>
 			StringReplace, CORES_hx, CORES_hx, Action Items - To Dos, <hr><b><i>Action Items - To Dos</i></b>
+		CORES_Diet := substr(cores_hx,RegExMatch(cores_hx,"m)Diet.*\*"))
+		
 		CORES_MedBlock = 
-		CORES_MedBlock := StrX( ptBlock, "Medications`r" ,NN,12, "Contacts" ,1,9, NN )
+		CORES_MedBlock := StrX( ptBlock, "Medications" ,NN,11, "Vitals" ,1,7, NN )
 		CORES_Drips := StrX( CORES_MedBlock, "`nDRIPS`r" ,1,6, "SCH MEDS" ,1,9 )
 		CORES_Meds := StrX( CORES_MedBlock, "`nSCH MEDS`r" ,1,9, "PRN" ,1,4 )
-		CORES_PRN := StrX( CORES_MedBlock, "`nPRN`r" ,1,4, "Contacts" ,1,9 )
-			CORES_PRNdiet1 = 
-			CORES_PRNdiet2 = 
-			StringReplace, CORES_PRN, CORES_PRN, `nDiet, ``, All
-			StringSplit, CORES_PRNdiet, CORES_PRN, ``
-			CORES_PRN := CORES_PRNdiet1
-			CORES_Diet := CORES_PRNdiet2
-		CORES_vsBlock := StrX( ptBlock, "Vitals`r" ,NN,7, "Ins/Outs" ,1,8, NN ) ; ...,1,8, NN)
-			CORES_vsWt := StrX( CORES_vsBlock, "Meas Wt:",0,8, "`r`nT " ,1,4, NNN)
+		CORES_PRN := StrX( CORES_MedBlock, "`nPRN`r" ,1,4, "" ,0,0 )
+		
+		CORES_vsBlock := StrX( ptBlock, "Vitals" ,NN,6, "Ins/Outs" ,1,8, NN ) ; ...,1,8, NN)
+			CORES_vsWt := StrX( CORES_vsBlock, "Meas Wt:",0,8, "`r`n" ,1,2, NNN)
 				if (instr(CORES_vsWt,"No current data available")) {
 					CORES_vsWt := "n/a"
 				}
@@ -192,17 +191,21 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			CORES_vsHR := StrX(StrX( CORES_vsBlock, "HR ",NNN,3, "RR", 1,3, NNN),"",0,0,"MHR",1,3)
 			CORES_vsRR := StrX( CORES_vsBlock, "RR",NNN,3, "`r`n", 1,1, NNN)
 			CORES_vsNBP := StrX( CORES_vsBlock, "NIBP",NNN,5, "`r`n", 1,1, NNN)
+			CORES_vsVent := StrX( CORES_vsBlock, "`r`n",NNN-2,1, "SpO2",1,4, NNN)
 			CORES_vsSat := StrX( CORES_vsBlock, "SpO2",NNN,5, "`r`n",1,1, NNN)
 			CORES_vsPain := StrX( CORES_vsBlock, "`r`n" ,NNN-1 ,1, "",1,1, NNN)
 		CORES_IOBlock := StrX( ptBlock, "Ins/Outs" ,NN,8, "Labs (72 Hrs)" ,1,14, NN)
-			CORES_ioIn := StrX( CORES_IOBlock, "In=",0,4, "`r`n",1,1)
-			CORES_ioPO := StrX( CORES_IOBlock, "Oral=",0,6, "`r`n",1,1)
-			CORES_ioOut := StrX( CORES_IOBlock, "Out=",0,5, "`r`n",1,1)
-			CORES_ioCT := StrX( CORES_IOBlock, "Chest Tube=",0,11, "`r`n",1,1)
-			CORES_ioNet := StrX( CORES_IOBlock, "IO Net=",0,8, "`r`n",1,1)
-			CORES_ioUOP := StrX( CORES_IOBlock, "UOP=",0,5, "`r`n",1,1)
-		CORES_LabsBlock := StrX( ptBlock, "Labs (72 Hrs)" ,NN,24, "Notes`r" ,1,6, NN )
-		CORES_NotesBlock := StrX( ptBlock, "Notes`r" ,NN,6, "CORES Round" ,1,12, NN )
+			CORES_ioIn := StrX( CORES_IOBlock, "In=",1,4, "`r`n",1,1)
+			CORES_ioEnt := StrX( CORES_IOBlock, "Gastric/Enteral=",1,17, "`r`n",1,1)
+			CORES_ioPO := StrX( CORES_IOBlock, "Oral=",1,6, "`r`n",1,1)
+			CORES_ioOut := StrX( CORES_IOBlock, "Out=",1,5, "`r`n",1,1)
+			CORES_ioCT := StrX( CORES_IOBlock, "Chest Tube=",1,11, "`r`n",1,1)
+			CORES_ioNet := StrX( CORES_IOBlock, "IO Net=",1,8, "`r`n",1,1)
+			CORES_ioUOP := StrX( CORES_IOBlock, "UOP=",1,5, "`r`n",1,1)
+		CORES_LabsBlock := strx(ptblock, "Labs (72 Hrs) / Studies",1,23, "",0,0)
+			CORES_Labs := trim(StRegX( CORES_LabsBlock, "" ,1,1, "\`n(Studies|Notes)",1))
+			CORES_Studies := trim(StrX( CORES_LabsBlock, "`nStudies",1,8, "`nNotes",1,6))
+			CORES_Notes := trim(StrX( CORES_LabsBlock, "`nNotes",1,6, "",0,0))
 		
 		n0 += 1
 		; List parsed, now place in XML(y)
@@ -261,14 +264,16 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 				y.addElement("pain", yInfoDt "/vs", CORES_vsPain)
 			y.addElement("io", yInfoDt )
 				y.addElement("in",  yInfoDt "/io", CORES_ioIn)
+				y.addElement("ent", yInfoDt "/io", CORES_ioEnt)
 				y.addElement("po",  yInfoDt "/io", CORES_ioPO)
 				y.addElement("out", yInfoDt "/io", CORES_ioOut)
 				y.addElement("ct",  yInfoDt "/io", CORES_ioCT)
 				y.addElement("net", yInfoDt "/io", CORES_ioNet)
 				y.addElement("uop", yInfoDt "/io", CORES_ioUOP)
 			y.addElement("labs", yInfoDt )
-				parseLabs(CORES_labsBlock)
-			y.addElement("notes", yInfoDt , CORES_NotesBlock)
+				parseLabs(CORES_Labs)
+			y.addElement("studies", yInfoDt , CORES_Studies)
+			y.addElement("notes", yInfoDt , CORES_Notes)
 		if !isobject(y.selectSingleNode(MRNstring "/MAR"))
 			y.addElement("MAR", MRNstring)											; Create a new /MAR node
 		y.selectSingleNode(MRNstring "/MAR").setAttribute("date", timenow)			; Change date to now

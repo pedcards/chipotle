@@ -45,15 +45,16 @@ PatListGUIcc:
 	Gui, Show, % "w"winFw " h"win.wY, CON CARNE
 
 	tmpDarr := Object()
-	tmpDt =
+	tmpDt := "DX|"
 	Loop % (yInfo:=y.selectNodes("//id[@mrn='" MRN "']/info")).length
 	{
 		yInfoDt := yInfo.Item(A_index-1).getAttribute("date")
 		tmpD := breakdate(yInfoDt)
 		tmpDarr[tmpD.MM "/" tmpD.DD] := yInfoDt
 		tmpDt .= tmpD.MM "/" tmpD.DD "|"
+		tmpCt := A_Index
 	}
-	Gui, Add, Tab2, % "x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor " -Wrap Choose"A_Index, % tmpDt
+	Gui, Add, Tab2, % "x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor " -Wrap Choose"tmpCt+1, % tmpDt
 	loop, parse, tmpDt, |
 	{
 		tmpG := A_LoopField
@@ -65,6 +66,8 @@ PatListGUIcc:
 		Gui, Add, Text, % "x"tmpPosX " yp+"tmpPosH " wP-10"
 			ccData(pl_info,"labs")
 	}
+	Gui, Tab, Dx
+	Gui, Add, Button, yP-10 gPatlistGUI, Edit DX fields
 	return
 }
 
@@ -75,22 +78,22 @@ ccData(pl,sec) {
 				txt .= "Wt:`t" i.text ((j:=i.getAttribute("change")) ? " is "j : "")
 			}
 			if (i:=x.selectSingleNode("temp")) {
-				txt .= "`nTemp:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+				txt .= "`nTemp:`t" vsMean(i.text) 
 			}
 			if (i:=x.selectSingleNode("hr")) {
-				txt .= "`nHR:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+				txt .= "`nHR:`t" vsMean(i.text)
 			}
 			if (i:=x.selectSingleNode("rr")) {
-				txt .= "`nRR:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+				txt .= "`nRR:`t" vsMean(i.text)
 			}
 			if (i:=x.selectSingleNode("bp")) {
-				txt .= "`nBP:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+				txt .= "`nBP:`t" vsMean(i.text)
 			}
 			if (i:=x.selectSingleNode("spo2")) {
-				txt .= "`nspO2:`t" strx(i.text,"",1,0," ",1,1) " " ((j:=strX(i.text," ",1,1,"",1,1)) ? "(" j ")" : "")
+				txt .= "`nspO2:`t" vsMean(i.text)
 			}
 			if (i:=x.selectSingleNode("pain")) {
-				txt .= "`nPain:`t" i.text
+				txt .= "`nPain:`t" vsMean(i.text)
 			}
 		if (x := pl.selectSingleNode("io")) {
 			txt .= "`n"
@@ -126,10 +129,10 @@ ccData(pl,sec) {
 			Gui, Add, Text, Center Section wP, % Hgb "`n>" substr("————————————————————————————————————————",1,txtln.ln) "<`n" Hct
 			Gui, Add, Text,% "xS+" (win.rCol/2)-txtln.px-ln(strlen(WBC))*10 " yS", % "`n" WBC
 			Gui, Add, Text,% "xS+" (win.rCol/2)+(txtln.px/2) " yS", % "`n" Plt
-			Gui, Add, Text,xS, % "`t" i.selectSingleNode("rest").text
+			Gui, Add, Text,xS, % "`t" cleanwhitespace(i.selectSingleNode("rest").text)
 		} 
 		if (i:=x.selectSingleNode("Lytes")) {
-			Gui, Add, Text,% "w"win.rCol-win.bor, % "Lytes`t" i.selectSingleNode("legend").text
+			Gui, Add, Text,% "w" win.rCol-win.bor-20, % "Lytes`t" i.selectSingleNode("legend").text
 			Na:=i.selectSingleNode("Na").text 
 			K:=i.selectSingleNode("K").text 
 			HCO3:=i.selectSingleNode("HCO3").text 
@@ -149,7 +152,7 @@ ccData(pl,sec) {
 			Gui, Add, Text, % "xS+"ch1.px " yS", % "|`n|`n|"
 			Gui, Add, Text, % "xS+"ch1.px+ch2.px-20 " yS", % "|`n|`n|`n"
 			if (ABG:=i.selectSingleNode("ABG").text) {
-				Gui, Add, text, xS, % ABG
+				Gui, Add, text, xS, % trim(ABG)
 			}
 			if (iCA:=i.selectSingleNode("iCA").text) {
 				Gui, Add, text, xS, % iCA
@@ -176,7 +179,7 @@ ccData(pl,sec) {
 				Gui, Add, text, xS, % DBil "`t" IBil
 			}
 			if (rest:=i.selectSingleNode("rest").text) {
-				Gui, Add, text, % "+Wrap xS w"win.rCol-win.bor, % rest
+				Gui, Add, text, % "+Wrap xS w" win.rCol-win.bor-20, % cleanwhitespace(rest)
 			}
 		}
 	}
@@ -239,6 +242,14 @@ hMaintGuiClose:
 	return
 }
 
+vsMean(ByRef txt) {
+	StringReplace, txt, txt, -%A_Space%, - , All
+	StringReplace, txt, txt, /%A_Space%, / , All
+	mean := strx(txt, " ",0,1, "",0,0)
+	range := substr(txt,1,0-strlen(mean))
+	StringReplace, range, range, - , %A_Space%-%A_Space%, All
+	return range ((mean) ? "(" mean ")" : "")
+}
 
 compStr(a,b) {
 	lnA := strlen(a)

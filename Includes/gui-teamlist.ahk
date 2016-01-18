@@ -55,6 +55,82 @@ TeamList:
 	Return
 }
 
+TeamTasks:
+{
+	Gui, ttask:Destroy
+	Gui, ttask:Add, ListView, -Multi NoSortHdr Grid w780 vTeamTaskLV gTeamTaskPt hwndHLV
+		, DateFull|Due|MRN|Name|Task
+	LV_Colors.Attach(HLV,1,0,0)
+	;LV_Colors.OnMessage()
+	Gui, ttask:Default
+	pTct := 1
+	i:=0
+	Loop, % (plist := y.selectNodes("/root/lists/" . location . "/mrn")).length {
+		kMRN := plist.item(i:=A_Index-1).text
+		pl := y.selectSingleNode("/root/id[@mrn='" kMRN "']")
+		Loop, % (plT:=pl.selectNodes("plan/tasks/todo")).length {
+			k:=plT.item(A_Index-1)
+			LV_Add(""
+				, plD := k.getAttribute("due")
+				, plDate := substr(plD,5,2) . "/" . substr(plD,7,2)
+				, kMRN
+				, pl.selectSingleNode("demog/name_last").text . ", " . pl.selectSingleNode("demog/name_first").text
+				, k.text)
+			EnvSub, plD, A_Now, D
+			if (plD<3) {
+				LV_Colors.Row(HLV, pTct, 0xFFFF00)
+			}
+			if (plD<1) {
+				LV_Colors.Row(HLV, pTct, 0xFF0000)
+			}
+			pTct += 1
+		}
+	}
+	;LV_ModifyCol()  ; Auto-size each column to fit its contents.
+	;LV_ModifyCol(1, 0)
+	LV_ModifyCol(1, "0 Sort")
+	LV_ModifyCol(2, "AutoHdr")
+	LV_ModifyCol(3, "AutoHdr")
+	LV_ModifyCol(4, "AutoHdr")
+	LV_ModifyCol(5, "AutoHdr")
+
+	if pTct>25
+		pTct:=25
+	if pTct<4
+		pTct:=4
+	tlvH := pTct*22+40
+	GuiControl, ttask:Move, TeamTaskLV, % "H" tlvH
+	Gui, ttask:Show, % "W800 H" tlvH+10, % location " - Team Tasks"
+	GuiControl, ttask:+Redraw, %HLV%
+	
+Return	
+}
+
+SignOut:
+{
+	soText =
+	loop, % (soList := y.selectNodes("/root/lists/" . location . "/mrn")).length {		; loop through each MRN in loc list
+		soMRN := soList.item(A_Index-1).text
+		k := y.selectSingleNode("/root/id[@mrn='" soMRN "']")
+		so := ptParse(soMRN)
+		soSumm := so.NameL ", " so.NameF "`t" so.Unit " " so.Room "`t" so.MRN "`t" so.Sex "`t" so.Age "`t" so.Svc "`n"
+			. ((so.dxCard) ? "[DX] " so.dxCard "`n" : "")
+			. ((so.dxEP) ? "[EP] " so.dxEP "`n" : "")
+			. ((so.dxSurg) ? "[Surg] " so.dxSurg "`n" : "")
+		loop, % (soNotes := y.selectNodes("/root/id[@mrn='" soMRN "']/notes/weekly/summary")).length {	; loop through each Weekly Summary note.
+			soNote := soNotes.item(A_Index-1)
+			soDate := breakDate(soNote.getAttribute("date"))
+			soSumm .= "[" soDate.MM "/" soDate.DD "] "soNote.text . "`n"
+		}
+		soText .= soSumm "`n"
+	}
+	Clipboard := soText
+	MsgBox Text has been copied to clipboard.
+	eventlog(location " weekly signout.")
+	soText =
+Return
+}
+
 teamLGuiClose:
 	Gui, teamL:Destroy
 	Gui, Main:Show

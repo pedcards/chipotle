@@ -88,6 +88,7 @@ native DOCX and XLSX.
 
 Still in progress!
 )
+Run, guac.ahk
 Return
 }
 
@@ -279,16 +280,3 @@ FindPt:
 	Return
 }
 
-FindPtGui:
-{
-	if !IsObject(yArch.selectSingleNode("/root/id[@mrn='" MRN "']")) {
-		yArch.addElement("id","root", {mrn: MRN})							; then create it
-		yArch.addElement("demog","/root/id[@mrn='" MRN "']")				; along with the placeholder children
-		yArch.addElement("diagnoses","/root/id[@mrn='" MRN "']")
-		yArch.addElement("notes","/root/id[@mrn='" MRN "']")
-		yArch.addElement("plan","/root/id[@mrn='" MRN "']")
-	}
-	aFind := yArch.selectSingleNode("/root/id[@mrn='" MRN "']")
-	
-	Return
-}

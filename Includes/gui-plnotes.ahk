@@ -13,6 +13,10 @@ plInputNote:
 	i:=A_GuiControl
 	if (substr(i,4,4)="stat") {							; var name "pl_statCons"
 		plEditStat = true
+		if (i="pl_statPM") {
+			GuiControlGet, j, , pl_statPM
+			GuiControl, % (j)?"Enable":"Disable", Settings
+		}
 		eventlog(mrn " status " i " changed.")
 		return
 	}
@@ -30,6 +34,63 @@ plInputNote:
 Return
 }
 
+plSumm:
+{
+	formType := "S"
+	formName := "summary"
+	noteNode := pl_mrnstring "/notes/weekly/summary"
+	noteName := "Weekly Notes"
+	gosub plUpdSum
+	return
+}
+
+plUpd:
+{
+	formType := "U"
+	formName := "note"
+	noteNode := pl_mrnstring "/notes/updates/note"
+	noteName := "Updates Notes"
+	gosub plUpdSum
+	return
+}
+
+plUpdSum:
+{
+	Gui, updL:Destroy
+	Gui, updL:Default
+	Gui, Add, ListView, -Multi Grid NoSortHdr W780 gplNoteEdit vUpdateLV, Date|Note|DateIdx|Created
+	i:=0
+	Loop, % (plUpdates := y.selectNodes(noteNode)).length {
+		plUpd := plUpdates.item(i:=A_Index-1)
+		plUpdTS := plUpd.getAttribute("created")
+		plUpdD := plUpd.getAttribute("date")
+		tmpD := breakdate(plUpdD)
+		plUpdDate := tmpD.MM "/" tmpD.DD "-" tmpD.HH . tmpD.min
+		LV_Add("", plUpdDate, plUpd.text, plUpdD, plUpdTS)
+	}
+	LV_ModifyCol()  ; Auto-size each column to fit its contents.
+	;LV_ModifyCol(1, "Integer")
+	LV_ModifyCol(2, 680)
+	LV_ModifyCol(3,"0 Sort")						; Sort by this hidden column (w0)
+	LV_ModifyCol(4,0)
+	i+=1
+	if i>25
+		i:=25
+	if i<4
+		i:=4
+	tlvH := i*24
+	GuiControl, Move, UpdateLV, % "H" tlvH
+	Gui, Add, Button, % "w780 x10 y" tlvH+10 " gplNoteEdit", ADD A NOTE...
+	Gui, Show, % "W800 H" tlvH+35 , % pl_nameL " - " noteName
+	Gui, plistG:Hide
+	Return
+}
+
+updLGuiClose:
+	Gui, updL:Destroy
+	Gui, plistG:Restore
+	Return
+
 plNoteEdit:
 {
 	LV_GetText(tmpDate, A_EventInfo,1)					; displayed date
@@ -37,11 +98,18 @@ plNoteEdit:
 	LV_GetText(tmpD, A_EventInfo,3)						; full date (for indexing)
 	LV_GetText(tmpTS, A_EventInfo,4)					; created timestamp of edit (necessary?)
 	
-	if (tmpD="DateIdx" and A_GuiControl="WeeklyLV") {
+	if (tmpD="DateIdx" and A_GuiControl="UpdateLV") {
 		return											; click on blank area is null
 	}
-	formW:=700, formR:=5, formtype:="S"
+	formW:=700, formR:=5
+	;formtype:="S"
 	gosub plForm
+	
+	formMrnStr := noteNode "[@created='" formTS "']"
+	formParStr := strX(noteNode,"",1,0,"/",0,1)
+	formChildName := strX(noteNode,"/",0,1)
+	formParName := strX(formParStr,"/",0,1)
+	
 	if (formDel) {
 		MsgBox, 20, Confirm, Delete this note?
 		IfMsgBox Yes 
@@ -50,16 +118,15 @@ plNoteEdit:
 				y.addElement("trash", pl_mrnstring)
 				WriteOut(pl_mrnstring, "trash")
 			}
-			delmrnstr := pl_mrnstring "/notes/weekly/summary[@created='" formTS "']"
-			y.selectSingleNode(delmrnstr).setAttribute("del", A_Now)
-			y.selectSingleNode(delmrnstr).setAttribute("au", user)
-			locnode := y.selectSingleNode(delmrnstr)
-			y.selectSingleNode(pl_mrnstring "/notes/weekly").removeChild(locnode)
-			WriteOut(pl_mrnstring "/notes","weekly")
+			y.selectSingleNode(formMrnStr).setAttribute("del", A_Now)
+			y.selectSingleNode(formMrnStr).setAttribute("au", user)
+			locnode := y.selectSingleNode(formMrnStr)
+			y.selectSingleNode(formParStr).removeChild(locnode)
+			WriteOut(pl_mrnstring "/notes",formParName)
 			y.selectSingleNode(pl_mrnstring "/trash").appendChild(locnode.cloneNode(true))
 			WriteOut(pl_mrnstring, "trash")
-			eventlog(mrn " summary note " tmpD " deleted.")
-			gosub plUpdates
+			eventlog(mrn " " noteName " " tmpD " deleted.")
+			gosub plUpdSum
 		}
 		Return
 	}
@@ -73,21 +140,21 @@ plNoteEdit:
 		y.addElement("notes", pl_mrnstring)
 		WriteOut(pl_mrnstring, "notes")
 	}
-	if !IsObject(y.selectSingleNode(pl_mrnstring "/notes/weekly")) {
-		y.addElement("weekly", pl_mrnstring "/notes")
-		WriteOut(pl_mrnstring "/notes", "weekly")
+	if !IsObject(y.selectSingleNode(noteNode)) {
+		y.addElement(formParName, pl_mrnstring "/notes")
+		WriteOut(pl_mrnstring "/notes",formParName)
 	}
 	if (formnew) {
-		y.addelement("summary", pl_mrnstring "/notes/weekly", {date: formDT, created: formTS}, formTxt)
+		y.addelement(formName, formParStr, {date: formDT, created: formTS}, formTxt)
 	} else {
-		y.selectSingleNode(pl_mrnstring "/notes/weekly/summary[@created='" formTS "']").childNodes[0].nodevalue := formTxt
-		y.selectSingleNode(pl_mrnstring "/notes/weekly/summary[@created='" formTS "']").setAttribute("date", formDT)
+		y.selectSingleNode(formMrnStr).childNodes[0].nodevalue := formTxt
+		y.selectSingleNode(formMrnStr).setAttribute("date", formDT)
 	}
-	y.selectSingleNode(pl_mrnstring "/notes/weekly/summary[@created='" formTS "']").setAttribute("ed", A_Now)
-	y.selectSingleNode(pl_mrnstring "/notes/weekly/summary[@created='" formTS "']").setAttribute("au", user)
-	WriteOut(pl_mrnstring "/notes","weekly")
-	eventlog(mrn " summary notes updated.")
-	gosub plUpdates
+	y.selectSingleNode(formMrnStr).setAttribute("ed", A_Now)
+	y.selectSingleNode(formMrnStr).setAttribute("au", user)
+	WriteOut(pl_mrnstring "/notes",formParName)
+	eventlog(mrn " " noteName " updated.")
+	gosub plUpdSum
 Return
 }
 
@@ -113,7 +180,10 @@ plForm:
 	formnew:="", formEdit:="", formSave:="", formDel:=""
 	formtype := SubStr(formtype,1,1)
 	if (formtype="S") {
-		FormHide:="upd"
+		FormHide:="updL"
+	}
+	if (formtype="U") {
+		FormHide:="updL"
 	}
 	if (formtype="T") {
 		FormHide:="tlist"
@@ -137,7 +207,7 @@ plForm:
 	Gui, formUI:Add, GroupBox, % "x5 y0 w" (formW-10) " h" (formR*16)+40
 	Gui, formUI:Add, Edit, % "x10 y10 w" (formW-20) " h" (formR*16) " vformTXT gplFormChg", %tmp%
 	Gui, formUI:Add, DateTime, % "x10 y" (formR*16)+12 " w100 vformDT gplFormChg Choose" tmpD, MM/dd/yyyy
-	If (formtype="S")
+	If (formtype~="[SU]")
 		Gui, formUI:Add, DateTime, % "xp+110 yp w60 vformT gplFormChg", Time
 	Gui, formUI:Add, Button, % "x10 yp+50 w" i " gplFormSave", SAVE
 	Gui, formUI:Add, Button, % "xp+" i+33 " yp w" i " gformUIGuiClose", Cancel
