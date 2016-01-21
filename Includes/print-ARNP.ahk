@@ -3,19 +3,18 @@ PrintARNP:
 	TblC:="\cellx", tw:=1440							; Measured in twips (1440 = 1", 720 = 1/2", 360 = 1/4")
 	TblBrdr:="\clbrdrt\brdrs\clbrdrl\brdrs\clbrdrb\brdrs\clbrdrr\brdrs"
 	TcelX:=0
-	rtfTblCol1 :=	TblBrdr "`n"										; Name
-					. TblC . round(tw * (TcelX+=1.25)) . TblBrdr "`n"		; Location (e.g. tab stop at 1.5")
+	rtfTblCol1 :=	TblBrdr "`n"											; 
+					. TblC . round(tw * (TcelX+=1.5)) . TblBrdr "`n"		; Name
+					. TblC . round(tw * (TcelX+=1.0)) . TblBrdr "`n"		; Location (e.g. tab stop at 1.5")
 					. TblC . round(tw * (TcelX+=0.75)) . TblBrdr "`n"		; Diagnosis
-					. TblC . round(tw * (TcelX+=1.5)) . TblBrdr "`n"	; MRN
-					. TblC . round(tw * (TcelX+=0.75)) . TblBrdr "`n"		; DOB
+					. TblC . round(tw * (TcelX+=0.85)) . TblBrdr "`n"		; DOB
 					. TblC . round(tw * (TcelX+=0.85)) . TblBrdr "`n"		; Admitted
-					. TblC . round(tw * (TcelX+=0.85)) . TblBrdr "`n"		; Cardiologist/Surgeon
-					. TblC . round(tw * (TcelX+=0.85)) . TblBrdr "`n"		; Notes
-					. TblC . round(tw * 8) "`n"							; Right margin
+					. TblC . round(tw * (TcelX+=1.25)) . TblBrdr "`n"		; Cardiologist/Surgeon
+					. TblC . round(tw * 8) "`n"								; Notes, Right margin
 
-	rtfTblCol2 :=	TblBrdr "`n"										; ccSys field
-					. TblC . round(tw * 1.25) . TblBrdr "`n"				; Textfield (below LOCATION)
-					. TblC . round(tw * 8) . TblBrdr "`n"			; Right margin
+	rtfTblCol2 :=	TblBrdr "`n"											; 
+					. TblC . round(tw * 1.0) . TblBrdr "`n"					; ccSys field
+					. TblC . round(tw * 8) . TblBrdr "`n"					; Textfield (below LOCATION), Right margin
 
 	rtfList :=
 	CIS_dx :=
@@ -62,32 +61,17 @@ PrintARNP:
 			}
 		}
 
-		CIS_dx := ((pr.dxCard) ? "[[Dx]] " pr.dxCard "\line " : "")
-				. ((pr.dxSurg) ?  "[[Surg]] " pr.dxSurg "\line " : "")
-				. ((pr.dxEP) ? "[[EP]] " pr.dxEP "\line " : "")
-				. ((pr.dxNotes) ? "[[Notes]] " pr.dxNotes : "")
+		CIS_dx := ((pr.dxCard) ? "Dx: " pr.dxCard "\line " : "")
+				. ((pr.dxSurg) ?  "Surg: " pr.dxSurg "\line " : "")
+				. ((pr.dxEP) ? "EP: " pr.dxEP "\line " : "")
+				. ((pr.dxNotes) ? "Notes: " pr.dxNotes : "")
 		
-		rtfList0 .= "\keepn\trowd\trgaph144\trkeep" rtfTblCol1 "`n\b"
-			. "\intbl " . pr.nameL ", " pr.nameF ((pr.provCard) ? "\fs12  (" pr.provCard . ((pr.provSchCard) ? "//" pr.provSchCard : "") ")\fs18" : "") "\cell`n"
-			. "\intbl " . pr.Unit " " pr.Room "\cell`n"
-			. "\intbl " . kMRN "\cell`n"
-			. "\intbl " . SubStr(pr.Sex,1,1) " " pr.Age "\cell`n" 
-			. "\intbl " . pr.DOB "\cell`n"
-			. "\intbl " . CIS_los "\cell`n"
-			. "\intbl " . pr_adm.Date "\cell`n\b0"
-			. "\row`n"
-			. "\pard\trowd\trgaph144\trrh720\trkeep" . rtfTblCol2 . "`n"
-			. "\intbl\fs12 " . pr_today "\cell`n"
-			. "\intbl\fs12 " . CIS_dx "\line\cell`n"
-			. "\intbl\fs12 " . pr_todo "\fs18\cell`n"
-			. "\row`n"
 		if (A_Index>1) {
 			rtfList .= "\page\par`n"
 		}
 		rtfList .= "{\trowd\trgaph144" rtfTblCol1 "\b`n"
 			. "\intbl Name\cell`n"
 			. "\intbl Location\cell`n"
-			. "\intbl Diagnosis\cell`n"
 			. "\intbl MRN\cell`n"
 			. "\intbl DOB\cell`n"
 			. "\intbl Admitted\cell`n"
@@ -96,7 +80,6 @@ PrintARNP:
 			. "\b0\row`n"
 			. "\intbl " pr.nameL ", " pr.nameF "\line " RegExReplace(RegExReplace(pr.Age,"month","mo"),"year","yr") " " SubStr(pr.Sex,1,1) "\cell`n"
 			. "\intbl " pr.Room "\cell`n"
-			. "\intbl " ((StrLen(pr.dxCard)>512) ? SubStr(pr.dxCard,1,512) "..." : pr.dxCard) "\cell`n"
 			. "\intbl " kMRN "\cell`n"
 			. "\intbl " pr.DOB "\cell`n"
 			. "\intbl " pr_adm.Date "\cell`n"
@@ -105,12 +88,7 @@ PrintARNP:
 			. "\row}`n"
 		rtfList .= "{\trowd\trgaph144\trrh320" rtfTblCol2 "`n"
 			. "\intbl\b Diagnoses\b0\cell`n"
-			. "\intbl " 
-				. "Dx: " pr.dxCard "\line`n"
-				. "Surg: " pr.dxSurg "\line`n"
-				. "EP: " pr.dxEP "\line`n"
-				. "Notes: " pr.dxNotes
-			. "\cell`n\row`n"
+			. "\intbl " RegExReplace(CIS_dx,"m)\R","\line\~\~\~\~\~ ") "\cell`n\row`n"
 		for key,val in ccFields {
 			rtfList .= "\intbl\b " RegExReplace(val,"_","/") "\b0\cell`n"
 				. "\intbl " pr.ccSys.selectSingleNode(val).text "\cell`n"
