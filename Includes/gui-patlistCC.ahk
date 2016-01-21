@@ -67,7 +67,12 @@ PatListGUIcc:
 			ccData(pl_info,"labs")
 	}
 	Gui, Tab, Dx
-	Gui, Add, Button, yP-10 gPatlistGUI, Edit DX fields
+	Gui, Add, Button, % "yP-10 w" win.rCol-3*win.bor " gPatlistGUI", Edit DX fields
+	Gui, Add, Text, % "w" win.rCol-3*win.bor
+		, % "Dx:`n" pl_dxCard "`n"
+		. "`nSurg:`n" pl_dxSurg "`n"
+		. "`nEP:`n" pl_dxEP "`n"
+		. "`nNotes:`n" pl_dxNotes
 	return
 }
 
