@@ -224,7 +224,7 @@ Return
 
 ^F12::
 	;FileSelectFile , clipname,, %A_ScriptDir%, Select file:, AHK clip files (*.clip)
-	clipname := "cores0114rhr.clip"
+	clipname := "cores0121rhr.clip"
 	FileRead, Clipboard, *c %clipname%
 Return
 
