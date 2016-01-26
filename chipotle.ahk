@@ -471,15 +471,19 @@ IcuMerge:
 			c2str := "/root/id[@mrn='" c2mrn "']"
 			c2loc := y.selectSingleNode(c2str "/demog/data/unit").text
 			if (c2loc="SURGCNTR") {
-				y.addElement("mrn",cicuSurPath,c2mrn)
+				y.addElement("mrn",cicuSurPath,c2mrn)							; MRN added to CICUSur list
 				WriteOut("/root/lists","CICUSur")
-				if !IsObject(y.selectSingleNode(c2str "/plan/call"))
-					y.addElement("call", c2str "/plan")
+				if !IsObject(y.selectSingleNode(c2str "/plan"))					; Create mrn/plan/tasks/call if needed
+					y.addElement("plan", c2str)									; could this be done as a function?
+				if !IsObject(y.selectSingleNode(c2str "/plan/tasks"))
+					y.addElement("tasks", c2str "/plan")
+				if !IsObject(y.selectSingleNode(c2str "/plan/tasks/call"))		; Add call task if doesn't exist
+					y.addElement("call", c2str "/plan/tasks")
 				tmpN = 
 				tmpN += 1, day
 				tmpN := substr(tmpN,1,8)
-				y.selectSingleNode(c2str "/plan/call").setAttribute("next", tmpN)		; set a call for tomorrow
-				WriteOut(c2str "/plan","call")
+				y.selectSingleNode(c2str "/plan/tasks/call").setAttribute("next", tmpN)		; set a call for tomorrow
+				WriteOut(c2str "/plan/tasks","call")
 				eventlog(c2mrn " Call sequence auto-initiated.")
 			}
 		}
@@ -490,16 +494,20 @@ IcuMerge:
 			c2str := "/root/id[@mrn='" c2mrn "']"
 			c2loc := y.selectSingleNode("/root/id[@mrn='" c2mrn "']/demog/data/unit").text
 			c2attg := y.selectSingleNode("/root/id[@mrn='" c2mrn "']/demog/data/attg").text
-			if (c2loc="SURGCNTR" and ObjHasValue(CSRdocs,c2attg)) {
-				y.addElement("mrn",cicuSurPath,c2mrn)
+			if (c2loc="SURGCNTR" and ObjHasValue(CSRdocs,c2attg)) {				; If in SURGCNTR and has CSR attg
+				y.addElement("mrn",cicuSurPath,c2mrn)							; MRN added to CICUSur list
 				WriteOut("/root/lists","CICUSur")
-				if !IsObject(y.selectSingleNode(c2str "/plan/call"))
-					y.addElement("call", c2str "/plan")
+				if !IsObject(y.selectSingleNode(c2str "/plan"))					; Create mrn/plan/tasks/call if needed
+					y.addElement("plan", c2str)									; could this be done as a function?
+				if !IsObject(y.selectSingleNode(c2str "/plan/tasks"))
+					y.addElement("tasks", c2str "/plan")
+				if !IsObject(y.selectSingleNode(c2str "/plan/tasks/call"))		; Add call task if doesn't exist
+					y.addElement("call", c2str "/plan/tasks")
 				tmpN = 
 				tmpN += 1, day
 				tmpN := substr(tmpN,1,8)
-				y.selectSingleNode(c2str "/plan/call").setAttribute("next", tmpN)		; set a call for tomorrow
-				WriteOut(c2str "/plan","call")
+				y.selectSingleNode(c2str "/plan/tasks/call").setAttribute("next", tmpN)		; set a call for tomorrow
+				WriteOut(c2str "/plan/tasks","call")
 				eventlog(c2mrn " Call sequence auto-initiated.")
 			}
 		}
