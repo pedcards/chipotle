@@ -552,6 +552,14 @@ compareDates(path,node) {
 			x.addElement("todo", path, {created: zWND})
 			err := true
 		} 
+		if (substr(node,1,4)="call") {
+			if !IsObject(x.selectSingleNode(kMRNstring "/plan"))
+				x.addElement("plan", kMRNstring)
+			if !IsObject(x.selectSingleNode(kMRNstring "/plan/tasks"))
+				x.addElement("tasks", kMRNstring "/plan")
+			x.addElement("call", path, {created: zWND})
+			err := true
+		} 
 		if !(err) {
 			x.addElement(node, path)							; Everything else just needs an element.
 			err = true
