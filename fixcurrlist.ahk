@@ -9,7 +9,7 @@ loop, % (yaN := y.selectNodes("/root/id")).length {
 	x.addElement("id","/root", {mrn:mrn})
 	xNode := x.selectSingleNode(mrnstring)
 	
-	fixnode("call/tasks")							; Don't really care about the arg, just to remind me what it does now.
+	;fixnode("call/tasks")							; Don't really care about the arg, just to remind me what it does now.
 	
 	copynode("demog")
 	copynode("diagnoses")
