@@ -6,6 +6,12 @@ plTasksList:
 	Gui, tlist:Default
 	pTct := 1
 	i:=0
+	if IsObject(plTodo := y.selectSingleNode(pl_mrnstring "/plan/tasks/call")) {
+		plTodoD := plTodo.getAttribute("next")
+		plTodoDate := substr(plTodoD,5,2) "/" substr(plTodoD,7,2)
+		LV_Add("", plTodoDate, "Calling Dr. Love", plTodoD, "call")
+		pTct += 1
+	}
 	Loop, % (plTodos := y.selectNodes(pl_mrnstring "/plan/tasks/todo")).length {
 		plTodo := plTodos.item(A_Index-1)
 		plTodoD := plTodo.getAttribute("due")
