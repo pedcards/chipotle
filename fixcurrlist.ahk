@@ -27,9 +27,10 @@ ExitApp
 copynode(node) {
 	global
 	progress,,%node%,%mrn%
-	if IsObject(clone := yNode.selectSingleNode(node).cloneNode(true))
-		xNode.appendChild(clone)
-	test[node] := xNode.selectSingleNode(node).text
+	loop, % (nodes := yNode.selectNodes(node)).length {
+		if IsObject(clone := nodes.item(A_Index-1).cloneNode(true))
+			xNode.appendChild(clone)
+	}
 }
 
 fixnode(name) {
