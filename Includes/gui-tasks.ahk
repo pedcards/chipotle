@@ -6,10 +6,10 @@ plTasksList:
 	Gui, tlist:Default
 	pTct := 1
 	i:=0
-	if IsObject(plTodo := y.selectSingleNode(pl_mrnstring "/plan/tasks/call")) {
+	if IsObject(plTodo := y.selectSingleNode(pl_mrnstring "/plan/call")) {
 		plTodoD := plTodo.getAttribute("next")
 		plTodoDate := substr(plTodoD,5,2) "/" substr(plTodoD,7,2)
-		LV_Add("", plTodoDate, "Calling Dr. Love", plTodoD, "call")
+		LV_Add("", plTodoDate, "Call Dr. " pl.provCard, plTodoD, "call")
 		pTct += 1
 	}
 	Loop, % (plTodos := y.selectNodes(pl_mrnstring "/plan/tasks/todo")).length {
@@ -63,8 +63,14 @@ plTaskEdit:
 {
 	Ag:=A_GuiEvent
 	plEl := errorlevel
+	LV_GetText(tmpTS, A_EventInfo,4)
+	if (tmpTS="call") {
+		plProv := pl_provCard
+		plName := pl_nameL
+		gosub plCallCard
+		return
+	}
 	If (Ag=="I") {
-		LV_GetText(tmpTS, A_EventInfo,4)
 		if !IsObject(y.selectSingleNode(pl_mrnstring "/plan/done")) {
 			y.addElement("done", pl_mrnstring "/plan")
 			WriteOut(pl_mrnstring "/plan", "done")
