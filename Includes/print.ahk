@@ -50,7 +50,7 @@ PrintIt:
 		}
 		if (pr_call := pr.callN) {
 			pr_call -= A_Now, D
-			if (pr_call<2) {
+			if (pr_call<1) {
 				pr_today .= "\f2q\f0 (" breakDate(pr.callN).MM "/" breakDate(pr.callN).DD ") Call Dr. " pr.provCard "\line\fs12 "
 			}
 		}
