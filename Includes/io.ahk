@@ -10,9 +10,24 @@ GetIt:
 	else
 		Progress, b w300, Consolidating data..., 
 	Progress, 20
-	
+
+	Loop, 5
+	{
+		whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
+			whr.Open("GET","https://depts.washington.edu/pedcards/change", true)
+			whr.Send()
+			whr.WaitForResponse()
+		ckUrl := whr.ResponseText
+		if !instr(ckUrl, "proxy")
+			break
+		Sleep 1000
+		tries := A_Index
+		Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+	}
+	FileGetTime, currtime, currlist.xml
+
 	if (isLocal) {
-		FileCopy, currlist.xml, templist.xml
+		FileCopy, currlist.xml, templist.xml, 1
 	} else {
 		Run pscp.exe -sftp -i chipotle-pr.ppk -p pedcards@homer.u.washington.edu:public_html/%servfold%/currlist.xml templist.xml,, Min
 		sleep 500
@@ -38,7 +53,7 @@ GetIt:
 		z.save("currlist.xml")
 	}
 	FileDelete, oldlist.xml
-	FileCopy, currlist.xml, oldlist.xml										; Backup currlist to oldlist.
+	FileCopy, currlist.xml, oldlist.xml, 1									; Backup currlist to oldlist.
 	x := new XML("currlist.xml")											; Load currlist into working X.
 	
 ;	 Get last dates
