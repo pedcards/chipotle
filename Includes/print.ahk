@@ -323,9 +323,18 @@ Page \chpgn\~\~\~\~
 		FileDelete, %fileout%
 	}
 	FileAppend, %rtfOut%, %fileout%
-	MsgBox, 4, Print now?, Print list: %locString%
-	IfMsgBox, Yes
-	{
+	
+	prt := substr(A_GuiControl,1,1)
+	if (prt="O") {
+		Run, %fileout%
+		MsgBox, 262192, Open temp file
+		, % "Only use this function to troubleshoot `n"
+		. "printing to the local printer. `n`n"
+		. "Changes to this file will not `n"
+		. "be saved to the CHIPOTLE database `n"
+		. "and will likely be lost!"
+		eventlog(fileout " opened in Word.")
+	} else {
 		Run, print %fileout%
 		eventlog(fileout " printed.")
 	}

@@ -37,7 +37,7 @@ TeamList:
 	}
 	Gui, teamL:Font
 	Gui, teamL:Add, Button, % "w100 x10 y5 g" ((isARNP) ? "PrintARNP" : "PrintIt") " vP" location, Print list now
-	Gui, teamL:Add, Button, % "w100 x" ((j+20)*.30)-50 " yP+0 gPrintIt vO" location, Open in Word
+	Gui, teamL:Add, Button, % "w100 x" ((j+20)*.30)-50 " yP+0 g" ((isARNP) ? "PrintARNP" : "PrintIt") " vO" location, Open in Word
 	Gui, teamL:Add, Button, % "w100 x" ((j+20)*.50)-50 " yP+0 gSignOut vS" location, Weekly Summary
 	Gui, teamL:Add, Button, % "w100 x" ((j+20)*.70)-50 " yP+0 gTeamTasks vT" location, Tasks
 	Gui, teamL:Add, Button, % "w100 x" (j-85) " yP+0 gCallList vC" location, Call List
