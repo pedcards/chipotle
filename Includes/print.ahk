@@ -142,10 +142,6 @@ Page \chpgn\~\~\~\~
 	FileAppend, %rtfOut%, %fileout%
 	
 	prt := substr(A_GuiControl,1,1)
-	if (prt="P") {
-		Run, print %fileout%
-		eventlog(fileout " printed.")
-	}
 	if (prt="O") {
 		Run, %fileout%
 		MsgBox, 262192, Open temp file
@@ -155,26 +151,22 @@ Page \chpgn\~\~\~\~
 		. "be saved to the CHIPOTLE database `n"
 		. "and will likely be lost!"
 		eventlog(fileout " opened in Word.")
+	} else {
+		Run, print %fileout%
+		eventlog(fileout " printed.")
 	}
-		
-	;~ MsgBox, 4, Print now?, Print list: %locString% %A_GuiControl%
-	;~ IfMsgBox, Yes
-	;~ {
-		;~ Run, print %fileout%
-		;~ eventlog(fileout " printed.")
-	;~ }
 return
 }
 
-OpenPrint:
-{
-	location := substr(A_GuiControl,2)
-	locString := loc[location,"name"]
-	fileout := "patlist-" . location . ".rtf"
-	Run, %fileout%
-	MsgBox, 262192, Open temp file
-, Only use this function to troubleshoot `nprinting to the local printer. `n`nChanges to this file will not `nbe saved to the CHIPOTLE database `nand will likely be lost!
-	eventlog(fileout " opened in Word.")
-	Return
-}
+;~ OpenPrint:
+;~ {
+	;~ location := substr(A_GuiControl,2)
+	;~ locString := loc[location,"name"]
+	;~ fileout := "patlist-" . location . ".rtf"
+	;~ Run, %fileout%
+	;~ MsgBox, 262192, Open temp file
+;~ , Only use this function to troubleshoot `nprinting to the local printer. `n`nChanges to this file will not `nbe saved to the CHIPOTLE database `nand will likely be lost!
+	;~ eventlog(fileout " opened in Word.")
+	;~ Return
+;~ }
 

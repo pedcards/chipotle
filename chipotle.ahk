@@ -3,17 +3,6 @@
 */
 
 /*	Todo lists: 
-	AHK:
-		- List order (consults at end of list)
-	PHP:
-		- Tasks
-		- Problem list editor
-		- Show consult (C) and transplant (TM) patients on list.
-		- Links to SCAMPs.
-		- Convert to AJAX interface.
-		- Convert to XML DOM rather than SimpleXML.
-		- Sort list by service, Cardiology on top, consults on bottom.
-
 */
 
 #NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
