@@ -3,17 +3,6 @@
 */
 
 /*	Todo lists: 
-	AHK:
-		- List order (consults at end of list)
-	PHP:
-		- Tasks
-		- Problem list editor
-		- Show consult (C) and transplant (TM) patients on list.
-		- Links to SCAMPs.
-		- Convert to AJAX interface.
-		- Convert to XML DOM rather than SimpleXML.
-		- Sort list by service, Cardiology on top, consults on bottom.
-
 */
 
 #NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
@@ -46,7 +35,7 @@ win:=winDim(scr)
 servfold := "patlist"
 if (ObjHasValue(admins,user)) {
 	isAdmin := true
-	if (InStr(A_WorkingDir,"AutoHotkey")) {
+	if (InStr(A_WorkingDir,"Documents")) {
 		tmp:=CMsgBox("Data source","Data from which system?","&Local|&Test Server|Production","Q","V")
 		if (tmp="Local") {
 			isLocal := true
@@ -786,7 +775,6 @@ winDim(scr) {
 #Include labs.ahk
 #Include meds.ahk
 #Include print.ahk
-#Include print-ARNP.ahk
 
 #Include xml.ahk
 #Include StrX.ahk

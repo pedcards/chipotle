@@ -123,7 +123,12 @@ processCIS:										;*** Parse CIS patient list
 	y.save("currlist.xml")
 	eventlog(location " list updated.")
 	FileDelete, .currlock
-	gosub PrintIt
+		
+	MsgBox, 4, Print now?, Print list: %locString%
+	IfMsgBox, Yes
+	{
+		gosub PrintIt
+	}
 Return
 }
 
