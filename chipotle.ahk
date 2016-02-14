@@ -46,7 +46,7 @@ win:=winDim(scr)
 servfold := "patlist"
 if (ObjHasValue(admins,user)) {
 	isAdmin := true
-	if (InStr(A_WorkingDir,"AutoHotkey")) {
+	if (InStr(A_WorkingDir,"Documents")) {
 		tmp:=CMsgBox("Data source","Data from which system?","&Local|&Test Server|Production","Q","V")
 		if (tmp="Local") {
 			isLocal := true
