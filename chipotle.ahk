@@ -3,17 +3,6 @@
 */
 
 /*	Todo lists: 
-	AHK:
-		- List order (consults at end of list)
-	PHP:
-		- Tasks
-		- Problem list editor
-		- Show consult (C) and transplant (TM) patients on list.
-		- Links to SCAMPs.
-		- Convert to AJAX interface.
-		- Convert to XML DOM rather than SimpleXML.
-		- Sort list by service, Cardiology on top, consults on bottom.
-
 */
 
 #NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
@@ -35,7 +24,7 @@ FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.ex
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.7.6.1"
+vers := "1.7.8"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -46,7 +35,7 @@ win:=winDim(scr)
 servfold := "patlist"
 if (ObjHasValue(admins,user)) {
 	isAdmin := true
-	if (InStr(A_WorkingDir,"AutoHotkey")) {
+	if (InStr(A_WorkingDir,"Documents")) {
 		tmp:=CMsgBox("Data source","Data from which system?","&Local|&Test Server|Production","Q","V")
 		if (tmp="Local") {
 			isLocal := true
@@ -224,7 +213,7 @@ Return
 
 ^F12::
 	;FileSelectFile , clipname,, %A_ScriptDir%, Select file:, AHK clip files (*.clip)
-	clipname := "cores0121rhr.clip"
+	clipname := "cores020216rhr.clip"
 	FileRead, Clipboard, *c %clipname%
 Return
 
@@ -620,8 +609,13 @@ RemoveNode(node) {
 
 ObjHasValue(aObj, aValue, rx:="") {
 ; modified from http://www.autohotkey.com/board/topic/84006-ahk-l-containshasvalue-method/	
+	if instr(aObj,"MEDS",true)
+		med := true
     for key, val in aObj
 		if (rx="RX") {
+			if (med) {													; if a med regex, preface with "i)" to make case insensitive search
+				aValue := "i)" aValue
+			}
 			if (aValue ~= val) {
 				return, key, Errorlevel := 0
 			}
@@ -781,7 +775,6 @@ winDim(scr) {
 #Include labs.ahk
 #Include meds.ahk
 #Include print.ahk
-#Include print-ARNP.ahk
 
 #Include xml.ahk
 #Include StrX.ahk

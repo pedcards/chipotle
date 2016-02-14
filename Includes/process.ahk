@@ -123,7 +123,12 @@ processCIS:										;*** Parse CIS patient list
 	y.save("currlist.xml")
 	eventlog(location " list updated.")
 	FileDelete, .currlock
-	gosub PrintIt
+		
+	MsgBox, 4, Print now?, Print list: %locString%
+	IfMsgBox, Yes
+	{
+		gosub PrintIt
+	}
 Return
 }
 
@@ -178,9 +183,9 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 		
 		CORES_MedBlock = 
 		CORES_MedBlock := StrX( ptBlock, "Medications" ,NN,11, "Vitals" ,1,7, NN )
-		CORES_Drips := StrX( CORES_MedBlock, "`nDRIPS`r" ,1,6, "SCH MEDS" ,1,9 )
-		CORES_Meds := StrX( CORES_MedBlock, "`nSCH MEDS`r" ,1,9, "PRN" ,1,4 )
-		CORES_PRN := StrX( CORES_MedBlock, "`nPRN`r" ,1,4, "" ,0,0 )
+		CORES_Drips := StrX( CORES_MedBlock, "DRIPS`r" ,1,6, "SCH MEDS" ,1,9 )
+		CORES_Meds := StrX( CORES_MedBlock, "SCH MEDS`r" ,1,9, "PRN" ,1,4 )
+		CORES_PRN := StrX( CORES_MedBlock, "PRN`r" ,1,4, "" ,0,0 )
 		
 		CORES_vsBlock := StrX( ptBlock, "Vitals" ,NN,6, "Ins/Outs" ,1,8, NN ) ; ...,1,8, NN)
 			CORES_vsWt := StrX( CORES_vsBlock, "Meas Wt:",0,8, "`r`n" ,1,2, NNN)
