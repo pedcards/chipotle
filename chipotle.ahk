@@ -289,7 +289,7 @@ listsort(list,parm="",ord:="") {
 	{
 		mrn := mrns.Item(A_index-1).text
 		pt := ptParse(mrn)
-		ptSort := (inList:=ObjHasValue(teamSort,pt.svc))*10 + (pt.statcons) + (!(inList))*100
+		ptSort := (inList:=ObjHasValue(teamSort,pt.svc,"RX"))*10 + (pt.statcons) + (!(inList))*100
 		var[A_Index] := {mrn:mrn,sort:ptSort,room:pt.Room,unit:pt.Unit,svc:pt.svc}
 	}
 	if !(parm) {									; special sort: Svc->Unit->Room->ptSort
