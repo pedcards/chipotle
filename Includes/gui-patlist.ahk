@@ -64,6 +64,9 @@ PatListGUI:
 		. pl_Unit " :: " pl_Room "`n"
 		. pl_Svc "`n`n"
 		. "Admitted: " pl_Admit "`n"
+	if !(pl_Unit) {																				; no unit means is an ad hoc entry
+		pl_demo := "`nDemographics will be added`nwhen patient is admitted"
+	}
 	Gui, plistG:Destroy
 	Gui, plistG:Default
 	Gui, Add, Text, x26 y38 w200 h80 , % pl_demo
