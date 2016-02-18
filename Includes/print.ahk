@@ -24,11 +24,13 @@ PrintIt:
 		CIS_adm := pr_adm.YYYY . pr_adm.MM . pr_adm.DD
 		CIS_los := A_Now
 		CIS_los -= CIS_adm, days
+		pri := k.selectNodes("info").item(k.selectNodes("info").length-1)			; perhaps choose A_now to only print VS from today
+		
 		pr_today :=
 		pr_todo := "\fs12"
-		if IsObject(pr_VS := k.selectSingleNode("info/vs")) {
+		if IsObject(pr_VS := pri.selectSingleNode("vs")) {
 			pr_todo .= "Wt = " . pr_VS.selectSingleNode("wt").text
-					. ((i:=pr_VS.selectSingleNode("spo2").text) ? ", O2 = (" . StrX(i,,1,1," ",1,1,NN) . ") " . StrX(i," ",NN,1," ",1,1) : "")
+					. ((i:=pr_VS.selectSingleNode("spo2").text) ? ", O2 sat = " . vsMean(i) : "")
 					. "\line "
 		}
 		Loop, % (prMAR:=k.selectNodes("MAR/*")).length {
