@@ -15,6 +15,7 @@ PrintIt:
 
 	rtfList :=
 	CIS_dx :=
+	FormatTime, rtfNow, A_Now, yyyyMMdd
 	
 	Loop, % (prList:=y.selectNodes("/root/lists/" location "/mrn")).length {
 		kMRN := prList.item(i:=A_Index-1).text
@@ -24,20 +25,23 @@ PrintIt:
 		CIS_adm := pr_adm.YYYY . pr_adm.MM . pr_adm.DD
 		CIS_los := A_Now
 		CIS_los -= CIS_adm, days
-		pri := k.selectNodes("info").item(k.selectNodes("info").length-1)			; perhaps choose A_now to only print VS from today
+		pri := k.selectNodes("info").item(k.selectNodes("info").length-1)			; take the last Info child element
 		
 		pr_today :=
 		pr_todo := "\fs12"
-		if IsObject(pr_VS := pri.selectSingleNode("vs")) {
+		if (pri.getAttribute("date") ~= rtfNow) {									; only generate VS if CORES from today
+			pr_VS := pri.selectSingleNode("vs")
 			pr_todo .= "Wt = " . pr_VS.selectSingleNode("wt").text
-					. ((i:=pr_VS.selectSingleNode("spo2").text) ? ", O2 sat = " . vsMean(i) : "")
-					. "\line "
-		}
-		Loop, % (prMAR:=k.selectNodes("MAR/*")).length {
-			prMed := prMAR.item(A_Index-1)
-			prMedCl := prMed.getAttribute("class")
-			if (prMedCl="cardiac") or (prMedCl="arrhythmia") {
-				pr_todo .= "\f2s\f0" . prMed.text . "\line "
+					. ((i:=pr_VS.selectSingleNode("spo2").text) ? ", O2 sat = " . vsMean(i) : "") "\line "
+					. ((i:=pr_VS.selectSingleNode("hr").text) ? "HR = " . vsMean(i) : "")
+					. ((i:=pr_VS.selectSingleNode("rr").text) ? ", RR = " . vsMean(i) : "") "\line "
+					. ((i:=pr_VS.selectSingleNode("bp").text) ? "BP = " . vsMean(i) : "") "\line "
+			Loop, % (prMAR:=k.selectNodes("MAR/*")).length {						; only generate Meds if CORES from today
+				prMed := prMAR.item(A_Index-1)
+				prMedCl := prMed.getAttribute("class")
+				if (prMedCl="cardiac") or (prMedCl="arrhythmia") {
+					pr_todo .= "\f2s\f0" . prMed.text . "\line "
+				}
 			}
 		}
 		Loop, % (plT:=k.selectNodes("plan/tasks/todo")).length {
@@ -78,7 +82,6 @@ PrintIt:
 			. "\row`n"
 	}
 
-	FormatTime, rtfNow, A_Now, yyyyMMdd
 	onCall := getCall(rtfNow)
 	rtfCall := ((tmp:=onCall.Ward_A) ? "Ward: " tmp "   " : "")
 			. ((tmp:=onCall.Ward_F) ? "Ward Fellow: " tmp "   " : "")
