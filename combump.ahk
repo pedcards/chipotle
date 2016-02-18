@@ -13,11 +13,7 @@ SendMode Input ; Recommended for new scripts due to its superior speed and relia
 SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 
 user := A_UserName
-if (user="tchun1") {
-	ahk_path := "O:\PApps\PortableApps\AutoHotkey"
-} else {
-	ahk_path := "C:\Program Files (x86)\AutoHotkey\Compiler"
-}
+ahk_path := ((user="tchun1") ? "O:\PApps\PortableApps" : "C:\Program Files (x86)") . "\AutoHotkey\Compiler"
 ahk2exe_loc := ahk_path "\Ahk2Exe.exe"
 ahk2exe_mpr := ahk_path "\mpress.exe"
 
@@ -48,15 +44,10 @@ FileCopy, chipotle.exe, %fileOut%, 1
 FileMove, chipotle.ini, chipotle.ini, 1
 FileMove, chipotle.tmp, chipotle.ahk, 1
 
-;~ if (user="tchun1") {
-	;~ netDir := "\\chmc16\Cardio\Inpatient List\chipotle\"
-	;~ netFile := """" netDir "chipotle.exe"""
-	;~ netOld := """" netDir "chipotle." versOld ".exe"""
-	;~ netIni := """" netDir "chipotle.ini"""
+ExitApp
 
-	;~ FileMove, %netFile%, %netOld%
-	;~ FileCopy, chipotle.exe, %netFile%, 1
-	;~ FileCopy, chipotle.ini, %netIni%, 1
-;~ }
-
-#Include strx.ahk
+StrX( H,  BS="",BO=0,BT=1,   ES="",EO=0,ET=1,  ByRef N="" ) { ;    | by Skan | 19-Nov-2009
+Return SubStr(H,P:=(((Z:=StrLen(ES))+(X:=StrLen(H))+StrLen(BS)-Z-X)?((T:=InStr(H,BS,0,((BO
+<0)?(1):(BO))))?(T+BT):(X+1)):(1)),(N:=P+((Z)?((T:=InStr(H,ES,0,((EO)?(P+1):(0))))?(T-P+Z
++(0-ET)):(X+P)):(X)))-P) ; v1.0-196c 21-Nov-2009 www.autohotkey.com/forum/topic51354.html
+}
