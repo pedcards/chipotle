@@ -24,7 +24,7 @@ FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.ex
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.7.8.4"
+vers := "1.7.8.5"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -35,7 +35,7 @@ win:=winDim(scr)
 servfold := "patlist"
 if (ObjHasValue(admins,user)) {
 	isAdmin := true
-	if (InStr(A_WorkingDir,"Documents")) {
+	if (InStr(A_WorkingDir,"Ahk")) {
 		tmp:=CMsgBox("Data source","Data from which system?","&Local|&Test Server|Production","Q","V")
 		if (tmp="Local") {
 			isLocal := true
@@ -609,12 +609,13 @@ RemoveNode(node) {
 
 ObjHasValue(aObj, aValue, rx:="") {
 ; modified from http://www.autohotkey.com/board/topic/84006-ahk-l-containshasvalue-method/	
-	if instr(aObj,"MEDS",true)
+	if (rx="med") {
 		med := true
+	}
     for key, val in aObj
-		if (rx="RX") {
+		if (rx) {
 			if (med) {													; if a med regex, preface with "i)" to make case insensitive search
-				aValue := "i)" aValue
+				val := "i)" val
 			}
 			if (aValue ~= val) {
 				return, key, Errorlevel := 0
