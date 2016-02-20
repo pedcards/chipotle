@@ -609,13 +609,12 @@ RemoveNode(node) {
 
 ObjHasValue(aObj, aValue, rx:="") {
 ; modified from http://www.autohotkey.com/board/topic/84006-ahk-l-containshasvalue-method/	
-	if instr(aObj,"meds") {
+	if (rx="med") {
 		med := true
-		MsgBox % med
 	}
     for key, val in aObj
-		if (rx="RX") {
-			if !(med) {													; if a med regex, preface with "i)" to make case insensitive search
+		if (rx) {
+			if (med) {													; if a med regex, preface with "i)" to make case insensitive search
 				val := "i)" val
 			}
 			if (aValue ~= val) {

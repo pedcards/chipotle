@@ -9,15 +9,15 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 		if (StrLen(medName:=tempArray%A_Index%)<3)													; Discard essentially blank lines
 			continue
 		medName:=RegExReplace(medName,"[0-9\.]+\sm(g|Eq).*Rate..IV","gtt.")
-		if ObjHasValue(meds1, medName, "RX") {
+		if ObjHasValue(meds1, medName, "med") {
 			y.addElement(medlist, yMarDt, {class: "Cardiac"}, medName)
 			continue
 		}
-		if ObjHasValue(meds2, medName, "RX") {
+		if ObjHasValue(meds2, medName, "med") {
 			y.addElement(medlist, yMarDt, {class: "Arrhythmia"}, medName)
 			continue
 		}
-		if ObjHasValue(meds0, medName, "RX") {
+		if ObjHasValue(meds0, medName, "med") {
 			continue
 		}
 		else
