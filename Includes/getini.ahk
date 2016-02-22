@@ -28,6 +28,7 @@ ccFields:=[]
 meds1:=[]
 meds2:=[]
 meds0:=[]
+medfilt:=[]
 Forecast_svc:=[]
 Forecast_val:=[]
 
@@ -97,6 +98,10 @@ Forecast_val:=[]
 		}
 		if (sec="MEDS0") {
 			meds0.Insert(i)
+		}
+		if (sec="Med_filt") {
+			splitIni(i,c1,c2)
+			%c1% := c2
 		}
 		if (sec="Forecast") {
 			splitIni(i,c1,c2)
