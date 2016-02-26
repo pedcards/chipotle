@@ -26,10 +26,13 @@ PrintIt:
 		CIS_los := A_Now
 		CIS_los -= CIS_adm, days
 		pri := k.selectNodes("info").item(k.selectNodes("info").length-1)			; take the last Info child element
+		pri_date := pri.getAttribute("date")
+		pri_now := A_Now
+		pri_now -= pri_date, Hours
 		
 		pr_today :=
 		pr_todo := "\fs12"
-		if (pri.getAttribute("date") ~= rtfNow) {									; only generate VS if CORES from today
+		if (pri_now < 26) {									; only generate VS if CORES from today
 			pr_VS := pri.selectSingleNode("vs")
 			pr_todo .= "Wt = " . pr_VS.selectSingleNode("wt").text
 					. ((i:=pr_VS.selectSingleNode("spo2").text) ? ", O2 sat = " . vsMean(i) : "") "\line "
@@ -93,7 +96,7 @@ PrintIt:
 	rtfCall .= ((rtfCall) ? "`n\line`n" : "")
 			. ((tmp:=onCall.ARNP_CL) ? "ARNP Cath: " tmp "   " : "")
 			. ((tmp:=onCall.ARNP_IP) ? "ARNP RC6: " tmp " 7-4594   " : "")
-			. ((tmp:=onCall.CICU) ? "CICU: " tmp " 7-6503, Fellow: 7-6507   " : "")
+			. ((tmp:=onCall.CICU) ? "CICU: " tmp " 7-6503, Fellow: 7-6507, Resource Attg: 7-8532   " : "")
 			. ((tmp:=onCall.Reg_Con) ? "Reg Cons: " tmp "   " : "")
 	rtfCall .= ((rtfCall) ? "`n\line`n" : "")
 			. "\ul HC Fax: 987-3839   Clinic RN: 7-7693   Echo Lab: 7-2019   RC6.Charge RN: 7-2108,7-6200   RC6.UC Desk: 7-2021   FA6.Charge RN: 7-2475   FA6.UC Desk: 7-2040\ul0"
