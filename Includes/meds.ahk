@@ -8,6 +8,9 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 	{
 		if (StrLen(medName:=tempArray%A_Index%)<3)													; Discard essentially blank lines
 			continue
+		if ObjHasValue(meds0, medName, "med") {
+			continue
+		}
 		medName:=RegExReplace(medName,medfilt_med)
 		medName:=RegExReplace(medName,medfilt_drip,"gtt.")
 		if ObjHasValue(meds1, medName, "med") {
@@ -16,9 +19,6 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 		}
 		if ObjHasValue(meds2, medName, "med") {
 			y.addElement(medlist, yMarDt, {class: "Arrhythmia"}, medName)
-			continue
-		}
-		if ObjHasValue(meds0, medName, "med") {
 			continue
 		}
 		else

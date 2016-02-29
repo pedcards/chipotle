@@ -24,7 +24,7 @@ FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.ex
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.7.8.6"
+vers := "1.7.9"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -213,7 +213,7 @@ Return
 
 ^F12::
 	;FileSelectFile , clipname,, %A_ScriptDir%, Select file:, AHK clip files (*.clip)
-	clipname := "cores020216rhr.clip"
+	clipname := "cores0217rhr.clip"
 	FileRead, Clipboard, *c %clipname%
 Return
 

@@ -26,16 +26,19 @@ PrintIt:
 		CIS_los := A_Now
 		CIS_los -= CIS_adm, days
 		pri := k.selectNodes("info").item(k.selectNodes("info").length-1)			; take the last Info child element
+		pri_date := pri.getAttribute("date")
+		pri_now := A_Now
+		pri_now -= pri_date, Hours
 		
 		pr_today :=
 		pr_todo := "\fs12"
-		if (pri.getAttribute("date") ~= rtfNow) {									; only generate VS if CORES from today
+		if (pri_now < 26) {									; only generate VS if CORES from last 24 hr or so
 			pr_VS := pri.selectSingleNode("vs")
-			pr_todo .= "Wt = " . pr_VS.selectSingleNode("wt").text
-					. ((i:=pr_VS.selectSingleNode("spo2").text) ? ", O2 sat = " . vsMean(i) : "") "\line "
-					. ((i:=pr_VS.selectSingleNode("hr").text) ? "HR = " . vsMean(i) : "")
-					. ((i:=pr_VS.selectSingleNode("rr").text) ? ", RR = " . vsMean(i) : "") "\line "
-					. ((i:=pr_VS.selectSingleNode("bp").text) ? "BP = " . vsMean(i) : "") "\line "
+			pr_todo .= "Wt = " . pr_VS.selectSingleNode("wt").text " (" niceDate(pri_date) ")\line "
+					;~ . ((i:=pr_VS.selectSingleNode("spo2").text) ? ", O2 sat = " . vsMean(i) : "") "\line "
+					;~ . ((i:=pr_VS.selectSingleNode("hr").text) ? "HR = " . vsMean(i) : "")
+					;~ . ((i:=pr_VS.selectSingleNode("rr").text) ? ", RR = " . vsMean(i) : "") "\line "
+					;~ . ((i:=pr_VS.selectSingleNode("bp").text) ? "BP = " . vsMean(i) : "") "\line "
 			Loop, % (prMAR:=k.selectNodes("MAR/*")).length {						; only generate Meds if CORES from today
 				prMed := prMAR.item(A_Index-1)
 				prMedCl := prMed.getAttribute("class")
@@ -61,10 +64,10 @@ PrintIt:
 			}
 		}
 
-		CIS_dx := ((pr.dxCard) ? "[[Dx]] " pr.dxCard "\line " : "")
-				. ((pr.dxSurg) ?  "[[Surg]] " pr.dxSurg "\line " : "")
-				. ((pr.dxEP) ? "[[EP]] " pr.dxEP "\line " : "")
-				. ((pr.dxNotes) ? "[[Notes]] " pr.dxNotes : "")
+		CIS_dx := ((pr.dxCard) ? "[[Dx]] " RegExReplace(pr.dxCard,"[\r\n]"," * ") "\line " : "")
+				. ((pr.dxSurg) ?  "[[Surg]] " RegExReplace(pr.dxSurg,"[\r\n]"," * ") "\line " : "")
+				. ((pr.dxEP) ? "[[EP]] " RegExReplace(pr.dxEP,"[\r\n]"," * ") "\line " : "")
+				. ((pr.dxNotes) ? "[[Notes]] " RegExReplace(pr.dxNotes,"[\r\n]"," * ") : "")
 		
 		rtfList .= "\keepn\trowd\trgaph144\trkeep" rtfTblCols "`n\b"
 			. "\intbl " . pr.nameL ", " pr.nameF ((pr.provCard) ? "\fs12  (" pr.provCard . ((pr.provSchCard) ? "//" pr.provSchCard : "") ")\fs18" : "") "\cell`n"
@@ -93,7 +96,7 @@ PrintIt:
 	rtfCall .= ((rtfCall) ? "`n\line`n" : "")
 			. ((tmp:=onCall.ARNP_CL) ? "ARNP Cath: " tmp "   " : "")
 			. ((tmp:=onCall.ARNP_IP) ? "ARNP RC6: " tmp " 7-4594   " : "")
-			. ((tmp:=onCall.CICU) ? "CICU: " tmp " 7-6503, Fellow: 7-6507   " : "")
+			. ((tmp:=onCall.CICU) ? "CICU: " tmp " 7-6503, Fellow: 7-6507, Resource Attg: 7-8532   " : "")
 			. ((tmp:=onCall.Reg_Con) ? "Reg Cons: " tmp "   " : "")
 	rtfCall .= ((rtfCall) ? "`n\line`n" : "")
 			. "\ul HC Fax: 987-3839   Clinic RN: 7-7693   Echo Lab: 7-2019   RC6.Charge RN: 7-2108,7-6200   RC6.UC Desk: 7-2021   FA6.Charge RN: 7-2475   FA6.UC Desk: 7-2040\ul0"
