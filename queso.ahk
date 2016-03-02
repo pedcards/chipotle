@@ -6,6 +6,7 @@ Clipboard = 	; Empty the clipboard
 SendMode Input ; Recommended for new scripts due to its superior speed and reliability.
 SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 SetTitleMatchMode, 2
+#Include includes
 
 z := new XML("currlist.xml")
 za := new XML("archlist.xml")
@@ -28,7 +29,7 @@ MainGUI:
 	Gui, main:Add, Button, wp gViewLog, View logs
 	Gui, main:Add, Button, wp gUnlock, Release lock
 	Gui, main:Add, Button, wp, Search archive
-	Gui, main:Add, Button, wp, Clean archive
+	Gui, main:Add, Button, wp gCleanArch, Clean archive
 	Gui, main:Add, Button, wp gEnvInfo, Env Info
 	Gui, main:Add, Button, wp gActiveWindow, ActiveWindowInfo
 	Gui, main:Show, AutoSize, QUESO Admin
@@ -221,12 +222,88 @@ Unlock:
 	Return
 }
 
+CleanArch:
+{
+	
+	j := 0
+	l_edits := 0
+	Loop, % (totarch := za.selectNodes("/root/id")).length
+	{
+		k := totarch.item((i:=A_index)-1)
+		ta_mrn := k.getAttribute("mrn")
+		ta_name := k.selectSingleNode("demog/name_last").text ", " k.selectSingleNode("demog/name_first").text
+		ta_dx := k.selectSingleNode("diagnoses").text									; Dx fields
+		ta_prov := k.selectSingleNode("prov").getAttribute("provCard")					; Provider attr
+		ta_notes := k.selectSingleNode("notes").text									; Current summary notes
+		ta_plan := k.selectSingleNode("plan").text										; Current todo items
+		ta_archive := k.selectSingleNode("archive").text								; Archived dc/plan and dc/notes
+		if (!ta_dx and !ta_prov and !ta_notes and !ta_plan and !ta_archive) {
+			j ++
+			RemoveNode("/root/id[@mrn='" ta_mrn "']", za)
+			;~ MsgBox,20,% ta_name " - " ta_mrn,% k.text "`n"
+			;~ . "Delete record?"
+			;~ IfMsgBox, Yes
+			;~ {
+				;~ RemoveNode("/root/id[@mrn='" ta_mrn "']", za)
+			;~ }
+		}
+	}
+	MsgBox % j " records removed."
+	za.save("newarch.xml")
+	Return
+}
+
 ObjHasValue(aObj, aValue) {
 ; From http://www.autohotkey.com/board/topic/84006-ahk-l-containshasvalue-method/	
     for key, val in aObj
         if(val = aValue)
             return, true, ErrorLevel := 0
     return, false, errorlevel := 1
+}
+
+PtParse(mrn,ByRef y) {
+	mrnstring := "/root/id[@mrn='" mrn "']"
+	pl := y.selectSingleNode(mrnstring)
+	return {"NameL":pl.selectSingleNode("demog/name_last").text
+		, "NameF":pl.selectSingleNode("demog/name_first").text
+		, "Sex":pl.selectSingleNode("demog/data/sex").text
+		, "DOB":pl.selectSingleNode("demog/data/dob").text
+		, "Age":pl.selectSingleNode("demog/data/age").text
+		, "Svc":pl.selectSingleNode("demog/data/service").text
+		, "Unit":pl.selectSingleNode("demog/data/unit").text
+		, "Room":pl.selectSingleNode("demog/data/room").text
+		, "Admit":pl.selectSingleNode("demog/data/admit").text
+		, "Attg":pl.selectSingleNode("demog/data/attg").text
+		, "dxCard":pl.selectSingleNode("diagnoses/card").text
+		, "dxEP":pl.selectSingleNode("diagnoses/ep").text
+		, "dxSurg":pl.selectSingleNode("diagnoses/surg").text
+		, "dxNotes":pl.selectSingleNode("diagnoses/notes").text
+		, "dxProb":pl.selectSingleNode("diagnoses/prob").text
+		, "misc":pl.selectSingleNode("diagnoses/misc").text
+		, "statCons":(pl.selectSingleNode("status").getAttribute("cons") == "on")
+		, "statRes":(pl.selectSingleNode("status").getAttribute("res") == "on")
+		, "statScamp":(pl.selectSingleNode("status").getAttribute("scamp") == "on")
+		, "callN":pl.selectSingleNode("plan/call").getAttribute("next")
+		, "callL":pl.selectSingleNode("plan/call").getAttribute("last")
+		, "callBy":pl.selectSingleNode("plan/call").getAttribute("by")
+		, "CORES":pl.selectSingleNode("info/hx").text
+		, "info":pl.selectSingleNode("info")
+		, "MAR":pl.selectSingleNode("MAR")
+		, "daily":pl.selectSingleNode("notes/daily")
+		, "ccSys":pl.selectSingleNode("ccSys")
+		, "ProvCard":y.getAtt(mrnstring "/prov","provCard")
+		, "ProvSchCard":y.getAtt(mrnstring "/prov","SchCard")
+		, "ProvCSR":y.getAtt(mrnstring "/prov","CSR")
+		, "ProvEP":y.getAtt(mrnstring "/prov","provEP")
+		, "ProvPCP":y.getAtt(mrnstring "/prov","provPCP")
+		, "statPM":(pl.selectSingleNode("prov").getAttribute("pm") == "on")
+		, "statMil":(pl.selectSingleNode("prov").getAttribute("mil") == "on")
+		, "statTxp":(pl.selectSingleNode("prov").getAttribute("txp") == "on")}
+}
+
+RemoveNode(node,ByRef y) {
+	q := y.selectSingleNode(node)
+	q.parentNode.removeChild(q)
 }
 
 #Include xml.ahk
