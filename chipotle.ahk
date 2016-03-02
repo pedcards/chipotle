@@ -140,7 +140,8 @@ ExitApp
 /*	Clipboard copier
 	Will wait resident until clipboard change, then will save clipboard to file.
 	Tends to falsely trigger a couple of times first. Will exit after .clip successfully saved.
-/
+
+;*/																; add ";" to save clipboard
 OnClipboardChange:
 	FileSelectFile, clipname, 8, , Name of .clip file, *.clip
 	If (clipname) {			; If blank (e.g. pressed cancel), continue; If saved, then exitapp
@@ -152,7 +153,7 @@ OnClipboardChange:
 	}
 Return
 
-*/
+*/																; add ";" for live
 
 OnClipboardChange:
 */
@@ -213,7 +214,7 @@ Return
 
 ^F12::
 	;FileSelectFile , clipname,, %A_ScriptDir%, Select file:, AHK clip files (*.clip)
-	clipname := "cores0217rhr.clip"
+	clipname := "cores0301rhr.clip"
 	FileRead, Clipboard, *c %clipname%
 Return
 
