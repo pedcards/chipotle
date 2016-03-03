@@ -16,7 +16,6 @@ LV_Colors.OnMessage()
 gosub ReadIni
 user := A_UserName
 isAdmin := ObjHasValue(admins,user)
-;~ if (InStr(A_WorkingDir,"-AutoHotkey")) {
 if (user="TC") {
 	netdir := A_WorkingDir "\files\Tuesday Conference"
 } else {
@@ -168,14 +167,16 @@ GetConfDir:
 {
 	confDir := NetConfDir(dt.YYYY,dt.mmm,dt.dd)
 	filelist =
+	patnum =
 	Loop, % netdir "\" confDir "\*" , 2
 	{
 		filelist .= A_LoopFileName "|"
+		patnum ++
 	}
 	Gui, ConfL:Default
 	Gui, Destroy
 	Gui, Font, s16
-	Gui, Add, ListBox, vPatName gPatDir, %filelist%
+	Gui, Add, ListBox, r%patNum% vPatName gPatDir, %filelist%
 	Gui, Show, AutoSize, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
 	Return
 }
@@ -234,7 +235,7 @@ PatDir:
 	Gui, Font, s16
 	Gui, Add, ListBox, r%filenum% vPatFile gPatFileGet,%filelist%
 	Gui, Font, s12
-	Gui, Add, Button, wP, Open all...
+	Gui, Add, Button, wP Disabled, Open all...
 	Gui, Show, AutoSize, % "Patient: " PatName
 	return
 }
