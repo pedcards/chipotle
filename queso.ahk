@@ -258,7 +258,7 @@ CleanArch:
 		}
 	}
 	MsgBox % j " records removed."
-	za.save("newarch.xml")
+	za.save("archlist.xml")
 	Return
 }
 
