@@ -236,16 +236,19 @@ CleanArch:
 		ta_prov := k.selectSingleNode("prov").getAttribute("provCard")					; Provider attr
 		ta_notes := k.selectSingleNode("notes").text									; Current summary notes
 		ta_plan := k.selectSingleNode("plan").text										; Current todo items
-		ta_archive := k.selectSingleNode("archive").text								; Archived dc/plan and dc/notes
-		if (!ta_dx and !ta_prov and !ta_notes and !ta_plan and !ta_archive) {
+		ta_arc := k.selectSingleNode("archive")										; Archived dc/plan and dc/notes
+		if (!ta_dx and !ta_prov and !ta_notes and !ta_plan and !ta_arc.text) {
 			j ++
 			RemoveNode("/root/id[@mrn='" ta_mrn "']", za)
-			;~ MsgBox,20,% ta_name " - " ta_mrn,% k.text "`n"
-			;~ . "Delete record?"
-			;~ IfMsgBox, Yes
-			;~ {
-				;~ RemoveNode("/root/id[@mrn='" ta_mrn "']", za)
-			;~ }
+		} else {
+			loop, % (archRecs := ta_arc.selectNodes("*")).length
+			{
+				kk := archRecs.item((ii:=A_Index)-1)
+				if (!kk.text) {
+					q := kk
+					q.parentNode.removeChild(q)
+				}
+			}
 		}
 	}
 	MsgBox % j " records removed."
