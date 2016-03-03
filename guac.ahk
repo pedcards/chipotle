@@ -255,8 +255,8 @@ PatFileGet:
 		if (patfile)								
 		{
 			pt := parsePatDoc(patDirFile)
-			checkChip(pt)
-			MsgBox % arch
+			checkChip(pt.MRN)
+			MsgBox % pt.nameL ", " pt.nameF
 			;~ lbl := "mrn"
 			;~ MsgBox,, % lbl, % "'" tx[lbl] "'"
 		} else {
@@ -278,10 +278,10 @@ parsePatDoc(doc) {
 	return fieldvals(txt)
 }
 
-checkChip(pt) {
+checkChip(mrn) {
 	global y, arch
-	mrn := "1431528"
 	if IsObject(y.selectSingleNode("//id[@mrn='" mrn "']")) {			; present in any active list?
+		MsgBox Active list
 		;getPatXml
 	} else if IsObject(arch.selectSingleNode("//id[@mrn='" mrn "']")) {			; check the archives
 		MsgBox Archive list
