@@ -249,6 +249,12 @@ CleanArch:
 					q.parentNode.removeChild(q)
 				}
 			}
+			Loop, % (archDx := k.selectNodes("diagnoses/*[not(text())]")).length
+			{
+				kk := archDx.item((ii:=A_Index)-1)
+				q := kk
+				q.parentNode.removeChild(q)
+			}
 		}
 	}
 	MsgBox % j " records removed."
