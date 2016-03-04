@@ -250,15 +250,11 @@ PatFileGet:
 	patdirfile := netdir "\" confdir "\" PatName "\" PatFile
 	filetxt =
 	if ((instr(patFileExt,"doc")) and (instr(PatFile,"PCC note"))) {
-		;~ MsgBox, 262404, Parse file, Harvest info?
-		;~ IfMsgBox, Yes
 		if (patfile)								
 		{
 			pt := parsePatDoc(patDirFile)
 			checkChip(pt.MRN)
 			MsgBox % pt.nameL ", " pt.nameF
-			;~ lbl := "mrn"
-			;~ MsgBox,, % lbl, % "'" tx[lbl] "'"
 		} else {
 		}
 	} else {
@@ -279,18 +275,18 @@ parsePatDoc(doc) {
 }
 
 checkChip(mrn) {
+/*	Checks currlist and archlist for MRN
+	if exists, returns in array pt
+*/
 	global y, arch
-	if IsObject(y.selectSingleNode("//id[@mrn='" mrn "']")) {			; present in any active list?
-		MsgBox Active list
-		;getPatXml
-	} else if IsObject(arch.selectSingleNode("//id[@mrn='" mrn "']")) {			; check the archives
-		MsgBox Archive list
+	if IsObject(k := y.selectSingleNode("//id[@mrn='" mrn "']")) {			; present in any active list?
+		pt := ptParse(mrn,y)
+	} else if IsObject(k := arch.selectSingleNode("//id[@mrn='" mrn "']")) {			; check the archives
+		pt := ptParse(mrn,arch)
 	} else {
-		MsgBox Not on any list
+		;MsgBox Not on any list
 	}
-	
-	;lbl := "cardiologist"
-	;MsgBox,, % lbl, % "'" pt[lbl] "'"
+	return pt
 }
 
 breakDate(x) {
@@ -397,6 +393,47 @@ cleanspace(ByRef txt) {
 	}
 	return txt
 }
+
+PtParse(mrn,ByRef y) {
+	mrnstring := "/root/id[@mrn='" mrn "']"
+	pl := y.selectSingleNode(mrnstring)
+	return {"NameL":pl.selectSingleNode("demog/name_last").text
+		, "NameF":pl.selectSingleNode("demog/name_first").text
+		, "Sex":pl.selectSingleNode("demog/data/sex").text
+		, "DOB":pl.selectSingleNode("demog/data/dob").text
+		, "Age":pl.selectSingleNode("demog/data/age").text
+		, "Svc":pl.selectSingleNode("demog/data/service").text
+		, "Unit":pl.selectSingleNode("demog/data/unit").text
+		, "Room":pl.selectSingleNode("demog/data/room").text
+		, "Admit":pl.selectSingleNode("demog/data/admit").text
+		, "Attg":pl.selectSingleNode("demog/data/attg").text
+		, "dxCard":pl.selectSingleNode("diagnoses/card").text
+		, "dxEP":pl.selectSingleNode("diagnoses/ep").text
+		, "dxSurg":pl.selectSingleNode("diagnoses/surg").text
+		, "dxNotes":pl.selectSingleNode("diagnoses/notes").text
+		, "dxProb":pl.selectSingleNode("diagnoses/prob").text
+		, "misc":pl.selectSingleNode("diagnoses/misc").text
+		, "statCons":(pl.selectSingleNode("status").getAttribute("cons") == "on")
+		, "statRes":(pl.selectSingleNode("status").getAttribute("res") == "on")
+		, "statScamp":(pl.selectSingleNode("status").getAttribute("scamp") == "on")
+		, "callN":pl.selectSingleNode("plan/call").getAttribute("next")
+		, "callL":pl.selectSingleNode("plan/call").getAttribute("last")
+		, "callBy":pl.selectSingleNode("plan/call").getAttribute("by")
+		, "CORES":pl.selectSingleNode("info/hx").text
+		, "info":pl.selectSingleNode("info")
+		, "MAR":pl.selectSingleNode("MAR")
+		, "daily":pl.selectSingleNode("notes/daily")
+		, "ccSys":pl.selectSingleNode("ccSys")
+		, "ProvCard":y.getAtt(mrnstring "/prov","provCard")
+		, "ProvSchCard":y.getAtt(mrnstring "/prov","SchCard")
+		, "ProvCSR":y.getAtt(mrnstring "/prov","CSR")
+		, "ProvEP":y.getAtt(mrnstring "/prov","provEP")
+		, "ProvPCP":y.getAtt(mrnstring "/prov","provPCP")
+		, "statPM":(pl.selectSingleNode("prov").getAttribute("pm") == "on")
+		, "statMil":(pl.selectSingleNode("prov").getAttribute("mil") == "on")
+		, "statTxp":(pl.selectSingleNode("prov").getAttribute("txp") == "on")}
+}
+
 
 #Include xml.ahk
 #Include StrX.ahk
