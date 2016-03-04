@@ -217,10 +217,11 @@ PatDir:
 {
 	if !(A_GuiEvent = "DoubleClick")
 		return
-	Gui, ConfL:Submit
+	Gui, ConfL:Submit, NoHide
+	filepath := netdir "\" confdir "\" PatName
 	filelist =
 	filenum =
-	Loop, % netdir "\" confdir "\" PatName "\*" , 1
+	Loop, % filepath "\*" , 1
 	{
 		name := A_LoopFileName
 		filelist .= (name) ? name "|" : ""
@@ -235,7 +236,7 @@ PatDir:
 	Gui, Font, s16
 	Gui, Add, ListBox, r%filenum% vPatFile gPatFileGet,%filelist%
 	Gui, Font, s12
-	Gui, Add, Button, wP Disabled, Open all...
+	Gui, Add, Button, wP gPatFileGet Disabled, Open all...
 	Gui, Show, AutoSize, % "Patient: " PatName
 	return
 }
@@ -243,22 +244,24 @@ PatDir:
 PatFileGet:
 {
 	if !(A_GuiEvent = "DoubleClick")
+		;MsgBox % A_GuiControl
 		return
-	Gui, PatL:Submit
-		
-	SplitPath, PatFile, , , PatFileExt
-	patdirfile := netdir "\" confdir "\" PatName "\" PatFile
-	filetxt =
-	if ((instr(patFileExt,"doc")) and (instr(PatFile,"PCC note"))) {
-		if (patfile)								
-		{
-			pt := parsePatDoc(patDirFile)
-			checkChip(pt.MRN)
-			MsgBox % pt.nameL ", " pt.nameF
-		} else {
-		}
-	} else {
-		Run, %patDirFile%
+	Gui, PatL:Submit, NoHide
+	
+	pt :=
+	patdirfile := filepath "\" PatFile
+	if (RegExMatch(PatFile,"i)PCC\snote.*\.doc")) {
+		pdoc := parsePatDoc(patDirFile)
+		pt := checkChip(pdoc.MRN)
+	} 
+	Run, %patDirFile%
+	if IsObject(pt) {
+		MsgBox,,% "CHIPOTLE notes - " pt.nameL ", " pt.nameF, % ""
+		. "Diagnoses: " pt.dxCard "`n`n"
+		. "Surgeries/Caths: " pt.dxSurg "`n`n"
+		. "EP issues: " pt.dxEP "`n`n"
+		. "Problems: " pt.dxProb "`n`n"
+		. "Notes: " pt.dxNotes
 	}
 Return
 }
@@ -279,10 +282,10 @@ checkChip(mrn) {
 	if exists, returns in array pt
 */
 	global y, arch
-	if IsObject(k := y.selectSingleNode("//id[@mrn='" mrn "']")) {			; present in any active list?
-		pt := ptParse(mrn,y)
-	} else if IsObject(k := arch.selectSingleNode("//id[@mrn='" mrn "']")) {			; check the archives
-		pt := ptParse(mrn,arch)
+	if IsObject(y.selectSingleNode("//id[@mrn='" mrn "']")) {			; present in any active list?
+		return pt := ptParse(mrn,y)
+	} else if IsObject(arch.selectSingleNode("//id[@mrn='" mrn "']")) {			; check the archives
+		return pt := ptParse(mrn,arch)
 	} else {
 		;MsgBox Not on any list
 	}
