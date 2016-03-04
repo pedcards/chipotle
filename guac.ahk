@@ -221,9 +221,14 @@ PatDir:
 	filepath := netdir "\" confdir "\" PatName
 	filelist =
 	filenum =
+	pt = 
 	Loop, % filepath "\*" , 1
 	{
 		name := A_LoopFileName
+		if (RegExMatch(name,"i)PCC\snote.*\.doc")) {
+			pdoc := parsePatDoc(filepath "\" name)
+			pt := checkChip(pdoc.MRN)
+		}
 		filelist .= (name) ? name "|" : ""
 		filenum ++
 	}
@@ -236,25 +241,49 @@ PatDir:
 	Gui, Font, s16
 	Gui, Add, ListBox, r%filenum% vPatFile gPatFileGet,%filelist%
 	Gui, Font, s12
-	Gui, Add, Button, wP gPatFileGet Disabled, Open all...
+	if IsObject(pt) {
+		Gui, Add, Button, wP gChipInfo, CHIPOTLE data
+	}
+	Gui, Add, Button, wP gPatFileGet , Open all...
 	Gui, Show, AutoSize, % "Patient: " PatName
 	return
 }
 
+ChipInfo:
+{
+	MsgBox,,% "CHIPOTLE notes - " pt.nameL ", " pt.nameF, % ""
+	. "Diagnoses: " pt.dxCard "`n`n"
+	. "Surgeries/Caths: " pt.dxSurg "`n`n"
+	. "EP issues: " pt.dxEP "`n`n"
+	. "Problems: " pt.dxProb "`n`n"
+	. "Notes: " pt.dxNotes
+return
+}
+
 PatFileGet:
 {
-	if !(A_GuiEvent = "DoubleClick")
-		;MsgBox % A_GuiControl
+	files :=
+	if (A_GuiEvent = "DoubleClick") {
+		files := PatFile
+		MsgBox click
+	} else if (A_GuiControl = "Open all...") {
+		files := trim(filelist,"|")
+	} else {
 		return
+	}
 	Gui, PatL:Submit, NoHide
 	
 	pt :=
-	patdirfile := filepath "\" PatFile
-	if (RegExMatch(PatFile,"i)PCC\snote.*\.doc")) {
-		pdoc := parsePatDoc(patDirFile)
-		pt := checkChip(pdoc.MRN)
-	} 
-	Run, %patDirFile%
+	Loop, parse, files, |
+	{
+		patloopfile := A_LoopField
+		patdirfile := filepath "\" PatloopFile
+		if (RegExMatch(PatLoopFile,"i)PCC\snote.*\.doc")) {
+			pdoc := parsePatDoc(patDirFile)
+			pt := checkChip(pdoc.MRN)
+		} 
+		Run, %patDirFile%
+	}
 	if IsObject(pt) {
 		MsgBox,,% "CHIPOTLE notes - " pt.nameL ", " pt.nameF, % ""
 		. "Diagnoses: " pt.dxCard "`n`n"
