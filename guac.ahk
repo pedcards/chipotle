@@ -173,6 +173,7 @@ GetConfDir:
 		filelist .= A_LoopFileName "|"
 		patnum ++
 	}
+	Gui, main:Minimize
 	Gui, ConfL:Default
 	Gui, Destroy
 	Gui, Font, s16
@@ -180,6 +181,11 @@ GetConfDir:
 	Gui, Show, AutoSize, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
 	Return
 }
+
+confLGuiClose:
+	Gui, ConfL:Destroy
+	Gui, main:Show
+return
 
 NetConfDir(yyyy:="",mmm:="",dd:="") {
 	global netdir, mo, datedir
@@ -217,7 +223,7 @@ PatDir:
 {
 	if !(A_GuiEvent = "DoubleClick")
 		return
-	Gui, ConfL:Submit, NoHide
+	Gui, ConfL:Submit
 	filepath := netdir "\" confdir "\" PatName
 	filelist =
 	filenum =
@@ -249,6 +255,11 @@ PatDir:
 	return
 }
 
+PatLGuiClose:
+	Gui, PatL:Destroy
+	Gui, ConfL:Show
+Return
+
 ChipInfo:
 {
 	MsgBox,,% "CHIPOTLE notes - " pt.nameL ", " pt.nameF, % ""
@@ -262,35 +273,20 @@ return
 
 PatFileGet:
 {
-	files :=
+	Gui, PatL:Submit, NoHide
 	if (A_GuiEvent = "DoubleClick") {
 		files := PatFile
-		MsgBox click
 	} else if (A_GuiControl = "Open all...") {
 		files := trim(filelist,"|")
 	} else {
 		return
 	}
-	Gui, PatL:Submit, NoHide
 	
-	pt :=
 	Loop, parse, files, |
 	{
 		patloopfile := A_LoopField
 		patdirfile := filepath "\" PatloopFile
-		if (RegExMatch(PatLoopFile,"i)PCC\snote.*\.doc")) {
-			pdoc := parsePatDoc(patDirFile)
-			pt := checkChip(pdoc.MRN)
-		} 
 		Run, %patDirFile%
-	}
-	if IsObject(pt) {
-		MsgBox,,% "CHIPOTLE notes - " pt.nameL ", " pt.nameF, % ""
-		. "Diagnoses: " pt.dxCard "`n`n"
-		. "Surgeries/Caths: " pt.dxSurg "`n`n"
-		. "EP issues: " pt.dxEP "`n`n"
-		. "Problems: " pt.dxProb "`n`n"
-		. "Notes: " pt.dxNotes
 	}
 Return
 }
@@ -299,10 +295,10 @@ parsePatDoc(doc) {
 	;~ IfNotExist %doc% {
 		;~ return Error
 	;~ }
-	SplitPath, doc, docName, docDir, docExt, docNoExt
-	Progress,,% docNoExt, Reading...
+	;SplitPath, doc, docName, docDir, docExt, docNoExt
+	;Progress,,% docNoExt, Reading...
 	txt := ComObjGet(doc).Range.Text
-	Progress, hide
+	;Progress, hide
 	return fieldvals(txt)
 }
 
