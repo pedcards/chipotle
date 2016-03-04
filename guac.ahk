@@ -16,7 +16,6 @@ LV_Colors.OnMessage()
 gosub ReadIni
 user := A_UserName
 isAdmin := ObjHasValue(admins,user)
-;~ if (InStr(A_WorkingDir,"-AutoHotkey")) {
 if (user="TC") {
 	netdir := A_WorkingDir "\files\Tuesday Conference"
 } else {
@@ -168,17 +167,25 @@ GetConfDir:
 {
 	confDir := NetConfDir(dt.YYYY,dt.mmm,dt.dd)
 	filelist =
+	patnum =
 	Loop, % netdir "\" confDir "\*" , 2
 	{
 		filelist .= A_LoopFileName "|"
+		patnum ++
 	}
+	Gui, main:Minimize
 	Gui, ConfL:Default
 	Gui, Destroy
 	Gui, Font, s16
-	Gui, Add, ListBox, vPatName gPatDir, %filelist%
+	Gui, Add, ListBox, r%patNum% vPatName gPatDir, %filelist%
 	Gui, Show, AutoSize, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
 	Return
 }
+
+confLGuiClose:
+	Gui, ConfL:Destroy
+	Gui, main:Show
+return
 
 NetConfDir(yyyy:="",mmm:="",dd:="") {
 	global netdir, mo, datedir
@@ -217,11 +224,17 @@ PatDir:
 	if !(A_GuiEvent = "DoubleClick")
 		return
 	Gui, ConfL:Submit
+	filepath := netdir "\" confdir "\" PatName
 	filelist =
 	filenum =
-	Loop, % netdir "\" confdir "\" PatName "\*" , 1
+	pt = 
+	Loop, % filepath "\*" , 1
 	{
 		name := A_LoopFileName
+		if (RegExMatch(name,"i)PCC\snote.*\.doc")) {
+			pdoc := parsePatDoc(filepath "\" name)
+			pt := checkChip(pdoc.MRN)
+		}
 		filelist .= (name) ? name "|" : ""
 		filenum ++
 	}
@@ -234,33 +247,45 @@ PatDir:
 	Gui, Font, s16
 	Gui, Add, ListBox, r%filenum% vPatFile gPatFileGet,%filelist%
 	Gui, Font, s12
-	Gui, Add, Button, wP, Open all...
+	if IsObject(pt) {
+		Gui, Add, Button, wP gChipInfo, CHIPOTLE data
+	}
+	Gui, Add, Button, wP gPatFileGet , Open all...
 	Gui, Show, AutoSize, % "Patient: " PatName
 	return
 }
 
+PatLGuiClose:
+	Gui, PatL:Destroy
+	Gui, ConfL:Show
+Return
+
+ChipInfo:
+{
+	MsgBox,,% "CHIPOTLE notes - " pt.nameL ", " pt.nameF, % ""
+	. "Diagnoses: " pt.dxCard "`n`n"
+	. "Surgeries/Caths: " pt.dxSurg "`n`n"
+	. "EP issues: " pt.dxEP "`n`n"
+	. "Problems: " pt.dxProb "`n`n"
+	. "Notes: " pt.dxNotes
+return
+}
+
 PatFileGet:
 {
-	if !(A_GuiEvent = "DoubleClick")
-		return
-	Gui, PatL:Submit
-		
-	SplitPath, PatFile, , , PatFileExt
-	patdirfile := netdir "\" confdir "\" PatName "\" PatFile
-	filetxt =
-	if ((instr(patFileExt,"doc")) and (instr(PatFile,"PCC note"))) {
-		;~ MsgBox, 262404, Parse file, Harvest info?
-		;~ IfMsgBox, Yes
-		if (patfile)								
-		{
-			pt := parsePatDoc(patDirFile)
-			checkChip(pt)
-			MsgBox % arch
-			;~ lbl := "mrn"
-			;~ MsgBox,, % lbl, % "'" tx[lbl] "'"
-		} else {
-		}
+	Gui, PatL:Submit, NoHide
+	if (A_GuiEvent = "DoubleClick") {
+		files := PatFile
+	} else if (A_GuiControl = "Open all...") {
+		files := trim(filelist,"|")
 	} else {
+		return
+	}
+	
+	Loop, parse, files, |
+	{
+		patloopfile := A_LoopField
+		patdirfile := filepath "\" PatloopFile
 		Run, %patDirFile%
 	}
 Return
@@ -270,26 +295,26 @@ parsePatDoc(doc) {
 	;~ IfNotExist %doc% {
 		;~ return Error
 	;~ }
-	SplitPath, doc, docName, docDir, docExt, docNoExt
-	Progress,,% docNoExt, Reading...
+	;SplitPath, doc, docName, docDir, docExt, docNoExt
+	;Progress,,% docNoExt, Reading...
 	txt := ComObjGet(doc).Range.Text
-	Progress, hide
+	;Progress, hide
 	return fieldvals(txt)
 }
 
-checkChip(pt) {
+checkChip(mrn) {
+/*	Checks currlist and archlist for MRN
+	if exists, returns in array pt
+*/
 	global y, arch
-	mrn := "1431528"
 	if IsObject(y.selectSingleNode("//id[@mrn='" mrn "']")) {			; present in any active list?
-		;getPatXml
+		return pt := ptParse(mrn,y)
 	} else if IsObject(arch.selectSingleNode("//id[@mrn='" mrn "']")) {			; check the archives
-		MsgBox Archive list
+		return pt := ptParse(mrn,arch)
 	} else {
-		MsgBox Not on any list
+		;MsgBox Not on any list
 	}
-	
-	;lbl := "cardiologist"
-	;MsgBox,, % lbl, % "'" pt[lbl] "'"
+	return pt
 }
 
 breakDate(x) {
@@ -396,6 +421,47 @@ cleanspace(ByRef txt) {
 	}
 	return txt
 }
+
+PtParse(mrn,ByRef y) {
+	mrnstring := "/root/id[@mrn='" mrn "']"
+	pl := y.selectSingleNode(mrnstring)
+	return {"NameL":pl.selectSingleNode("demog/name_last").text
+		, "NameF":pl.selectSingleNode("demog/name_first").text
+		, "Sex":pl.selectSingleNode("demog/data/sex").text
+		, "DOB":pl.selectSingleNode("demog/data/dob").text
+		, "Age":pl.selectSingleNode("demog/data/age").text
+		, "Svc":pl.selectSingleNode("demog/data/service").text
+		, "Unit":pl.selectSingleNode("demog/data/unit").text
+		, "Room":pl.selectSingleNode("demog/data/room").text
+		, "Admit":pl.selectSingleNode("demog/data/admit").text
+		, "Attg":pl.selectSingleNode("demog/data/attg").text
+		, "dxCard":pl.selectSingleNode("diagnoses/card").text
+		, "dxEP":pl.selectSingleNode("diagnoses/ep").text
+		, "dxSurg":pl.selectSingleNode("diagnoses/surg").text
+		, "dxNotes":pl.selectSingleNode("diagnoses/notes").text
+		, "dxProb":pl.selectSingleNode("diagnoses/prob").text
+		, "misc":pl.selectSingleNode("diagnoses/misc").text
+		, "statCons":(pl.selectSingleNode("status").getAttribute("cons") == "on")
+		, "statRes":(pl.selectSingleNode("status").getAttribute("res") == "on")
+		, "statScamp":(pl.selectSingleNode("status").getAttribute("scamp") == "on")
+		, "callN":pl.selectSingleNode("plan/call").getAttribute("next")
+		, "callL":pl.selectSingleNode("plan/call").getAttribute("last")
+		, "callBy":pl.selectSingleNode("plan/call").getAttribute("by")
+		, "CORES":pl.selectSingleNode("info/hx").text
+		, "info":pl.selectSingleNode("info")
+		, "MAR":pl.selectSingleNode("MAR")
+		, "daily":pl.selectSingleNode("notes/daily")
+		, "ccSys":pl.selectSingleNode("ccSys")
+		, "ProvCard":y.getAtt(mrnstring "/prov","provCard")
+		, "ProvSchCard":y.getAtt(mrnstring "/prov","SchCard")
+		, "ProvCSR":y.getAtt(mrnstring "/prov","CSR")
+		, "ProvEP":y.getAtt(mrnstring "/prov","provEP")
+		, "ProvPCP":y.getAtt(mrnstring "/prov","provPCP")
+		, "statPM":(pl.selectSingleNode("prov").getAttribute("pm") == "on")
+		, "statMil":(pl.selectSingleNode("prov").getAttribute("mil") == "on")
+		, "statTxp":(pl.selectSingleNode("prov").getAttribute("txp") == "on")}
+}
+
 
 #Include xml.ahk
 #Include StrX.ahk
