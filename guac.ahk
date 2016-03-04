@@ -13,9 +13,9 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 WinClose, View Downloads - Windows Internet Explorer
 LV_Colors.OnMessage()
 
-gosub ReadIni
+;gosub ReadIni
 user := A_UserName
-isAdmin := ObjHasValue(admins,user)
+;isAdmin := ObjHasValue(admins,user)
 if (user="TC") {
 	netdir := A_WorkingDir "\files\Tuesday Conference"
 	chipdir := ""
@@ -23,9 +23,6 @@ if (user="TC") {
 	netdir := "\\chmc16\Cardio\Conference\Tuesday Conference"
 	chipdir := "\\childrens\files\HCChipotle\"
 }
-
-datedir := Object()
-mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
 y := new XML(chipdir "currlist.xml")												; Get latest local currlist into memory
 arch := new XML(chipdir "archlist.xml")												; Get archive.xml
@@ -35,6 +32,7 @@ WinWaitClose, GUACAMOLE Main
 ExitApp
 
 ;	===========================================================================================
+/*	Don't know if I even need the INI for Guacamole.
 ReadIni:
 {
 admins:=[]
@@ -128,6 +126,7 @@ splitIni(x, ByRef y, ByRef z) {
 	z := trim(substr(x,k), " `t=""")
 	return
 }
+*/
 
 MainGUI:
 {
@@ -190,7 +189,10 @@ confLGuiClose:
 return
 
 NetConfDir(yyyy:="",mmm:="",dd:="") {
-	global netdir, mo, datedir
+	global netdir
+	datedir := Object()
+	mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+
 	if (IsObject(datedir[yyyy,mmm])) {
 		return yyyy "\" datedir[yyyy,mmm].dir "\" datedir[yyyy,mmm,dd]
 	}
@@ -242,6 +244,7 @@ PatDir:
 	}
 	if !(filelist) {
 		MsgBox No files
+		Gui, ConfL:Show
 		return
 	}
 	Gui, PatL:Default
