@@ -18,15 +18,17 @@ user := A_UserName
 isAdmin := ObjHasValue(admins,user)
 if (user="TC") {
 	netdir := A_WorkingDir "\files\Tuesday Conference"
+	chipdir := ""
 } else {
 	netdir := "\\chmc16\Cardio\Conference\Tuesday Conference"
+	chipdir := "\\childrens\files\HCChipotle\"
 }
 
 datedir := Object()
 mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
-y := new XML("currlist.xml")												; Get latest local currlist into memory
-arch := new XML("archlist.xml")												; Get archive.xml
+y := new XML(chipdir "currlist.xml")												; Get latest local currlist into memory
+arch := new XML(chipdir "archlist.xml")												; Get archive.xml
 
 Gosub MainGUI
 WinWaitClose, GUACAMOLE Main
