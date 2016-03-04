@@ -78,7 +78,7 @@ GetConfDir:
 	Gui, ConfL:Default
 	Gui, Destroy
 	Gui, Font, s16
-	Gui, Add, ListBox, r%patNum% vPatName gPatDir, %filelist%
+	Gui, Add, ListBox, % ((patnum) ? "r" patNum : "") " vPatName gPatDir", %filelist%
 	Gui, Show, AutoSize, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
 	Return
 }
