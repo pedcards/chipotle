@@ -166,25 +166,27 @@ plCardCon:
 	if (instr(provCall,"email")) {
 		;~ ol := ComObjCreate("Outlook.Application")
 		
-		;~ plEml := ol.CreateItem(0)
+		;~ plEml := ol.CreateItem[0]
 		;~ plEml.Subject := "Patient update " substr(pl.nameF,1,1) " " substr(pl.nameL,1,1)
 		;~ plEml.Body := pl.nameF " " substr(pl.nameL,1,1) " (Admitted " strX(pl.admit,,0,0," ",1,1) ") Diagnosis: " emlDx
 		;~ plEml.To := plProvEml
+		;~ MsgBox pause
+		
 		emlSubj := "Patient update " substr(pl.nameF,1,1) " " substr(pl.nameL,1,1)
-		emlDx := pl.dxCard
-		RegExReplace(emlDx," ","%20")
 		tmpmsg:= pl.nameF " " substr(pl.nameL,1,1) " (Admitted " strX(pl.admit,,0,0," ",1,1) ")`r`nDiagnosis:`r`n" RegExReplace(pl.dxCard,"[\r\n]"," * ") 
 		Clipboard := tmpmsg
-		Run, mailto:%plProvEml%?Subject=%emlSubj%&Body=
-		Loop, 10
+		Run , mailto:%plProvEml%?Subject=%emlSubj%&Body=
+		Loop, 30
 		{
 			if (emlWin := WinExist(emlSubj)) {
-				;MsgBox It exists!
 				Break
 			}
 			sleep, 200
 		}
-		Send, ^v
+		WinActivate, % emlSubj
+		sleep 250
+		ControlSend, Message, ^v, %emlSubj%
+		;MsgBox pause
 		gosub plCallMade
 	}
 	gosub plCallCard
