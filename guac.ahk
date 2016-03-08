@@ -168,11 +168,11 @@ Return
 ChipInfo:
 {
 	MsgBox,,% "CHIPOTLE notes - " pt.nameL ", " pt.nameF, % ""
-	. "Diagnoses: " pt.dxCard "`n`n"
-	. "Surgeries/Caths: " pt.dxSurg "`n`n"
-	. "EP issues: " pt.dxEP "`n`n"
-	. "Problems: " pt.dxProb "`n`n"
-	. "Notes: " pt.dxNotes
+	. "Diagnoses:`n" pt.dxCard "`n`n"
+	. "Surgeries/Caths:`n" pt.dxSurg "`n`n"
+	. "EP issues:`n" pt.dxEP "`n`n"
+	. "Problems:`n" pt.dxProb "`n`n"
+	. "Notes: " ((pt.dxNotes) ? "(from " niceDate(pt.dxEd) ")`n" pt.dxNotes : "")
 return
 }
 
@@ -234,6 +234,12 @@ breakDate(x) {
 	FormatTime, D_Mon, %x%, MMM
 	return {"YYYY":D_Yr, "MM":D_Mo, "MMM":D_Mon, "DD":D_Da, "ddd":D_day
 		, "HH":D_Hr, "min":D_Min, "sec":D_sec}
+}
+niceDate(x) {
+	if !(x)
+		return error
+	FormatTime, x, %x%, MM/dd/yyyy
+	return x
 }
 zDigit(x) {
 ; Add leading zero to a number
@@ -340,6 +346,7 @@ PtParse(mrn,ByRef y) {
 		, "Room":pl.selectSingleNode("demog/data/room").text
 		, "Admit":pl.selectSingleNode("demog/data/admit").text
 		, "Attg":pl.selectSingleNode("demog/data/attg").text
+		, "dxEd":y.getAtt(mrnstring "/diagnoses", "ed")
 		, "dxCard":pl.selectSingleNode("diagnoses/card").text
 		, "dxEP":pl.selectSingleNode("diagnoses/ep").text
 		, "dxSurg":pl.selectSingleNode("diagnoses/surg").text
