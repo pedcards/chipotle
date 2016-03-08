@@ -159,13 +159,32 @@ plCardCon:
 			break
 		}
 	}
-	provCall:=CMsgBox(plProvName " " plProvGroup, "Office: `t" plProvPh1 "`n`nCell: `t" plProvPh2 "`n`nEmail: `t" plProvEml, "call made|email sent")
-	if (provCall="call made") {
+	provCall:=CMsgBox(plProvName " " plProvGroup, "Office: `t" plProvPh1 "`n`nCell: `t" plProvPh2 "`n`nEmail: `t" plProvEml, "call made|send email")
+	if (instr(provCall,"call")) {
 		gosub plCallMade
 	}
-	if (provCall="email sent") {
-		tmpmsg:= plProvEml . "`n" . pl.nameF " " substr(pl.nameL,1,1) " (Admitted " strX(pl.admit,,0,0," ",1,1) ") Diagnosis: "
+	if (instr(provCall,"email")) {
+		;~ ol := ComObjCreate("Outlook.Application")
+		
+		;~ plEml := ol.CreateItem(0)
+		;~ plEml.Subject := "Patient update " substr(pl.nameF,1,1) " " substr(pl.nameL,1,1)
+		;~ plEml.Body := pl.nameF " " substr(pl.nameL,1,1) " (Admitted " strX(pl.admit,,0,0," ",1,1) ") Diagnosis: " emlDx
+		;~ plEml.To := plProvEml
+		emlSubj := "Patient update " substr(pl.nameF,1,1) " " substr(pl.nameL,1,1)
+		emlDx := pl.dxCard
+		RegExReplace(emlDx," ","%20")
+		tmpmsg:= pl.nameF " " substr(pl.nameL,1,1) " (Admitted " strX(pl.admit,,0,0," ",1,1) ")`r`nDiagnosis:`r`n" RegExReplace(pl.dxCard,"[\r\n]"," * ") 
 		Clipboard := tmpmsg
+		Run, mailto:%plProvEml%?Subject=%emlSubj%&Body=
+		Loop, 10
+		{
+			if (emlWin := WinExist(emlSubj)) {
+				;MsgBox It exists!
+				Break
+			}
+			sleep, 200
+		}
+		Send, ^v
 		gosub plCallMade
 	}
 	gosub plCallCard
