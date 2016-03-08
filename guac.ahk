@@ -131,6 +131,7 @@ PatDir:
 	filepath := netdir "\" confdir "\" PatName
 	filelist =
 	filenum =
+	pdoc =
 	pt = 
 	Loop, % filepath "\*" , 1
 	{
@@ -154,6 +155,10 @@ PatDir:
 	Gui, Font, s12
 	if IsObject(pt) {
 		Gui, Add, Button, wP gChipInfo, CHIPOTLE data
+	} else if (pdoc.MRN) {
+		Gui, Add, Button, wP, % pdoc.MRN
+	} else {
+		Gui, Add, Button, wP, No MRN found
 	}
 	Gui, Add, Button, wP gPatFileGet , Open all...
 	Gui, Show, AutoSize, % "Patient: " PatName
