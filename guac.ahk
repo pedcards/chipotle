@@ -21,6 +21,8 @@ if (user="TC") {
 
 y := new XML(chipdir "currlist.xml")												; Get latest local currlist into memory
 arch := new XML(chipdir "archlist.xml")												; Get archive.xml
+datedir := Object()
+mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
 Gosub MainGUI
 WinWaitClose, GUACAMOLE Main
@@ -89,9 +91,7 @@ confLGuiClose:
 return
 
 NetConfDir(yyyy:="",mmm:="",dd:="") {
-	global netdir
-	datedir := Object()
-	mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+	global netdir, datedir, mo
 
 	if (IsObject(datedir[yyyy,mmm])) {
 		return yyyy "\" datedir[yyyy,mmm].dir "\" datedir[yyyy,mmm,dd]
@@ -110,14 +110,14 @@ NetConfDir(yyyy:="",mmm:="",dd:="") {
 	{
 		file := A_LoopFileName
 		if (regexmatch(file,"\d{1,2}\.\d{1,2}\.\d{1,2}")) {			; sometimes named "6.19.15"
-			dd := zdigit(strX(file,".",1,1,".",1,1))
-			datedir[yyyy,mmm,dd] := file
+			d0 := zdigit(strX(file,".",1,1,".",1,1))
+			datedir[yyyy,mmm,d0] := file
 		} else if (RegExMatch(file,"\w\s\d{1,2}")){					; sometimes named "Jun 19" or "June 19"
-			dd := zdigit(strX(file," ",1,1,"",1,0))
-			datedir[yyyy,mmm,dd] := file
+			d0 := zdigit(strX(file," ",1,1,"",1,0))
+			datedir[yyyy,mmm,d0] := file
 		} else if (regexmatch(file,"\b\d{1,2}\b")) {				; sometimes just named "19"
-			dd := zdigit(file)
-			datedir[yyyy,mmm,dd] := file
+			d0 := zdigit(file)
+			datedir[yyyy,mmm,d0] := file
 		}															; inserts dir name into datedir[yyyy,mmm,dd]
 	}
 return yyyy "\" datedir[yyyy,mmm].dir "\" datedir[yyyy,mmm,dd]		; returns path to that date's conference 
