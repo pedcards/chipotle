@@ -21,6 +21,8 @@ if (user="TC") {
 
 y := new XML(chipdir "currlist.xml")												; Get latest local currlist into memory
 arch := new XML(chipdir "archlist.xml")												; Get archive.xml
+datedir := Object()
+mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
 Gosub MainGUI
 WinWaitClose, GUACAMOLE Main
@@ -89,9 +91,7 @@ confLGuiClose:
 return
 
 NetConfDir(yyyy:="",mmm:="",dd:="") {
-	global netdir
-	datedir := Object()
-	mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+	global netdir, datedir, mo
 
 	if (IsObject(datedir[yyyy,mmm])) {
 		return yyyy "\" datedir[yyyy,mmm].dir "\" datedir[yyyy,mmm,dd]
@@ -110,14 +110,14 @@ NetConfDir(yyyy:="",mmm:="",dd:="") {
 	{
 		file := A_LoopFileName
 		if (regexmatch(file,"\d{1,2}\.\d{1,2}\.\d{1,2}")) {			; sometimes named "6.19.15"
-			dd := zdigit(strX(file,".",1,1,".",1,1))
-			datedir[yyyy,mmm,dd] := file
+			d0 := zdigit(strX(file,".",1,1,".",1,1))
+			datedir[yyyy,mmm,d0] := file
 		} else if (RegExMatch(file,"\w\s\d{1,2}")){					; sometimes named "Jun 19" or "June 19"
-			dd := zdigit(strX(file," ",1,1,"",1,0))
-			datedir[yyyy,mmm,dd] := file
+			d0 := zdigit(strX(file," ",1,1,"",1,0))
+			datedir[yyyy,mmm,d0] := file
 		} else if (regexmatch(file,"\b\d{1,2}\b")) {				; sometimes just named "19"
-			dd := zdigit(file)
-			datedir[yyyy,mmm,dd] := file
+			d0 := zdigit(file)
+			datedir[yyyy,mmm,d0] := file
 		}															; inserts dir name into datedir[yyyy,mmm,dd]
 	}
 return yyyy "\" datedir[yyyy,mmm].dir "\" datedir[yyyy,mmm,dd]		; returns path to that date's conference 
@@ -131,6 +131,7 @@ PatDir:
 	filepath := netdir "\" confdir "\" PatName
 	filelist =
 	filenum =
+	pdoc =
 	pt = 
 	Loop, % filepath "\*" , 1
 	{
@@ -154,6 +155,10 @@ PatDir:
 	Gui, Font, s12
 	if IsObject(pt) {
 		Gui, Add, Button, wP gChipInfo, CHIPOTLE data
+	} else if (pdoc.MRN) {
+		Gui, Add, Button, wP, % pdoc.MRN
+	} else {
+		Gui, Add, Button, wP, No MRN found
 	}
 	Gui, Add, Button, wP gPatFileGet , Open all...
 	Gui, Show, AutoSize, % "Patient: " PatName
@@ -168,11 +173,11 @@ Return
 ChipInfo:
 {
 	MsgBox,,% "CHIPOTLE notes - " pt.nameL ", " pt.nameF, % ""
-	. "Diagnoses: " pt.dxCard "`n`n"
-	. "Surgeries/Caths: " pt.dxSurg "`n`n"
-	. "EP issues: " pt.dxEP "`n`n"
-	. "Problems: " pt.dxProb "`n`n"
-	. "Notes: " pt.dxNotes
+	. "Diagnoses:`n" pt.dxCard "`n`n"
+	. "Surgeries/Caths:`n" pt.dxSurg "`n`n"
+	. "EP issues:`n" pt.dxEP "`n`n"
+	. "Problems:`n" pt.dxProb "`n`n"
+	. "Notes: " ((pt.dxNotes) ? "(from " niceDate(pt.dxEd) ")`n" pt.dxNotes : "")
 return
 }
 
@@ -234,6 +239,12 @@ breakDate(x) {
 	FormatTime, D_Mon, %x%, MMM
 	return {"YYYY":D_Yr, "MM":D_Mo, "MMM":D_Mon, "DD":D_Da, "ddd":D_day
 		, "HH":D_Hr, "min":D_Min, "sec":D_sec}
+}
+niceDate(x) {
+	if !(x)
+		return error
+	FormatTime, x, %x%, MM/dd/yyyy
+	return x
 }
 zDigit(x) {
 ; Add leading zero to a number
@@ -340,6 +351,7 @@ PtParse(mrn,ByRef y) {
 		, "Room":pl.selectSingleNode("demog/data/room").text
 		, "Admit":pl.selectSingleNode("demog/data/admit").text
 		, "Attg":pl.selectSingleNode("demog/data/attg").text
+		, "dxEd":y.getAtt(mrnstring "/diagnoses", "ed")
 		, "dxCard":pl.selectSingleNode("diagnoses/card").text
 		, "dxEP":pl.selectSingleNode("diagnoses/ep").text
 		, "dxSurg":pl.selectSingleNode("diagnoses/surg").text

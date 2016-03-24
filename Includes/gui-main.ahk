@@ -77,18 +77,7 @@ return
 
 ButtonGuac:
 {
-MsgBox,, GUACAMOLE,
-(
-GUACAMOLE!
-The General Use Archive for Conference Access to Merged OnLine Encounters
-Conference access point. Calls up and displays data in organized folders. 
-Conference organizers still put files in the same order and place that they 
-always have. GUACAMOLE will be able to track patients presented through the 
-native DOCX and XLSX.
-
-Still in progress!
-)
-Run, guac.ahk
+Run, "\\chmc16\Cardio\Conference\Tuesday Conference\GUACAMOLE!.exe"
 Return
 }
 

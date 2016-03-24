@@ -1,4 +1,4 @@
-/* 	Patient List Updater (C)2014-2015 TC
+/* 	Patient List Updater (C)2014-2016 TC
 	CHIPOTLE = Children's Heart Center InPatient Online Task List Environment
 */
 
@@ -24,7 +24,7 @@ FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.ex
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.7.9.1"
+vers := "1.7.9.2"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -399,7 +399,7 @@ readForecast:
 		k:=fcN.item(A_index-1)
 		tmpDt := k.getAttribute("date")
 		tmpDt -= A_Now, Days
-		if (tmpDt < -1) {
+		if (tmpDt < -21) {																		; save call schedule for 3 weeks (for TRRIQ)
 			RemoveNode("/root/lists/forecast/call[@date='" k.getAttribute("date") "']")
 		}
 	}
