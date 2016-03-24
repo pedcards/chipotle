@@ -399,7 +399,7 @@ readForecast:
 		k:=fcN.item(A_index-1)
 		tmpDt := k.getAttribute("date")
 		tmpDt -= A_Now, Days
-		if (tmpDt < -1) {
+		if (tmpDt < -21) {																		; save call schedule for 3 weeks (for TRRIQ)
 			RemoveNode("/root/lists/forecast/call[@date='" k.getAttribute("date") "']")
 		}
 	}
