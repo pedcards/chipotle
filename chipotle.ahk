@@ -64,7 +64,7 @@ if (ObjHasValue(ArnpUsers,user))
 
 if (isCICU) {
 	loc := ["CSR","CICU"]												; loc[] defines the choices offered from QueryList. You can only break your own list.
-	loc["CSR"] := {"name":"Cardiac Surgery", "datevar":"GUIcsrTXT"}
+	loc["CSR"] := {"name":"Cardiac Surgery", "datevar":"GUIcsrTXT"}		; loc["CSR"] is XML lists/CSR, "name":"Cardiac Surgery" is string on GUI
 	loc["CICU"] := {"name":"Cardiac ICU", "datevar":"GUIicuTXT"}
 	callLoc := "CICUSur"
 	mainTitle1 := "CHILI"
