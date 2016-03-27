@@ -136,6 +136,9 @@ PatDir:
 	Loop, % filepath "\*" , 1
 	{
 		name := A_LoopFileName
+		if (instr(name,"~$")) {
+			continue
+		}
 		if (RegExMatch(name,"i)PCC\snote.*\.doc")) {
 			pdoc := parsePatDoc(filepath "\" name)
 			pt := checkChip(pdoc.MRN)
@@ -151,7 +154,7 @@ PatDir:
 	Gui, PatL:Default
 	Gui, Destroy
 	Gui, Font, s16
-	Gui, Add, ListBox, r%filenum% vPatFile gPatFileGet,%filelist%
+	Gui, Add, ListBox, r%filenum% w400 vPatFile gPatFileGet,%filelist%
 	Gui, Font, s12
 	if IsObject(pt) {
 		Gui, Add, Button, wP gChipInfo, CHIPOTLE data
@@ -191,7 +194,13 @@ PatFileGet:
 	} else {
 		return
 	}
-	
+	If (filenum>4) {
+		MsgBox, 52, % "Lots of files (" filenum ")", Really open all of these files?
+		IfMsgBox, Yes
+			tmp = true
+		if !(tmp) 
+			return
+	}
 	Loop, parse, files, |
 	{
 		patloopfile := A_LoopField
