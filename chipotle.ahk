@@ -332,6 +332,88 @@ Sort2D(Byref TDArray, KeyName, Order=1) {
 	}
 }
 
+readStorkList:
+{
+/*	Directly read a Stork List XLS.
+	Sheets
+		(1) is "Potential cCHD"
+		(2) is "Neonatal echo and Regional Cons"
+		(3) is archives
+	
+*/
+	if IsObject(y.selectSingleNode("/root/lists/stork") {
+		RemoveNode("/root/lists/stork")
+	}
+	y.addElement("stork","/root/lists"), {date:timenow}
+		
+	storkPath := A_WorkingDir "\files\stork.xls"
+	oWorkbook := ComObjGet(storkPath)
+	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] ;array of column letters
+	stork_hdr := Object()
+	stork_cel := Object()
+	Loop 
+	{
+		RowNum := A_Index
+		chk := oWorkbook.Sheets(1).Range("A" RowNum).value
+		if (RowNum=1) {
+			upDate := chk
+			continue
+		}
+		if !(chk)
+			break
+		Progress,,% rownum, Scanning Stork List
+		Loop
+		{	
+			ColNum := A_Index
+			if (colnum>maxcol)
+				maxcol:=colnum
+			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value
+			if ((cel="") && (colnum=maxcol))
+				break
+			if (rownum=2) {
+				if (cel~="Mother's Name") {
+					cel:="Names"
+				}
+				if (cel~="Mother.*SCH.*#") {
+					cel:="Mother SCH"
+				}
+				if (cel~="Mother.*\sU.*#") {
+					cel:="Mother UW"
+				}
+				if (cel~="Planned.*del.*date") {
+					cel:="Planned date"
+				}
+				if (cel~="i)Most.*Recent.*Consult") {
+					cel:="Recent dates"
+				}
+				if (cel~="i)cord.*blood") {
+					cel:="Cord blood"
+				}
+				if (cel~="i)care.*plan.*ORCA") {
+					cel:="Orca plan"
+				}
+				if (cel~="i)Continuity.*Cardio") {
+					cel:="CRD"
+				}
+				stork_hdr[ColNum] := cel
+			} else {
+				stork_cel[ColNum] := cel
+			}
+		}
+		y.addElement("id","/root",{mrn:stork_cel[ObjHasValue(stork_hdr,"Mother SCH")]})
+	}
+	Progress, Hide
+
+	oExcel := oWorkbook.Application
+	oExcel.quit
+
+	MsgBox Electronic Forecast updated.
+	Writeout("/root/lists","stork")
+	Eventlog("Stork List updated.")
+Return
+}
+
+
 readForecast:
 {
 /*	Parse the block into another table:
