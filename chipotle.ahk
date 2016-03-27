@@ -403,14 +403,30 @@ readStorkList:
 		stork_mrn := Round(stork_cel[ObjHasValue(stork_hdr,"Mother SCH")])
 		if !(stork_mrn)
 			continue
+		y.addElement("id","/root/lists/stork",{mrn:stork_mrn})
+		stork_str := "/root/lists/stork/id[@mrn='" stork_mrn "']"
+		
 		stork_names := stork_cel[ObjHasValue(stork_hdr,"Names")]
-			if (pos2:=instr(stork_names,",",,,2)) {												; A second "," means baby name present
-				lastname := RegExMatch(stork_names,"(?<=\s)\w+,",,instr(stork_names,",",,,1))
-;				MsgBox % "`n`n`n`n`n`n`n" lastname " - " pos2
+			if (instr(stork_names,",",,,2)) {												; A second "," means baby name present
+				pos2 := RegExMatch(stork_names,"(?<=\s)\w+,",,instr(stork_names,",",,,1))
+				name2 := trim(substr(stork_names,pos2))
+				name1 := trim(substr(stork_names,1,pos2-1))
+				;MsgBox % "`n`n`n`n`n`n`n`n" name1 "`n" name2
+				y.addElement("Mother", stork_str)
+					y.addElement("NameL", stork_str "/Mother", trim(strX(name1,,0,0,", ",1,2)))
+					y.addElement("NameF", stork_str "/Mother", trim(strX(name1,", ",0,2)))
+				y.addElement("Baby", stork_str)
+					y.addElement("NameL", stork_str "/Baby", trim(strX(name2,,0,0,", ",1,2)))
+					y.addElement("NameF", stork_str "/Baby", trim(strX(name2,", ",0,2)))
+			} else {
+				y.addElement("Mother", stork_str)
+					y.addElement("NameL", stork_str "/Mother", trim(strX(stork_names,,0,0,", ",1,2)))
+					y.addElement("NameF", stork_str "/Mother", trim(strX(stork_names,", ",0,2)))
 			}
 
+			CORES_name_last := Trim(StrX(CORES_name, ,0,0, ", ",1,2))			
+			CORES_name_first := Trim(StrX(CORES_name, ", ",0,2, " ",1,0))	
 
-	y.addElement("id","/root/lists/stork",{mrn:stork_mrn})
 	}
 	Progress, Hide
 
