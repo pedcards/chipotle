@@ -136,7 +136,7 @@ PatDir:
 	Loop, % filepath "\*" , 1
 	{
 		name := A_LoopFileName
-		if (instr(name,"~$")) {
+		if (name~="(\~\$|Thumbs.db)") {
 			continue
 		}
 		if (RegExMatch(name,"i)PCC\snote.*\.doc")) {
@@ -191,15 +191,15 @@ PatFileGet:
 		files := PatFile
 	} else if (A_GuiControl = "Open all...") {
 		files := trim(filelist,"|")
+		If (filenum>4) {
+			MsgBox, 52, % "Lots of files (" filenum ")", Really open all of these files?
+			IfMsgBox, Yes
+				tmp = true
+			if !(tmp) 
+				return
+		}
 	} else {
 		return
-	}
-	If (filenum>4) {
-		MsgBox, 52, % "Lots of files (" filenum ")", Really open all of these files?
-		IfMsgBox, Yes
-			tmp = true
-		if !(tmp) 
-			return
 	}
 	Loop, parse, files, |
 	{
