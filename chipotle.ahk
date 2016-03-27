@@ -341,7 +341,7 @@ readStorkList:
 		(3) is archives
 	
 */
-	if IsObject(y.selectSingleNode("/root/lists/stork") {
+	if IsObject(y.selectSingleNode("/root/lists/stork")) {
 		RemoveNode("/root/lists/stork")
 	}
 	y.addElement("stork","/root/lists"), {date:timenow}
@@ -400,14 +400,24 @@ readStorkList:
 				stork_cel[ColNum] := cel
 			}
 		}
-		y.addElement("id","/root",{mrn:stork_cel[ObjHasValue(stork_hdr,"Mother SCH")]})
+		stork_mrn := Round(stork_cel[ObjHasValue(stork_hdr,"Mother SCH")])
+		if !(stork_mrn)
+			continue
+		stork_names := stork_cel[ObjHasValue(stork_hdr,"Names")]
+			if (pos2:=instr(stork_names,",",,,2)) {												; A second "," means baby name present
+				lastname := RegExMatch(stork_names,"(?<=\s)\w+,",,instr(stork_names,",",,,1))
+;				MsgBox % "`n`n`n`n`n`n`n" lastname " - " pos2
+			}
+
+
+	y.addElement("id","/root/lists/stork",{mrn:stork_mrn})
 	}
 	Progress, Hide
 
 	oExcel := oWorkbook.Application
 	oExcel.quit
 
-	MsgBox Electronic Forecast updated.
+	MsgBox Stork List updated.
 	Writeout("/root/lists","stork")
 	Eventlog("Stork List updated.")
 Return
