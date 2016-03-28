@@ -341,6 +341,11 @@ readStorkList:
 		(3) is archives
 	
 */
+	storkPath := A_WorkingDir "\files\stork.xls"
+	if !FileExist(storkPath) {
+		MsgBox None!
+		return
+	}
 	if IsObject(y.selectSingleNode("/root/lists/stork")) {
 		RemoveNode("/root/lists/stork")
 	}
