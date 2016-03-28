@@ -395,7 +395,7 @@ readStorkList:
 				if (cel~="i)Continuity.*Cardio") {
 					cel:="CRD"
 				}
-				stork_hdr[ColNum] := cel
+				stork_hdr[ColNum] := trim(cel)
 			} else {
 				stork_cel[ColNum] := cel
 			}
@@ -408,26 +408,70 @@ readStorkList:
 		
 		stork_names := stork_cel[ObjHasValue(stork_hdr,"Names")]
 		if (instr(stork_names,",",,,2)) {												; A second "," means baby name present
-			pos2 := RegExMatch(stork_names,"(?<=\s)\w+,",,instr(stork_names,",",,,1))
+			pos2 := RegExMatch(stork_names,"i)(?<=\s)[a-z\-\/]+,",,instr(stork_names,",",,,1))
 			name2 := trim(substr(stork_names,pos2))
 			name1 := trim(substr(stork_names,1,pos2-1))
-			;MsgBox % "`n`n`n`n`n`n`n`n" name1 "`n" name2
-			y.addElement("Mother", stork_str)
-				y.addElement("NameL", stork_str "/Mother", trim(strX(name1,,0,0,", ",1,2)))
-				y.addElement("NameF", stork_str "/Mother", trim(strX(name1,", ",0,2)))
-			y.addElement("Baby", stork_str)
-				y.addElement("NameL", stork_str "/Baby", trim(strX(name2,,0,0,", ",1,2)))
-				y.addElement("NameF", stork_str "/Baby", trim(strX(name2,", ",0,2)))
+			y.addElement("mother", stork_str)
+				y.addElement("nameL", stork_str "/mother", trim(strX(name1,,0,0,", ",1,2)))
+				y.addElement("nameF", stork_str "/mother", trim(strX(name1,", ",0,2)))
+			y.addElement("baby", stork_str)
+				y.addElement("nameL", stork_str "/baby", trim(strX(name2,,0,0,", ",1,2)))
+				y.addElement("nameF", stork_str "/baby", trim(strX(name2,", ",0,2)))
 		} else {
-			y.addElement("Mother", stork_str)
-				y.addElement("NameL", stork_str "/Mother", trim(strX(stork_names,,0,0,", ",1,2)))
-				y.addElement("NameF", stork_str "/Mother", trim(strX(stork_names,", ",0,2)))
+			y.addElement("mother", stork_str)
+				y.addElement("nameL", stork_str "/mother", trim(strX(stork_names,,0,0,", ",1,2)))
+				y.addElement("nameF", stork_str "/mother", trim(strX(stork_names,", ",0,2)))
 		}
 		
 		stork_uw := stork_cel[ObjHasValue(stork_hdr,"Mother UW")]
 		if (stork_uw)
-			y.addElement("UW", stork_str "/Mother", stork_uw)
+			y.addElement("UW", stork_str "/mother", stork_uw)
 		
+		stork_home := stork_cel[ObjHasValue(stork_hdr,"Home")]
+		y.addElement("home", stork_str "/mother", stork_home)
+		
+		stork_hosp := stork_cel[ObjHasValue(stork_hdr,"Delivery Hosp")]
+		y.addElement("birth", stork_str)
+		y.addElement("hosp", stork_str "/birth", stork_hosp)
+		
+		stork_edc := stork_cel[ObjHasValue(stork_hdr,"EDC")]
+		y.addElement("edc", stork_str "/birth", stork_edc)
+		
+		stork_del := stork_cel[ObjHasValue(stork_hdr,"Planned date")]
+		if (stork_del) {
+			tmp := RegExMatch(stork_del,"\d")
+			y.addElement("mode", stork_str "/birth", trim(substr(stork_del,1,tmp-1)))
+			y.addElement("planned", stork_str "/birth", trim(substr(stork_del,tmp)))
+		}
+		
+		stork_dx := stork_cel[ObjHasValue(stork_hdr,"Diagnosis")]
+		y.addElement("dx", stork_str "/baby", stork_dx)
+		
+		stork_notes := stork_cel[ObjHasValue(stork_hdr,"Comments")]
+		if (stork_notes)
+			y.addElement("notes", stork_str "/baby", stork_notes)
+		
+		y.addElement("prov", stork_str)
+		
+		stork_cont := stork_cel[ObjHasValue(stork_hdr,"CRD")]
+		if (stork_cont)
+			y.addElement("cont", stork_str "/prov", stork_cont)
+		
+		stork_prv := trim(cleanSpace(stork_cel[ObjHasValue(stork_hdr,"Recent dates")]))
+		nn := 0
+		While (stork_prv) 
+		{
+			stork_prov := parsePnProv(stork_prv)
+			y.addElement(stork_prov.svc, stork_str "/prov", {date:stork_prov.date}, stork_prov.prov)
+		}
+		
+		stork_cord := stork_cel[ObjHasValue(stork_hdr,"Cord blood")]
+		if (stork_cord)
+			y.addElement("cord", stork_str "/birth", stork_cord)
+		
+		stork_orca := stork_cel[ObjHasValue(stork_hdr,"Orca Plan")]
+		if (stork_orca)
+			y.addElement("orca", stork_str "/birth", stork_orca)
 		
 	}
 	Progress, Hide
@@ -441,6 +485,14 @@ readStorkList:
 Return
 }
 
+parsePnProv(ByRef txt) {
+	str := strX(txt,"",0,0, " ",1,1,n)
+	svc := strX(str,"",0,0, "/",1,1)
+	prov := strX(str,"/",1,1, "/",1,1,nn)
+	dt := substr(str,nn+1)
+	txt := substr(txt,n)
+	return {svc:trim(svc), prov:trim(prov), date:trim(dt)}
+}
 
 readForecast:
 {
