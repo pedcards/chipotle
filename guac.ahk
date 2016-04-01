@@ -140,8 +140,7 @@ PatDir:
 			continue
 		}
 		if (RegExMatch(name,"i)PCC\snote.*\.doc")) {
-			pdoc := parsePatDoc(filepath "\" name)
-			pt := checkChip(pdoc.MRN)
+			pdoc := filepath "\" name
 		}
 		filelist .= (name) ? name "|" : ""
 		filenum ++
@@ -156,15 +155,18 @@ PatDir:
 	Gui, Font, s16
 	Gui, Add, ListBox, r%filenum% w400 vPatFile gPatFileGet,%filelist%
 	Gui, Font, s12
-	if IsObject(pt) {
-		Gui, Add, Button, wP gChipInfo, CHIPOTLE data
-	} else if (pdoc.MRN) {
-		Gui, Add, Button, wP, % pdoc.MRN
-	} else {
-		Gui, Add, Button, wP, No MRN found
-	}
+	Gui, Add, Button, wP Disabled vplMRNbut gChipInfo, No MRN found
 	Gui, Add, Button, wP gPatFileGet , Open all...
 	Gui, Show, AutoSize, % "Patient: " PatName
+	if (pdoc) {
+		pdoc := parsePatDoc(pdoc)
+		GuiControl, , plMRNbut, % pdoc.MRN
+		pt := checkChip(pdoc.MRN)
+	}
+	if IsObject(pt) {
+		GuiControl, , plMRNbut, CHIPOTLE data
+		GuiControl, Enable, plMRNbut
+	}
 	return
 }
 
