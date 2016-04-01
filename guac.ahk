@@ -139,7 +139,7 @@ PatDir:
 		if (name~="(\~\$|Thumbs.db)") {
 			continue
 		}
-		if (RegExMatch(name,"i)PCC\snote.*\.doc")) {
+		if (RegExMatch(name,"i)PCC(\snote)?.*\.doc")) {
 			pdoc := filepath "\" name
 		}
 		filelist .= (name) ? name "|" : ""
