@@ -87,19 +87,18 @@ GetConfDir:
 		patnum ++
 	}
 	confList["Griffin"].done := true
-	;MsgBox,,% confList.length(), % confList[2]
+;	confList["Griffin"].note := "this is a note"
 	Gui, main:Minimize
 	Gui, ConfL:Default
 	Gui, Destroy
 	Gui, Font, s16
 	Gui, Add, ListBox, % ((patnum) ? "r" patNum : "") " vPatName gPatDir", %filelist%
 	;Gui, Add, ListView, % ((patnum) ? "r" patnum : "") " -Hdr Checked Grid gPatDir", Name||Notes
-	Gui, Add, ListView, % "r" confList.length() " -Hdr Checked Grid gPatDir", Name||Notes
+	Gui, Add, ListView, % "r" confList.length() " -Hdr Checked Grid gPatDir", Name|bl|Notes
 	for key,val in confList
 	{
-		;MsgBox,,% A_index, % "key= " key "`nval= '" val "'"
 		if (key=A_index) {
-			LV_Add((confList[val].done) ? "Check" : "",confList[val].name,confList[val].note)
+			LV_Add((confList[val].done) ? "Check" : "",confList[key],,confList[val].note)
 		}
 	}
 	LV_ModifyCol()
@@ -194,7 +193,8 @@ PatDir:
 
 PatLGuiClose:
 	Gui, PatL:Destroy
-	Gui, ConfL:Show
+	;Gui, ConfL:Show
+	gosub GetConfDir
 Return
 
 ChipInfo:
@@ -225,6 +225,7 @@ PatFileGet:
 	} else {
 		return
 	}
+	confList[PatName].done := true
 	Loop, parse, files, |
 	{
 		patloopfile := A_LoopField
