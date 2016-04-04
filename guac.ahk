@@ -102,6 +102,7 @@ GetConfDir:
 		}
 	}
 	LV_ModifyCol()
+	LV_ModifyCol(3,"AutoHdr")
 	Gui, Show, AutoSize, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
 	Return
 }
@@ -181,6 +182,7 @@ PatDir:
 	Gui, Add, Button, wP gPatFileGet , Open all...
 	Gui, Show, AutoSize, % "Patient: " PatName
 	if (pdoc) {
+		GuiControl, , plMRNbut, Scanning...
 		pdoc := parsePatDoc(pdoc)
 		GuiControl, , plMRNbut, % pdoc.MRN
 		pt := checkChip(pdoc.MRN)
