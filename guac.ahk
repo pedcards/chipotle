@@ -83,18 +83,12 @@ GetConfDir:
 			confList.Push(tmpNm)
 			confList[tmpNm] := {name:tmpNm,done:0,note:""}
 		}
-		;filelist .= tmpNm "|"
-		;patnum ++
 	}
-;	confList["Griffin"].done := true
-;	confList["Griffin"].note := "this is a note"
 	Gui, main:Minimize
 	Gui, ConfL:Default
 	Gui, Destroy
 	Gui, Font, s16
-	;Gui, Add, ListBox, % ((patnum) ? "r" patNum : "") " vPatName gPatDir", %filelist%
-	;Gui, Add, ListView, % ((patnum) ? "r" patnum : "") " -Hdr Checked Grid gPatDir", Name||Notes
-	Gui, Add, ListView, % "r" confList.length() " -Hdr Checked Grid gPatDir", Name|bl|Notes
+	Gui, Add, ListView, % "r" confList.length() " -Hdr Checked Grid gPatDir", Name
 	for key,val in confList
 	{
 		if (key=A_index) {
@@ -102,7 +96,7 @@ GetConfDir:
 		}
 	}
 	LV_ModifyCol()
-	LV_ModifyCol(3,"AutoHdr")
+	LV_ModifyCol(1,"AutoHdr")
 	Gui, Show, AutoSize, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
 	Return
 }
