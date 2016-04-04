@@ -83,16 +83,16 @@ GetConfDir:
 			confList.Push(tmpNm)
 			confList[tmpNm] := {name:tmpNm,done:0,note:""}
 		}
-		filelist .= tmpNm "|"
-		patnum ++
+		;filelist .= tmpNm "|"
+		;patnum ++
 	}
-	confList["Griffin"].done := true
+;	confList["Griffin"].done := true
 ;	confList["Griffin"].note := "this is a note"
 	Gui, main:Minimize
 	Gui, ConfL:Default
 	Gui, Destroy
 	Gui, Font, s16
-	Gui, Add, ListBox, % ((patnum) ? "r" patNum : "") " vPatName gPatDir", %filelist%
+	;Gui, Add, ListBox, % ((patnum) ? "r" patNum : "") " vPatName gPatDir", %filelist%
 	;Gui, Add, ListView, % ((patnum) ? "r" patnum : "") " -Hdr Checked Grid gPatDir", Name||Notes
 	Gui, Add, ListView, % "r" confList.length() " -Hdr Checked Grid gPatDir", Name|bl|Notes
 	for key,val in confList
@@ -149,6 +149,7 @@ PatDir:
 	if !(A_GuiEvent = "DoubleClick")
 		return
 	Gui, ConfL:Submit
+	PatName := confList[A_EventInfo]
 	filepath := netdir "\" confdir "\" PatName
 	filelist =
 	filenum =
