@@ -88,7 +88,7 @@ GetConfDir:
 	Gui, ConfL:Default
 	Gui, Destroy
 	Gui, Font, s16
-	Gui, Add, ListView, % "r" confList.length() " -Hdr Checked Grid gPatDir", Name
+	Gui, Add, ListView, % "r" confList.length() " -Hdr AltSubmit Checked Grid NoSortHdr gPatDir", Name
 	for key,val in confList
 	{
 		if (key=A_index) {
@@ -141,6 +141,12 @@ return yyyy "\" datedir[yyyy,mmm].dir "\" datedir[yyyy,mmm,dd]		; returns path t
 
 PatDir:
 {
+	;MsgBox % A_GuiEvent
+	if (ErrorLevel~="[Cc]") {
+		tmp := A_EventInfo
+		confList[confList[tmp]].done := 1-confList[confList[tmp]].done
+		;MsgBox % confList[confList[tmp]].done "`n" !(confList[confList[tmp]].done)
+	}
 	if !(A_GuiEvent = "DoubleClick")
 		return
 	Gui, ConfL:Submit
