@@ -69,18 +69,40 @@ GetConfDate(dt:="") {
 GetConfDir:
 {
 	confDir := NetConfDir(dt.YYYY,dt.mmm,dt.dd)
+	;conflist := netdir "\" confDir "\.guaclist"
+	if !IsObject(confList) {
+		confList := {}
+	}
+	
 	filelist =
 	patnum =
 	Loop, % netdir "\" confDir "\*" , 2
 	{
-		filelist .= A_LoopFileName "|"
+		tmpNm := A_LoopFileName
+		if !IsObject(confList[tmpNm]) {
+			confList.Push(tmpNm)
+			confList[tmpNm] := {name:tmpNm,done:0,note:""}
+		}
+		filelist .= tmpNm "|"
 		patnum ++
 	}
+	confList["Griffin"].done := true
+	;MsgBox,,% confList.length(), % confList[2]
 	Gui, main:Minimize
 	Gui, ConfL:Default
 	Gui, Destroy
 	Gui, Font, s16
 	Gui, Add, ListBox, % ((patnum) ? "r" patNum : "") " vPatName gPatDir", %filelist%
+	;Gui, Add, ListView, % ((patnum) ? "r" patnum : "") " -Hdr Checked Grid gPatDir", Name||Notes
+	Gui, Add, ListView, % "r" confList.length() " -Hdr Checked Grid gPatDir", Name||Notes
+	for key,val in confList
+	{
+		;MsgBox,,% A_index, % "key= " key "`nval= '" val "'"
+		if (key=A_index) {
+			LV_Add((confList[val].done) ? "Check" : "",confList[val].name,confList[val].note)
+		}
+	}
+	LV_ModifyCol()
 	Gui, Show, AutoSize, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
 	Return
 }
