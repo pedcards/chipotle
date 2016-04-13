@@ -41,14 +41,15 @@ MainGUI:
 	Gui, Add, Text, yp+30 wp +Center, General Use Access tool for Conference Archive
 	Gui, Add, Text, xp yp+14 wp +Center, Merged OnLine Elements
 	Gui, Font, wBold
-	Gui, Add, Text, yp+30 wp +Center, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
+	;Gui, Add, Text, yp+30 wp +Center, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
 	Gui, Font, wNorm
 	Gosub GetConfDir
-	Gui, Show, AutoSize, GUACAMOLE Main
+	Gui, Show, AutoSize, % "GUACAMOLE Main - " dt.MM "/" dt.DD "/" dt.YYYY
 Return
 }
 
 mainGuiClose:
+MsgBox, 36, Exit, Do you really want to leave GUACAMOLE?
 ExitApp
 
 GetConfDate(dt:="") {
@@ -87,20 +88,15 @@ GetConfDir:
 	for key,val in confList
 	{
 		if (key=A_index) {
-			LV_Add("",confList[key],(confList[val].done) ? "X" : "O",confList[val].note)
+			LV_Add("",confList[key],(confList[val].done) ? "x" : "",confList[val].note)
 		}
 	}
 	LV_ModifyCol()
-	LV_ModifyCol(1,"AutoHdr")
+	LV_ModifyCol(1,"200")
 	LV_ModifyCol(2,"AutoHdr Center")
 	LV_ModifyCol(3,"AutoHdr ")
 	Return
 }
-
-confLGuiClose:
-	Gui, ConfL:Destroy
-	Gui, main:Show
-return
 
 NetConfDir(yyyy:="",mmm:="",dd:="") {
 	global netdir, datedir, mo
@@ -145,7 +141,7 @@ PatDir:
 	}
 	if !(A_GuiEvent = "DoubleClick")
 		return
-	Gui, ConfL:Submit
+	Gui, Main:Submit, NoHide
 	PatName := confList[A_EventInfo]
 	filepath := netdir "\" confdir "\" PatName
 	filelist =
@@ -166,13 +162,13 @@ PatDir:
 	}
 	if !(filelist) {
 		MsgBox No files
-		Gui, ConfL:Show
+		Gui, main:Show
 		return
 	}
 	Gui, PatL:Default
 	Gui, Destroy
 	Gui, Font, s16
-	Gui, Add, ListBox, r%filenum% w400 vPatFile gPatFileGet,%filelist%
+	Gui, Add, ListBox, r%filenum% w600 vPatFile gPatFileGet,%filelist%
 	Gui, Font, s12
 	Gui, Add, Button, wP Disabled vplMRNbut gChipInfo, No MRN found
 	Gui, Add, Button, wP gPatFileGet , Open all...
@@ -193,7 +189,7 @@ PatDir:
 PatLGuiClose:
 	Gui, PatL:Destroy
 	;Gui, ConfL:Show
-	gosub GetConfDir
+	gosub MainGUI
 Return
 
 ChipInfo:
