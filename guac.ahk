@@ -23,6 +23,7 @@ y := new XML(chipdir "currlist.xml")												; Get latest local currlist into
 arch := new XML(chipdir "archlist.xml")												; Get archive.xml
 datedir := Object()
 mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+dt := GetConfDate()									; determine next conference date into array dt
 
 Gosub MainGUI
 WinWaitClose, GUACAMOLE Main
@@ -32,23 +33,23 @@ ExitApp
 
 MainGUI:
 {
-	dt := GetConfDate()									; determine next conference date into array dt
 	Gui, main:Default
 	Gui, Destroy
 	Gui, Font, s16 wBold
-	Gui, Add, Text, y0 w250 h20 +Center, .-= GUACAMOLE =-.
+	Gui, Add, Text, y0 w480 h20 +Center, .-= GUACAMOLE =-.
 	Gui, Font, wNorm s8 wItalic
 	Gui, Add, Text, yp+30 wp +Center, General Use Access tool for Conference Archive
-	Gui, Add, Text, xp yp+14 wp hp +Center, Merged OnLine Elements
+	Gui, Add, Text, xp yp+14 wp +Center, Merged OnLine Elements
+	Gui, Font, wBold
+	;Gui, Add, Text, yp+30 wp +Center, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
 	Gui, Font, wNorm
-	Gui, Add, Button, wp gGetConfDir, % dt.MMM " " dt.DD
-	Gui, Add, Button, wp Disabled, Date browser
-	Gui, Add, Button, wp Disabled, AHK %A_AhkVersion%
-	Gui, Show, AutoSize, GUACAMOLE Main
+	Gosub GetConfDir
+	Gui, Show, AutoSize, % "GUACAMOLE Main - " dt.MM "/" dt.DD "/" dt.YYYY
 Return
 }
 
 mainGuiClose:
+MsgBox, 36, Exit, Do you really want to leave GUACAMOLE?
 ExitApp
 
 GetConfDate(dt:="") {
@@ -68,12 +69,10 @@ GetConfDate(dt:="") {
 
 GetConfDir:
 {
-	confDir := NetConfDir(dt.YYYY,dt.mmm,dt.dd)
-	;conflist := netdir "\" confDir "\.guaclist"
-	if !IsObject(confList) {
+	confDir := NetConfDir(dt.YYYY,dt.mmm,dt.dd)								; get path to conference folder based on predicted date "dt"
+	if !IsObject(confList) {												; make sure confList array exists
 		confList := {}
 	}
-	
 	filelist =
 	patnum =
 	Loop, % netdir "\" confDir "\*" , 2
@@ -84,27 +83,20 @@ GetConfDir:
 			confList[tmpNm] := {name:tmpNm,done:0,note:""}
 		}
 	}
-	Gui, main:Minimize
-	Gui, ConfL:Default
-	Gui, Destroy
 	Gui, Font, s16
-	Gui, Add, ListView, % "r" confList.length() " -Hdr AltSubmit Checked Grid NoSortHdr gPatDir", Name
+	Gui, Add, ListView, % "r" confList.length() " Hdr AltSubmit Grid NoSortHdr NoSort gPatDir", Name|Done|Note
 	for key,val in confList
 	{
 		if (key=A_index) {
-			LV_Add((confList[val].done) ? "Check" : "",confList[key],,confList[val].note)
+			LV_Add("",confList[key],(confList[val].done) ? "x" : "",confList[val].note)
 		}
 	}
 	LV_ModifyCol()
-	LV_ModifyCol(1,"AutoHdr")
-	Gui, Show, AutoSize, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
+	LV_ModifyCol(1,"200")
+	LV_ModifyCol(2,"AutoHdr Center")
+	LV_ModifyCol(3,"AutoHdr ")
 	Return
 }
-
-confLGuiClose:
-	Gui, ConfL:Destroy
-	Gui, main:Show
-return
 
 NetConfDir(yyyy:="",mmm:="",dd:="") {
 	global netdir, datedir, mo
@@ -149,7 +141,7 @@ PatDir:
 	}
 	if !(A_GuiEvent = "DoubleClick")
 		return
-	Gui, ConfL:Submit
+	Gui, Main:Submit, NoHide
 	PatName := confList[A_EventInfo]
 	filepath := netdir "\" confdir "\" PatName
 	filelist =
@@ -170,13 +162,13 @@ PatDir:
 	}
 	if !(filelist) {
 		MsgBox No files
-		Gui, ConfL:Show
+		Gui, main:Show
 		return
 	}
 	Gui, PatL:Default
 	Gui, Destroy
 	Gui, Font, s16
-	Gui, Add, ListBox, r%filenum% w400 vPatFile gPatFileGet,%filelist%
+	Gui, Add, ListBox, r%filenum% w600 vPatFile gPatFileGet,%filelist%
 	Gui, Font, s12
 	Gui, Add, Button, wP Disabled vplMRNbut gChipInfo, No MRN found
 	Gui, Add, Button, wP gPatFileGet , Open all...
@@ -195,9 +187,15 @@ PatDir:
 }
 
 PatLGuiClose:
+	Loop, % filepath "\*" , 1
+	{
+		name := A_LoopFileName
+		ext := A_LoopFileExt
+		StringReplace , name, name, .%ext%
+		WinClose, %name%
+	}
 	Gui, PatL:Destroy
-	;Gui, ConfL:Show
-	gosub GetConfDir
+	gosub MainGUI
 Return
 
 ChipInfo:
