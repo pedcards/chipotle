@@ -187,8 +187,14 @@ PatDir:
 }
 
 PatLGuiClose:
+	Loop, % filepath "\*" , 1
+	{
+		name := A_LoopFileName
+		ext := A_LoopFileExt
+		StringReplace , name, name, .%ext%
+		WinClose, %name%
+	}
 	Gui, PatL:Destroy
-	;Gui, ConfL:Show
 	gosub MainGUI
 Return
 
