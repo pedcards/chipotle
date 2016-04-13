@@ -23,7 +23,8 @@ y := new XML(chipdir "currlist.xml")												; Get latest local currlist into
 arch := new XML(chipdir "archlist.xml")												; Get archive.xml
 datedir := Object()
 mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-dt := GetConfDate()									; determine next conference date into array dt
+;dt := GetConfDate()									; determine next conference date into array dt
+dt := GetConfDate("20160329")									; determine next conference date into array dt
 
 Gosub MainGUI
 WinWaitClose, GUACAMOLE Main
@@ -49,8 +50,13 @@ Return
 }
 
 mainGuiClose:
-MsgBox, 36, Exit, Do you really want to leave GUACAMOLE?
-ExitApp
+	MsgBox, 36, Exit, Do you really want to leave GUACAMOLE?`n`nWHY???
+	IfMsgBox Yes
+	{
+		ExitApp
+	} else {
+		Return
+	}
 
 GetConfDate(dt:="") {
 ; Get next conference date. If not argument, assume today
@@ -75,9 +81,19 @@ GetConfDir:
 	}
 	filelist =
 	patnum =
-	Loop, % netdir "\" confDir "\*" , 2
+	Loop, Files, % netdir "\" confDir "\*", DF
 	{
 		tmpNm := A_LoopFileName
+		tmpExt := A_LoopFileExt
+		if (tmpExt) {														; evaluate files with extensions
+			if instr(tmpNm, "Fast Track")									; exclude "Fast Track" files
+				continue
+			if (tmpNm ~= "i)(PCC)?\s*\d{1,2}\.\d{1,2}\.\d{2,4}.*xls") {		; find XLS that matches 3.29.16.xlsx
+				confXls := tmpNm
+				;~ MsgBox % confXls
+			}
+			continue
+		}
 		if !IsObject(confList[tmpNm]) {
 			confList.Push(tmpNm)
 			confList[tmpNm] := {name:tmpNm,done:0,note:""}
@@ -189,10 +205,10 @@ PatDir:
 PatLGuiClose:
 	Loop, % filepath "\*" , 1
 	{
-		name := A_LoopFileName
-		ext := A_LoopFileExt
-		StringReplace , name, name, .%ext%
-		WinClose, %name%
+		tmpNm := A_LoopFileName
+		tmpExt := A_LoopFileExt
+		StringReplace , tmpNm, tmpNm, .%tmpExt%
+		WinClose, %tmpNm%
 	}
 	Gui, PatL:Destroy
 	gosub MainGUI
@@ -304,7 +320,6 @@ fieldvals(x) {
 /*	Matches field values and results. Gets text between FIELDS[k] to FIELDS[k+1]. Excess whitespace removed. Returns results as array.
 	x	= input text
 */
-	;global fields
 	fields := ["Result Title:","Performed By:","HEART CENTER CARE COORDINATION NOTE","DOB:","MR #:","AGE:"
 		,"PRESENTING CARDIOLOGIST:","\bCARDIOLOGIST:","SURGEON\(s\):","PRIMARY CARE PHYSICIAN:","REQUEST FOR:","DIAGNOSIS:"
 		,"PURPOSE OF PRESENTATION:","CLINICAL HISTORY:","HISTORY \(SURGICAL AND INTERVENTIONS\):","OPERATIVE REPORTS:"
