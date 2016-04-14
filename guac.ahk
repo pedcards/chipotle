@@ -50,13 +50,14 @@ Return
 }
 
 mainGuiClose:
+{
 	MsgBox, 36, Exit, Do you really want to leave GUACAMOLE?`n`nWHY???
-	IfMsgBox Yes
+	IfMsgBox No
 	{
-		ExitApp
-	} else {
 		Return
-	}
+	} 
+	ExitApp
+}
 
 GetConfDate(dt:="") {
 ; Get next conference date. If not argument, assume today
@@ -76,21 +77,28 @@ GetConfDate(dt:="") {
 GetConfDir:
 {
 	confDir := NetConfDir(dt.YYYY,dt.mmm,dt.dd)								; get path to conference folder based on predicted date "dt"
+	SetWorkingDir % netdir "\" confDir
 	if !IsObject(confList) {												; make sure confList array exists
 		confList := {}
 	}
+	IfExist guac.xml
+	{
+		Gosub GetGuacXml
+	} else {
+		gXml := new XML("<root/>")
+		gXml.save("guac.xml")
+	}
 	filelist =
 	patnum =
-	Loop, Files, % netdir "\" confDir "\*", DF
+	Loop, Files, .\*, DF
 	{
 		tmpNm := A_LoopFileName
 		tmpExt := A_LoopFileExt
 		if (tmpExt) {														; evaluate files with extensions
-			if instr(tmpNm, "Fast Track")									; exclude "Fast Track" files
+			if (tmpNm ~= "i)(\~\$|(Fast Track))")									; exclude "Fast Track" files
 				continue
 			if (tmpNm ~= "i)(PCC)?\s*\d{1,2}\.\d{1,2}\.\d{2,4}.*xls") {		; find XLS that matches 3.29.16.xlsx
 				confXls := tmpNm
-				;~ MsgBox % confXls
 			}
 			continue
 		}
@@ -98,13 +106,18 @@ GetConfDir:
 			confList.Push(tmpNm)
 			confList[tmpNm] := {name:tmpNm,done:0,note:""}
 		}
+		if !IsObject(gXml.selectSingleNode("/root/id[@name='" tmpNm "']")) {
+			gXml.addElement("id","root",{name: tmpNm})
+		}
 	}
+	gXml.save("guac.xml")
 	Gui, Font, s16
-	Gui, Add, ListView, % "r" confList.length() " Hdr AltSubmit Grid NoSortHdr NoSort gPatDir", Name|Done|Note
+	Gui, Add, ListView, % "r" confList.length() " Hdr AltSubmit Grid BackgroundSilver NoSortHdr NoSort gPatDir", Name|Done|Note
 	for key,val in confList
 	{
 		if (key=A_index) {
-			LV_Add("",confList[key],(confList[val].done) ? "x" : "",confList[val].note)
+			;LV_Add("",confList[key],(confList[val].done) ? "x" : "",confList[val].note)
+			LV_Add("",confList[key],(gXml.selectSingleNode("/root/id[@name='" confList[key] "']").getAttribute("done")) ? "x" : "",confList[val].note)
 		}
 	}
 	LV_ModifyCol()
@@ -147,6 +160,13 @@ NetConfDir(yyyy:="",mmm:="",dd:="") {
 return yyyy "\" datedir[yyyy,mmm].dir "\" datedir[yyyy,mmm,dd]		; returns path to that date's conference 
 }
 
+GetGuacXml:
+{
+	gXml := new XML("guac.xml")
+	
+	Return
+}
+
 PatDir:
 {
 	;MsgBox % A_GuiEvent
@@ -181,6 +201,8 @@ PatDir:
 		Gui, main:Show
 		return
 	}
+	gXmlPt := gXml.selectSingleNode("/root/id[@name='" patName "']")
+	patMRN := gXmlPt.getAttribute("mrn")
 	Gui, PatL:Default
 	Gui, Destroy
 	Gui, Font, s16
@@ -189,9 +211,14 @@ PatDir:
 	Gui, Add, Button, wP Disabled vplMRNbut gChipInfo, No MRN found
 	Gui, Add, Button, wP gPatFileGet , Open all...
 	Gui, Show, AutoSize, % "Patient: " PatName
-	if (pdoc) {
+	if (patMRN) {
+		GuiControl, , plMRNbut, % patMRN
+		pt := checkChip(patMRN)
+	} else if (pdoc) {
 		GuiControl, , plMRNbut, Scanning...
 		pdoc := parsePatDoc(pdoc)
+		gXmlPt.setAttribute("mrn",pdoc.MRN)
+		gXml.save("guac.xml")
 		GuiControl, , plMRNbut, % pdoc.MRN
 		pt := checkChip(pdoc.MRN)
 	}
@@ -243,6 +270,8 @@ PatFileGet:
 		return
 	}
 	confList[PatName].done := true
+	gXml.selectSingleNode("/root/id[@name='" PatName "']").setAttribute("done",1)
+	gXml.save("guac.xml")
 	Loop, parse, files, |
 	{
 		patloopfile := A_LoopField
