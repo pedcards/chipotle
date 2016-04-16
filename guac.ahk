@@ -23,10 +23,12 @@ y := new XML(chipdir "currlist.xml")												; Get latest local currlist into
 arch := new XML(chipdir "archlist.xml")												; Get archive.xml
 datedir := Object()
 mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-;dt := GetConfDate()									; determine next conference date into array dt
-dt := GetConfDate("20160329")									; determine next conference date into array dt
+;ConfStart := "20160416132100"
+ConfStart := A_Now
 
 Gosub MainGUI
+SetTimer, ConfTime, 1000
+SetTimer, ConfDur, 1000
 WinWaitClose, GUACAMOLE Main
 ExitApp
 
@@ -34,19 +36,47 @@ ExitApp
 
 MainGUI:
 {
+	if !IsObject(dt) {
+		;dt := GetConfDate()									; determine next conference date into array dt
+		dt := GetConfDate("20160329")									; determine next conference date into array dt
+	}
 	Gui, main:Default
 	Gui, Destroy
 	Gui, Font, s16 wBold
-	Gui, Add, Text, y0 w480 h20 +Center, .-= GUACAMOLE =-.
+	Gui, Add, Text, y0 x10 vCTime, % "              "
+	Gui, Add, Text, y0 x460 vCDur, % "              "
+	Gui, Add, Text, y0 x160 w240 h20 +Center, .-= GUACAMOLE =-.
 	Gui, Font, wNorm s8 wItalic
-	Gui, Add, Text, yp+30 wp +Center, General Use Access tool for Conference Archive
-	Gui, Add, Text, xp yp+14 wp +Center, Merged OnLine Elements
+	Gui, Add, Text, yp+30 xp wp +Center, General Use Access tool for Conference Archive
+	Gui, Add, Text, yp+14 xp wp +Center, Merged OnLine Elements
 	Gui, Font, wBold
 	;Gui, Add, Text, yp+30 wp +Center, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
 	Gui, Font, wNorm
 	Gosub GetConfDir
 	Gui, Show, AutoSize, % "GUACAMOLE Main - " dt.MM "/" dt.DD "/" dt.YYYY
 Return
+}
+
+ConfTime:
+{
+	FormatTime, tmp, , HH:mm:ss
+	GuiControl, main:Text, CTime, % tmp
+	return
+}
+
+ConfDur:
+{
+	tt := elapsed(ConfStart)
+	GuiControl, main:Text, CDur, % tt.hh ":" tt.mm ":" tt.ss
+	Return
+}
+
+elapsed(start) {
+	start -= A_Now, Seconds
+	HH := floor(-start/3600)
+	MM := floor((-start-HH*3600)/60)
+	SS := HH*3600-MM*60-start
+	Return {"hh":zDigit(HH), "mm":zDigit(MM), "ss":zDigit(SS)}
 }
 
 mainGuiClose:
@@ -112,7 +142,7 @@ GetConfDir:
 	}
 	gXml.save("guac.xml")
 	Gui, Font, s16
-	Gui, Add, ListView, % "r" confList.length() " Hdr AltSubmit Grid BackgroundSilver NoSortHdr NoSort gPatDir", Name|Done|Note
+	Gui, Add, ListView, % "r" confList.length() " x20 w540 Hdr AltSubmit Grid BackgroundSilver NoSortHdr NoSort gPatDir", Name|Done|Takt|Note
 	for key,val in confList
 	{
 		if (key=A_index) {
@@ -123,7 +153,8 @@ GetConfDir:
 	LV_ModifyCol()
 	LV_ModifyCol(1,"200")
 	LV_ModifyCol(2,"AutoHdr Center")
-	LV_ModifyCol(3,"AutoHdr ")
+	LV_ModifyCol(3,"AutoHdr Center")
+	LV_ModifyCol(4,"AutoHdr")
 	Return
 }
 
@@ -206,11 +237,13 @@ PatDir:
 	Gui, PatL:Default
 	Gui, Destroy
 	Gui, Font, s16
-	Gui, Add, ListBox, r%filenum% w600 vPatFile gPatFileGet,%filelist%
+	Gui, Add, ListBox, r%filenum% section w400 vPatFile gPatFileGet,%filelist%
 	Gui, Font, s12
 	Gui, Add, Button, wP Disabled vplMRNbut gChipInfo, No MRN found
 	Gui, Add, Button, wP gPatFileGet , Open all...
-	Gui, Show, AutoSize, % "Patient: " PatName
+	Gui, Font, s8
+	Gui, Add, Text, ys x+m r20 w300 wrap vplChipNote, This space for CHIPOTLE data
+	Gui, Show, w800 AutoSize, % "Patient: " PatName
 	if (patMRN) {
 		GuiControl, , plMRNbut, % patMRN
 		pt := checkChip(patMRN)
@@ -223,8 +256,15 @@ PatDir:
 		pt := checkChip(pdoc.MRN)
 	}
 	if IsObject(pt) {
+		tmp := 	"CHIPOTLE data (from " niceDate(pt.dxEd) ")`n" 
+			. ((pt.dxCard)  ? "Diagnoses:`n" pt.dxCard "`n`n" : "")
+			. ((pt.dxSurg)  ? "Surgeries/Caths:`n" pt.dxSurg "`n`n" : "")
+			. ((pt.dxEP)    ? "EP issues:`n" pt.dxEP "`n`n" : "")
+			. ((pt.dxProb)  ? "Problems:`n" pt.dxProb "`n`n" : "")
+			. ((pt.dxNotes) ? "Notes:`n" pt.dxNotes : "")
 		GuiControl, , plMRNbut, CHIPOTLE data
-		GuiControl, Enable, plMRNbut
+		;~ GuiControl, Enable, plMRNbut
+		GuiControl, , plChipNote, % tmp
 	}
 	return
 }
