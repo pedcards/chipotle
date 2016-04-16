@@ -234,10 +234,6 @@ PatDir:
 	}
 	gXmlPt := gXml.selectSingleNode("/root/id[@name='" patName "']")
 	patMRN := gXmlPt.getAttribute("mrn")
-	if (patMRN) {
-		GuiControl, , plMRNbut, % patMRN
-		pt := checkChip(patMRN)
-	}
 	Gui, PatL:Default
 	Gui, Destroy
 	Gui, Font, s16
@@ -246,6 +242,10 @@ PatDir:
 	Gui, Add, Button, wP Disabled vplMRNbut gChipInfo, No MRN found
 	Gui, Add, Button, wP gPatFileGet , Open all...
 	Gui, Font, s8
+	if (patMRN) {
+		pt := checkChip(patMRN)
+		GuiControl, , plMRNbut, % patMRN
+	}
 	if IsObject(pt) {
 		tmp := 	"CHIPOTLE data (from " niceDate(pt.dxEd) ")`n" 
 			. ((pt.dxCard)  ? "Diagnoses:`n" pt.dxCard "`n`n" : "")
@@ -256,15 +256,19 @@ PatDir:
 		GuiControl, , plMRNbut, CHIPOTLE data
 		Gui, Add, Text, ys x+m r20 w300 wrap vplChipNote, % tmp
 	}
-	
 	Gui, Show, w800 AutoSize, % "Patient: " PatName
-	if (pdoc) {
+
+	if IsObject(pt) {
+		return
+	}
+	if !(patMRN) {
 		GuiControl, , plMRNbut, Scanning...
 		pdoc := parsePatDoc(pdoc)
 		gXmlPt.setAttribute("mrn",pdoc.MRN)
 		gXml.save("guac.xml")
 		GuiControl, , plMRNbut, % pdoc.MRN
 		pt := checkChip(pdoc.MRN)
+		gosub PatDir
 	}
 	return
 }
