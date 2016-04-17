@@ -169,7 +169,7 @@ GetConfDir:
 			keyDur := gXml.getAtt("/root/id[@name='" keyNm "']","dur")
 			LV_Add(""
 				,keyNm
-				,(keyDone || keyDur) ? "x" : ""
+				,(keyDone) ? "x" : ""
 				,(keyDur) ? zDigit(floor(keyDur/60)) ":" zDigit(keyDur-floor(keyDur/60)) : ""
 				,confList[val].note)
 		}
