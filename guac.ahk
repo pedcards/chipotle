@@ -66,13 +66,13 @@ ConfTime:
 
 ConfDur:
 {
-	tt := elapsed(ConfStart)
+	tt := elapsed(ConfStart,A_Now)
 	GuiControl, main:Text, CDur, % tt.hh ":" tt.mm ":" tt.ss
 	Return
 }
 
-elapsed(start) {
-	start -= A_Now, Seconds
+elapsed(start,end) {
+	start -= end, Seconds
 	HH := floor(-start/3600)
 	MM := floor((-start-HH*3600)/60)
 	SS := HH*3600-MM*60-start
@@ -151,7 +151,14 @@ GetConfDir:
 	{
 		if (key=A_index) {
 			;LV_Add("",confList[key],(confList[val].done) ? "x" : "",confList[val].note)
-			LV_Add("",confList[key],(gXml.selectSingleNode("/root/id[@name='" confList[key] "']").getAttribute("done")) ? "x" : "",confList[val].note)
+			keyNm := confList[key]
+			keyDone := gXml.getAtt("/root/id[@name='" keyNm "']","done")
+			keyDur := gXml.getAtt("/root/id[@name='" keyNm "']","dur")
+			LV_Add(""
+				,keyNm
+				,(keyDone) ? "x" : ""
+				,(keyDur) ? zDigit(floor(keyDur/60)) ":" zDigit(keyDur-floor(keyDur/60)) : ""
+				,confList[val].note)
 		}
 	}
 	LV_ModifyCol()
