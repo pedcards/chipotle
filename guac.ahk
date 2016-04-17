@@ -217,7 +217,10 @@ return yyyy "\" datedir[yyyy,mmm].dir "\" datedir[yyyy,mmm,dd]		; returns path t
 
 ReadXls:
 {
-	if IsObject(gXml.selectSingleNode("/root/done")) {
+	tmpDT:=gXml.selectSingleNode("/root/done").text					; last time ReadXLS run
+	FileGetTime, tmpDiff, % confXls									; get XLS modified time
+	tmpDiff -= tmpDT												; Compare XLS-XML time diff
+	if (tmpDiff < 0) {												; XLS older, do not repeat
 		return
 	}
 	oWorkbook := ComObjGet(netDir "\" confDir "\" confXls)
