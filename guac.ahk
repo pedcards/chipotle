@@ -366,7 +366,8 @@ PatLGuiClose:
 		WinClose, %tmpNm%
 	}
 	Gui, PatL:Destroy
-	PatEnd := Round((A_TickCount-PatStart)/1000) + gXml.getAtt("/root/id[@name='" patName "']","dur")
+	PatEnd := Round((A_TickCount-PatStart)/1000)
+	PatEnd += gXml.getAtt("/root/id[@name='" patName "']","dur")
 	gXml.setAtt("/root/id[@name='" patName "']",{dur:PatEnd})
 	gXml.save("guac.xml")
 	gosub MainGUI
