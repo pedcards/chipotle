@@ -300,6 +300,8 @@ PatDir:
 	PatName := confList[A_EventInfo]
 	PatStart := A_TickCount
 	filepath := netdir "\" confdir "\" PatName
+	filePmax = 
+	fileNmax =
 	filelist =
 	filenum =
 	pdoc =
@@ -315,7 +317,12 @@ PatDir:
 		}
 		filelist .= (name) ? name "|" : ""
 		filenum ++
+		filePmax := StrLen(name)
+		if (filePmax>fileNmax) {														; Get longest filename
+			fileNmax := filePmax
+		}
 	}
+	patLBw := (fileNmax>32) ? (fileNmax-32)*12+360 : 360
 	if !(filelist) {
 		MsgBox No files
 		Gui, main:Show
@@ -326,7 +333,7 @@ PatDir:
 	Gui, PatL:Default
 	Gui, Destroy
 	Gui, Font, s16
-	Gui, Add, ListBox, r%filenum% section w400 vPatFile gPatFileGet,%filelist%
+	Gui, Add, ListBox, % "r" filenum " section w" patLBw " vPatFile gPatFileGet", % filelist
 	Gui, Font, s12
 	Gui, Add, Button, wP Disabled vplMRNbut gChipInfo, No MRN found
 	Gui, Add, Button, wP gPatFileGet , Open all...
