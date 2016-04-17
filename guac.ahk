@@ -221,23 +221,23 @@ ReadXls:
 	xls_cel := Object()
 	Loop 
 	{
-		RowNum := A_Index
+		RowNum := A_Index																; Loop through rows
 		chk := oWorkbook.Sheets(1).Range("A" RowNum).value
-		if (RowNum=1) {
+		if (RowNum=1) {																	; First row is just last file update
 			upDate := chk
 			continue
 		}
-		if !(chk)
+		if !(chk)																		; if empty, then bad file
 			break
 		Loop
 		{	
-			ColNum := A_Index
+			ColNum := A_Index															; Iterate through columns
 			if (colnum>maxcol)
 				maxcol:=colnum
 			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value
-			if ((cel="") && (colnum=maxcol))
+			if ((cel="") && (colnum=maxcol))											; Find max column
 				break
-			if (rownum=2) {
+			if (rownum=2) {																; Fix some column names
 				; Patient name / MRN / Cardiologist / Diagnosis / conference prep / scheduling notes / presented / deferred / imaging needed / ICU LOS / Total LOS / Surgeons / time
 				if instr(cel,"Patient name") {
 					cel:="Name"
@@ -281,7 +281,7 @@ ReadXls:
 			gXml.addElement("notes",xls_id,xls_cel[ObjHasValue(xls_hdr,"Notes")])
 		}
 	}
-	gXml.addElement("done","/root",A_Now)
+	gXml.addElement("done","/root",A_Now)												; Add <done> element when has been scanned to prevent future scans
 	oExcel := oWorkbook.Application
 	oExcel.quit
 	Return
