@@ -18,6 +18,12 @@ if (user="TC") {
 	netdir := "\\chmc16\Cardio\Conference\Tuesday Conference"
 	chipdir := "\\childrens\files\HCChipotle\"
 }
+MsgBox, 36, GUACAMOLE, Are you launching GUACAMOLE for patient presentation?
+IfMsgBox Yes
+	Presenter := true
+else
+	Presenter := false
+
 
 y := new XML(chipdir "currlist.xml")												; Get latest local currlist into memory
 arch := new XML(chipdir "archlist.xml")												; Get archive.xml
@@ -28,7 +34,9 @@ ConfStart := A_Now
 
 Gosub MainGUI
 SetTimer, ConfTime, 1000
-SetTimer, ConfDur, 1000
+If (Presenter) {
+	SetTimer, ConfDur, 1000
+}
 WinWaitClose, GUACAMOLE Main
 ExitApp
 
@@ -276,8 +284,6 @@ ReadXls:
 	gXml.addElement("done","/root",A_Now)
 	oExcel := oWorkbook.Application
 	oExcel.quit
-	
-	gXml.save("guac.xml")
 	Return
 }
 
@@ -285,9 +291,11 @@ PatDir:
 {
 	if !(A_GuiEvent = "DoubleClick")
 		return
-	if WinExist("[Guac] Patient:") {
+	if WinExist("[Guac] Patient:") {								; if a window still open, close it.
 		Gosub PatLGuiClose
 	}
+	gXml := new XML("guac.xml")										; refresh guac.xml
+
 	Gui, Main:Submit, NoHide
 	PatName := confList[A_EventInfo]
 	PatStart := A_TickCount
@@ -363,10 +371,12 @@ PatLGuiClose:
 		WinClose, %tmpNm%
 	}
 	Gui, PatL:Destroy
-	PatEnd := Round((A_TickCount-PatStart)/1000)
-	PatEnd += gXml.getAtt("/root/id[@name='" patName "']","dur")
-	gXml.setAtt("/root/id[@name='" patName "']",{dur:PatEnd})
-	gXml.save("guac.xml")
+	if (Presenter) {																	; update Takt time for Presenter only
+		PatEnd := Round((A_TickCount-PatStart)/1000)
+		PatEnd += gXml.getAtt("/root/id[@name='" patName "']","dur")
+		gXml.setAtt("/root/id[@name='" patName "']",{dur:PatEnd})
+		gXml.save("guac.xml")
+	}
 	gosub MainGUI
 Return
 
