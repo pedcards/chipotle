@@ -286,6 +286,7 @@ PatDir:
 		return
 	Gui, Main:Submit, NoHide
 	PatName := confList[A_EventInfo]
+	PatStart := A_TickCount
 	filepath := netdir "\" confdir "\" PatName
 	filelist =
 	filenum =
@@ -358,6 +359,9 @@ PatLGuiClose:
 		WinClose, %tmpNm%
 	}
 	Gui, PatL:Destroy
+	PatEnd := Round((A_TickCount-PatStart)/1000) + gXml.getAtt("/root/id[@name='" patName "']","dur")
+	gXml.setAtt("/root/id[@name='" patName "']",{dur:PatEnd})
+	gXml.save("guac.xml")
 	gosub MainGUI
 Return
 
