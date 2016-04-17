@@ -43,7 +43,7 @@ MainGUI:
 	Gui, main:Default
 	Gui, Destroy
 	Gui, Font, s16 wBold
-	Gui, Add, Text, y0 x10 vCTime, % "              "
+	Gui, Add, Text, y0 x20 vCTime, % "              "
 	Gui, Add, Text, y0 x460 vCDur, % "              "
 	Gui, Add, Text, y0 x160 w240 h20 +Center, .-= GUACAMOLE =-.
 	Gui, Font, wNorm s8 wItalic
@@ -113,7 +113,7 @@ GetConfDir:
 	}
 	IfExist guac.xml
 	{
-		Gosub GetGuacXml
+		gXml := new XML("guac.xml")
 	} else {
 		gXml := new XML("<root/>")
 		gXml.save("guac.xml")
@@ -133,12 +133,16 @@ GetConfDir:
 			continue
 		}
 		if !IsObject(confList[tmpNm]) {
-			confList.Push(tmpNm)
-			confList[tmpNm] := {name:tmpNm,done:0,note:""}
+			tmpNmUP := format("{:U}",tmpNm)
+			confList.Push(tmpNmUP)
+			confList[tmpNmUP] := {name:tmpNm,done:0,note:""}
 		}
-		if !IsObject(gXml.selectSingleNode("/root/id[@name='" tmpNm "']")) {
-			gXml.addElement("id","root",{name: tmpNm})
+		if !IsObject(gXml.selectSingleNode("/root/id[@name='" tmpNmUP "']")) {
+			gXml.addElement("id","root",{name: tmpNmUP})
 		}
+	}
+	if (confXls) {
+		gosub readXls
 	}
 	gXml.save("guac.xml")
 	Gui, Font, s16
@@ -191,10 +195,82 @@ NetConfDir(yyyy:="",mmm:="",dd:="") {
 return yyyy "\" datedir[yyyy,mmm].dir "\" datedir[yyyy,mmm,dd]		; returns path to that date's conference 
 }
 
-GetGuacXml:
+ReadXls:
 {
-	gXml := new XML("guac.xml")
+	if IsObject(gXml.selectSingleNode("/root/done")) {
+		return
+	}
+	oWorkbook := ComObjGet(netDir "\" confDir "\" confXls)
+	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] ;array of column letters
+	xls_hdr := Object()
+	xls_cel := Object()
+	Loop 
+	{
+		RowNum := A_Index
+		chk := oWorkbook.Sheets(1).Range("A" RowNum).value
+		if (RowNum=1) {
+			upDate := chk
+			continue
+		}
+		if !(chk)
+			break
+		Loop
+		{	
+			ColNum := A_Index
+			if (colnum>maxcol)
+				maxcol:=colnum
+			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value
+			if ((cel="") && (colnum=maxcol))
+				break
+			if (rownum=2) {
+				; Patient name / MRN / Cardiologist / Diagnosis / conference prep / scheduling notes / presented / deferred / imaging needed / ICU LOS / Total LOS / Surgeons / time
+				if instr(cel,"Patient name") {
+					cel:="Name"
+				}
+				if instr(cel,"Conference prep") {
+					cel:="Prep"
+				}
+				if instr(cel,"scheduling notes") {
+					cel:="Notes"
+				}
+				if instr(cel,"imaging needed") {
+					cel:="Imaging"
+				}
+				xls_hdr[ColNum] := trim(cel)
+			} else {
+				xls_cel[ColNum] := cel
+			}
+		}
+		xls_mrn := Round(xls_cel[ObjHasValue(xls_hdr,"MRN")])
+		xls_name := xls_cel[ObjHasValue(xls_hdr,"Name")]
+		if !(xls_mrn)
+			continue
+		xls_nameL := strX(xls_name,"",1,1,",",1,1)
+		StringUpper, xls_nameUP, xls_nameL
+		xls_id := "/root/id[@name='" xls_nameUP "']"
+		
+		if !IsObject(gXml.selectSingleNode(xls_id)) {
+			gXml.addElement("id","root",{name:xls_nameUP})
+		}
+		gXml.setAtt(xls_id,{mrn:xls_mrn})
+		if !IsObject(gXml.selectSingleNode(xls_id "/name_full")) {
+			gXml.addElement("name_full",xls_id,xls_name)
+		}
+		if !IsObject(gXml.selectSingleNode(xls_id "/diagnosis")) {
+			gXml.addElement("diagnosis",xls_id,xls_cel[ObjHasValue(xls_hdr,"Diagnosis")])
+		}
+		if !IsObject(gXml.selectSingleNode(xls_id "/prep")) {
+			gXml.addElement("prep",xls_id,xls_cel[ObjHasValue(xls_hdr,"Prep")])
+		}
+		if !IsObject(gXml.selectSingleNode(xls_id "/notes")) {
+			gXml.addElement("notes",xls_id,xls_cel[ObjHasValue(xls_hdr,"Notes")])
+		}
+	}
+	gXml.addElement("done","/root",A_Now)
+	oExcel := oWorkbook.Application
+	oExcel.quit
 	
+	gXml.save("guac.xml")
 	Return
 }
 
