@@ -289,7 +289,11 @@ ReadXls:
 			gXml.addElement("notes",xls_id,xls_cel[ObjHasValue(xls_hdr,"Notes")])
 		}
 	}
-	gXml.addElement("done","/root",A_Now)												; Add <done> element when has been scanned to prevent future scans
+	if !IsObject(gXml.selectSingleNode("/root/done")) {
+		gXml.addElement("done","/root",A_Now)												; Add <done> element when has been scanned to prevent future scans
+	} else {
+		gXml.setText("/root/done",A_now)
+	}
 	oExcel := oWorkbook.Application
 	oExcel.quit
 	Return
