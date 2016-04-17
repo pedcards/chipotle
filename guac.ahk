@@ -14,9 +14,11 @@ user := A_UserName
 if (user="TC") {
 	netdir := A_WorkingDir "\files\Tuesday Conference"
 	chipdir := ""
+	isDevt := true
 } else {
 	netdir := "\\chmc16\Cardio\Conference\Tuesday Conference"
 	chipdir := "\\childrens\files\HCChipotle\"
+	isDevt := false
 }
 MsgBox, 36, GUACAMOLE, Are you launching GUACAMOLE for patient presentation?
 IfMsgBox Yes
@@ -45,8 +47,11 @@ ExitApp
 MainGUI:
 {
 	if !IsObject(dt) {
-		;dt := GetConfDate()									; determine next conference date into array dt
-		dt := GetConfDate("20160329")									; determine next conference date into array dt
+		if (isDevt) {
+			dt := GetConfDate("20160329")											; use test dir. change this if want "live" handling
+		} else {
+			dt := GetConfDate()														; determine next conference date into array dt
+		}
 	}
 	Gui, main:Default
 	Gui, Destroy
