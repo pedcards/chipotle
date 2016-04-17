@@ -123,6 +123,18 @@ processCIS:										;*** Parse CIS patient list
 		if (location="TXP" and ((CIS_svc="Cardiology") or (CIS_svc="Cardiac Surgery"))) {	; If on TXP list AND on CRD or CSR
 			y.selectSingleNode(MRNstring "/status").setAttribute("txp", "on")				; Set status flag.
 		}
+		
+		; Add Cardiology/SURGCNTR patients to SURGCNTR list, these are cath patients, will fall off when discharged?
+;		if (location="Cards" and CIS_sex="Female") {
+		if (location="Cards" and CIS_loc_unit="SURGCNTR") {
+			SurgCntrPath := "/root/lists/SURGCNTR"
+			if !IsObject(y.selectSingleNode(SurgCntrPath)) {
+				y.addElement("SURGCNTR","/root/lists", {date:timenow})
+			}
+			if !IsObject(y.selectSingleNode(SurgCntrPath "/mrn[text()='" CIS_mrn "']")) {
+				y.addElement("mrn", SurgCntrPath, CIS_mrn)
+			}
+		}
 	}
 	listsort(location)
 	y.save("currlist.xml")

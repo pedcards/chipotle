@@ -6,8 +6,8 @@ GetIt:
 	filecheck()
 	FileOpen(".currlock", "W")													; Create lock file.
 	if !(vSaveIt=true)
-		Progress, b w300, Reading data..., % "- = C H I P O T L E = -`nversion " vers 
-			. "`n`nNow with " rand(20,99) "% less E. coli!"
+		Progress, b w300, Reading data..., % "- = C H I P O T L E = -`nversion " vers "`n"
+			;. "`n`nNow with " rand(20,99) "% less E. coli!"									; This could be a space for a random message
 	else
 		Progress, b w300, Consolidating data..., 
 	Progress, 20

@@ -22,6 +22,7 @@ if (isCICU) {
 }
 if (isARNP) {
 	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gTeamList vESurR6", Surg R6
+	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gTeamList vESURGCNTR", Surgery Center
 }
 if (isCICU or isARNP) {																				; CICU interface
 	callCt:=0
@@ -64,6 +65,8 @@ Menu, menuSys, Add, Quit..., mainGuiclose
 Menu, MenuBar, Add, System, :menuSys
 
 Menu, menuFile, Add, Find/Add a patient, FindPt
+Menu, menuFile, Add
+Menu, menuFile, Add, Import Stork List, readStorkList
 Menu, MenuBar, Add, File, :menuFile
 
 Menu, menuHelp, Add, Help, buttonHelp

@@ -14,17 +14,31 @@ user := A_UserName
 if (user="TC") {
 	netdir := A_WorkingDir "\files\Tuesday Conference"
 	chipdir := ""
+	isDevt := true
 } else {
 	netdir := "\\chmc16\Cardio\Conference\Tuesday Conference"
 	chipdir := "\\childrens\files\HCChipotle\"
+	isDevt := false
 }
+MsgBox, 36, GUACAMOLE, Are you launching GUACAMOLE for patient presentation?
+IfMsgBox Yes
+	Presenter := true
+else
+	Presenter := false
+
 
 y := new XML(chipdir "currlist.xml")												; Get latest local currlist into memory
 arch := new XML(chipdir "archlist.xml")												; Get archive.xml
 datedir := Object()
 mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+;ConfStart := "20160416132100"
+ConfStart := A_Now
 
 Gosub MainGUI
+SetTimer, ConfTime, 1000
+If (Presenter) {
+	SetTimer, ConfDur, 1000
+}
 WinWaitClose, GUACAMOLE Main
 ExitApp
 
@@ -32,24 +46,61 @@ ExitApp
 
 MainGUI:
 {
-	dt := GetConfDate()									; determine next conference date into array dt
+	if !IsObject(dt) {
+		if (isDevt) {
+			dt := GetConfDate("20160329")											; use test dir. change this if want "live" handling
+		} else {
+			dt := GetConfDate()														; determine next conference date into array dt
+		}
+	}
 	Gui, main:Default
 	Gui, Destroy
 	Gui, Font, s16 wBold
-	Gui, Add, Text, y0 w250 h20 +Center, .-= GUACAMOLE =-.
+	Gui, Add, Text, y0 x20 vCTime, % "              "
+	Gui, Add, Text, y0 x460 vCDur, % "              "
+	Gui, Add, Text, y0 x160 w240 h20 +Center, .-= GUACAMOLE =-.
 	Gui, Font, wNorm s8 wItalic
-	Gui, Add, Text, yp+30 wp +Center, General Use Access tool for Conference Archive
-	Gui, Add, Text, xp yp+14 wp hp +Center, Merged OnLine Elements
+	Gui, Add, Text, yp+30 xp wp +Center, General Use Access tool for Conference Archive
+	Gui, Add, Text, yp+14 xp wp +Center, Merged OnLine Elements
+	Gui, Font, wBold
+	;Gui, Add, Text, yp+30 wp +Center, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
 	Gui, Font, wNorm
-	Gui, Add, Button, wp gGetConfDir, % dt.MMM " " dt.DD
-	Gui, Add, Button, wp Disabled, Date browser
-	Gui, Add, Button, wp Disabled, AHK %A_AhkVersion%
-	Gui, Show, AutoSize, GUACAMOLE Main
+	Gosub GetConfDir
+	Gui, Show, AutoSize, % "GUACAMOLE Main - " dt.MM "/" dt.DD "/" dt.YYYY
 Return
 }
 
+ConfTime:
+{
+	FormatTime, tmp, , HH:mm:ss
+	GuiControl, main:Text, CTime, % tmp
+	return
+}
+
+ConfDur:
+{
+	tt := elapsed(ConfStart,A_Now)
+	GuiControl, main:Text, CDur, % tt.hh ":" tt.mm ":" tt.ss
+	Return
+}
+
+elapsed(start,end) {
+	start -= end, Seconds
+	HH := floor(-start/3600)
+	MM := floor((-start-HH*3600)/60)
+	SS := HH*3600-MM*60-start
+	Return {"hh":zDigit(HH), "mm":zDigit(MM), "ss":zDigit(SS)}
+}
+
 mainGuiClose:
-ExitApp
+{
+	MsgBox, 36, Exit, Do you really want to leave GUACAMOLE?`n`nWHY???
+	IfMsgBox No
+	{
+		Return
+	} 
+	ExitApp
+}
 
 GetConfDate(dt:="") {
 ; Get next conference date. If not argument, assume today
@@ -68,27 +119,68 @@ GetConfDate(dt:="") {
 
 GetConfDir:
 {
-	confDir := NetConfDir(dt.YYYY,dt.mmm,dt.dd)
+	confDir := NetConfDir(dt.YYYY,dt.mmm,dt.dd)								; get path to conference folder based on predicted date "dt"
+	SetWorkingDir % netdir "\" confDir
+	if !IsObject(confList) {												; make sure confList array exists
+		confList := {}
+	}
+	IfExist guac.xml
+	{
+		gXml := new XML("guac.xml")
+	} else {
+		gXml := new XML("<root/>")
+		gXml.save("guac.xml")
+	}
 	filelist =
 	patnum =
-	Loop, % netdir "\" confDir "\*" , 2
+	Loop, Files, .\*, DF
 	{
-		filelist .= A_LoopFileName "|"
-		patnum ++
+		tmpNm := A_LoopFileName
+		tmpExt := A_LoopFileExt
+		if (tmpExt) {														; evaluate files with extensions
+			if (tmpNm ~= "i)(\~\$|(Fast Track))")									; exclude "Fast Track" files
+				continue
+			if (tmpNm ~= "i)(PCC)?\s*\d{1,2}\.\d{1,2}\.\d{2,4}.*xls") {		; find XLS that matches 3.29.16.xlsx
+				confXls := tmpNm
+			}
+			continue
+		}
+		if !IsObject(confList[tmpNm]) {
+			tmpNmUP := format("{:U}",tmpNm)
+			confList.Push(tmpNmUP)
+			confList[tmpNmUP] := {name:tmpNm,done:0,note:""}
+		}
+		if !IsObject(gXml.selectSingleNode("/root/id[@name='" tmpNmUP "']")) {
+			gXml.addElement("id","root",{name: tmpNmUP})
+		}
 	}
-	Gui, main:Minimize
-	Gui, ConfL:Default
-	Gui, Destroy
+	if (confXls) {
+		gosub readXls
+	}
+	gXml.save("guac.xml")
 	Gui, Font, s16
-	Gui, Add, ListBox, % ((patnum) ? "r" patNum : "") " vPatName gPatDir", %filelist%
-	Gui, Show, AutoSize, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
+	Gui, Add, ListView, % "r" confList.length() " x20 w540 Hdr AltSubmit Grid BackgroundSilver NoSortHdr NoSort gPatDir", Name|Done|Takt|Note
+	for key,val in confList
+	{
+		if (key=A_index) {
+			;LV_Add("",confList[key],(confList[val].done) ? "x" : "",confList[val].note)
+			keyNm := confList[key]
+			keyDone := gXml.getAtt("/root/id[@name='" keyNm "']","done")
+			keyDur := gXml.getAtt("/root/id[@name='" keyNm "']","dur")
+			LV_Add(""
+				,keyNm
+				,(keyDone) ? "x" : ""
+				,(keyDur) ? zDigit(floor(keyDur/60)) ":" zDigit(keyDur-floor(keyDur/60)) : ""
+				,confList[val].note)
+		}
+	}
+	LV_ModifyCol()
+	LV_ModifyCol(1,"200")
+	LV_ModifyCol(2,"AutoHdr Center")
+	LV_ModifyCol(3,"AutoHdr Center")
+	LV_ModifyCol(4,"AutoHdr")
 	Return
 }
-
-confLGuiClose:
-	Gui, ConfL:Destroy
-	Gui, main:Show
-return
 
 NetConfDir(yyyy:="",mmm:="",dd:="") {
 	global netdir, datedir, mo
@@ -123,12 +215,98 @@ NetConfDir(yyyy:="",mmm:="",dd:="") {
 return yyyy "\" datedir[yyyy,mmm].dir "\" datedir[yyyy,mmm,dd]		; returns path to that date's conference 
 }
 
+ReadXls:
+{
+	if IsObject(gXml.selectSingleNode("/root/done")) {
+		return
+	}
+	oWorkbook := ComObjGet(netDir "\" confDir "\" confXls)
+	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] ;array of column letters
+	xls_hdr := Object()
+	xls_cel := Object()
+	Loop 
+	{
+		RowNum := A_Index																; Loop through rows
+		chk := oWorkbook.Sheets(1).Range("A" RowNum).value
+		if (RowNum=1) {																	; First row is just last file update
+			upDate := chk
+			continue
+		}
+		if !(chk)																		; if empty, then bad file
+			break
+		Loop
+		{	
+			ColNum := A_Index															; Iterate through columns
+			if (colnum>maxcol)
+				maxcol:=colnum
+			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value
+			if ((cel="") && (colnum=maxcol))											; Find max column
+				break
+			if (rownum=2) {																; Fix some column names
+				; Patient name / MRN / Cardiologist / Diagnosis / conference prep / scheduling notes / presented / deferred / imaging needed / ICU LOS / Total LOS / Surgeons / time
+				if instr(cel,"Patient name") {
+					cel:="Name"
+				}
+				if instr(cel,"Conference prep") {
+					cel:="Prep"
+				}
+				if instr(cel,"scheduling notes") {
+					cel:="Notes"
+				}
+				if instr(cel,"imaging needed") {
+					cel:="Imaging"
+				}
+				xls_hdr[ColNum] := trim(cel)
+			} else {
+				xls_cel[ColNum] := cel
+			}
+		}
+		xls_mrn := Round(xls_cel[ObjHasValue(xls_hdr,"MRN")])
+		xls_name := xls_cel[ObjHasValue(xls_hdr,"Name")]
+		if !(xls_mrn)
+			continue
+		xls_nameL := strX(xls_name,"",1,1,",",1,1)
+		StringUpper, xls_nameUP, xls_nameL
+		xls_id := "/root/id[@name='" xls_nameUP "']"
+		
+		if !IsObject(gXml.selectSingleNode(xls_id)) {
+			gXml.addElement("id","root",{name:xls_nameUP})
+		}
+		gXml.setAtt(xls_id,{mrn:xls_mrn})
+		if !IsObject(gXml.selectSingleNode(xls_id "/name_full")) {
+			gXml.addElement("name_full",xls_id,xls_name)
+		}
+		if !IsObject(gXml.selectSingleNode(xls_id "/diagnosis")) {
+			gXml.addElement("diagnosis",xls_id,xls_cel[ObjHasValue(xls_hdr,"Diagnosis")])
+		}
+		if !IsObject(gXml.selectSingleNode(xls_id "/prep")) {
+			gXml.addElement("prep",xls_id,xls_cel[ObjHasValue(xls_hdr,"Prep")])
+		}
+		if !IsObject(gXml.selectSingleNode(xls_id "/notes")) {
+			gXml.addElement("notes",xls_id,xls_cel[ObjHasValue(xls_hdr,"Notes")])
+		}
+	}
+	gXml.addElement("done","/root",A_Now)												; Add <done> element when has been scanned to prevent future scans
+	oExcel := oWorkbook.Application
+	oExcel.quit
+	Return
+}
+
 PatDir:
 {
 	if !(A_GuiEvent = "DoubleClick")
 		return
-	Gui, ConfL:Submit
+	if WinExist("[Guac] Patient:") {								; if a window still open, close it.
+		Gosub PatLGuiClose
+	}
+	gXml := new XML("guac.xml")										; refresh guac.xml
+
+	Gui, Main:Submit, NoHide
+	PatName := confList[A_EventInfo]
+	PatStart := A_TickCount
 	filepath := netdir "\" confdir "\" PatName
+	filePmax = 
+	fileNmax =
 	filelist =
 	filenum =
 	pdoc =
@@ -136,38 +314,82 @@ PatDir:
 	Loop, % filepath "\*" , 1
 	{
 		name := A_LoopFileName
-		if (RegExMatch(name,"i)PCC\snote.*\.doc")) {
-			pdoc := parsePatDoc(filepath "\" name)
-			pt := checkChip(pdoc.MRN)
+		if (name~="(\~\$|Thumbs.db)") {
+			continue
+		}
+		if (RegExMatch(name,"i)PCC(\snote)?.*\.doc")) {
+			pdoc := filepath "\" name
 		}
 		filelist .= (name) ? name "|" : ""
 		filenum ++
+		filePmax := StrLen(name)
+		if (filePmax>fileNmax) {														; Get longest filename
+			fileNmax := filePmax
+		}
 	}
+	patLBw := (fileNmax>32) ? (fileNmax-32)*12+360 : 360
 	if !(filelist) {
 		MsgBox No files
-		Gui, ConfL:Show
+		Gui, main:Show
 		return
 	}
+	gXmlPt := gXml.selectSingleNode("/root/id[@name='" patName "']")
+	patMRN := gXmlPt.getAttribute("mrn")
 	Gui, PatL:Default
 	Gui, Destroy
 	Gui, Font, s16
-	Gui, Add, ListBox, r%filenum% vPatFile gPatFileGet,%filelist%
+	Gui, Add, ListBox, % "r" filenum " section w" patLBw " vPatFile gPatFileGet", % filelist
 	Gui, Font, s12
-	if IsObject(pt) {
-		Gui, Add, Button, wP gChipInfo, CHIPOTLE data
-	} else if (pdoc.MRN) {
-		Gui, Add, Button, wP, % pdoc.MRN
-	} else {
-		Gui, Add, Button, wP, No MRN found
-	}
+	Gui, Add, Button, wP Disabled vplMRNbut gChipInfo, No MRN found
 	Gui, Add, Button, wP gPatFileGet , Open all...
-	Gui, Show, AutoSize, % "Patient: " PatName
+	Gui, Font, s8
+	if (patMRN) {
+		pt := checkChip(patMRN)
+		GuiControl, , plMRNbut, % patMRN
+	}
+	if IsObject(pt) {
+		tmp := 	"CHIPOTLE data (from " niceDate(pt.dxEd) ")`n" 
+			. ((pt.dxCard)  ? "Diagnoses:`n" pt.dxCard "`n`n" : "")
+			. ((pt.dxSurg)  ? "Surgeries/Caths:`n" pt.dxSurg "`n`n" : "")
+			. ((pt.dxEP)    ? "EP issues:`n" pt.dxEP "`n`n" : "")
+			. ((pt.dxProb)  ? "Problems:`n" pt.dxProb "`n`n" : "")
+			. ((pt.dxNotes) ? "Notes:`n" pt.dxNotes : "")
+		GuiControl, , plMRNbut, CHIPOTLE data
+		Gui, Add, Text, ys x+m r20 w300 wrap vplChipNote, % tmp
+	}
+	Gui, Show, w800 AutoSize, % "[Guac] Patient: " PatName
+
+	if IsObject(pt) {
+		return
+	}
+	if !(patMRN) {
+		GuiControl, , plMRNbut, Scanning...
+		pdoc := parsePatDoc(pdoc)
+		gXmlPt.setAttribute("mrn",pdoc.MRN)
+		gXml.save("guac.xml")
+		GuiControl, , plMRNbut, % pdoc.MRN
+		pt := checkChip(pdoc.MRN)
+		gosub PatDir
+	}
 	return
 }
 
 PatLGuiClose:
+	Loop, % filepath "\*" , 1
+	{
+		tmpNm := A_LoopFileName
+		tmpExt := A_LoopFileExt
+		StringReplace , tmpNm, tmpNm, .%tmpExt%
+		WinClose, %tmpNm%
+	}
 	Gui, PatL:Destroy
-	Gui, ConfL:Show
+	if (Presenter) {																	; update Takt time for Presenter only
+		PatEnd := Round((A_TickCount-PatStart)/1000)
+		PatEnd += gXml.getAtt("/root/id[@name='" patName "']","dur")
+		gXml.setAtt("/root/id[@name='" patName "']",{dur:PatEnd})
+		gXml.save("guac.xml")
+	}
+	gosub MainGUI
 Return
 
 ChipInfo:
@@ -188,10 +410,19 @@ PatFileGet:
 		files := PatFile
 	} else if (A_GuiControl = "Open all...") {
 		files := trim(filelist,"|")
+		If (filenum>4) {
+			MsgBox, 52, % "Lots of files (" filenum ")", Really open all of these files?
+			IfMsgBox, Yes
+				tmp = true
+			if !(tmp) 
+				return
+		}
 	} else {
 		return
 	}
-	
+	confList[PatName].done := true
+	gXml.selectSingleNode("/root/id[@name='" PatName "']").setAttribute("done",1)
+	gXml.save("guac.xml")
 	Loop, parse, files, |
 	{
 		patloopfile := A_LoopField
@@ -269,7 +500,6 @@ fieldvals(x) {
 /*	Matches field values and results. Gets text between FIELDS[k] to FIELDS[k+1]. Excess whitespace removed. Returns results as array.
 	x	= input text
 */
-	;global fields
 	fields := ["Result Title:","Performed By:","HEART CENTER CARE COORDINATION NOTE","DOB:","MR #:","AGE:"
 		,"PRESENTING CARDIOLOGIST:","\bCARDIOLOGIST:","SURGEON\(s\):","PRIMARY CARE PHYSICIAN:","REQUEST FOR:","DIAGNOSIS:"
 		,"PURPOSE OF PRESENTATION:","CLINICAL HISTORY:","HISTORY \(SURGICAL AND INTERVENTIONS\):","OPERATIVE REPORTS:"

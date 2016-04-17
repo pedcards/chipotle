@@ -24,7 +24,7 @@ FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.ex
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.7.9.2"
+vers := "1.7.9.3"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -64,7 +64,7 @@ if (ObjHasValue(ArnpUsers,user))
 
 if (isCICU) {
 	loc := ["CSR","CICU"]												; loc[] defines the choices offered from QueryList. You can only break your own list.
-	loc["CSR"] := {"name":"Cardiac Surgery", "datevar":"GUIcsrTXT"}
+	loc["CSR"] := {"name":"Cardiac Surgery", "datevar":"GUIcsrTXT"}		; loc["CSR"] is XML lists/CSR, "name":"Cardiac Surgery" is string on GUI
 	loc["CICU"] := {"name":"Cardiac ICU", "datevar":"GUIicuTXT"}
 	callLoc := "CICUSur"
 	mainTitle1 := "CHILI"
@@ -330,6 +330,173 @@ Sort2D(Byref TDArray, KeyName, Order=1) {
 		}     
 		lastIndex := prevIndex
 	}
+}
+
+readStorkList:
+{
+/*	Directly read a Stork List XLS.
+	Sheets
+		(1) is "Potential cCHD"
+		(2) is "Neonatal echo and Regional Cons"
+		(3) is archives
+	
+*/
+	storkPath := A_WorkingDir "\files\stork.xls"
+	if !FileExist(storkPath) {
+		MsgBox None!
+		return
+	}
+	if IsObject(y.selectSingleNode("/root/lists/stork")) {
+		RemoveNode("/root/lists/stork")
+	}
+	y.addElement("stork","/root/lists"), {date:timenow}
+		
+	storkPath := A_WorkingDir "\files\stork.xls"
+	oWorkbook := ComObjGet(storkPath)
+	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] ;array of column letters
+	stork_hdr := Object()
+	stork_cel := Object()
+	Loop 
+	{
+		RowNum := A_Index
+		chk := oWorkbook.Sheets(1).Range("A" RowNum).value
+		if (RowNum=1) {
+			upDate := chk
+			continue
+		}
+		if !(chk)
+			break
+		Progress,,% rownum, Scanning Stork List
+		Loop
+		{	
+			ColNum := A_Index
+			if (colnum>maxcol)
+				maxcol:=colnum
+			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value
+			if ((cel="") && (colnum=maxcol))
+				break
+			if (rownum=2) {
+				if (cel~="Mother's Name") {
+					cel:="Names"
+				}
+				if (cel~="Mother.*SCH.*#") {
+					cel:="Mother SCH"
+				}
+				if (cel~="Mother.*\sU.*#") {
+					cel:="Mother UW"
+				}
+				if (cel~="Planned.*del.*date") {
+					cel:="Planned date"
+				}
+				if (cel~="i)Most.*Recent.*Consult") {
+					cel:="Recent dates"
+				}
+				if (cel~="i)cord.*blood") {
+					cel:="Cord blood"
+				}
+				if (cel~="i)care.*plan.*ORCA") {
+					cel:="Orca plan"
+				}
+				if (cel~="i)Continuity.*Cardio") {
+					cel:="CRD"
+				}
+				stork_hdr[ColNum] := trim(cel)
+			} else {
+				stork_cel[ColNum] := cel
+			}
+		}
+		stork_mrn := Round(stork_cel[ObjHasValue(stork_hdr,"Mother SCH")])
+		if !(stork_mrn)
+			continue
+		y.addElement("id","/root/lists/stork",{mrn:stork_mrn})
+		stork_str := "/root/lists/stork/id[@mrn='" stork_mrn "']"
+		
+		stork_names := stork_cel[ObjHasValue(stork_hdr,"Names")]
+		if (instr(stork_names,",",,,2)) {												; A second "," means baby name present
+			pos2 := RegExMatch(stork_names,"i)(?<=\s)[a-z\-\/]+,",,instr(stork_names,",",,,1))
+			name2 := trim(substr(stork_names,pos2))
+			name1 := trim(substr(stork_names,1,pos2-1))
+			y.addElement("mother", stork_str)
+				y.addElement("nameL", stork_str "/mother", trim(strX(name1,,0,0,", ",1,2)))
+				y.addElement("nameF", stork_str "/mother", trim(strX(name1,", ",0,2)))
+			y.addElement("baby", stork_str)
+				y.addElement("nameL", stork_str "/baby", trim(strX(name2,,0,0,", ",1,2)))
+				y.addElement("nameF", stork_str "/baby", trim(strX(name2,", ",0,2)))
+		} else {
+			y.addElement("mother", stork_str)
+				y.addElement("nameL", stork_str "/mother", trim(strX(stork_names,,0,0,", ",1,2)))
+				y.addElement("nameF", stork_str "/mother", trim(strX(stork_names,", ",0,2)))
+		}
+		
+		stork_uw := stork_cel[ObjHasValue(stork_hdr,"Mother UW")]
+		if (stork_uw)
+			y.addElement("UW", stork_str "/mother", stork_uw)
+		
+		stork_home := stork_cel[ObjHasValue(stork_hdr,"Home")]
+		y.addElement("home", stork_str "/mother", stork_home)
+		
+		stork_hosp := stork_cel[ObjHasValue(stork_hdr,"Delivery Hosp")]
+		y.addElement("birth", stork_str)
+		y.addElement("hosp", stork_str "/birth", stork_hosp)
+		
+		stork_edc := stork_cel[ObjHasValue(stork_hdr,"EDC")]
+		y.addElement("edc", stork_str "/birth", stork_edc)
+		
+		stork_del := stork_cel[ObjHasValue(stork_hdr,"Planned date")]
+		if (stork_del) {
+			tmp := RegExMatch(stork_del,"\d")
+			y.addElement("mode", stork_str "/birth", trim(substr(stork_del,1,tmp-1)))
+			y.addElement("planned", stork_str "/birth", trim(substr(stork_del,tmp)))
+		}
+		
+		stork_dx := stork_cel[ObjHasValue(stork_hdr,"Diagnosis")]
+		y.addElement("dx", stork_str "/baby", stork_dx)
+		
+		stork_notes := stork_cel[ObjHasValue(stork_hdr,"Comments")]
+		if (stork_notes)
+			y.addElement("notes", stork_str "/baby", stork_notes)
+		
+		y.addElement("prov", stork_str)
+		
+		stork_cont := stork_cel[ObjHasValue(stork_hdr,"CRD")]
+		if (stork_cont)
+			y.addElement("cont", stork_str "/prov", stork_cont)
+		
+		stork_prv := trim(cleanSpace(stork_cel[ObjHasValue(stork_hdr,"Recent dates")]))
+		nn := 0
+		While (stork_prv) 
+		{
+			stork_prov := parsePnProv(stork_prv)
+			y.addElement(stork_prov.svc, stork_str "/prov", {date:stork_prov.date}, stork_prov.prov)
+		}
+		
+		stork_cord := stork_cel[ObjHasValue(stork_hdr,"Cord blood")]
+		if (stork_cord)
+			y.addElement("cord", stork_str "/birth", stork_cord)
+		
+		stork_orca := stork_cel[ObjHasValue(stork_hdr,"Orca Plan")]
+		if (stork_orca)
+			y.addElement("orca", stork_str "/birth", stork_orca)
+		
+	}
+	Progress, Hide
+
+	oExcel := oWorkbook.Application
+	oExcel.quit
+
+	MsgBox Stork List updated.
+	Writeout("/root/lists","stork")
+	Eventlog("Stork List updated.")
+Return
+}
+
+parsePnProv(ByRef txt) {
+	str := strX(txt,"",0,0, " ",1,1,n)
+	svc := strX(str,"",0,0, "/",1,1)
+	prov := strX(str,"/",1,1, "/",1,1,nn)
+	dt := substr(str,nn+1)
+	txt := substr(txt,n)
+	return {svc:trim(svc), prov:trim(prov), date:trim(dt)}
 }
 
 readForecast:
