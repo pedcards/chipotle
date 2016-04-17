@@ -283,14 +283,11 @@ ReadXls:
 
 PatDir:
 {
-	;MsgBox % A_GuiEvent
-	if (ErrorLevel~="[Cc]") {
-		tmp := A_EventInfo
-		confList[confList[tmp]].done := 1-confList[confList[tmp]].done
-		;MsgBox % confList[confList[tmp]].done "`n" !(confList[confList[tmp]].done)
-	}
 	if !(A_GuiEvent = "DoubleClick")
 		return
+	if WinExist("[Guac] Patient:") {
+		Gosub PatLGuiClose
+	}
 	Gui, Main:Submit, NoHide
 	PatName := confList[A_EventInfo]
 	PatStart := A_TickCount
@@ -340,7 +337,7 @@ PatDir:
 		GuiControl, , plMRNbut, CHIPOTLE data
 		Gui, Add, Text, ys x+m r20 w300 wrap vplChipNote, % tmp
 	}
-	Gui, Show, w800 AutoSize, % "Patient: " PatName
+	Gui, Show, w800 AutoSize, % "[Guac] Patient: " PatName
 
 	if IsObject(pt) {
 		return
