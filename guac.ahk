@@ -317,6 +317,7 @@ PatDir:
 	Gui, Main:Submit, NoHide
 	PatName := confList[A_EventInfo]
 	PatTime := A_Now
+	PatTime += -gXml.getAtt("/root/id[@name='" patName "']","dur"), Seconds
 	filepath := netdir "\" confdir "\" PatName
 	filePmax = 
 	fileNmax =
@@ -373,7 +374,7 @@ PatDir:
 	Gui, Show, w800 AutoSize, % "[Guac] Patient: " PatName
 	
 	Gosub PatConsole
-	SetTimer, PatCxTimer
+	SetTimer, PatCxTimer, 1000
 
 	if IsObject(pt) {
 		return
@@ -401,8 +402,7 @@ PatLGuiClose:
 	}
 	Gui, PatL:Destroy
 	if (Presenter) {																	; update Takt time for Presenter only
-		PatTime -= A_Now
-		PatTime -= gXml.getAtt("/root/id[@name='" patName "']","dur")
+		PatTime -= A_Now, Seconds
 		gXml.setAtt("/root/id[@name='" patName "']",{dur:-PatTime})
 		gXml.save("guac.xml")
 	}
@@ -431,7 +431,8 @@ PatConsole:
 
 PatCxTimer:
 {
-	
+	tt := elapsed(PatTime,A_Now)
+	GuiControl, PatCx:Text, PatCxT, % tt.mm ":" tt.ss
 	return
 }
 
