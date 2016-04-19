@@ -347,7 +347,7 @@ PatDir:
 	Gui, Font, s16
 	Gui, Add, ListBox, % "r" filenum " section w" patLBw " vPatFile gPatFileGet", % filelist
 	Gui, Font, s12
-	Gui, Add, Button, wP Disabled vplMRNbut gChipInfo, No MRN found
+	Gui, Add, Button, wP Disabled vplMRNbut, No MRN found
 	Gui, Add, Button, wP gPatFileGet , Open all...
 	Gui, Font, s8
 	if (patMRN) {
@@ -365,6 +365,9 @@ PatDir:
 		Gui, Add, Text, ys x+m r20 w300 wrap vplChipNote, % tmp
 	}
 	Gui, Show, w800 AutoSize, % "[Guac] Patient: " PatName
+	
+	Gosub PatConsole
+	SetTimer, PatCxTimer
 
 	if IsObject(pt) {
 		return
@@ -382,6 +385,7 @@ PatDir:
 }
 
 PatLGuiClose:
+{
 	Loop, % filepath "\*" , 1
 	{
 		tmpNm := A_LoopFileName
@@ -398,16 +402,31 @@ PatLGuiClose:
 	}
 	gosub MainGUI
 Return
+}
 
-ChipInfo:
+PatConsole:
 {
-	MsgBox,,% "CHIPOTLE notes - " pt.nameL ", " pt.nameF, % ""
-	. "Diagnoses:`n" pt.dxCard "`n`n"
-	. "Surgeries/Caths:`n" pt.dxSurg "`n`n"
-	. "EP issues:`n" pt.dxEP "`n`n"
-	. "Problems:`n" pt.dxProb "`n`n"
-	. "Notes: " ((pt.dxNotes) ? "(from " niceDate(pt.dxEd) ")`n" pt.dxNotes : "")
-return
+	Gui, PatCx:Default
+	Gui, Destroy
+	;Gui, Font, 
+	;Gui, +ToolWindow
+	Gui, +ToolWindow +AlwaysOnTop
+	Gui, Add, Text, vPatCxT, 00:00
+	Gui, Show, AutoSize, % PatName
+	return
+}
+
+;~ ConfDur:
+;~ {
+	;~ tt := elapsed(ConfStart,A_Now)
+	;~ GuiControl, main:Text, CDur, % tt.hh ":" tt.mm ":" tt.ss
+	;~ Return
+;~ }
+
+PatCxTimer:
+{
+	
+	return
 }
 
 PatFileGet:
