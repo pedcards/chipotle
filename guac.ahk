@@ -393,6 +393,9 @@ PatDir:
 
 PatLGuiClose:
 {
+	SetTimer, PatCxTimer, Off
+	Gui, PatCx:Destroy
+	
 	Loop, % filepath "\*" , 1
 	{
 		tmpNm := A_LoopFileName
@@ -412,27 +415,35 @@ Return
 
 PatConsole:
 {
+	if !(Presenter)
+		return
+	SysGet, scr, Monitor
 	Gui, PatCx:Default
 	Gui, Destroy
-	;Gui, Font, 
-	;Gui, +ToolWindow
-	Gui, +ToolWindow +AlwaysOnTop
-	Gui, Add, Text, vPatCxT, 00:00
-	Gui, Show, AutoSize, % PatName
+	Gui, +ToolWindow +AlwaysOnTop -SysMenu
+	Gui, Add, Text, vPatCxT, % "                 "
+	Gui, Font, s6
+	Gui, Add, Button, xP+50 yP gPatCxSel, Select File
+	Gui, Add, Button, xP yP+18 gPatLGuiClose, Close all
+	Gui, Show, % "x" scrRight-200 " y10 AutoSize", % PatName
 	return
 }
-
-;~ ConfDur:
-;~ {
-	;~ tt := elapsed(ConfStart,A_Now)
-	;~ GuiControl, main:Text, CDur, % tt.hh ":" tt.mm ":" tt.ss
-	;~ Return
-;~ }
 
 PatCxTimer:
 {
 	tt := elapsed(PatTime,A_Now)
 	GuiControl, PatCx:Text, PatCxT, % tt.mm ":" tt.ss
+	if (tt.mm >= 10) {
+		Gui, PatCx:Color, Red
+	} else if (tt.mm >= 8) {
+		Gui, PatCx:Color, Yellow
+	}
+	return
+}
+
+PatCxSel:
+{
+	WinActivate % "[Guac] Patient:"
 	return
 }
 
