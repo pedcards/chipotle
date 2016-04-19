@@ -310,7 +310,7 @@ PatDir:
 
 	Gui, Main:Submit, NoHide
 	PatName := confList[A_EventInfo]
-	PatStart := A_TickCount
+	PatTime := A_Now
 	filepath := netdir "\" confdir "\" PatName
 	filePmax = 
 	fileNmax =
@@ -395,9 +395,9 @@ PatLGuiClose:
 	}
 	Gui, PatL:Destroy
 	if (Presenter) {																	; update Takt time for Presenter only
-		PatEnd := Round((A_TickCount-PatStart)/1000)
-		PatEnd += gXml.getAtt("/root/id[@name='" patName "']","dur")
-		gXml.setAtt("/root/id[@name='" patName "']",{dur:PatEnd})
+		PatTime -= A_Now
+		PatTime -= gXml.getAtt("/root/id[@name='" patName "']","dur")
+		gXml.setAtt("/root/id[@name='" patName "']",{dur:-PatTime})
 		gXml.save("guac.xml")
 	}
 	gosub MainGUI
