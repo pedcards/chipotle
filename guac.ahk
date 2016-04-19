@@ -36,9 +36,6 @@ ConfStart := A_Now
 
 Gosub MainGUI
 SetTimer, ConfTime, 1000
-If (Presenter) {
-	SetTimer, ConfDur, 1000
-}
 WinWaitClose, GUACAMOLE Main
 ExitApp
 
@@ -74,14 +71,11 @@ ConfTime:
 {
 	FormatTime, tmp, , HH:mm:ss
 	GuiControl, main:Text, CTime, % tmp
-	return
-}
-
-ConfDur:
-{
-	tt := elapsed(ConfStart,A_Now)
-	GuiControl, main:Text, CDur, % tt.hh ":" tt.mm ":" tt.ss
-	Return
+	if (Presenter) {
+		tt := elapsed(ConfStart,A_Now)
+		GuiControl, main:Text, CDur, % tt.hh ":" tt.mm ":" tt.ss
+	}
+return
 }
 
 elapsed(start,end) {
