@@ -92,6 +92,13 @@ elapsed(start,end) {
 	Return {"hh":zDigit(HH), "mm":zDigit(MM), "ss":zDigit(SS)}
 }
 
+formatSec(time) {
+	HH := floor(time/3600)
+	MM := floor((time-HH*3600)/60)
+	SS := time-HH*3600-MM*60
+	Return {"hh":zDigit(HH), "mm":zDigit(MM), "ss":zDigit(SS)}
+}
+
 mainGuiClose:
 {
 	MsgBox, 36, Exit, Do you really want to leave GUACAMOLE?`n`nWHY???
@@ -163,14 +170,13 @@ GetConfDir:
 	for key,val in confList
 	{
 		if (key=A_index) {
-			;LV_Add("",confList[key],(confList[val].done) ? "x" : "",confList[val].note)
 			keyNm := confList[key]
 			keyDone := gXml.getAtt("/root/id[@name='" keyNm "']","done")
-			keyDur := gXml.getAtt("/root/id[@name='" keyNm "']","dur")
+			keyDur := (tmp:=gXml.getAtt("/root/id[@name='" keyNm "']","dur")) ? formatSec(tmp) : ""
 			LV_Add(""
 				,keyNm
 				,(keyDone) ? "x" : ""
-				,(keyDur) ? zDigit(floor(keyDur/60)) ":" zDigit(keyDur-floor(keyDur/60)) : ""
+				,(keyDur) ? keyDur.MM ":" keyDur.SS : ""
 				,confList[val].note)
 		}
 	}
