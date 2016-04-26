@@ -223,7 +223,8 @@ ReadXls:
 	if (tmpDiff < 0) {												; XLS older, do not repeat
 		return
 	}
-	oWorkbook := ComObjGet(netDir "\" confDir "\" confXls)
+	FileCopy % confXls, guac.xlsx, 1								; Create a copy of the active XLS file 
+	oWorkbook := ComObjGet(netDir "\" confDir "\guac.xlsx")
 	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] ;array of column letters
 	xls_hdr := Object()
 	xls_cel := Object()
