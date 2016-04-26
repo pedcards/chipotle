@@ -11,7 +11,7 @@ SendMode Input ; Recommended for new scripts due to its superior speed and relia
 SetTitleMatchMode, 2
 SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
-WinClose, View Downloads - Windows Internet Explorer
+WinClose, View Downloads -
 LV_Colors.OnMessage()
 
 FileGetTime, iniDT, chipotle.ini
