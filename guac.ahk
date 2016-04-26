@@ -36,9 +36,6 @@ ConfStart := A_Now
 
 Gosub MainGUI
 SetTimer, ConfTime, 1000
-If (Presenter) {
-	SetTimer, ConfDur, 1000
-}
 WinWaitClose, GUACAMOLE Main
 ExitApp
 
@@ -74,14 +71,11 @@ ConfTime:
 {
 	FormatTime, tmp, , HH:mm:ss
 	GuiControl, main:Text, CTime, % tmp
-	return
-}
-
-ConfDur:
-{
-	tt := elapsed(ConfStart,A_Now)
-	GuiControl, main:Text, CDur, % tt.hh ":" tt.mm ":" tt.ss
-	Return
+	if (Presenter) {
+		tt := elapsed(ConfStart,A_Now)
+		GuiControl, main:Text, CDur, % tt.hh ":" tt.mm ":" tt.ss
+	}
+return
 }
 
 elapsed(start,end) {
@@ -89,6 +83,13 @@ elapsed(start,end) {
 	HH := floor(-start/3600)
 	MM := floor((-start-HH*3600)/60)
 	SS := HH*3600-MM*60-start
+	Return {"hh":zDigit(HH), "mm":zDigit(MM), "ss":zDigit(SS)}
+}
+
+formatSec(time) {
+	HH := floor(time/3600)
+	MM := floor((time-HH*3600)/60)
+	SS := time-HH*3600-MM*60
 	Return {"hh":zDigit(HH), "mm":zDigit(MM), "ss":zDigit(SS)}
 }
 
@@ -163,14 +164,13 @@ GetConfDir:
 	for key,val in confList
 	{
 		if (key=A_index) {
-			;LV_Add("",confList[key],(confList[val].done) ? "x" : "",confList[val].note)
 			keyNm := confList[key]
 			keyDone := gXml.getAtt("/root/id[@name='" keyNm "']","done")
-			keyDur := gXml.getAtt("/root/id[@name='" keyNm "']","dur")
+			keyDur := (tmp:=gXml.getAtt("/root/id[@name='" keyNm "']","dur")) ? formatSec(tmp) : ""
 			LV_Add(""
 				,keyNm
 				,(keyDone) ? "x" : ""
-				,(keyDur) ? zDigit(floor(keyDur/60)) ":" zDigit(keyDur-floor(keyDur/60)) : ""
+				,(keyDur) ? keyDur.MM ":" keyDur.SS : ""
 				,confList[val].note)
 		}
 	}
@@ -217,10 +217,14 @@ return yyyy "\" datedir[yyyy,mmm].dir "\" datedir[yyyy,mmm,dd]		; returns path t
 
 ReadXls:
 {
-	if IsObject(gXml.selectSingleNode("/root/done")) {
+	tmpDT:=gXml.selectSingleNode("/root/done").text					; last time ReadXLS run
+	FileGetTime, tmpDiff, % confXls									; get XLS modified time
+	tmpDiff -= tmpDT												; Compare XLS-XML time diff
+	if (tmpDiff < 0) {												; XLS older, do not repeat
 		return
 	}
-	oWorkbook := ComObjGet(netDir "\" confDir "\" confXls)
+	FileCopy % confXls, guac.xlsx, 1								; Create a copy of the active XLS file 
+	oWorkbook := ComObjGet(netDir "\" confDir "\guac.xlsx")
 	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] ;array of column letters
 	xls_hdr := Object()
 	xls_cel := Object()
@@ -286,7 +290,11 @@ ReadXls:
 			gXml.addElement("notes",xls_id,xls_cel[ObjHasValue(xls_hdr,"Notes")])
 		}
 	}
-	gXml.addElement("done","/root",A_Now)												; Add <done> element when has been scanned to prevent future scans
+	if !IsObject(gXml.selectSingleNode("/root/done")) {
+		gXml.addElement("done","/root",A_Now)												; Add <done> element when has been scanned to prevent future scans
+	} else {
+		gXml.setText("/root/done",A_now)
+	}
 	oExcel := oWorkbook.Application
 	oExcel.quit
 	Return
@@ -303,7 +311,8 @@ PatDir:
 
 	Gui, Main:Submit, NoHide
 	PatName := confList[A_EventInfo]
-	PatStart := A_TickCount
+	PatTime := A_Now
+	PatTime += -gXml.getAtt("/root/id[@name='" patName "']","dur"), Seconds
 	filepath := netdir "\" confdir "\" PatName
 	filePmax = 
 	fileNmax =
@@ -340,7 +349,7 @@ PatDir:
 	Gui, Font, s16
 	Gui, Add, ListBox, % "r" filenum " section w" patLBw " vPatFile gPatFileGet", % filelist
 	Gui, Font, s12
-	Gui, Add, Button, wP Disabled vplMRNbut gChipInfo, No MRN found
+	Gui, Add, Button, wP Disabled vplMRNbut, No MRN found
 	Gui, Add, Button, wP gPatFileGet , Open all...
 	Gui, Font, s8
 	if (patMRN) {
@@ -358,6 +367,9 @@ PatDir:
 		Gui, Add, Text, ys x+m r20 w300 wrap vplChipNote, % tmp
 	}
 	Gui, Show, w800 AutoSize, % "[Guac] Patient: " PatName
+	
+	Gosub PatConsole
+	SetTimer, PatCxTimer, 1000
 
 	if IsObject(pt) {
 		return
@@ -375,6 +387,10 @@ PatDir:
 }
 
 PatLGuiClose:
+{
+	SetTimer, PatCxTimer, Off
+	Gui, PatCx:Destroy
+	
 	Loop, % filepath "\*" , 1
 	{
 		tmpNm := A_LoopFileName
@@ -384,23 +400,46 @@ PatLGuiClose:
 	}
 	Gui, PatL:Destroy
 	if (Presenter) {																	; update Takt time for Presenter only
-		PatEnd := Round((A_TickCount-PatStart)/1000)
-		PatEnd += gXml.getAtt("/root/id[@name='" patName "']","dur")
-		gXml.setAtt("/root/id[@name='" patName "']",{dur:PatEnd})
+		PatTime -= A_Now, Seconds
+		gXml.setAtt("/root/id[@name='" patName "']",{dur:-PatTime})
 		gXml.save("guac.xml")
 	}
 	gosub MainGUI
 Return
+}
 
-ChipInfo:
+PatConsole:
 {
-	MsgBox,,% "CHIPOTLE notes - " pt.nameL ", " pt.nameF, % ""
-	. "Diagnoses:`n" pt.dxCard "`n`n"
-	. "Surgeries/Caths:`n" pt.dxSurg "`n`n"
-	. "EP issues:`n" pt.dxEP "`n`n"
-	. "Problems:`n" pt.dxProb "`n`n"
-	. "Notes: " ((pt.dxNotes) ? "(from " niceDate(pt.dxEd) ")`n" pt.dxNotes : "")
-return
+	if !(Presenter)
+		return
+	SysGet, scr, Monitor
+	Gui, PatCx:Default
+	Gui, Destroy
+	Gui, +ToolWindow +AlwaysOnTop -SysMenu
+	Gui, Add, Text, vPatCxT, % "                 "
+	Gui, Font, s6
+	Gui, Add, Button, xP+50 yP gPatCxSel, Select File
+	Gui, Add, Button, xP yP+18 gPatLGuiClose, Close all
+	Gui, Show, % "x" scrRight-200 " y10 AutoSize", % PatName
+	return
+}
+
+PatCxTimer:
+{
+	tt := elapsed(PatTime,A_Now)
+	GuiControl, PatCx:Text, PatCxT, % tt.mm ":" tt.ss
+	if (tt.mm >= 10) {
+		Gui, PatCx:Color, Red
+	} else if (tt.mm >= 8) {
+		Gui, PatCx:Color, Yellow
+	}
+	return
+}
+
+PatCxSel:
+{
+	WinActivate % "[Guac] Patient:"
+	return
 }
 
 PatFileGet:
