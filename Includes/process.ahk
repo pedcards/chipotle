@@ -199,6 +199,7 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 		CORES_Diet := substr(cores_hx,RegExMatch(cores_hx,"m)Diet.*\*"))
 			StringReplace, CORES_Diet, CORES_Diet, Diet *, *
 			StringReplace, CORES_Diet, CORES_Diet, <br>, `r`n, ALL
+			CORES_DietStr := CORES_Diet
 			StringReplace, CORES_Diet, CORES_Diet, *%A_Space%, •%A_space%, ALL
 		
 		CORES_MedBlock = 
@@ -307,6 +308,7 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 				MedListParse("drips",CORES_Drips)
 				MedListParse("meds",CORES_Meds)
 				MedListParse("prn",CORES_PRN)
+				MedListParse("dietstr",CORES_DietStr)
 				MedListParse("diet",CORES_Diet)
 			}
 		}
