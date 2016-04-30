@@ -21,8 +21,16 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 			y.addElement(medlist, yMarDt, {class: "Arrhythmia"}, medName)
 			continue
 		}
+		if (medlist="diet") {
+			diet := RegExReplace(medname,"i)(,\s+)?(Requested|Start) date\/time: .*")
+			y.addElement(medlist, yMarDt, {class: "Diet"}, diet)
+			dietStr .= diet " | "
+		}
 		else
 			y.addElement(medlist, yMarDt, {class: "Other"}, medName)
 	}
+	if (dietStr) {
+		y.addElement("dietstr", yMarDt, {class: "Diet"}, dietStr)
+	}
+	return
 }
-

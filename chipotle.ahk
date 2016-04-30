@@ -155,6 +155,7 @@ Return
 
 */																; add ";" for live
 
+;/*
 OnClipboardChange:
 */
 {
@@ -213,8 +214,8 @@ Return
 }
 
 ^F12::
-	;FileSelectFile , clipname,, %A_ScriptDir%, Select file:, AHK clip files (*.clip)
-	clipname := "cores0301rhr.clip"
+	FileSelectFile , clipname,, %A_ScriptDir%, Select file:, AHK clip files (*.clip)
+	;clipname := "cores0301rhr.clip"
 	FileRead, Clipboard, *c %clipname%
 Return
 

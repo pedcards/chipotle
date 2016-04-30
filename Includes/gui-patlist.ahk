@@ -249,7 +249,7 @@ plMAR:
 		plMARlist("diet","Other")
 	}
 	tmp := breakDate(CoresD)
-	Gui, MarGui:Show, AutoSize, % "CORES " nicedate(CoresD) " @ " tmp.HH ":" tmp.Min
+	Gui, MarGui:Show, AutoSize, % "CORES " nicedate(CoresD) " @ " tmp.HH ":" tmp.Min ", MAR " plDiet()
 	return
 }
 
@@ -260,7 +260,7 @@ plMARlist(group,class) {
 		plMed = %plMed%
 		LV_Add("", plMed)
 	}
-	;LV_ModifyCol()
+	return
 }
 
 plDiet(txt:="") {
@@ -269,11 +269,18 @@ plDiet(txt:="") {
 	Adds [DIET:] if not present and <dietStr> is current
 */
 	global pl
+	if !IsObject(pl.MAR)																; Skip if no MAR data
+		return Error
 	
 	; Check MAR date. currlist only keeps MAR from last date processCORES was run.
 	marDate := pl.MAR.getAttribute("date")
 	
-	Return marDate
+	DietStr := pl.MAR.selectSingleNode("diet").text									; <=== replace "diet" with dietStr in the future
+	DietStr := RegExReplace(DietStr,"im)(, )?(Requested|Start) date\/time: .*`n")
+	
+	MsgBox % DietStr
+	
+	Return DietStr
 }
 
 PtParse(mrn) {
