@@ -263,6 +263,19 @@ plMARlist(group,class) {
 	;LV_ModifyCol()
 }
 
+plDiet(txt:="") {
+/*	Replaces DIET string in input txt string with most recent <dietStr>
+	Uses [DIET: ... ] as the delimiter (could be broken if text box is replaced
+	Adds [DIET:] if not present and <dietStr> is current
+*/
+	global pl
+	
+	; Check MAR date. currlist only keeps MAR from last date processCORES was run.
+	marDate := pl.MAR.getAttribute("date")
+	
+	Return marDate
+}
+
 PtParse(mrn) {
 	global y
 	mrnstring := "/root/id[@mrn='" mrn "']"
