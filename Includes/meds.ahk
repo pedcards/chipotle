@@ -23,6 +23,7 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 		}
 		if (medlist="diet") {
 			diet := RegExReplace(medname,"i)(,\s+)?(Requested|Start) date\/time: .*")
+			diet := RegExReplace(diet,"i)(, )?Start: \d{1,2}\/\d{2}\/\d{2} \d{1,2}:\d{2}:\d{2}")
 			y.addElement(medlist, yMarDt, {class: "Diet"}, diet)
 			dietStr .= diet " | "
 		}
@@ -30,6 +31,8 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 			y.addElement(medlist, yMarDt, {class: "Other"}, medName)
 	}
 	if (dietStr) {
+		StringReplace, dietStr, dietStr, `r, , All
+		StringReplace, dietStr, dietStr, `n, , All
 		y.addElement("dietstr", yMarDt, {class: "Diet"}, dietStr)
 	}
 	return

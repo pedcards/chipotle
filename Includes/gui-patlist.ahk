@@ -246,7 +246,7 @@ plMAR:
 		Gui, MarGui:Tab, Diet
 		Gui, MarGui:Add, ListView, Grid NoSortHdr w400 h400, Diet
 		Gui, MarGui:Default
-		plMARlist("diet","Other")
+		plMARlist("diet","Diet")
 	}
 	tmp := breakDate(CoresD)
 	Gui, MarGui:Show, AutoSize, % "CORES " nicedate(CoresD) " @ " tmp.HH ":" tmp.Min ", MAR " plDiet()
@@ -275,8 +275,7 @@ plDiet(txt:="") {
 	; Check MAR date. currlist only keeps MAR from last date processCORES was run.
 	marDate := pl.MAR.getAttribute("date")
 	
-	DietStr := pl.MAR.selectSingleNode("diet").text									; <=== replace "diet" with dietStr in the future
-	DietStr := RegExReplace(DietStr,"im)(, )?(Requested|Start) date\/time: .*`n")
+	DietStr := pl.MAR.selectSingleNode("dietstr").text									; <=== replace "diet" with dietStr in the future
 	
 	MsgBox % DietStr
 	
