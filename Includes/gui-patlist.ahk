@@ -277,9 +277,10 @@ plDiet(txt:="") {
 	
 	DietStr := pl.MAR.selectSingleNode("dietstr").text									; <=== replace "diet" with dietStr in the future
 	
-	MsgBox % DietStr
+	txt := RegExReplace(txt, "\[DIET: .*\]", "[DIET: " DietStr "]")
+	;MsgBox % DietStr
 	
-	Return DietStr
+	Return txt
 }
 
 PtParse(mrn) {
