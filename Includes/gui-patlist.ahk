@@ -267,19 +267,35 @@ plDiet(txt:="") {
 /*	Replaces DIET string in input txt string with most recent <dietStr>
 	Uses [DIET: ... ] as the delimiter (could be broken if text box is replaced
 	Adds [DIET:] if not present and <dietStr> is current
+	
+	Other (Nonstandard) 
+	Nonformulary Formula (Formula, Nonformulary) Justification: chylous effusion, Name: Monogen, Other (Nonstandard) Final 45 Cal/oz, + Fiber 8 g/L, G-tube, Give 200ml bolus feeds at 1900 and 2200 on 4/27, then on 4/28 advance to bolus feeds of 250 per feed x 5 feeds a day at 0700, 1000, 1300, 1600,... 
+	Nonformulary Formula (Formula, Nonformulary) Justification: needed because it's kosher, Name: Neocate Infant, Other (Nonstandard) Final 26 Cal/oz, NG-tube, 27 mL/hr continuous via pump, Note: to be used if breast milk not available 
+	Nonformulary Formula Justification: home regimen, Name: Enfamil Infant, Other (Nonstandard) Final 26 Cal/oz, NG-tube | PO, 55ml q3 hrs; PO ad lib as tolerates; gavage over gravity if <20cc/hr. If greater than >20, please run over 30 minutes 
+	Modified Diet (Diet Modified) , High fiber | Pedialyte Note: PO ad lib 
+	NPO for Procedure (Diet NPO for Procedure) | NPO for Procedure (Diet NPO for Procedure) | Similac Advance 19 Cal/oz Final, NG-tube, 2 mL/hr continuous via pump. Advance by 2 ml/hr every 6 hours to goal 20 ml/hr. 
+	NPO NPO
+	Regular Diet for Age (Diet Regular for Age)
+	Nonformulary Formula Justification: home feeding and family choice., Name: Other - Mom brought formula from home already frozen., 20 Cal/oz Final, PO, PO ad lib, Note: Please discuss with mom about feeding schedule at home. | Similac Advance 19 Cal/oz Final, PO, ad lib 
+	Similac Advance 24 Cal/oz Final, PO, ad lib, Note: if sleeping may do NG feed per maternal preference | Modified Diet (Diet Modified) , Nectar-thick liquids 
+	
 */
 	global pl
-	if !IsObject(pl.MAR)																; Skip if no MAR data
-		return Error
+	if !IsObject(pl.MAR.selectSingleNode("dietstr"))																; Skip if no DietStr data
+		return txt
 	
 	; Check MAR date. currlist only keeps MAR from last date processCORES was run.
 	marDate := pl.MAR.getAttribute("date")
 	
 	DietStr := pl.MAR.selectSingleNode("dietstr").text									; <=== replace "diet" with dietStr in the future
 	
-	txt := RegExReplace(txt, "\[DIET: .*\]", "[DIET: " DietStr "]")
-	;MsgBox % DietStr
-	
+	txt := instr(txt,"[DIET:") ? RegExReplace(txt, "\[DIET: .*\]", "[DIET: " DietStr "]") : "[DIET: " DietStr "] " txt
+	StringReplace, txt, txt, Other (Nonstandard) 
+	StringReplace, txt, txt, (Formula, Nonformulary) 
+	StringReplace, txt, txt, Nonformulary Formula 
+	StringReplace, txt, txt, (Diet NPO for Procedure) 
+	StringReplace, txt, txt, (Diet Regular for Age) 
+	StringReplace, txt, txt, (Diet Modified) 
 	Return txt
 }
 
