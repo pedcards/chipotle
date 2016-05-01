@@ -255,7 +255,7 @@ PrintARNP:
 			. "\intbl " pr.provCard ((pr.provCSR) ? "\line\line\b CSR\b0\line " pr.provCSR : "") "\cell`n"
 			. "\intbl " pr.misc "\cell`n"
 			. "\row}`n"
-		rtfList .= "{\trowd\trgaph144\trrh320" rtfTblCol2 "`n"
+		rtfList .= "{\trowd\trgaph144\trrh720" rtfTblCol2 "`n"
 			. "\intbl\b Diagnoses\b0\cell`n"
 			. "\intbl " RegExReplace(CIS_dx,"m)\R","\line\~\~\~\~\~ ") "\cell`n\row`n"
 		for key,val in ccFields {
