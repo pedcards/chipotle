@@ -217,7 +217,7 @@ plMAR:
 			. "MAR data is older than 24 hrs`n`n"
 			. "Update CORES data to refresh MAR"
 	} else {
-		Gui, MarGui:Add, Tab2, w420 h440, Cardiac Meds||Other Meds
+		Gui, MarGui:Add, Tab2, w420 h440, Cardiac Meds||Other Meds|Diet
 		Gui, MarGui:Tab, Cardiac Meds
 		Gui, MarGui:Add, ListView, Grid NoSortHdr w400 h400, Medication
 		Gui, MarGui:Default
@@ -243,9 +243,13 @@ plMAR:
 		LV_Add("","")
 		LV_Add("", "=== PRN ===")
 		plMARlist("prn","Other")
+		Gui, MarGui:Tab, Diet
+		Gui, MarGui:Add, ListView, Grid NoSortHdr w400 h400, Diet
+		Gui, MarGui:Default
+		plMARlist("diet","Diet")
 	}
 	tmp := breakDate(CoresD)
-	Gui, MarGui:Show, AutoSize, % "CORES " nicedate(CoresD) " @ " tmp.HH ":" tmp.Min
+	Gui, MarGui:Show, AutoSize, % "CORES " nicedate(CoresD) " @ " tmp.HH ":" tmp.Min ", MAR " plDiet()
 	return
 }
 
@@ -256,7 +260,30 @@ plMARlist(group,class) {
 		plMed = %plMed%
 		LV_Add("", plMed)
 	}
-	;LV_ModifyCol()
+	return
+}
+
+plDiet(txt:="") {
+/*	Replaces DIET string in input txt string with most recent <dietStr>
+	Uses [DIET: ... ] as the delimiter (could be broken if text box is replaced
+	Adds [DIET:] if not present and <dietStr> is current
+*/
+	global pl, rtfList, pr
+	if (rtfList) {
+		MAR := pr.MAR
+	} else {
+		MAR := pl.MAR
+	}
+	if !IsObject(MAR.selectSingleNode("dietstr"))																; Skip if no DietStr data
+		return txt
+	
+	; Check MAR date. currlist only keeps MAR from last date processCORES was run.
+	marDate := MAR.getAttribute("date")
+	
+	DietStr := MAR.selectSingleNode("dietstr").text
+	
+	txt := instr(txt,"[DIET:") ? RegExReplace(txt, "\[DIET: .*\]", "[DIET: " DietStr "]") : "[DIET: " DietStr "] " txt
+	Return txt
 }
 
 PtParse(mrn) {

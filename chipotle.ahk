@@ -11,7 +11,7 @@ SendMode Input ; Recommended for new scripts due to its superior speed and relia
 SetTitleMatchMode, 2
 SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
-WinClose, View Downloads - Windows Internet Explorer
+WinClose, View Downloads -
 LV_Colors.OnMessage()
 
 FileGetTime, iniDT, chipotle.ini
@@ -24,7 +24,7 @@ FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.ex
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.7.9.3"
+vers := "1.7.9.4"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -155,6 +155,7 @@ Return
 
 */																; add ";" for live
 
+;/*
 OnClipboardChange:
 */
 {
@@ -213,8 +214,8 @@ Return
 }
 
 ^F12::
-	;FileSelectFile , clipname,, %A_ScriptDir%, Select file:, AHK clip files (*.clip)
-	clipname := "cores0301rhr.clip"
+	FileSelectFile , clipname,, %A_ScriptDir%/files, Select file:, AHK clip files (*.clip)
+	;clipname := "cores0301rhr.clip"
 	FileRead, Clipboard, *c %clipname%
 Return
 
