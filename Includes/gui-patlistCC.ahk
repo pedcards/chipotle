@@ -29,6 +29,9 @@ PatListGUIcc:
 		box1 := "x"x0 " y"y0 " w"w0 " h"h0
 		edVar := "cc"val
 		edVal := pl_ccSys.selectSingleNode(val).text
+		if (edVar = "ccFEN") {
+			edVal := plDiet(edVal)
+		}
 		edit1 := "x"x0+3 " y"y0+12 " w"w0-5 " h"h0-16 " -VScroll gplInputNote v"edVar
 		Gui, Font, Bold
 		Gui, Add, GroupBox, % box1, % RegExReplace(val,"_","/")
