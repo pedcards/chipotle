@@ -163,6 +163,7 @@ Page \chpgn\~\~\~\~
 		Run, print %fileout%
 		eventlog(fileout " printed.")
 	}
+	rtfList :=
 return
 }
 
@@ -259,7 +260,7 @@ PrintARNP:
 			. "\intbl " RegExReplace(CIS_dx,"m)\R","\line\~\~\~\~\~ ") "\cell`n\row`n"
 		for key,val in ccFields {
 			rtfList .= "\intbl\b " RegExReplace(val,"_","/") "\b0\cell`n"
-				. "\intbl " pr.ccSys.selectSingleNode(val).text "\cell`n"
+				. "\intbl " ((val="FEN") ? plDiet(pr.ccSys.selectSingleNode(val).text) : pr.ccSys.selectSingleNode(val).text) "\cell`n"
 				. "\row`n"
 		}
 		pr_dob := parseDate(pr.DOB)
@@ -346,6 +347,7 @@ Page \chpgn\~\~\~\~
 		Run, print %fileout%
 		eventlog(fileout " printed.")
 	}
+	rtfList :=
 return
 }
 

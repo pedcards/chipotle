@@ -268,14 +268,19 @@ plDiet(txt:="") {
 	Uses [DIET: ... ] as the delimiter (could be broken if text box is replaced
 	Adds [DIET:] if not present and <dietStr> is current
 */
-	global pl
-	if !IsObject(pl.MAR.selectSingleNode("dietstr"))																; Skip if no DietStr data
+	global pl, rtfList, pr
+	if (rtfList) {
+		MAR := pr.MAR
+	} else {
+		MAR := pl.MAR
+	}
+	if !IsObject(MAR.selectSingleNode("dietstr"))																; Skip if no DietStr data
 		return txt
 	
 	; Check MAR date. currlist only keeps MAR from last date processCORES was run.
-	marDate := pl.MAR.getAttribute("date")
+	marDate := MAR.getAttribute("date")
 	
-	DietStr := pl.MAR.selectSingleNode("dietstr").text
+	DietStr := MAR.selectSingleNode("dietstr").text
 	
 	txt := instr(txt,"[DIET:") ? RegExReplace(txt, "\[DIET: .*\]", "[DIET: " DietStr "]") : "[DIET: " DietStr "] " txt
 	Return txt
