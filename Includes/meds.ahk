@@ -24,6 +24,13 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 		if (medlist="diet") {
 			diet := RegExReplace(medname,"i)(,\s+)?(Requested|Start) date\/time: .*")
 			diet := RegExReplace(diet,"i)(, )?Start: \d{1,2}\/\d{2}\/\d{2} \d{1,2}:\d{2}:\d{2}")
+			StringReplace, diet, diet, Other (Nonstandard) 
+			StringReplace, diet, diet, (Formula, Nonformulary) 
+			StringReplace, diet, diet, Nonformulary Formula 
+			StringReplace, diet, diet, (Diet NPO for Procedure) 
+			StringReplace, diet, diet, (Diet Regular for Age) 
+			StringReplace, diet, diet, (Diet Modified) 
+			
 			y.addElement(medlist, yMarDt, {class: "Diet"}, diet)
 			dietStr .= diet " | "
 		}

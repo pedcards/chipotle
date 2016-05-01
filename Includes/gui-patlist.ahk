@@ -290,12 +290,6 @@ plDiet(txt:="") {
 	DietStr := pl.MAR.selectSingleNode("dietstr").text									; <=== replace "diet" with dietStr in the future
 	
 	txt := instr(txt,"[DIET:") ? RegExReplace(txt, "\[DIET: .*\]", "[DIET: " DietStr "]") : "[DIET: " DietStr "] " txt
-	StringReplace, txt, txt, Other (Nonstandard) 
-	StringReplace, txt, txt, (Formula, Nonformulary) 
-	StringReplace, txt, txt, Nonformulary Formula 
-	StringReplace, txt, txt, (Diet NPO for Procedure) 
-	StringReplace, txt, txt, (Diet Regular for Age) 
-	StringReplace, txt, txt, (Diet Modified) 
 	Return txt
 }
 
