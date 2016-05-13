@@ -1,10 +1,10 @@
 plInputNote:
 {
-	if (isCICU) {
-		MsgBox % "Cannot edit in CICU mode"
-		gosub PatListGet
-		return
-	}
+	;~ if (isCICU) {
+		;~ MsgBox % "Cannot edit in CICU mode"
+		;~ gosub PatListGet
+		;~ return
+	;~ }
 	;~ if (isARNP) {
 		;~ MsgBox % "Cannot edit in ARNP mode"
 		;~ gosub PatListGet
@@ -136,6 +136,7 @@ plNoteEdit:
 	if !(formsave=true) {
 		return
 	}
+	formTxt := RegExReplace(formTxt,"[^[:print:]]")							; filter esc chars from entry
 	if !IsObject(y.selectSingleNode(pl_mrnstring "/notes")) {
 		y.addElement("notes", pl_mrnstring)
 		WriteOut(pl_mrnstring, "notes")

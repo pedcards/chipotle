@@ -853,6 +853,7 @@ cleanString(x) {
 	{
 		StringReplace, x, x, %what%, %with%, All
 	}
+	x := RegExReplace(x,"[^[:print:]]")									; filter unprintable (esc) chars
 	return x
 }
 
