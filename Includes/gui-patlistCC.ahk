@@ -199,7 +199,7 @@ plHealthMaint:
 {
 	hmtList := ["Nbs1:NBS#1 sent","Nbs2:NBS#2 sent","Baer:BAER passed","Oph:Ophtho","Gt:GT teaching","Seat:Car seat"
 				, "Pcp:PCP","Crd:Cardiology","Ndv:Neurodev","OTPT:OT/PT/Speech"
-				, "Synagis:Synagis candidate","Imms:Immunications","DC:Discharge plan"]
+				, "Synagis:Synagis candidate","Imms:Immunications","DC:Discharge plan","CPR:CPR"]
 	hmtCol := 120
 	hmtW := 250
 	Gui, hMaint:Default
