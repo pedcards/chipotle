@@ -189,7 +189,7 @@ PrintARNP:
 	CIS_dx :=
 	hmtList := ["Nbs1:NBS#1 sent","Nbs2:NBS#2 sent","Baer:BAER passed","Oph:Ophtho","Gt:GT teaching","Seat:Car seat"
 				, "Pcp:PCP","Crd:Cardiology","Ndv:Neurodev","OTPT:OT/PT/Speech"
-				, "Synagis:Synagis candidate","Imms:Immunications","DC:Discharge plan"]
+				, "Synagis:Synagis candidate","Imms:Immunications","DC:Discharge plan","CPR:CPR"]
 	
 	Loop, % (prList:=y.selectNodes("/root/lists/" location "/mrn")).length {
 		kMRN := prList.item(i:=A_Index-1).text
@@ -247,7 +247,9 @@ PrintARNP:
 			. "\intbl Cardiologist\cell`n"
 			. "\intbl Notes\cell`n"
 			. "\b0\row`n"
-			. "\intbl " pr.nameL ", " pr.nameF "\line " RegExReplace(RegExReplace(pr.Age,"month","mo"),"year","yr") " " SubStr(pr.Sex,1,1) "\cell`n"
+			. "\intbl " pr.nameL ", " pr.nameF "\line " 
+				. RegExReplace(RegExReplace(pr.Age,"month","mo"),"year","yr") " " SubStr(pr.Sex,1,1) "\line "
+				. pr_VS.selectSingleNode("wt").text " kg \cell`n"
 			. "\intbl " pr.Room "\cell`n"
 			. "\intbl " kMRN "\cell`n"
 			. "\intbl " pr.DOB "\cell`n"
