@@ -16,7 +16,7 @@ if (user="TC") {
 	chipdir := ""
 	isDevt := true
 } else {
-	netdir := "\\chmc16\Cardio\Conference\Tuesday Conference"
+	netdir := "\\childrens\files\HCConference\Tuesday Conference"
 	chipdir := "\\childrens\files\HCChipotle\"
 	isDevt := false
 }
