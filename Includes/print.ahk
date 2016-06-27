@@ -199,6 +199,7 @@ PrintARNP:
 		CIS_adm := pr_adm.YYYY . pr_adm.MM . pr_adm.DD
 		CIS_los := A_Now
 		CIS_los -= CIS_adm, days
+		pr_meds :=
 		pr_today :=
 		pr_todo := "\fs12"
 		if IsObject(pr_VS := k.selectSingleNode("info/vs")) {
@@ -211,6 +212,7 @@ PrintARNP:
 			prMedCl := prMed.getAttribute("class")
 			if (prMedCl="cardiac") or (prMedCl="arrhythmia") {
 				pr_todo .= "\f2s\f0" . prMed.text . "\line "
+				pr_meds .= "\f2s\f0" . prMed.text . "\line "
 			}
 		}
 		Loop, % (plT:=k.selectNodes("plan/tasks/todo")).length {
