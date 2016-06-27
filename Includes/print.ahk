@@ -184,6 +184,11 @@ PrintARNP:
 	rtfTblCol2 :=	TblBrdr "`n"											; 
 					. TblC . round(tw * 1.0) . TblBrdr "`n"					; ccSys field
 					. TblC . round(tw * 8) . TblBrdr "`n"					; Textfield (below LOCATION), Right margin
+	
+	rtfTblCol3 := 	TblBrdr "`n"
+					. TblC . round(tw * 1.0) . TblBrdr "`n"
+					. TblC . round(tw * 4.0) . TblBrdr "`n"
+					. TblC . round(tw * 8) . TblBrdr "`n"
 
 	rtfList :=
 	CIS_dx :=
