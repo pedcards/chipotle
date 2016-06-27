@@ -184,6 +184,11 @@ PrintARNP:
 	rtfTblCol2 :=	TblBrdr "`n"											; 
 					. TblC . round(tw * 1.0) . TblBrdr "`n"					; ccSys field
 					. TblC . round(tw * 8) . TblBrdr "`n"					; Textfield (below LOCATION), Right margin
+	
+	rtfTblCol3 := 	TblBrdr "`n"
+					. TblC . round(tw * 1.0) . TblBrdr "`n"
+					. TblC . round(tw * 5.0) . TblBrdr "`n"
+					. TblC . round(tw * 8) . TblBrdr "`n"
 
 	rtfList :=
 	CIS_dx :=
@@ -199,6 +204,7 @@ PrintARNP:
 		CIS_adm := pr_adm.YYYY . pr_adm.MM . pr_adm.DD
 		CIS_los := A_Now
 		CIS_los -= CIS_adm, days
+		pr_meds :=
 		pr_today :=
 		pr_todo := "\fs12"
 		if IsObject(pr_VS := k.selectSingleNode("info/vs")) {
@@ -211,6 +217,7 @@ PrintARNP:
 			prMedCl := prMed.getAttribute("class")
 			if (prMedCl="cardiac") or (prMedCl="arrhythmia") {
 				pr_todo .= "\f2s\f0" . prMed.text . "\line "
+				pr_meds .= "\f2s\f0" . prMed.text . "\line "
 			}
 		}
 		Loop, % (plT:=k.selectNodes("plan/tasks/todo")).length {
@@ -265,12 +272,14 @@ PrintARNP:
 				. "\intbl " ((val="FEN") ? plDiet(pr.ccSys.selectSingleNode(val).text) : pr.ccSys.selectSingleNode(val).text) "\cell`n"
 				. "\row`n"
 		}
+		rtfList .= "}`n"
 		pr_dob := parseDate(pr.DOB)
 		pr_dob := pr_dob.YYYY pr_dob.MM pr_dob.DD
 		pr_dob -= A_Now, Days
+		rtfList .= "{\trowd\trgaph144\trrh720" rtfTblCol3 "`n"
+				. "\intbl\b Health Maint\b0\cell`n"
+				. "\intbl "
 		if (-pr_dob < 60) {
-			rtfList .= "\intbl\b Health Maint\b0\cell`n"
-					. "\intbl "
 			for key,val in hmtList {
 				opt := strX(val,,0,0,":",1,1)
 				res := strX(val,":",1,1,"",1,1)
@@ -278,10 +287,10 @@ PrintARNP:
 				txt := k.selectSingleNode("ccHMT/" opt).text
 				rtfList .= "\f2\'" ((chk)?"FD":"A8") "\f0\~\~" res ": " txt "\line`n"
 			}
-			rtfList .= "\cell`n"
-					. "\row`n"
 		}
-		rtfList .= "}`n"
+		rtfList .= "\cell`n"
+				. "\intbl " pr_meds "\cell`n"
+				. "\row}`n"
 	}
 
 	FormatTime, rtfNow, A_Now, yyyyMMdd
