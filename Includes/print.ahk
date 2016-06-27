@@ -272,12 +272,14 @@ PrintARNP:
 				. "\intbl " ((val="FEN") ? plDiet(pr.ccSys.selectSingleNode(val).text) : pr.ccSys.selectSingleNode(val).text) "\cell`n"
 				. "\row`n"
 		}
+		rtfList .= "}`n"
 		pr_dob := parseDate(pr.DOB)
 		pr_dob := pr_dob.YYYY pr_dob.MM pr_dob.DD
 		pr_dob -= A_Now, Days
+		rtfList .= "{\trowd\trgaph144\trrh720" rtfTblCol3 "`n"
+				. "\intbl\b Health Maint\b0\cell`n"
+				. "\intbl "
 		if (-pr_dob < 60) {
-			rtfList .= "\intbl\b Health Maint\b0\cell`n"
-					. "\intbl "
 			for key,val in hmtList {
 				opt := strX(val,,0,0,":",1,1)
 				res := strX(val,":",1,1,"",1,1)
@@ -285,9 +287,11 @@ PrintARNP:
 				txt := k.selectSingleNode("ccHMT/" opt).text
 				rtfList .= "\f2\'" ((chk)?"FD":"A8") "\f0\~\~" res ": " txt "\line`n"
 			}
-			rtfList .= "\cell`n"
-					. "\row`n"
 		}
+		rtfList .= "\cell`n"
+		rtfList .= "\intbl " pr_meds "\cell`n"
+				. "\row`n"
+		
 		rtfList .= "}`n"
 	}
 
