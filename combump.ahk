@@ -13,7 +13,7 @@ SendMode Input ; Recommended for new scripts due to its superior speed and relia
 SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 
 user := A_UserName
-ahk_path := ((user="tchun1") ? "O:\PApps\PortableApps" : "C:\Program Files (x86)") . "\AutoHotkey\Compiler"
+ahk_path := ((user="tchun1") ? "O:\PApps\PortableApps" : "C:\Program Files") . "\AutoHotkey\Compiler"
 ahk2exe_loc := ahk_path "\Ahk2Exe.exe"
 ahk2exe_mpr := ahk_path "\mpress.exe"
 
