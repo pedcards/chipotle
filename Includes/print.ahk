@@ -187,7 +187,7 @@ PrintARNP:
 	
 	rtfTblCol3 := 	TblBrdr "`n"
 					. TblC . round(tw * 1.0) . TblBrdr "`n"
-					. TblC . round(tw * 4.0) . TblBrdr "`n"
+					. TblC . round(tw * 5.0) . TblBrdr "`n"
 					. TblC . round(tw * 8) . TblBrdr "`n"
 
 	rtfList :=
@@ -289,10 +289,8 @@ PrintARNP:
 			}
 		}
 		rtfList .= "\cell`n"
-		rtfList .= "\intbl " pr_meds "\cell`n"
-				. "\row`n"
-		
-		rtfList .= "}`n"
+				. "\intbl " pr_meds "\cell`n"
+				. "\row}`n"
 	}
 
 	FormatTime, rtfNow, A_Now, yyyyMMdd
