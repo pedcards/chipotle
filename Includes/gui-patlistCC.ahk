@@ -46,7 +46,7 @@ PatListGUIcc:
 	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gplHealthMaint", Health Maintenance
 	Gui, Add, Button, % "xP+"win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5 " Disabled", Cath Plan
 	Gui, Add, Button, % "x"win.bor+win.boxF " yP w"win.boxQ-20 " h"win.rh*2.5 " gplSave", SAVE
-	Gui, Show, % "w"winFw " h"win.wY, CON CARNE
+	Gui, Show, % "w"winFw " h"win.wY, % "CON CARNE - " pl_nameL
 
 	tmpDarr := Object()
 	tmpDt := "DX|"
