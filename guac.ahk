@@ -12,12 +12,12 @@ LV_Colors.OnMessage()
 
 user := A_UserName
 if (user="TC") {
-	netdir := A_WorkingDir "\files\Tuesday Conference"
+	netdir := A_WorkingDir "\files\Tuesday Conference"								; local files
 	chipdir := ""
 	isDevt := true
 } else {
-	netdir := "\\childrens\files\HCConference\Tuesday Conference"
-	chipdir := "\\childrens\files\HCChipotle\"
+	netdir := "\\childrens\files\HCConference\Tuesday Conference"					; networked Conference folder
+	chipdir := "\\childrens\files\HCChipotle\"										; and CHIPOTLE files
 	isDevt := false
 }
 MsgBox, 36, GUACAMOLE, Are you launching GUACAMOLE for patient presentation?
@@ -34,9 +34,9 @@ mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 ;ConfStart := "20160416132100"
 ConfStart := A_Now
 
-Gosub MainGUI
-SetTimer, ConfTime, 1000
-WinWaitClose, GUACAMOLE Main
+Gosub MainGUI																		; Draw the main GUI
+SetTimer, ConfTime, 1000															; Update ConfTime every 1000 ms
+WinWaitClose, GUACAMOLE Main														; wait until main GUI is closed
 ExitApp
 
 ;	===========================================================================================
@@ -53,8 +53,8 @@ MainGUI:
 	Gui, main:Default
 	Gui, Destroy
 	Gui, Font, s16 wBold
-	Gui, Add, Text, y0 x20 vCTime, % "              "
-	Gui, Add, Text, y0 x460 vCDur, % "              "
+	Gui, Add, Text, y0 x20 vCTime, % "              "								; Conference real time
+	Gui, Add, Text, y0 x460 vCDur, % "              "								; Conference duration (only exists for Presenter)
 	Gui, Add, Text, y0 x160 w240 h20 +Center, .-= GUACAMOLE =-.
 	Gui, Font, wNorm s8 wItalic
 	Gui, Add, Text, yp+30 xp wp +Center, General Use Access tool for Conference Archive
@@ -62,40 +62,41 @@ MainGUI:
 	Gui, Font, wBold
 	;Gui, Add, Text, yp+30 wp +Center, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
 	Gui, Font, wNorm
-	Gosub GetConfDir
-	Gui, Show, AutoSize, % "GUACAMOLE Main - " dt.MM "/" dt.DD "/" dt.YYYY
+	Gosub GetConfDir																; Draw the pateint gride ListView
+	Gui, Show, AutoSize, % "GUACAMOLE Main - " dt.MM "/" dt.DD "/" dt.YYYY			; Show GUI with seleted conference DT
 Return
 }
 
 ConfTime:
 {
-	FormatTime, tmp, , HH:mm:ss
-	GuiControl, main:Text, CTime, % tmp
-	if (Presenter) {
-		tt := elapsed(ConfStart,A_Now)
-		GuiControl, main:Text, CDur, % tt.hh ":" tt.mm ":" tt.ss
+	FormatTime, tmp, , HH:mm:ss														; Format the current time
+	GuiControl, main:Text, CTime, % tmp												; Update the main GUI current time
+	
+	if (Presenter) {																; For presenter only,
+		tt := elapsed(ConfStart,A_Now)												; Total time elapsed
+		GuiControl, main:Text, CDur, % tt.hh ":" tt.mm ":" tt.ss					; Update the main GUI elapsed time
 	}
 return
 }
 
 elapsed(start,end) {
-	start -= end, Seconds
-	HH := floor(-start/3600)
-	MM := floor((-start-HH*3600)/60)
-	SS := HH*3600-MM*60-start
+	start -= end, Seconds															; Seconds betwen Start and End vars
+	HH := floor(-start/3600)														; Derive HH from Start elapsed secs 
+	MM := floor((-start-HH*3600)/60)												; Derive MM from remainder of HH
+	SS := HH*3600-MM*60-start														; Derive SS from remainder of MM
 	Return {"hh":zDigit(HH), "mm":zDigit(MM), "ss":zDigit(SS)}
 }
 
 formatSec(time) {
-	HH := floor(time/3600)
-	MM := floor((time-HH*3600)/60)
-	SS := time-HH*3600-MM*60
+	HH := floor(time/3600)															; Derive HH from total time (secs)
+	MM := floor((time-HH*3600)/60)													; Derive MM from remainder of HH
+	SS := time-HH*3600-MM*60														; Derive SS from remainder of MM
 	Return {"hh":zDigit(HH), "mm":zDigit(MM), "ss":zDigit(SS)}
 }
 
 mainGuiClose:
 {
-	MsgBox, 36, Exit, Do you really want to leave GUACAMOLE?`n`nWHY???
+	MsgBox, 36, Exit, Do you really want to quit GUACAMOLE?
 	IfMsgBox No
 	{
 		Return
