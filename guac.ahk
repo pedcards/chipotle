@@ -189,10 +189,10 @@ GetConfDir:
 NetConfDir(yyyy:="",mmm:="",dd:="") {
 	global netdir, datedir, mo
 
-	if (IsObject(datedir[yyyy,mmm])) {
-		return yyyy "\" datedir[yyyy,mmm].dir "\" datedir[yyyy,mmm,dd]
+	if (IsObject(datedir[yyyy,mmm])) {								; YYYY\MMM already exists
+		return yyyy "\" datedir[yyyy,mmm].dir "\" datedir[yyyy,mmm,dd]	; return the string for YYYY\MMM
 	}
-	Loop, % netdir "\" yyyy "\*" , 2								; Get the month dirs in YYYY
+	Loop, Files, % netdir "\" yyyy "\*" , D							; Get the month dirs in YYYY
 	{
 		file := A_LoopFileName
 		for key,obj in mo											; Compare "file" name with Mo abbrevs
@@ -202,7 +202,7 @@ NetConfDir(yyyy:="",mmm:="",dd:="") {
 			}
 		}
 	}
-	Loop, % netdir "\" yyyy "\" datedir[yyyy,mmm].dir "\*" , 2		; check for conf dates within that month (dir:filename)
+	Loop, Files, % netdir "\" yyyy "\" datedir[yyyy,mmm].dir "\*" , D	; check for conf dates within that month (dir:filename)
 	{
 		file := A_LoopFileName
 		if (regexmatch(file,"\d{1,2}\.\d{1,2}\.\d{1,2}")) {			; sometimes named "6.19.15"
