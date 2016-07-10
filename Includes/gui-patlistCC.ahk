@@ -39,14 +39,14 @@ PatListGUIcc:
 		Gui, Add, Edit, % edit1, % edVal
 		y0 += h0
 	}
-	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gPatListGUI", Switch to other view
+	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gPatListGUI Disabled", Switch to other view
 	Gui, Add, Button, % "xP+"win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5 " gPlTasksList", Tasks/Todo
 	Gui, Add, Button, % "xP+"win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5 " gplMar", Medications
 	Gui, Add, Button, % "x"win.bor+win.boxF " yP w"win.boxQ-20 " h"win.rh*2.5,Hello >'o'<
 	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gplHealthMaint", Health Maintenance
 	Gui, Add, Button, % "xP+"win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5 " Disabled", Cath Plan
 	Gui, Add, Button, % "x"win.bor+win.boxF " yP w"win.boxQ-20 " h"win.rh*2.5 " gplSave", SAVE
-	Gui, Show, % "w"winFw " h"win.wY, CON CARNE
+	Gui, Show, % "w"winFw " h"win.wY, % "CON CARNE - " pl_nameL
 
 	tmpDarr := Object()
 	tmpDt := "DX|"
@@ -70,13 +70,25 @@ PatListGUIcc:
 		Gui, Add, Text, % "x"tmpPosX " yp+"tmpPosH " wP-10"
 			ccData(pl_info,"labs")
 	}
+	w0 := win.rCol-3*win.bor
 	Gui, Tab, Dx
-	Gui, Add, Button, % "yP-10 w" win.rCol-3*win.bor " gPatlistGUI", Edit DX fields
-	Gui, Add, Text, % "w" win.rCol-3*win.bor
-		, % "Dx:`n" pl_dxCard "`n"
-		. "`nSurg:`n" pl_dxSurg "`n"
-		. "`nEP:`n" pl_dxEP "`n"
-		. "`nNotes:`n" pl_dxNotes
+	Gui, Add, Text, % "w" w0, Diagnoses && problems
+	Gui, Add, Edit, % "w" w0 " h48 vpl_dxCard gplInputNote", %pl_dxCard%
+	Gui, Add, Text
+	Gui, Add, Text, % "w" w0 " ", EP diagnoses/problems
+	Gui, Add, Edit, % "w" w0 " h48 vpl_dxEP gplInputNote", %pl_dxEP%
+	Gui, Add, Text
+	Gui, Add, Text, % "w" w0 " ", Surgeries/Caths/Interventions
+	Gui, Add, Edit, % "w" w0 " h48 vpl_dxSurg gplInputNote", %pl_dxSurg%
+	Gui, Add, Text
+	Gui, Add, Text, % "w" w0 " ", Problems
+	Gui, Add, Edit, % "w" w0 " h48 vpl_dxProb gplInputNote", %pl_dxProb%
+	Gui, Add, Text
+	Gui, Add, Text, % "w" w0 " ", Quick notes
+	Gui, Add, Edit, % "w" w0 " h48 vpl_dxNotes gplInputNote", %pl_dxNotes%
+	Gui, Add, Text
+	Gui, Add, Text, % "w" w0 " ", Misc notes
+	Gui, Add, Edit, % "w" w0 " h40 gplInputNote vpl_misc", %pl_misc%
 	return
 }
 
