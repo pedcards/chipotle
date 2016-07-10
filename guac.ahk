@@ -62,7 +62,7 @@ MainGUI:
 	Gui, Font, wBold
 	;Gui, Add, Text, yp+30 wp +Center, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
 	Gui, Font, wNorm
-	Gosub GetConfDir																; Draw the pateint gride ListView
+	Gosub GetConfDir																; Draw the pateint grid ListView
 	Gui, Show, AutoSize, % "GUACAMOLE Main - " dt.MM "/" dt.DD "/" dt.YYYY			; Show GUI with seleted conference DT
 Return
 }
@@ -171,11 +171,12 @@ GetConfDir:
 			keyElement := "/root/id[@name='" keyNm "']"
 			keyDone := gXml.getAtt(keyElement,"done")						; DONE flag
 			keyDur := (tmp:=gXml.getAtt(keyElement,"dur")) ? formatSec(tmp) : ""	; If dur exists, get it
+			keyNote := (tmp:=gXml.selectSingleNode(keyElement "/notes").text) ? tmp : ""	; NOTE, if present
 			LV_Add(""
 				,keyNm														; UPPER CASE name
 				,(keyDone) ? "x" : ""										; DONE or not
 				,(keyDur) ? keyDur.MM ":" keyDur.SS : ""					; total DUR spent on this patient MM:SS
-				,confList[val].note)										; note for this patient (use KEY instead?)
+				,(keyNote) ? keyNote : "")									; note for this patient
 		}
 	}
 	LV_ModifyCol()
