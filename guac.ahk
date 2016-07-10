@@ -128,51 +128,54 @@ GetConfDir:
 	}
 	IfExist guac.xml
 	{
-		gXml := new XML("guac.xml")
+		gXml := new XML("guac.xml")											; Open existing guac.xml
 	} else {
-		gXml := new XML("<root/>")
+		gXml := new XML("<root/>")											; Create new blank guac.xml if it doesn't exist
 		gXml.save("guac.xml")
 	}
-	filelist =
-	patnum =
-	Loop, Files, .\*, DF
+	filelist =																; Clear out filelist string
+	patnum =																; and zero out count of patient folders
+	
+	Loop, Files, .\*, DF													; Loop through all files and directories in confDir
 	{
 		tmpNm := A_LoopFileName
 		tmpExt := A_LoopFileExt
 		if (tmpExt) {														; evaluate files with extensions
-			if (tmpNm ~= "i)(\~\$|(Fast Track))")									; exclude "Fast Track" files
+			if (tmpNm ~= "i)(\~\$|(Fast Track))")							; exclude "Fast Track" files
 				continue
-			if (tmpNm ~= "i)(PCC)?\s*\d{1,2}\.\d{1,2}\.\d{2,4}.*xls") {		; find XLS that matches 3.29.16.xlsx
+			if (tmpNm ~= "i)(PCC)?\s*\d{1,2}\.\d{1,2}\.\d{2,4}.*xls") {		; find XLS that matches PCC 3.29.16.xlsx
 				confXls := tmpNm
 			}
 			continue
 		}
-		if !IsObject(confList[tmpNm]) {
-			tmpNmUP := format("{:U}",tmpNm)
-			confList.Push(tmpNmUP)
-			confList[tmpNmUP] := {name:tmpNm,done:0,note:""}
+		if !IsObject(confList[tmpNm]) {										; confList is empty
+			tmpNmUP := format("{:U}",tmpNm)									; place filename in all UPPER CASE
+			confList.Push(tmpNmUP)											; add it to end of confList
+			confList[tmpNmUP] := {name:tmpNm,done:0,note:""}				; name=actual filename, done=no, note=cleared
 		}
 		if !IsObject(gXml.selectSingleNode("/root/id[@name='" tmpNmUP "']")) {
-			gXml.addElement("id","root",{name: tmpNmUP})
+			gXml.addElement("id","root",{name: tmpNmUP})					; Add to Guac XML if not present
 		}
 	}
-	if (confXls) {
+	if (confXls) {															; Read confXls if present
 		gosub readXls
 	}
-	gXml.save("guac.xml")
+	gXml.save("guac.xml")													; Write Guac XML
+	
 	Gui, Font, s16
 	Gui, Add, ListView, % "r" confList.length() " x20 w540 Hdr AltSubmit Grid BackgroundSilver NoSortHdr NoSort gPatDir", Name|Done|Takt|Note
 	for key,val in confList
 	{
 		if (key=A_index) {
-			keyNm := confList[key]
-			keyDone := gXml.getAtt("/root/id[@name='" keyNm "']","done")
-			keyDur := (tmp:=gXml.getAtt("/root/id[@name='" keyNm "']","dur")) ? formatSec(tmp) : ""
+			keyNm := confList[key]											; UPPER CASE name
+			keyElement := "/root/id[@name='" keyNm "']"
+			keyDone := gXml.getAtt(keyElement,"done")						; DONE flag
+			keyDur := (tmp:=gXml.getAtt(keyElement,"dur")) ? formatSec(tmp) : ""	; If dur exists, get it
 			LV_Add(""
-				,keyNm
-				,(keyDone) ? "x" : ""
-				,(keyDur) ? keyDur.MM ":" keyDur.SS : ""
-				,confList[val].note)
+				,keyNm														; UPPER CASE name
+				,(keyDone) ? "x" : ""										; DONE or not
+				,(keyDur) ? keyDur.MM ":" keyDur.SS : ""					; total DUR spent on this patient MM:SS
+				,confList[val].note)										; note for this patient (use KEY instead?)
 		}
 	}
 	LV_ModifyCol()
