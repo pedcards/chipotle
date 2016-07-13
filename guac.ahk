@@ -60,9 +60,10 @@ MainGUI:
 	Gui, Add, Text, yp+30 xp wp +Center, General Use Access tool for Conference Archive
 	Gui, Add, Text, yp+14 xp wp +Center, Merged OnLine Elements
 	Gui, Font, wBold
-	;Gui, Add, Text, yp+30 wp +Center, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
 	Gui, Font, wNorm
 	Gosub GetConfDir																; Draw the pateint grid ListView
+	;Gui, Add, Button, wp +Center, % dt.MM "/" dt.DD "/" dt.YYYY
+	Gui, Add, DateTime, % "readonly wp vEncDt CHOOSE" dt.YYYY dt.MM dt.DD, MM/dd/yyyy
 	Gui, Show, AutoSize, % "GUACAMOLE Main - " dt.MM "/" dt.DD "/" dt.YYYY			; Show GUI with seleted conference DT
 Return
 }
