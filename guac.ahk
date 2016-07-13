@@ -62,10 +62,25 @@ MainGUI:
 	Gui, Font, wBold
 	Gui, Font, wNorm
 	Gosub GetConfDir																; Draw the pateint grid ListView
-	;Gui, Add, Button, wp +Center, % dt.MM "/" dt.DD "/" dt.YYYY
-	Gui, Add, DateTime, % "readonly wp vEncDt CHOOSE" dt.YYYY dt.MM dt.DD, MM/dd/yyyy
+	Gui, Add, Button, wp +Center gDateGUI, % dt.MM "/" dt.DD "/" dt.YYYY
 	Gui, Show, AutoSize, % "GUACAMOLE Main - " dt.MM "/" dt.DD "/" dt.YYYY			; Show GUI with seleted conference DT
 Return
+}
+
+DateGUI:
+{
+	Gui, date:Default
+	Gui, Destroy
+	Gui, Add, MonthCal, vEncDt gDateChoose, % dt.YYYY dt.MM dt.DD
+	Gui, Show, AutoSize, Select PCC date...
+	return
+}
+
+DateChoose:
+{
+	dt := GetConfDate(EncDt)
+	Gosub MainGUI
+	return
 }
 
 ConfTime:
