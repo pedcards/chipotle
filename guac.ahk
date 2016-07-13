@@ -62,7 +62,7 @@ MainGUI:
 	Gui, Font, wBold
 	Gui, Font, wNorm
 	Gosub GetConfDir																; Draw the pateint grid ListView
-	Gui, Add, Button, wp +Center gDateGUI, % dt.MM "/" dt.DD "/" dt.YYYY
+	Gui, Add, Button, wp +Center gDateGUI, % dt.MM "/" dt.DD "/" dt.YYYY			; Date selector button
 	Gui, Show, AutoSize, % "GUACAMOLE Main - " dt.MM "/" dt.DD "/" dt.YYYY			; Show GUI with seleted conference DT
 Return
 }
@@ -71,15 +71,15 @@ DateGUI:
 {
 	Gui, date:Default
 	Gui, Destroy
-	Gui, Add, MonthCal, vEncDt gDateChoose, % dt.YYYY dt.MM dt.DD
+	Gui, Add, MonthCal, vEncDt gDateChoose, % dt.YYYY dt.MM dt.DD					; Show selected date and month selector
 	Gui, Show, AutoSize, Select PCC date...
 	return
 }
 
 DateChoose:
 {
-	dt := GetConfDate(EncDt)
-	Gosub MainGUI
+	dt := GetConfDate(EncDt)														; Reacquire DT based on value
+	Gosub MainGUI																	; Redraw MainGUI
 	return
 }
 
