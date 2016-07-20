@@ -421,23 +421,26 @@ PatDir:
 
 PatLGuiClose:
 {
-	SetTimer, PatCxTimer, Off
-	Gui, PatCx:Destroy
+/*	TODO: This would be a good place for a progress display
+ *
+ */
+	SetTimer, PatCxTimer, Off															; cancel PatCxTimer
+	Gui, PatCx:Destroy																	; destroy PatCx GUI
 	
-	Loop, % filepath "\*" , 1
+	Loop, % filepath "\*" , 1															; Loop through files in pat directory "filepath"
 	{
 		tmpNm := A_LoopFileName
 		tmpExt := A_LoopFileExt
-		StringReplace , tmpNm, tmpNm, .%tmpExt%
-		WinClose, %tmpNm%
+		StringReplace , tmpNm, tmpNm, .%tmpExt%											; convert tmpNm without ext
+		WinClose, %tmpNm%																; close it
 	}
-	Gui, PatL:Destroy
+	Gui, PatL:Destroy																	; destroy PatList GUI
 	if (Presenter) {																	; update Takt time for Presenter only
-		PatTime -= A_Now, Seconds
-		gXml.setAtt("/root/id[@name='" patName "']",{dur:-PatTime})
-		gXml.save("guac.xml")
+		PatTime -= A_Now, Seconds														; time diff for time patient data opened
+		gXml.setAtt("/root/id[@name='" patName "']",{dur:-PatTime})						; update gXML with new total dur
+		gXml.save("guac.xml")															; save gXML
 	}
-	gosub MainGUI
+	gosub MainGUI																		; all patient GUI's closed, reopen main GUI
 Return
 }
 
