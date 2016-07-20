@@ -250,7 +250,7 @@ ReadXls:
 		return
 	}
 	FileCopy % confXls, guac.xlsx, 1								; Create a copy of the active XLS file 
-	oWorkbook := ComObjGet(netDir "\" confDir "\guac.xlsx")			; Open the copy
+	oWorkbook := ComObjGet(netDir "\" confDir "\guac.xlsx")			; Open the copy in memory (this is a one-way street)
 	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] ;array of column letters
 	xls_hdr := Object()
 	xls_cel := Object()
@@ -328,86 +328,93 @@ ReadXls:
 
 PatDir:
 {
-	if !(A_GuiEvent = "DoubleClick")
+	if !(A_GuiEvent = "DoubleClick")								; Only respond to double-click in GetConfDir listview
 		return
-	if WinExist("[Guac] Patient:") {								; if a window still open, close it.
+	if WinExist("[Guac] Patient:") {								; if another PatL window still open, close it and all associated windows
 		Gosub PatLGuiClose
 	}
-	gXml := new XML("guac.xml")										; refresh guac.xml
+	gXml := new XML("guac.xml")										; refresh gXml from guac.xml
 
-	Gui, Main:Submit, NoHide
-	PatName := confList[A_EventInfo]
-	PatTime := A_Now
-	PatTime += -gXml.getAtt("/root/id[@name='" patName "']","dur"), Seconds
-	filepath := netdir "\" confdir "\" PatName
-	filePmax = 
-	fileNmax =
-	filelist =
-	filenum =
-	pdoc =
-	pt = 
-	Loop, % filepath "\*" , 1
+	Gui, Main:Submit, NoHide										; use Submit to update variables
+	PatName := confList[A_EventInfo]								; get PatName from confList pointer from A_EventInfo; could we just get the first column?
+	PatTime := A_Now												; timer start
+	PatTime += -gXml.getAtt("/root/id[@name='" patName "']","dur"), Seconds		; add to previous cumulative dur time from gXml
+	filepath := netdir "\" confdir "\" PatName						; PatName is name of folder
+	filePmax = 														; clear max file field length
+	fileNmax =														; clear max filename length
+	filelist =														; clear out filelist
+	filenum =														; clear total valid files
+	pdoc =															; clear filepath to doc
+	pt = 															; clear patient text from Chipotle
+	Loop, % filepath "\*" , 1															; read all files and folders in patDir filepath
 	{
 		name := A_LoopFileName
-		if (name~="(\~\$|Thumbs.db)") {
+		if (name~="(\~\$|Thumbs.db)") {													; exclude ~$ temp and thumbs.db files
 			continue
 		}
-		if (RegExMatch(name,"i)PCC(\snote)?.*\.doc")) {
-			pdoc := filepath "\" name
+		if (RegExMatch(name,"i)PCC(\snote)?.*\.doc")) {									; matches "*PCC*.doc*"
+			pdoc := filepath "\" name													; pdoc is complete filepath to doc		*** should clear this for each loop iteration, or make ternary? ***
 		}
-		filelist .= (name) ? name "|" : ""
-		filenum ++
-		filePmax := StrLen(name)
-		if (filePmax>fileNmax) {														; Get longest filename
+		filelist .= (name) ? name "|" : ""												; if exists, append name to listbox "filelist"
+		filenum ++																		; increment filenum (total files added)
+		filePmax := StrLen(name)														; filePmax to compare against longest filename
+		if (filePmax>fileNmax) {														; Get longest filename length
 			fileNmax := filePmax
 		}
 	}
-	patLBw := (fileNmax>32) ? (fileNmax-32)*12+360 : 360
-	if !(filelist) {
+	
+	patLBw := (fileNmax>32) ? (fileNmax-32)*12+360 : 360								; listbox width has min 360px, adds 12px for each char over 32		*** could probably consolidate this ***
+	
+	if !(filelist) {																	; empty filelist string
 		MsgBox No files
-		Gui, main:Show
+		Gui, main:Show																	; redisplay main GUI
 		return
 	}
-	gXmlPt := gXml.selectSingleNode("/root/id[@name='" patName "']")
-	patMRN := gXmlPt.getAttribute("mrn")
+	
+	gXmlPt := gXml.selectSingleNode("/root/id[@name='" patName "']")					; gXml node for PATIENT NAME
+	patMRN := gXmlPt.getAttribute("mrn")												; MRN from gXmlPt node
+	
 	Gui, PatL:Default
 	Gui, Destroy
 	Gui, Font, s16
 	Gui, Add, ListBox, % "r" filenum " section w" patLBw " vPatFile gPatFileGet", % filelist
 	Gui, Font, s12
-	Gui, Add, Button, wP Disabled vplMRNbut, No MRN found
+	Gui, Add, Button, wP Disabled vplMRNbut, No MRN found								; default MRN button to Disabled
 	Gui, Add, Button, wP gPatFileGet , Open all...
 	Gui, Font, s8
-	if (patMRN) {
-		pt := checkChip(patMRN)
-		GuiControl, , plMRNbut, % patMRN
+	if (patMRN) {																		; MRN found in gXML
+		pt := checkChip(patMRN)															; check Chipotle currlist (#1) and archlist (#2) for MRN, returns in obj pt
+		GuiControl, , plMRNbut, % patMRN												; change plMRNbut button to MRN
 	}
-	if IsObject(pt) {
-		tmp := 	"CHIPOTLE data (from " niceDate(pt.dxEd) ")`n" 
+	if IsObject(pt) {																	; pt obj has values if exists in either currlist or archlist
+		tmp := 	"CHIPOTLE data (from " niceDate(pt.dxEd) ")`n" 							; generate CHIPOTLE data string for sidebar
 			. ((pt.dxCard)  ? "Diagnoses:`n" pt.dxCard "`n`n" : "")
 			. ((pt.dxSurg)  ? "Surgeries/Caths:`n" pt.dxSurg "`n`n" : "")
 			. ((pt.dxEP)    ? "EP issues:`n" pt.dxEP "`n`n" : "")
 			. ((pt.dxProb)  ? "Problems:`n" pt.dxProb "`n`n" : "")
 			. ((pt.dxNotes) ? "Notes:`n" pt.dxNotes : "")
-		GuiControl, , plMRNbut, CHIPOTLE data
-		Gui, Add, Text, ys x+m r20 w300 wrap vplChipNote, % tmp
+		GuiControl, , plMRNbut, CHIPOTLE data											; change plMRNbut button to indicate Chipotle data present
+		Gui, Add, Text, ys x+m r20 w300 wrap vplChipNote, % tmp							; add text box with Chipotle data to GUI
 	}
 	Gui, Show, w800 AutoSize, % "[Guac] Patient: " PatName
 	
-	Gosub PatConsole
-	SetTimer, PatCxTimer, 1000
+	Gosub PatConsole																	; launch PatConsole for patient clock, "Close All", "Open file", etc.
+	SetTimer, PatCxTimer, 1000															; start clock for PatCxTimer
 
-	if IsObject(pt) {
-		return
+	if IsObject(pt) {																	; pt obj had values, added CHIPOTLE data sidebar
+		return																			; finish
 	}
-	if !(patMRN) {
-		GuiControl, , plMRNbut, Scanning...
-		pdoc := parsePatDoc(pdoc)
-		gXmlPt.setAttribute("mrn",pdoc.MRN)
-		gXml.save("guac.xml")
-		GuiControl, , plMRNbut, % pdoc.MRN
-		pt := checkChip(pdoc.MRN)
-		gosub PatDir
+	
+;	TODO: This could be an IF/ELSE clause
+;	TODO: the plMRNbut + checkChip() could be a final common section
+	if !(patMRN) {																		; no MRN found in gXML
+		GuiControl, , plMRNbut, Scanning...												; change plMRNbut button to indicate scanning
+		pdoc := parsePatDoc(pdoc)														; populate pdoc obj as array of document section text blocks
+		gXmlPt.setAttribute("mrn",pdoc.MRN)												; add found MRN to gXML
+		gXml.save("guac.xml")															; save the changes to gXML
+		GuiControl, , plMRNbut, % pdoc.MRN												; redisplay MRN on 
+		pt := checkChip(pdoc.MRN)														; check chipotle xml files for MRN, return data in obj pt
+		gosub PatDir																	; redraw entire patDir GUI
 	}
 	return
 }
