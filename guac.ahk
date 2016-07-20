@@ -12,12 +12,12 @@ LV_Colors.OnMessage()
 
 user := A_UserName
 if (user="TC") {
-	netdir := A_WorkingDir "\files\Tuesday Conference"
+	netdir := A_WorkingDir "\files\Tuesday Conference"								; local files
 	chipdir := ""
 	isDevt := true
 } else {
-	netdir := "\\childrens\files\HCConference\Tuesday Conference"
-	chipdir := "\\childrens\files\HCChipotle\"
+	netdir := "\\childrens\files\HCConference\Tuesday Conference"					; networked Conference folder
+	chipdir := "\\childrens\files\HCChipotle\"										; and CHIPOTLE files
 	isDevt := false
 }
 MsgBox, 36, GUACAMOLE, Are you launching GUACAMOLE for patient presentation?
@@ -34,9 +34,9 @@ mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 ;ConfStart := "20160416132100"
 ConfStart := A_Now
 
-Gosub MainGUI
-SetTimer, ConfTime, 1000
-WinWaitClose, GUACAMOLE Main
+Gosub MainGUI																		; Draw the main GUI
+SetTimer, ConfTime, 1000															; Update ConfTime every 1000 ms
+WinWaitClose, GUACAMOLE Main														; wait until main GUI is closed
 ExitApp
 
 ;	===========================================================================================
@@ -53,49 +53,66 @@ MainGUI:
 	Gui, main:Default
 	Gui, Destroy
 	Gui, Font, s16 wBold
-	Gui, Add, Text, y0 x20 vCTime, % "              "
-	Gui, Add, Text, y0 x460 vCDur, % "              "
+	Gui, Add, Text, y0 x20 vCTime, % "              "								; Conference real time
+	Gui, Add, Text, y0 x460 vCDur, % "              "								; Conference duration (only exists for Presenter)
 	Gui, Add, Text, y0 x160 w240 h20 +Center, .-= GUACAMOLE =-.
 	Gui, Font, wNorm s8 wItalic
 	Gui, Add, Text, yp+30 xp wp +Center, General Use Access tool for Conference Archive
 	Gui, Add, Text, yp+14 xp wp +Center, Merged OnLine Elements
 	Gui, Font, wBold
-	;Gui, Add, Text, yp+30 wp +Center, % "Conference " dt.MM "/" dt.DD "/" dt.YYYY
 	Gui, Font, wNorm
-	Gosub GetConfDir
-	Gui, Show, AutoSize, % "GUACAMOLE Main - " dt.MM "/" dt.DD "/" dt.YYYY
+	Gosub GetConfDir																; Draw the pateint grid ListView
+	Gui, Add, Button, wp +Center gDateGUI, % dt.MM "/" dt.DD "/" dt.YYYY			; Date selector button
+	Gui, Show, AutoSize, % "GUACAMOLE Main - " dt.MM "/" dt.DD "/" dt.YYYY			; Show GUI with seleted conference DT
 Return
+}
+
+DateGUI:
+{
+	Gui, date:Default
+	Gui, Destroy
+	Gui, Add, MonthCal, vEncDt gDateChoose, % dt.YYYY dt.MM dt.DD					; Show selected date and month selector
+	Gui, Show, AutoSize, Select PCC date...
+	return
+}
+
+DateChoose:
+{
+	dt := GetConfDate(EncDt)														; Reacquire DT based on value
+	Gosub MainGUI																	; Redraw MainGUI
+	return
 }
 
 ConfTime:
 {
-	FormatTime, tmp, , HH:mm:ss
-	GuiControl, main:Text, CTime, % tmp
-	if (Presenter) {
-		tt := elapsed(ConfStart,A_Now)
-		GuiControl, main:Text, CDur, % tt.hh ":" tt.mm ":" tt.ss
+	FormatTime, tmp, , HH:mm:ss														; Format the current time
+	GuiControl, main:Text, CTime, % tmp												; Update the main GUI current time
+	
+	if (Presenter) {																; For presenter only,
+		tt := elapsed(ConfStart,A_Now)												; Total time elapsed
+		GuiControl, main:Text, CDur, % tt.hh ":" tt.mm ":" tt.ss					; Update the main GUI elapsed time
 	}
 return
 }
 
 elapsed(start,end) {
-	start -= end, Seconds
-	HH := floor(-start/3600)
-	MM := floor((-start-HH*3600)/60)
-	SS := HH*3600-MM*60-start
+	start -= end, Seconds															; Seconds betwen Start and End vars
+	HH := floor(-start/3600)														; Derive HH from Start elapsed secs 
+	MM := floor((-start-HH*3600)/60)												; Derive MM from remainder of HH
+	SS := HH*3600-MM*60-start														; Derive SS from remainder of MM
 	Return {"hh":zDigit(HH), "mm":zDigit(MM), "ss":zDigit(SS)}
 }
 
 formatSec(time) {
-	HH := floor(time/3600)
-	MM := floor((time-HH*3600)/60)
-	SS := time-HH*3600-MM*60
+	HH := floor(time/3600)															; Derive HH from total time (secs)
+	MM := floor((time-HH*3600)/60)													; Derive MM from remainder of HH
+	SS := time-HH*3600-MM*60														; Derive SS from remainder of MM
 	Return {"hh":zDigit(HH), "mm":zDigit(MM), "ss":zDigit(SS)}
 }
 
 mainGuiClose:
 {
-	MsgBox, 36, Exit, Do you really want to leave GUACAMOLE?`n`nWHY???
+	MsgBox, 36, Exit, Do you really want to quit GUACAMOLE?
 	IfMsgBox No
 	{
 		Return
@@ -127,68 +144,77 @@ GetConfDir:
 	}
 	IfExist guac.xml
 	{
-		gXml := new XML("guac.xml")
+		gXml := new XML("guac.xml")											; Open existing guac.xml
 	} else {
-		gXml := new XML("<root/>")
+		gXml := new XML("<root/>")											; Create new blank guac.xml if it doesn't exist
 		gXml.save("guac.xml")
 	}
-	filelist =
-	patnum =
-	Loop, Files, .\*, DF
+	filelist =																; Clear out filelist string
+	patnum =																; and zero out count of patient folders
+	
+	Loop, Files, .\*, DF													; Loop through all files and directories in confDir
 	{
 		tmpNm := A_LoopFileName
 		tmpExt := A_LoopFileExt
+		if (tmpNm ~= "i)Fast Track")										; exclude Fast Track folders
+			continue
 		if (tmpExt) {														; evaluate files with extensions
-			if (tmpNm ~= "i)(\~\$|(Fast Track))")									; exclude "Fast Track" files
+			if (tmpNm ~= "i)(\~\$|(Fast Track))")							; exclude temp and "Fast Track" files
 				continue
-			if (tmpNm ~= "i)(PCC)?\s*\d{1,2}\.\d{1,2}\.\d{2,4}.*xls") {		; find XLS that matches 3.29.16.xlsx
+			if (tmpNm ~= "i)(PCC)?\s*\d{1,2}\.\d{1,2}\.\d{2,4}.*xls") {		; find XLS that matches PCC 3.29.16.xlsx
 				confXls := tmpNm
 			}
 			continue
 		}
-		if !IsObject(confList[tmpNm]) {
-			tmpNmUP := format("{:U}",tmpNm)
-			confList.Push(tmpNmUP)
-			confList[tmpNmUP] := {name:tmpNm,done:0,note:""}
+		if !IsObject(confList[tmpNm]) {										; confList is empty
+			tmpNmUP := format("{:U}",tmpNm)									; place filename in all UPPER CASE
+			confList.Push(tmpNmUP)											; add it to end of confList
+			confList[tmpNmUP] := {name:tmpNm,done:0,note:""}				; name=actual filename, done=no, note=cleared
 		}
 		if !IsObject(gXml.selectSingleNode("/root/id[@name='" tmpNmUP "']")) {
-			gXml.addElement("id","root",{name: tmpNmUP})
+			gXml.addElement("id","root",{name: tmpNmUP})					; Add to Guac XML if not present
 		}
 	}
-	if (confXls) {
+	if (confXls) {															; Read confXls if present
 		gosub readXls
 	}
-	gXml.save("guac.xml")
+	gXml.save("guac.xml")													; Write Guac XML
+	
 	Gui, Font, s16
-	Gui, Add, ListView, % "r" confList.length() " x20 w540 Hdr AltSubmit Grid BackgroundSilver NoSortHdr NoSort gPatDir", Name|Done|Takt|Note
+	Gui, Add, ListView, % "r" confList.length() " x20 w720 Hdr AltSubmit Grid BackgroundSilver NoSortHdr NoSort gPatDir", Name|Diagnosis|Done|Takt|Note
 	for key,val in confList
 	{
 		if (key=A_index) {
-			keyNm := confList[key]
-			keyDone := gXml.getAtt("/root/id[@name='" keyNm "']","done")
-			keyDur := (tmp:=gXml.getAtt("/root/id[@name='" keyNm "']","dur")) ? formatSec(tmp) : ""
+			keyNm := confList[key]											; UPPER CASE name
+			keyElement := "/root/id[@name='" keyNm "']"
+			keyDx := (tmp:=gXml.selectSingleNode(keyElement "/diagnosis").text) ? tmp : ""	; DIAGNOSIS, if present
+			keyDone := gXml.getAtt(keyElement,"done")						; DONE flag
+			keyDur := (tmp:=gXml.getAtt(keyElement,"dur")) ? formatSec(tmp) : ""	; If dur exists, get it
+			keyNote := (tmp:=gXml.selectSingleNode(keyElement "/notes").text) ? tmp : ""	; NOTE, if present
 			LV_Add(""
-				,keyNm
-				,(keyDone) ? "x" : ""
-				,(keyDur) ? keyDur.MM ":" keyDur.SS : ""
-				,confList[val].note)
+				,keyNm														; UPPER CASE name
+				,keyDx														; Diagnosis
+				,(keyDone) ? "x" : ""										; DONE or not
+				,(keyDur) ? keyDur.MM ":" keyDur.SS : ""					; total DUR spent on this patient MM:SS
+				,(keyNote) ? keyNote : "")									; note for this patient
 		}
 	}
 	LV_ModifyCol()
 	LV_ModifyCol(1,"200")
 	LV_ModifyCol(2,"AutoHdr Center")
 	LV_ModifyCol(3,"AutoHdr Center")
-	LV_ModifyCol(4,"AutoHdr")
+	LV_ModifyCol(4,"AutoHdr Center")
+	LV_ModifyCol(5,"AutoHdr")
 	Return
 }
 
 NetConfDir(yyyy:="",mmm:="",dd:="") {
 	global netdir, datedir, mo
 
-	if (IsObject(datedir[yyyy,mmm])) {
-		return yyyy "\" datedir[yyyy,mmm].dir "\" datedir[yyyy,mmm,dd]
+	if (IsObject(datedir[yyyy,mmm])) {								; YYYY\MMM already exists
+		return yyyy "\" datedir[yyyy,mmm].dir "\" datedir[yyyy,mmm,dd]	; return the string for YYYY\MMM
 	}
-	Loop, % netdir "\" yyyy "\*" , 2								; Get the month dirs in YYYY
+	Loop, Files, % netdir "\" yyyy "\*" , D							; Get the month dirs in YYYY
 	{
 		file := A_LoopFileName
 		for key,obj in mo											; Compare "file" name with Mo abbrevs
@@ -198,7 +224,7 @@ NetConfDir(yyyy:="",mmm:="",dd:="") {
 			}
 		}
 	}
-	Loop, % netdir "\" yyyy "\" datedir[yyyy,mmm].dir "\*" , 2		; check for conf dates within that month (dir:filename)
+	Loop, Files, % netdir "\" yyyy "\" datedir[yyyy,mmm].dir "\*" , D	; check for conf dates within that month (dir:filename)
 	{
 		file := A_LoopFileName
 		if (regexmatch(file,"\d{1,2}\.\d{1,2}\.\d{1,2}")) {			; sometimes named "6.19.15"
@@ -224,31 +250,31 @@ ReadXls:
 		return
 	}
 	FileCopy % confXls, guac.xlsx, 1								; Create a copy of the active XLS file 
-	oWorkbook := ComObjGet(netDir "\" confDir "\guac.xlsx")
+	oWorkbook := ComObjGet(netDir "\" confDir "\guac.xlsx")			; Open the copy in memory (this is a one-way street)
 	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] ;array of column letters
 	xls_hdr := Object()
 	xls_cel := Object()
 	Loop 
 	{
-		RowNum := A_Index																; Loop through rows
-		chk := oWorkbook.Sheets(1).Range("A" RowNum).value
+		RowNum := A_Index																; Loop through rows in RowNum
+		chk := oWorkbook.Sheets(1).Range("A" RowNum).value								; Get value in first column (e.g. A1..A10)
 		if (RowNum=1) {																	; First row is just last file update
 			upDate := chk
 			continue
 		}
-		if !(chk)																		; if empty, then bad file
+		if !(chk)																		; if empty, then end of file or bad file
 			break
 		Loop
 		{	
 			ColNum := A_Index															; Iterate through columns
-			if (colnum>maxcol)
+			if (colnum>maxcol)															; Extend maxcol (largest col) when we have passed the old max
 				maxcol:=colnum
-			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value
+			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value				; Get value of colNum rowNum (e.g. C4)
 			if ((cel="") && (colnum=maxcol))											; Find max column
 				break
-			if (rownum=2) {																; Fix some column names
+			if (rownum=2) {																; Row 2 is headers
 				; Patient name / MRN / Cardiologist / Diagnosis / conference prep / scheduling notes / presented / deferred / imaging needed / ICU LOS / Total LOS / Surgeons / time
-				if instr(cel,"Patient name") {
+				if instr(cel,"Patient name") {											; Fix some header names
 					cel:="Name"
 				}
 				if instr(cel,"Conference prep") {
@@ -260,28 +286,28 @@ ReadXls:
 				if instr(cel,"imaging needed") {
 					cel:="Imaging"
 				}
-				xls_hdr[ColNum] := trim(cel)
+				xls_hdr[ColNum] := trim(cel)											; Add cel to headers xls_hdr[]
 			} else {
-				xls_cel[ColNum] := cel
+				xls_cel[ColNum] := cel													; Otherwise add value to xls_cel[]
 			}
 		}
-		xls_mrn := Round(xls_cel[ObjHasValue(xls_hdr,"MRN")])
-		xls_name := xls_cel[ObjHasValue(xls_hdr,"Name")]
-		if !(xls_mrn)
+		xls_mrn := Round(xls_cel[ObjHasValue(xls_hdr,"MRN")])							; Get value in xls_hdr MRN column 
+		xls_name := xls_cel[ObjHasValue(xls_hdr,"Name")]								; Get name from xls_hdr Name column
+		if !(xls_mrn)																	; Empty MRN, move on
 			continue
 		xls_nameL := strX(xls_name,"",1,1,",",1,1)
-		StringUpper, xls_nameUP, xls_nameL
-		xls_id := "/root/id[@name='" xls_nameUP "']"
+		StringUpper, xls_nameUP, xls_nameL												; Name in upper case
+		xls_id := "/root/id[@name='" xls_nameUP "']"									; Element string for id[@name]
 		
-		if !IsObject(gXml.selectSingleNode(xls_id)) {
+		if !IsObject(gXml.selectSingleNode(xls_id)) {									; Add new element if not present
 			gXml.addElement("id","root",{name:xls_nameUP})
 		}
 		gXml.setAtt(xls_id,{mrn:xls_mrn})
-		if !IsObject(gXml.selectSingleNode(xls_id "/name_full")) {
+		if !IsObject(gXml.selectSingleNode(xls_id "/name_full")) {						; Add full name if not present
 			gXml.addElement("name_full",xls_id,xls_name)
 		}
 		if !IsObject(gXml.selectSingleNode(xls_id "/diagnosis")) {
-			gXml.addElement("diagnosis",xls_id,xls_cel[ObjHasValue(xls_hdr,"Diagnosis")])
+			gXml.addElement("diagnosis",xls_id,xls_cel[ObjHasValue(xls_hdr,"Diagnosis")]) ; Add diagnostics and Diagnosis
 		}
 		if !IsObject(gXml.selectSingleNode(xls_id "/prep")) {
 			gXml.addElement("prep",xls_id,xls_cel[ObjHasValue(xls_hdr,"Prep")])
@@ -291,210 +317,216 @@ ReadXls:
 		}
 	}
 	if !IsObject(gXml.selectSingleNode("/root/done")) {
-		gXml.addElement("done","/root",A_Now)												; Add <done> element when has been scanned to prevent future scans
+		gXml.addElement("done","/root",A_Now)											; Add <done> element when has been scanned to prevent future scans
 	} else {
-		gXml.setText("/root/done",A_now)
+		gXml.setText("/root/done",A_now)												; Set <done> value to now
 	}
-	oExcel := oWorkbook.Application
+	oExcel := oWorkbook.Application														; close workbook
 	oExcel.quit
 	Return
 }
 
 PatDir:
 {
-	if !(A_GuiEvent = "DoubleClick")
+	if !(A_GuiEvent = "DoubleClick")								; Only respond to double-click in GetConfDir listview
 		return
-	if WinExist("[Guac] Patient:") {								; if a window still open, close it.
+	if WinExist("[Guac] Patient:") {								; if another PatL window still open, close it and all associated windows
 		Gosub PatLGuiClose
 	}
-	gXml := new XML("guac.xml")										; refresh guac.xml
+	gXml := new XML("guac.xml")										; refresh gXml from guac.xml
 
-	Gui, Main:Submit, NoHide
-	PatName := confList[A_EventInfo]
-	PatTime := A_Now
-	PatTime += -gXml.getAtt("/root/id[@name='" patName "']","dur"), Seconds
-	filepath := netdir "\" confdir "\" PatName
-	filePmax = 
-	fileNmax =
-	filelist =
-	filenum =
-	pdoc =
-	pt = 
-	Loop, % filepath "\*" , 1
+	Gui, Main:Submit, NoHide										; use Submit to update variables
+	PatName := confList[A_EventInfo]								; get PatName from confList pointer from A_EventInfo; could we just get the first column?
+	PatTime := A_Now												; timer start
+	PatTime += -gXml.getAtt("/root/id[@name='" patName "']","dur"), Seconds		; add to previous cumulative dur time from gXml
+	filepath := netdir "\" confdir "\" PatName						; PatName is name of folder
+	filePmax = 														; clear max file field length
+	fileNmax =														; clear max filename length
+	filelist =														; clear out filelist
+	filenum =														; clear total valid files
+	pdoc =															; clear filepath to doc
+	pt = 															; clear patient text from Chipotle
+	Loop, % filepath "\*" , 1															; read all files and folders in patDir filepath
 	{
 		name := A_LoopFileName
-		if (name~="(\~\$|Thumbs.db)") {
+		if (name~="(\~\$|Thumbs.db)") {													; exclude ~$ temp and thumbs.db files
 			continue
 		}
-		if (RegExMatch(name,"i)PCC(\snote)?.*\.doc")) {
-			pdoc := filepath "\" name
+		if (RegExMatch(name,"i)PCC(\snote)?.*\.doc")) {									; matches "*PCC*.doc*"
+			pdoc := filepath "\" name													; pdoc is complete filepath to doc		*** should clear this for each loop iteration, or make ternary? ***
 		}
-		filelist .= (name) ? name "|" : ""
-		filenum ++
-		filePmax := StrLen(name)
-		if (filePmax>fileNmax) {														; Get longest filename
+		filelist .= (name) ? name "|" : ""												; if exists, append name to listbox "filelist"
+		filenum ++																		; increment filenum (total files added)
+		filePmax := StrLen(name)														; filePmax to compare against longest filename
+		if (filePmax>fileNmax) {														; Get longest filename length
 			fileNmax := filePmax
 		}
 	}
-	patLBw := (fileNmax>32) ? (fileNmax-32)*12+360 : 360
-	if !(filelist) {
+	
+	patLBw := (fileNmax>32) ? (fileNmax-32)*12+360 : 360								; listbox width has min 360px, adds 12px for each char over 32		*** could probably consolidate this ***
+	
+	if !(filelist) {																	; empty filelist string
 		MsgBox No files
-		Gui, main:Show
+		Gui, main:Show																	; redisplay main GUI
 		return
 	}
-	gXmlPt := gXml.selectSingleNode("/root/id[@name='" patName "']")
-	patMRN := gXmlPt.getAttribute("mrn")
+	
+	gXmlPt := gXml.selectSingleNode("/root/id[@name='" patName "']")					; gXml node for PATIENT NAME
+	patMRN := gXmlPt.getAttribute("mrn")												; MRN from gXmlPt node
+	
 	Gui, PatL:Default
 	Gui, Destroy
 	Gui, Font, s16
 	Gui, Add, ListBox, % "r" filenum " section w" patLBw " vPatFile gPatFileGet", % filelist
 	Gui, Font, s12
-	Gui, Add, Button, wP Disabled vplMRNbut, No MRN found
+	Gui, Add, Button, wP Disabled vplMRNbut, No MRN found								; default MRN button to Disabled
 	Gui, Add, Button, wP gPatFileGet , Open all...
 	Gui, Font, s8
-	if (patMRN) {
-		pt := checkChip(patMRN)
-		GuiControl, , plMRNbut, % patMRN
+	if (patMRN) {																		; MRN found in gXML
+		pt := checkChip(patMRN)															; check Chipotle currlist (#1) and archlist (#2) for MRN, returns in obj pt
+		GuiControl, , plMRNbut, % patMRN												; change plMRNbut button to MRN
 	}
-	if IsObject(pt) {
-		tmp := 	"CHIPOTLE data (from " niceDate(pt.dxEd) ")`n" 
+	if IsObject(pt) {																	; pt obj has values if exists in either currlist or archlist
+		tmp := 	"CHIPOTLE data (from " niceDate(pt.dxEd) ")`n" 							; generate CHIPOTLE data string for sidebar
 			. ((pt.dxCard)  ? "Diagnoses:`n" pt.dxCard "`n`n" : "")
 			. ((pt.dxSurg)  ? "Surgeries/Caths:`n" pt.dxSurg "`n`n" : "")
 			. ((pt.dxEP)    ? "EP issues:`n" pt.dxEP "`n`n" : "")
 			. ((pt.dxProb)  ? "Problems:`n" pt.dxProb "`n`n" : "")
 			. ((pt.dxNotes) ? "Notes:`n" pt.dxNotes : "")
-		GuiControl, , plMRNbut, CHIPOTLE data
-		Gui, Add, Text, ys x+m r20 w300 wrap vplChipNote, % tmp
+		GuiControl, , plMRNbut, CHIPOTLE data											; change plMRNbut button to indicate Chipotle data present
+		Gui, Add, Text, ys x+m r20 w300 wrap vplChipNote, % tmp							; add text box with Chipotle data to GUI
 	}
 	Gui, Show, w800 AutoSize, % "[Guac] Patient: " PatName
 	
-	Gosub PatConsole
-	SetTimer, PatCxTimer, 1000
+	Gosub PatConsole																	; launch PatConsole for patient clock, "Close All", "Open file", etc.
+	SetTimer, PatCxTimer, 1000															; start clock for PatCxTimer
 
-	if IsObject(pt) {
-		return
+	if IsObject(pt) {																	; pt obj had values, added CHIPOTLE data sidebar
+		return																			; finish
 	}
-	if !(patMRN) {
-		GuiControl, , plMRNbut, Scanning...
-		pdoc := parsePatDoc(pdoc)
-		gXmlPt.setAttribute("mrn",pdoc.MRN)
-		gXml.save("guac.xml")
-		GuiControl, , plMRNbut, % pdoc.MRN
-		pt := checkChip(pdoc.MRN)
-		gosub PatDir
+	
+;	TODO: This could be an IF/ELSE clause
+;	TODO: the plMRNbut + checkChip() could be a final common section
+	if !(patMRN) {																		; no MRN found in gXML
+		GuiControl, , plMRNbut, Scanning...												; change plMRNbut button to indicate scanning
+		pdoc := parsePatDoc(pdoc)														; populate pdoc obj as array of document section text blocks
+		gXmlPt.setAttribute("mrn",pdoc.MRN)												; add found MRN to gXML
+		gXml.save("guac.xml")															; save the changes to gXML
+		GuiControl, , plMRNbut, % pdoc.MRN												; redisplay MRN on 
+		pt := checkChip(pdoc.MRN)														; check chipotle xml files for MRN, return data in obj pt
+		gosub PatDir																	; redraw entire patDir GUI
 	}
 	return
 }
 
 PatLGuiClose:
 {
-	SetTimer, PatCxTimer, Off
-	Gui, PatCx:Destroy
+/*	TODO: This would be a good place for a progress display
+ *
+ */
+	SetTimer, PatCxTimer, Off															; cancel PatCxTimer
+	Gui, PatCx:Destroy																	; destroy PatCx GUI
 	
-	Loop, % filepath "\*" , 1
+	Loop, Files, % filepath "\*" , F													; Loop through files in pat directory "filepath"
 	{
 		tmpNm := A_LoopFileName
 		tmpExt := A_LoopFileExt
-		StringReplace , tmpNm, tmpNm, .%tmpExt%
-		WinClose, %tmpNm%
+		StringReplace , tmpNm, tmpNm, .%tmpExt%											; convert tmpNm without ext
+		WinClose, %tmpNm%																; close it
 	}
-	Gui, PatL:Destroy
+	Gui, PatL:Destroy																	; destroy PatList GUI
 	if (Presenter) {																	; update Takt time for Presenter only
-		PatTime -= A_Now, Seconds
-		gXml.setAtt("/root/id[@name='" patName "']",{dur:-PatTime})
-		gXml.save("guac.xml")
+		PatTime -= A_Now, Seconds														; time diff for time patient data opened
+		gXml.setAtt("/root/id[@name='" patName "']",{dur:-PatTime})						; update gXML with new total dur
+		gXml.save("guac.xml")															; save gXML
 	}
-	gosub MainGUI
+	gosub MainGUI																		; all patient GUI's closed, reopen main GUI
 Return
 }
 
 PatConsole:
 {
-	if !(Presenter)
+	if !(Presenter)																		; only display console in Presenter mode
 		return
-	SysGet, scr, Monitor
+	SysGet, scr, Monitor																; get display port info into "scr"
 	Gui, PatCx:Default
 	Gui, Destroy
-	Gui, +ToolWindow +AlwaysOnTop -SysMenu
-	Gui, Add, Text, vPatCxT, % "                 "
+	Gui, +ToolWindow +AlwaysOnTop -SysMenu												; small title bar, delete system menu and icons
+	Gui, Add, Text, vPatCxT, % "                 "										; PatCx time
 	Gui, Font, s6
-	Gui, Add, Button, xP+50 yP gPatCxSel, Select File
-	Gui, Add, Button, xP yP+18 gPatLGuiClose, Close all
+	Gui, Add, Button, xP+50 yP gPatCxSel, Select File									; show file selector
+	Gui, Add, Button, xP yP+18 gPatLGuiClose, Close all									; close GUI and all opened patient files
 	Gui, Show, % "x" scrRight-200 " y10 AutoSize", % PatName
 	return
 }
 
 PatCxTimer:
 {
-	tt := elapsed(PatTime,A_Now)
-	GuiControl, PatCx:Text, PatCxT, % tt.mm ":" tt.ss
+	tt := elapsed(PatTime,A_Now)														; get elapsed time between PatTime and A_Now
+	GuiControl, PatCx:Text, PatCxT, % tt.mm ":" tt.ss									; update PatCx time display
 	if (tt.mm >= 10) {
-		Gui, PatCx:Color, Red
+		Gui, PatCx:Color, Red															; change bkgd RED if over 10 mins
 	} else if (tt.mm >= 8) {
-		Gui, PatCx:Color, Yellow
+		Gui, PatCx:Color, Yellow														; otherwise change bkgd YEL if over 8 mins
 	}
 	return
 }
 
 PatCxSel:
 {
-	WinActivate % "[Guac] Patient:"
+	WinActivate % "[Guac] Patient:"														; bring back PatL GUI
 	return
 }
 
 PatFileGet:
 {
 	Gui, PatL:Submit, NoHide
-	if (A_GuiEvent = "DoubleClick") {
+	if (A_GuiEvent = "DoubleClick") {													; double-click on line, just pass the line data
 		files := PatFile
-	} else if (A_GuiControl = "Open all...") {
-		files := trim(filelist,"|")
+	} else if (A_GuiControl = "Open all...") {											; clicked "Open all..." button
+		files := trim(filelist,"|")														; trim "|" from end
 		If (filenum>4) {
 			MsgBox, 52, % "Lots of files (" filenum ")", Really open all of these files?
 			IfMsgBox, Yes
 				tmp = true
-			if !(tmp) 
+			if !(tmp)																	; necessary as dialog can be Yes, No, or close
 				return
 		}
 	} else {
 		return
 	}
-	confList[PatName].done := true
-	gXml.selectSingleNode("/root/id[@name='" PatName "']").setAttribute("done",1)
-	gXml.save("guac.xml")
-	Loop, parse, files, |
+	confList[PatName].done := true														; set confList bit DONE for this patient
+	gXml.selectSingleNode("/root/id[@name='" PatName "']").setAttribute("done",1)		; set done bit in gXML
+	gXml.save("guac.xml")																; save gXML
+	
+	Loop, parse, files, |																; iterate through files in folder
 	{
-		patloopfile := A_LoopField
-		patdirfile := filepath "\" PatloopFile
-		Run, %patDirFile%
+		patloopfile := A_LoopField														; file name
+		patdirfile := filepath "\" PatloopFile											; path + file name
+		Run, %patDirFile%																; open by Windows default method
 	}
 Return
 }
 
 parsePatDoc(doc) {
-	;~ IfNotExist %doc% {
-		;~ return Error
-	;~ }
-	;SplitPath, doc, docName, docDir, docExt, docNoExt
-	;Progress,,% docNoExt, Reading...
-	txt := ComObjGet(doc).Range.Text
-	;Progress, hide
-	return fieldvals(txt)
+	txt := ComObjGet(doc).Range.Text													; select all text in doc
+	return fieldvals(txt)																; return obj with doc sections from fieldvals
 }
 
 checkChip(mrn) {
 /*	Checks currlist and archlist for MRN
-	if exists, returns in array pt
+	if exists, parses mrn and returns ptParse array
 */
 	global y, arch
-	if IsObject(y.selectSingleNode("//id[@mrn='" mrn "']")) {			; present in any active list?
+	if IsObject(y.selectSingleNode("//id[@mrn='" mrn "']")) {							; present in currlist?
 		return pt := ptParse(mrn,y)
-	} else if IsObject(arch.selectSingleNode("//id[@mrn='" mrn "']")) {			; check the archives
+	} else if IsObject(arch.selectSingleNode("//id[@mrn='" mrn "']")) {					; check the archives
 		return pt := ptParse(mrn,arch)
 	} else {
 		;MsgBox Not on any list
 	}
 	return pt
+;	TODO: can prob remove "pt" from all these, fix final ELSE logic
 }
 
 breakDate(x) {
@@ -523,16 +555,16 @@ zDigit(x) {
 ObjHasValue(aObj, aValue, rx:="") {
 ; modified from http://www.autohotkey.com/board/topic/84006-ahk-l-containshasvalue-method/	
     for key, val in aObj
-		if (rx="RX") {
-			if (aValue ~= val) {
+		if (rx="RX") {																	; argument 3 is "RX" 
+			if (aValue ~= val) {														; does RegExMatch
 				return, key, Errorlevel := 0
 			}
 		} else {
-			if (val = aValue) {
+			if (val = aValue) {															; otherwise just string match
 				return, key, ErrorLevel := 0
 			}
 		}
-    return, false, errorlevel := 1
+    return, false, errorlevel := 1														; fails match, return err
 }
 
 fieldvals(x) {
@@ -546,26 +578,26 @@ fieldvals(x) {
 		,"\bECG","\bCXR","\bECHO","\bMRI","\bCT","\bCath/Angio","\bEP","\bExercise","\bHolter","\bOp Note"
 		,"Other Studies / Details:"]
 	out := object()
-	for k, i in fields
+	for k, i in fields																	; k = index, i = field string
 	{
-		j := fields[k+1]
-		m := trim(stRegX(x,i,n,1,j,1,n)," `r`n`t")
-		lbl := RegExReplace(trim(cleanColon(i)," `r`n`t#"),"\\[\w()]")
+		j := fields[k+1]																; j = next index
+		m := trim(stRegX(x,i,n,1,j,1,n)," `r`n`t")									; m = string within, trimmed of extraneous characters
+		lbl := RegExReplace(trim(cleanColon(i)," `r`n`t#"),"\\[\w()]")					; lbl = string up to ":"
 		if (lbl="MR") {
-			m := LTrim(RegExReplace(m,"\-"),"0")
+			m := LTrim(RegExReplace(m,"\-"),"0")										; normalize MRN field name
 			lbl := "MRN"
 		}
-		if (lbl="HEART CENTER CARE COORDINATION NOTE") {
+		if (lbl="HEART CENTER CARE COORDINATION NOTE") {								; *** this will break if there is an addendum ***
 			StringLower, m, m, T
-			out.nameL := strX(m,,1,0, ",",1,1)
+			out.nameL := strX(m,,1,0, ",",1,1)											; nameL = string to ","
 			lbl := "nameF"
-			m := strX(m,",",1,2, " ",1,1)
+			m := strX(m,",",1,2, " ",1,1)												; nameF = string "," to " "			*** can probably change to CONTINUE ***
 		}
 		if (lbl="CARDIOLOGIST") {
-			m := strX(m,"",1,1,", ",1,2)
-			m := SubStr(m,1,1) ". " strX(m," ",0,1,"",0,1)
+			m := strX(m,"",1,1,", ",1,2)												; take name up to ", "
+			m := SubStr(m,1,1) ". " strX(m," ",0,1,"",0,1)								; first initial ". " last name
 		}
-		out[lbl] := m
+		out[lbl] := m																	; set object value
 	}
 	return out
 }
@@ -589,19 +621,19 @@ stRegX(h,BS="",BO=1,BT=0, ES="",ET=0, ByRef N="") {
 }
 
 cleancolon(ByRef txt) {
-	n := InStr(txt,":")
-	txt:=strX(txt,"",1,1,":",1,1)
-	txt = %txt%
+	n := InStr(txt,":")																	; extraneous var?
+	txt:=strX(txt,"",1,1,":",1,1)														; get string up to ":"
+	txt = %txt%																			; trim space from result
 	return txt
 }
 
 cleanspace(ByRef txt) {
-	StringReplace txt,txt,`n,%A_Space%, All
-	StringReplace txt,txt,%A_Space%.%A_Space%,.%A_Space%, All
+	StringReplace txt,txt,`n,%A_Space%, All												; replace "`n" with space, create long string from block
+	StringReplace txt,txt,%A_Space%.%A_Space%,.%A_Space%, All							; replace any instance of " . " with ". "
 	loop
 	{
-		StringReplace txt,txt,%A_Space%%A_Space%,%A_Space%, UseErrorLevel
-		if ErrorLevel = 0	
+		StringReplace txt,txt,%A_Space%%A_Space%,%A_Space%, UseErrorLevel				; replace all "  " with " "
+		if ErrorLevel = 0																; continue until no more instances
 			break
 	}
 	return txt
