@@ -344,17 +344,19 @@ PatDir:
 	fileNmax =														; clear max filename length
 	filelist =														; clear out filelist
 	filenum =														; clear total valid files
-	pdoc =															; clear filepath to doc
 	pt = 															; clear patient text from Chipotle
-	Loop, % filepath "\*" , 1															; read all files and folders in patDir filepath
+	
+	Loop, Files, % filepath "\*" , F													; read only files in patDir filepath
 	{
+		pdoc =																			; clear filepath to doc
 		name := A_LoopFileName
-		if (name~="(\~\$|Thumbs.db)") {													; exclude ~$ temp and thumbs.db files
+		if (name~="i)(\~\$|Thumbs.db)") {												; exclude ~$ temp and thumbs.db files
 			continue
 		}
-		if (RegExMatch(name,"i)PCC(\snote)?.*\.doc")) {									; matches "*PCC*.doc*"
-			pdoc := filepath "\" name													; pdoc is complete filepath to doc		*** should clear this for each loop iteration, or make ternary? ***
-		}
+		pdoc := (name~="i)PCC(\snote)?.*\.doc") ? filepath "\" name : ""				; match "*PCC*.doc*", pdoc is complete filepath to doc, else ""
+		;~ if (RegExMatch(name,"i)PCC(\snote)?.*\.doc")) {									; matches "*PCC*.doc*"
+			;~ pdoc := filepath "\" name													; pdoc is complete filepath to doc		*** should clear this for each loop iteration, or make ternary? ***
+		;~ }
 		filelist .= (name) ? name "|" : ""												; if exists, append name to listbox "filelist"
 		filenum ++																		; increment filenum (total files added)
 		filePmax := StrLen(name)														; filePmax to compare against longest filename
