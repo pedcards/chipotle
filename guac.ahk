@@ -446,91 +446,87 @@ Return
 
 PatConsole:
 {
-	if !(Presenter)
+	if !(Presenter)																		; only display console in Presenter mode
 		return
-	SysGet, scr, Monitor
+	SysGet, scr, Monitor																; get display port info into "scr"
 	Gui, PatCx:Default
 	Gui, Destroy
-	Gui, +ToolWindow +AlwaysOnTop -SysMenu
-	Gui, Add, Text, vPatCxT, % "                 "
+	Gui, +ToolWindow +AlwaysOnTop -SysMenu												; small title bar, delete system menu and icons
+	Gui, Add, Text, vPatCxT, % "                 "										; PatCx time
 	Gui, Font, s6
-	Gui, Add, Button, xP+50 yP gPatCxSel, Select File
-	Gui, Add, Button, xP yP+18 gPatLGuiClose, Close all
+	Gui, Add, Button, xP+50 yP gPatCxSel, Select File									; show file selector
+	Gui, Add, Button, xP yP+18 gPatLGuiClose, Close all									; close GUI and all opened patient files
 	Gui, Show, % "x" scrRight-200 " y10 AutoSize", % PatName
 	return
 }
 
 PatCxTimer:
 {
-	tt := elapsed(PatTime,A_Now)
-	GuiControl, PatCx:Text, PatCxT, % tt.mm ":" tt.ss
+	tt := elapsed(PatTime,A_Now)														; get elapsed time between PatTime and A_Now
+	GuiControl, PatCx:Text, PatCxT, % tt.mm ":" tt.ss									; update PatCx time display
 	if (tt.mm >= 10) {
-		Gui, PatCx:Color, Red
+		Gui, PatCx:Color, Red															; change bkgd RED if over 10 mins
 	} else if (tt.mm >= 8) {
-		Gui, PatCx:Color, Yellow
+		Gui, PatCx:Color, Yellow														; otherwise change bkgd YEL if over 8 mins
 	}
 	return
 }
 
 PatCxSel:
 {
-	WinActivate % "[Guac] Patient:"
+	WinActivate % "[Guac] Patient:"														; bring back PatL GUI
 	return
 }
 
 PatFileGet:
 {
 	Gui, PatL:Submit, NoHide
-	if (A_GuiEvent = "DoubleClick") {
+	if (A_GuiEvent = "DoubleClick") {													; double-click on line, just pass the line data
 		files := PatFile
-	} else if (A_GuiControl = "Open all...") {
-		files := trim(filelist,"|")
+	} else if (A_GuiControl = "Open all...") {											; clicked "Open all..." button
+		files := trim(filelist,"|")														; trim "|" from end
 		If (filenum>4) {
 			MsgBox, 52, % "Lots of files (" filenum ")", Really open all of these files?
 			IfMsgBox, Yes
 				tmp = true
-			if !(tmp) 
+			if !(tmp)																	; necessary as dialog can be Yes, No, or close
 				return
 		}
 	} else {
 		return
 	}
-	confList[PatName].done := true
-	gXml.selectSingleNode("/root/id[@name='" PatName "']").setAttribute("done",1)
-	gXml.save("guac.xml")
-	Loop, parse, files, |
+	confList[PatName].done := true														; set confList bit DONE for this patient
+	gXml.selectSingleNode("/root/id[@name='" PatName "']").setAttribute("done",1)		; set done bit in gXML
+	gXml.save("guac.xml")																; save gXML
+	
+	Loop, parse, files, |																; iterate through files in folder
 	{
-		patloopfile := A_LoopField
-		patdirfile := filepath "\" PatloopFile
-		Run, %patDirFile%
+		patloopfile := A_LoopField														; file name
+		patdirfile := filepath "\" PatloopFile											; path + file name
+		Run, %patDirFile%																; open by Windows default method
 	}
 Return
 }
 
 parsePatDoc(doc) {
-	;~ IfNotExist %doc% {
-		;~ return Error
-	;~ }
-	;SplitPath, doc, docName, docDir, docExt, docNoExt
-	;Progress,,% docNoExt, Reading...
-	txt := ComObjGet(doc).Range.Text
-	;Progress, hide
-	return fieldvals(txt)
+	txt := ComObjGet(doc).Range.Text													; select all text in doc
+	return fieldvals(txt)																; return obj with doc sections from fieldvals
 }
 
 checkChip(mrn) {
 /*	Checks currlist and archlist for MRN
-	if exists, returns in array pt
+	if exists, parses mrn and returns ptParse array
 */
 	global y, arch
-	if IsObject(y.selectSingleNode("//id[@mrn='" mrn "']")) {			; present in any active list?
+	if IsObject(y.selectSingleNode("//id[@mrn='" mrn "']")) {							; present in currlist?
 		return pt := ptParse(mrn,y)
-	} else if IsObject(arch.selectSingleNode("//id[@mrn='" mrn "']")) {			; check the archives
+	} else if IsObject(arch.selectSingleNode("//id[@mrn='" mrn "']")) {					; check the archives
 		return pt := ptParse(mrn,arch)
 	} else {
 		;MsgBox Not on any list
 	}
 	return pt
+;	TODO: can prob remove "pt" from all these, fix final ELSE logic
 }
 
 breakDate(x) {
@@ -559,16 +555,16 @@ zDigit(x) {
 ObjHasValue(aObj, aValue, rx:="") {
 ; modified from http://www.autohotkey.com/board/topic/84006-ahk-l-containshasvalue-method/	
     for key, val in aObj
-		if (rx="RX") {
-			if (aValue ~= val) {
+		if (rx="RX") {																	; argument 3 is "RX" 
+			if (aValue ~= val) {														; does RegExMatch
 				return, key, Errorlevel := 0
 			}
 		} else {
-			if (val = aValue) {
+			if (val = aValue) {															; otherwise just string match
 				return, key, ErrorLevel := 0
 			}
 		}
-    return, false, errorlevel := 1
+    return, false, errorlevel := 1														; fails match, return err
 }
 
 fieldvals(x) {
@@ -582,26 +578,26 @@ fieldvals(x) {
 		,"\bECG","\bCXR","\bECHO","\bMRI","\bCT","\bCath/Angio","\bEP","\bExercise","\bHolter","\bOp Note"
 		,"Other Studies / Details:"]
 	out := object()
-	for k, i in fields
+	for k, i in fields																	; k = index, i = field string
 	{
-		j := fields[k+1]
-		m := trim(stRegX(x,i,n,1,j,1,n)," `r`n`t")
-		lbl := RegExReplace(trim(cleanColon(i)," `r`n`t#"),"\\[\w()]")
+		j := fields[k+1]																; j = next index
+		m := trim(stRegX(x,i,n,1,j,1,n)," `r`n`t")									; m = string within, trimmed of extraneous characters
+		lbl := RegExReplace(trim(cleanColon(i)," `r`n`t#"),"\\[\w()]")					; lbl = string up to ":"
 		if (lbl="MR") {
-			m := LTrim(RegExReplace(m,"\-"),"0")
+			m := LTrim(RegExReplace(m,"\-"),"0")										; normalize MRN field name
 			lbl := "MRN"
 		}
-		if (lbl="HEART CENTER CARE COORDINATION NOTE") {
+		if (lbl="HEART CENTER CARE COORDINATION NOTE") {								; *** this will break if there is an addendum ***
 			StringLower, m, m, T
-			out.nameL := strX(m,,1,0, ",",1,1)
+			out.nameL := strX(m,,1,0, ",",1,1)											; nameL = string to ","
 			lbl := "nameF"
-			m := strX(m,",",1,2, " ",1,1)
+			m := strX(m,",",1,2, " ",1,1)												; nameF = string "," to " "			*** can probably change to CONTINUE ***
 		}
 		if (lbl="CARDIOLOGIST") {
-			m := strX(m,"",1,1,", ",1,2)
-			m := SubStr(m,1,1) ". " strX(m," ",0,1,"",0,1)
+			m := strX(m,"",1,1,", ",1,2)												; take name up to ", "
+			m := SubStr(m,1,1) ". " strX(m," ",0,1,"",0,1)								; first initial ". " last name
 		}
-		out[lbl] := m
+		out[lbl] := m																	; set object value
 	}
 	return out
 }
@@ -625,19 +621,19 @@ stRegX(h,BS="",BO=1,BT=0, ES="",ET=0, ByRef N="") {
 }
 
 cleancolon(ByRef txt) {
-	n := InStr(txt,":")
-	txt:=strX(txt,"",1,1,":",1,1)
-	txt = %txt%
+	n := InStr(txt,":")																	; extraneous var?
+	txt:=strX(txt,"",1,1,":",1,1)														; get string up to ":"
+	txt = %txt%																			; trim space from result
 	return txt
 }
 
 cleanspace(ByRef txt) {
-	StringReplace txt,txt,`n,%A_Space%, All
-	StringReplace txt,txt,%A_Space%.%A_Space%,.%A_Space%, All
+	StringReplace txt,txt,`n,%A_Space%, All												; replace "`n" with space, create long string from block
+	StringReplace txt,txt,%A_Space%.%A_Space%,.%A_Space%, All							; replace any instance of " . " with ". "
 	loop
 	{
-		StringReplace txt,txt,%A_Space%%A_Space%,%A_Space%, UseErrorLevel
-		if ErrorLevel = 0	
+		StringReplace txt,txt,%A_Space%%A_Space%,%A_Space%, UseErrorLevel				; replace all "  " with " "
+		if ErrorLevel = 0																; continue until no more instances
 			break
 	}
 	return txt
