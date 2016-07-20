@@ -427,7 +427,7 @@ PatLGuiClose:
 	SetTimer, PatCxTimer, Off															; cancel PatCxTimer
 	Gui, PatCx:Destroy																	; destroy PatCx GUI
 	
-	Loop, % filepath "\*" , 1															; Loop through files in pat directory "filepath"
+	Loop, Files, % filepath "\*" , F													; Loop through files in pat directory "filepath"
 	{
 		tmpNm := A_LoopFileName
 		tmpExt := A_LoopFileExt
