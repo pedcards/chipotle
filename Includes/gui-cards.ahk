@@ -15,8 +15,23 @@ plInputCard:
 		ed_var := "pl_CSR"
 	}
 	InputBox, ed_Crd, % "Change " CrdType, %ed_Crd%,,,,,,,,%ed_Crd%
-	if (ed_Crd="")
+	if (ed_Crd="") {
+		MsgBox, 262180, % CrdType, % "Really clear this provider?"
+		IfMsgBox, Yes
+		{
+			if !(IsObject(y.selectSingleNode(pl_mrnstring "/prov"))) {
+				y.addElement("prov", pl_mrnstring)
+			}
+			FormatTime, editdate, A_Now, yyyyMMddHHmmss
+			y.selectSingleNode(pl_mrnstring "/prov").setAttribute(ed_type,ed_Crd)
+			y.setAtt(pl_mrnstring "/prov", {ed: editdate},{au: user})
+			WriteOut(pl_mrnstring,"prov")
+			eventlog(mrn " " CrdType " changed.")
+			GuiControl, plistG:Text, %ed_var%, %ed_Crd%
+			Gui, plistG:Submit, NoHide
+		}
 		return
+	}
 	tmpCrd := checkCrd(ed_Crd)
 	if (tmpCrd.fuzz=0) {										; Perfect match found
 		ed_Crd := tmpCrd.best
