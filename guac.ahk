@@ -428,9 +428,6 @@ PatDir:
 
 PatLGuiClose:
 {
-/*	TODO: This would be a good place for a progress display
- *
- */
 	SetTimer, PatCxTimer, Off															; cancel PatCxTimer
 	Gui, PatCx:Destroy																	; destroy PatCx GUI
 	
@@ -528,14 +525,12 @@ checkChip(mrn) {
 */
 	global y, arch
 	if IsObject(y.selectSingleNode("//id[@mrn='" mrn "']")) {							; present in currlist?
-		return pt := ptParse(mrn,y)
+		return ptParse(mrn,y)
 	} else if IsObject(arch.selectSingleNode("//id[@mrn='" mrn "']")) {					; check the archives
-		return pt := ptParse(mrn,arch)
-	} else {
-		;MsgBox Not on any list
-	}
-	return pt
-;	TODO: can prob remove "pt" from all these, fix final ELSE logic
+		return ptParse(mrn,arch)
+	} 
+	
+	return Error
 }
 
 breakDate(x) {
