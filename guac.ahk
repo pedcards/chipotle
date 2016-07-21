@@ -405,16 +405,20 @@ PatDir:
 	if IsObject(pt) {																	; pt obj had values, added CHIPOTLE data sidebar
 		return																			; finish
 	}
+	if (patMRN) {																		; still have MRN but done
+		return																			; finish
+	}
 	
 ;	TODO: This could be an IF/ELSE clause
 ;	TODO: the plMRNbut + checkChip() could be a final common section
-	if !(patMRN) {																		; no MRN found in gXML
+	IfExist %doc%																		; no known MRN but doc exists
+	{
 		GuiControl, , plMRNbut, Scanning...												; change plMRNbut button to indicate scanning
-		pdoc := parsePatDoc(pdoc)														; populate pdoc obj as array of document section text blocks
-		gXmlPt.setAttribute("mrn",pdoc.MRN)												; add found MRN to gXML
+		ptmp := parsePatDoc(pdoc)														; populate pdoc obj as array of document section text blocks
+		gXmlPt.setAttribute("mrn",ptmp.MRN)												; add found MRN to gXML
 		gXml.save("guac.xml")															; save the changes to gXML
-		GuiControl, , plMRNbut, % pdoc.MRN												; redisplay MRN on 
-		pt := checkChip(pdoc.MRN)														; check chipotle xml files for MRN, return data in obj pt
+		;GuiControl, , plMRNbut, % ptmp.MRN												; redisplay MRN on 
+		;pt := checkChip(pdoc.MRN)														; check chipotle xml files for MRN, return data in obj pt
 		gosub PatDir																	; redraw entire patDir GUI
 	}
 	return
