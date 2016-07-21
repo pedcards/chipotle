@@ -164,7 +164,7 @@ GetConfDir:
 		if (tmpExt) {														; evaluate files with extensions
 			if (tmpNm ~= "i)(\~\$|(Fast Track))")							; exclude temp and "Fast Track" files
 				continue
-			if (tmpNm ~= "i)(PCC)?.*\d{1,2}\.\d{1,2}\.\d{2,4}.*xls") {		; find XLS that matches PCC 3.29.16.xlsx
+			if (tmpNm ~= "i)(?<!(Fast Track))(PCC)?.*\d{1,2}\.\d{1,2}\.\d{2,4}.*xls") {		; find XLS that matches PCC 3.29.16.xlsx
 				confXls := tmpNm
 			}
 			continue
