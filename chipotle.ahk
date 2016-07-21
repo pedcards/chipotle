@@ -162,52 +162,45 @@ OnClipboardChange:
 if !initDone													; Avoid clip processing before initialization complete
 	return
 AutoTrim Off
-DllCall("OpenClipboard", "Uint", 0)
-hMem := DllCall("GetClipboardData", "Uint", 1)
-nLen := DllCall("GlobalSize", "Uint", hMem)						; Directly check clipboard size
-DllCall("CloseClipboard")
-clip = %Clipboard%
-SetTimer, SeekCores, On
+clip = %Clipboard%																	; Get text of clipboard, exclude formatting chars
+clipCk := substr(clip,1,256)														; Check first 256 bytes of clipboard
 
-If (nLen>10000) {
-	; *** Check if CORES clip
-	;clip = %Clipboard%
-	clipCkCORES := substr(clip,1,60)
-	If (clipCkCORES ~= CORES_regex) {
-		coresType := StrX(clipCkCORES,"CORES",1,0,"REPORT v3.0",1,0,N)
-		if (coresType == CORES_type) {
-			WinClose, % CORES_window
-			gosub initClipSub
-			Gosub processCORES
-			MsgBox,,CORES data update, % n0 " total records read.`n" n1 " new records added."
-		} else {
-			MsgBox, 16, Wrong format!, % "Requires """ CORES_type """"
-			WinClose, % CORES_window
-		}
+If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.ini
+	coresType := StrX(clipCk,"CORES",1,0,"REPORT v3.0",1,0)
+	if (coresType == CORES_type) {
+		SetTimer, SeekCores, On
+		WinClose, % CORES_window
+		gosub initClipSub
+		Gosub processCORES
+		MsgBox,,CORES data update, % n0 " total records read.`n" n1 " new records added."
+	} else {
+		MsgBox, 16, Wrong format!, % "Requires """ CORES_type """"
+		WinClose, % CORES_window
 	}
-} else {										; Shorter ELSE block for smaller clips
-	; *** Check if CIS patient list
-	clipCkCIS := ClipboardAll
-	CISdelim := A_tab . A_tab . A_tab
-	If (instr(clip,CISdelim)=1) and (NumGet(clipCkCIS,7,"Char")=0) and (NumGet(clipCkCIS,8,"Char")=9)  {
-		Gosub initClipSub
-		Gosub QueryList
-		WinWaitClose, CIS List
-		if !(locString) {						; Avoids error if exit QueryList
-			return								; without choice.
-		}
-		Gosub processCIS
-		
-		if (location="Cards" or location="CSR" or location="TXP") {
-			gosub saveCensus
-		}
-		if (location="CSR" or location="CICU") {
-			gosub IcuMerge
-		}
+/*	TODO: convert ini CIS_cols into array{FIN:"[1-9][0-9]{7}",Room:"[FR][A-C]\.[1-8]\.[0-9]{3}",etc}
+ *	Then could get the regex string from array["Room"]
+ */
+} else if ((clipCk ~= "[a-zA-Z-]+, \bMD\b|\bDO\b|\bMS\b|\b(MB.BS)\b|\bPhD\b") 
+		&& (clipCk ~= "[FR][A-C]\.[1-8]\.[0-9]{3}")
+		&& (clipCk ~= "[0-9]{6,7}")) {												; Check for features of CIS patient list
+	Gosub initClipSub
+	Gosub QueryList
+	WinWaitClose, CIS List
+	if !(locString) {						; Avoids error if exit QueryList
+		return								; without choice.
+	}
+	Gosub processCIS
+	
+	if (location="Cards" or location="CSR" or location="TXP") {
+		gosub saveCensus
+	}
+	if (location="CSR" or location="CICU") {
+		gosub IcuMerge
+	}
 	;*** Check if Electronic Forecast
-	} else if ((clip ~= fcDateline) and !(soText)) {
-			Gosub readForecast
-	}
+} else if ((clip ~= fcDateline) and !(soText)) {
+		Gosub readForecast
+	;	TODO: convert this to an XLS read
 }
 
 Return
