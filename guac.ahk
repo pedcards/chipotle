@@ -71,6 +71,7 @@ DateGUI:
 {
 	Gui, date:Default
 	Gui, Destroy
+	Gui, +AlwaysOnTop
 	Gui, Add, MonthCal, vEncDt gDateChoose, % dt.YYYY dt.MM dt.DD					; Show selected date and month selector
 	Gui, Show, AutoSize, Select PCC date...
 	return
