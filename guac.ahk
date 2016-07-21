@@ -154,6 +154,7 @@ GetConfDir:
 	filelist =																; Clear out filelist string
 	patnum =																; and zero out count of patient folders
 	
+	Progress,,,Reading conference directory
 	Loop, Files, .\*, DF													; Loop through all files and directories in confDir
 	{
 		tmpNm := A_LoopFileName
@@ -178,12 +179,14 @@ GetConfDir:
 		}
 	}
 	if (confXls) {															; Read confXls if present
+		Progress,,,Reading XLS file
 		gosub readXls
 	}
 	gXml.save("guac.xml")													; Write Guac XML
 	
 	Gui, Font, s16
 	Gui, Add, ListView, % "r" confList.length() " x20 w720 Hdr AltSubmit Grid BackgroundSilver NoSortHdr NoSort gPatDir", Name|Diagnosis|Done|Takt|Note
+	Progress,,,Rendering conference list
 	for key,val in confList
 	{
 		if (key=A_index) {
@@ -201,6 +204,7 @@ GetConfDir:
 				,(keyNote) ? keyNote : "")									; note for this patient
 		}
 	}
+	Progress, Off
 	LV_ModifyCol()
 	LV_ModifyCol(1,"200")
 	LV_ModifyCol(2,"AutoHdr")
@@ -430,6 +434,7 @@ PatLGuiClose:
 	SetTimer, PatCxTimer, Off															; cancel PatCxTimer
 	Gui, PatCx:Destroy																	; destroy PatCx GUI
 	
+	Progress, 100, Progress, Closing files, % patName
 	Loop, Files, % filepath "\*" , F													; Loop through files in pat directory "filepath"
 	{
 		tmpNm := A_LoopFileName
@@ -443,6 +448,7 @@ PatLGuiClose:
 		gXml.setAtt("/root/id[@name='" patName "']",{dur:-PatTime})						; update gXML with new total dur
 		gXml.save("guac.xml")															; save gXML
 	}
+	Progress, Off
 	gosub MainGUI																		; all patient GUI's closed, reopen main GUI
 Return
 }
