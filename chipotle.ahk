@@ -873,11 +873,11 @@ cleanwhitespace(txt) {
 }
 
 fieldType(x) {
-	global CIS_cols, CIS_colvals
-	for k in CIS_cols
+	global CIS_colRx
+	for key,val in CIS_colRx
 	{
-		if (x ~= CIS_colvals[k]) {
-			return CIS_cols[k]
+		if (x ~= val) {
+			return key
 		}
 	}
 	return error
