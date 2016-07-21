@@ -203,7 +203,7 @@ GetConfDir:
 	}
 	LV_ModifyCol()
 	LV_ModifyCol(1,"200")
-	LV_ModifyCol(2,"AutoHdr Center")
+	LV_ModifyCol(2,"AutoHdr")
 	LV_ModifyCol(3,"AutoHdr Center")
 	LV_ModifyCol(4,"AutoHdr Center")
 	LV_ModifyCol(5,"AutoHdr")
