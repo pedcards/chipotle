@@ -355,10 +355,11 @@ PatDir:
 		pdoc := (name~="i)PCC(\snote)?.*\.doc") ? filepath "\" name : ""				; match "*PCC*.doc*", pdoc is complete filepath to doc, else ""
 		filelist .= (name) ? name "|" : ""												; if exists, append name to listbox "filelist"
 		filenum ++																		; increment filenum (total files added)
-		filePmax := StrLen(name)														; filePmax to compare against longest filename
-		if (filePmax>fileNmax) {														; Get longest filename length
-			fileNmax := filePmax
-		}
+		;~ filePmax := StrLen(name)														; filePmax to compare against longest filename
+		;~ if (filePmax>fileNmax) {														; Get longest filename length
+			;~ fileNmax := filePmax
+		;~ }
+		fileNmax := (StrLen(name)>filenMax) ? StrLen(name) : fileNmax
 	}
 	
 	patLBw := (fileNmax>32) ? (fileNmax-32)*12+360 : 360								; listbox width has min 360px, adds 12px for each char over 32		*** could probably consolidate this ***
