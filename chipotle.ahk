@@ -180,9 +180,9 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 /*	TODO: convert ini CIS_cols into array{FIN:"[1-9][0-9]{7}",Room:"[FR][A-C]\.[1-8]\.[0-9]{3}",etc}
  *	Then could get the regex string from array["Room"]
  */
-} else if ((clipCk ~= "[a-zA-Z-]+, \bMD\b|\bDO\b|\bMS\b|\b(MB.BS)\b|\bPhD\b") 
-		&& (clipCk ~= "[FR][A-C]\.[1-8]\.[0-9]{3}")
-		&& (clipCk ~= "[0-9]{6,7}")) {												; Check for features of CIS patient list
+} else if ((clipCk ~= CIS_colRx["Attg"]) 
+		&& (clipCk ~= CIS_colRx["Room"])
+		&& (clipCk ~= CIS_colRx["MRN"])) {												; Check for features of CIS patient list
 	Gosub initClipSub
 	Gosub QueryList
 	WinWaitClose, CIS List
