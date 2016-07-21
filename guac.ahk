@@ -78,7 +78,9 @@ DateGUI:
 
 DateChoose:
 {
+	Gui, date:Destroy																; Close MonthCal UI
 	dt := GetConfDate(EncDt)														; Reacquire DT based on value
+	conflist =																		; Clear out confList
 	Gosub MainGUI																	; Redraw MainGUI
 	return
 }
