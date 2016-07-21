@@ -33,24 +33,28 @@ scr:=screenDims()
 win:=winDim(scr)
 
 servfold := "patlist"
+storkPath := "\\childrens\files\HCCardiologyFiles\Fetal\"
+forecastPath := "\\childrens\files\HCSchedules\Electronic Forecast\"
+if (InStr(A_WorkingDir,"Ahk")) {
+	tmp:=CMsgBox("Data source","Data from which system?","&Local|&Test Server|Production","Q","V")
+	if (tmp="Local") {
+		isLocal := true
+		;FileDelete, currlist.xml
+		storkPath := ".\files\"
+		forecastPath := ".\files\"
+	}
+	if (tmp="Test Server") {
+		isLocal := false
+		servfold := "testlist"
+		FileDelete, currlist.xml
+	}
+	if (tmp="Production") {
+		isLocal := false
+		FileDelete, currlist.xml
+	}
+}
 if (ObjHasValue(admins,user)) {
 	isAdmin := true
-	if (InStr(A_WorkingDir,"Ahk")) {
-		tmp:=CMsgBox("Data source","Data from which system?","&Local|&Test Server|Production","Q","V")
-		if (tmp="Local") {
-			isLocal := true
-			;FileDelete, currlist.xml
-		}
-		if (tmp="Test Server") {
-			isLocal := false
-			servfold := "testlist"
-			FileDelete, currlist.xml
-		}
-		if (tmp="Production") {
-			isLocal := false
-			FileDelete, currlist.xml
-		}
-	}
 	tmp:=CMsgBox("Administrator","Which user role?","*&Normal CHIPOTLE|&CICU CHILI|&ARNP Con Carne","Q","V")
 	if (tmp~="CHILI")
 		isCICU := true
