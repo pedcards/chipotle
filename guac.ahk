@@ -392,14 +392,14 @@ PatDir:
 		GuiControl, , plMRNbut, % patMRN												; change plMRNbut button to MRN
 	}
 	if IsObject(pt) {																	; pt obj has values if exists in either currlist or archlist
-		tmp := 	"CHIPOTLE data (from " niceDate(pt.dxEd) ")`n" 							; generate CHIPOTLE data string for sidebar
+		GuiControl, , plMRNbut, CHIPOTLE data											; change plMRNbut button to indicate Chipotle data present
+		Gui, Add, Text, ys x+m r20 w300 wrap vplChipNote, % ""
+			. "CHIPOTLE data (from " niceDate(pt.dxEd) ")`n" 							; generate CHIPOTLE data string for sidebar
 			. ((pt.dxCard)  ? "Diagnoses:`n" pt.dxCard "`n`n" : "")
 			. ((pt.dxSurg)  ? "Surgeries/Caths:`n" pt.dxSurg "`n`n" : "")
 			. ((pt.dxEP)    ? "EP issues:`n" pt.dxEP "`n`n" : "")
 			. ((pt.dxProb)  ? "Problems:`n" pt.dxProb "`n`n" : "")
 			. ((pt.dxNotes) ? "Notes:`n" pt.dxNotes : "")
-		GuiControl, , plMRNbut, CHIPOTLE data											; change plMRNbut button to indicate Chipotle data present
-		Gui, Add, Text, ys x+m r20 w300 wrap vplChipNote, % tmp							; add text box with Chipotle data to GUI
 	}
 	Gui, Show, w800 AutoSize, % "[Guac] Patient: " PatName
 	
