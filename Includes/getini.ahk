@@ -20,8 +20,6 @@ txpDocs:=[]
 csrDocs:=[]
 cicuDocs:=[]
 loc:=Object()
-CIS_cols:=[]
-CIS_colvals:=[]
 CIS_colRx:=[]
 dialogVals:=[]
 teamSort:=[]
@@ -78,8 +76,6 @@ Forecast_val:=[]
 		}
 		if (sec="CIS_cols") {
 			splitIni(i,c1,c2)
-			CIS_cols.Insert(c1)
-			CIS_colvals.Insert(c2)
 			CIS_colRx[c1] := c2
 		}
 		if (sec="CORES_struc") {

@@ -177,9 +177,6 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 		MsgBox, 16, Wrong format!, % "Requires """ CORES_type """"
 		WinClose, % CORES_window
 	}
-/*	TODO: convert ini CIS_cols into array{FIN:"[1-9][0-9]{7}",Room:"[FR][A-C]\.[1-8]\.[0-9]{3}",etc}
- *	Then could get the regex string from array["Room"]
- */
 } else if ((clipCk ~= CIS_colRx["Attg"]) 
 		&& (clipCk ~= CIS_colRx["Room"])
 		&& (clipCk ~= CIS_colRx["MRN"])) {												; Check for features of CIS patient list
@@ -197,8 +194,7 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 	if (location="CSR" or location="CICU") {
 		gosub IcuMerge
 	}
-	;*** Check if Electronic Forecast
-} else if ((clip ~= fcDateline) and !(soText)) {
+} else if ((clip ~= fcDateline) and !(soText)) {										; Check if Electronic Forecast
 		Gosub readForecast
 	;	TODO: convert this to an XLS read
 }
