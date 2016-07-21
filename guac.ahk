@@ -71,6 +71,7 @@ DateGUI:
 {
 	Gui, date:Default
 	Gui, Destroy
+	Gui, +AlwaysOnTop
 	Gui, Add, MonthCal, vEncDt gDateChoose, % dt.YYYY dt.MM dt.DD					; Show selected date and month selector
 	Gui, Show, AutoSize, Select PCC date...
 	return
@@ -78,7 +79,9 @@ DateGUI:
 
 DateChoose:
 {
+	Gui, date:Destroy																; Close MonthCal UI
 	dt := GetConfDate(EncDt)														; Reacquire DT based on value
+	conflist =																		; Clear out confList
 	Gosub MainGUI																	; Redraw MainGUI
 	return
 }
@@ -152,16 +155,17 @@ GetConfDir:
 	filelist =																; Clear out filelist string
 	patnum =																; and zero out count of patient folders
 	
+	Progress,,,Reading conference directory
 	Loop, Files, .\*, DF													; Loop through all files and directories in confDir
 	{
 		tmpNm := A_LoopFileName
 		tmpExt := A_LoopFileExt
-		if (tmpNm ~= "i)Fast Track")										; exclude Fast Track folders
+		if (tmpNm ~= "i)Fast Track")										; exclude Fast Track files and folders
 			continue
 		if (tmpExt) {														; evaluate files with extensions
 			if (tmpNm ~= "i)(\~\$|(Fast Track))")							; exclude temp and "Fast Track" files
 				continue
-			if (tmpNm ~= "i)(PCC)?\s*\d{1,2}\.\d{1,2}\.\d{2,4}.*xls") {		; find XLS that matches PCC 3.29.16.xlsx
+			if (tmpNm ~= "i)(PCC)?.*\d{1,2}\.\d{1,2}\.\d{2,4}.*xls") {		; find XLS that matches PCC 3.29.16.xlsx
 				confXls := tmpNm
 			}
 			continue
@@ -176,12 +180,14 @@ GetConfDir:
 		}
 	}
 	if (confXls) {															; Read confXls if present
+		Progress,,,Reading XLS file
 		gosub readXls
 	}
 	gXml.save("guac.xml")													; Write Guac XML
 	
 	Gui, Font, s16
 	Gui, Add, ListView, % "r" confList.length() " x20 w720 Hdr AltSubmit Grid BackgroundSilver NoSortHdr NoSort gPatDir", Name|Diagnosis|Done|Takt|Note
+	Progress,,,Rendering conference list
 	for key,val in confList
 	{
 		if (key=A_index) {
@@ -199,9 +205,10 @@ GetConfDir:
 				,(keyNote) ? keyNote : "")									; note for this patient
 		}
 	}
+	Progress, Off
 	LV_ModifyCol()
 	LV_ModifyCol(1,"200")
-	LV_ModifyCol(2,"AutoHdr Center")
+	LV_ModifyCol(2,"AutoHdr")
 	LV_ModifyCol(3,"AutoHdr Center")
 	LV_ModifyCol(4,"AutoHdr Center")
 	LV_ModifyCol(5,"AutoHdr")
@@ -344,23 +351,18 @@ PatDir:
 	fileNmax =														; clear max filename length
 	filelist =														; clear out filelist
 	filenum =														; clear total valid files
-	pdoc =															; clear filepath to doc
 	pt = 															; clear patient text from Chipotle
-	Loop, % filepath "\*" , 1															; read all files and folders in patDir filepath
+	
+	Loop, Files, % filepath "\*" , F													; read only files in patDir filepath
 	{
 		name := A_LoopFileName
-		if (name~="(\~\$|Thumbs.db)") {													; exclude ~$ temp and thumbs.db files
+		if (name~="i)(\~\$|Thumbs.db)") {												; exclude ~$ temp and thumbs.db files
 			continue
 		}
-		if (RegExMatch(name,"i)PCC(\snote)?.*\.doc")) {									; matches "*PCC*.doc*"
-			pdoc := filepath "\" name													; pdoc is complete filepath to doc		*** should clear this for each loop iteration, or make ternary? ***
-		}
+		pdoc := (name~="i)(?<!CXR)(PCC|note)?.*\.doc") ? filepath "\" name : ""			; match "*PCC|note*.doc*" (exclude CXR), pdoc is complete filepath to doc, else ""
 		filelist .= (name) ? name "|" : ""												; if exists, append name to listbox "filelist"
 		filenum ++																		; increment filenum (total files added)
-		filePmax := StrLen(name)														; filePmax to compare against longest filename
-		if (filePmax>fileNmax) {														; Get longest filename length
-			fileNmax := filePmax
-		}
+		fileNmax := (StrLen(name)>fileNmax) ? StrLen(name) : fileNmax					; Increase max filename length
 	}
 	
 	patLBw := (fileNmax>32) ? (fileNmax-32)*12+360 : 360								; listbox width has min 360px, adds 12px for each char over 32		*** could probably consolidate this ***
@@ -387,14 +389,14 @@ PatDir:
 		GuiControl, , plMRNbut, % patMRN												; change plMRNbut button to MRN
 	}
 	if IsObject(pt) {																	; pt obj has values if exists in either currlist or archlist
-		tmp := 	"CHIPOTLE data (from " niceDate(pt.dxEd) ")`n" 							; generate CHIPOTLE data string for sidebar
+		GuiControl, , plMRNbut, CHIPOTLE data											; change plMRNbut button to indicate Chipotle data present
+		Gui, Add, Text, ys x+m r20 w300 wrap vplChipNote, % ""
+			. "CHIPOTLE data (from " niceDate(pt.dxEd) ")`n" 							; generate CHIPOTLE data string for sidebar
 			. ((pt.dxCard)  ? "Diagnoses:`n" pt.dxCard "`n`n" : "")
 			. ((pt.dxSurg)  ? "Surgeries/Caths:`n" pt.dxSurg "`n`n" : "")
 			. ((pt.dxEP)    ? "EP issues:`n" pt.dxEP "`n`n" : "")
 			. ((pt.dxProb)  ? "Problems:`n" pt.dxProb "`n`n" : "")
 			. ((pt.dxNotes) ? "Notes:`n" pt.dxNotes : "")
-		GuiControl, , plMRNbut, CHIPOTLE data											; change plMRNbut button to indicate Chipotle data present
-		Gui, Add, Text, ys x+m r20 w300 wrap vplChipNote, % tmp							; add text box with Chipotle data to GUI
 	}
 	Gui, Show, w800 AutoSize, % "[Guac] Patient: " PatName
 	
@@ -404,16 +406,18 @@ PatDir:
 	if IsObject(pt) {																	; pt obj had values, added CHIPOTLE data sidebar
 		return																			; finish
 	}
+	if (patMRN) {																		; still have MRN but done
+		return																			; finish
+	}
 	
 ;	TODO: This could be an IF/ELSE clause
 ;	TODO: the plMRNbut + checkChip() could be a final common section
-	if !(patMRN) {																		; no MRN found in gXML
+	IfExist %doc%																		; no known MRN but doc exists
+	{
 		GuiControl, , plMRNbut, Scanning...												; change plMRNbut button to indicate scanning
-		pdoc := parsePatDoc(pdoc)														; populate pdoc obj as array of document section text blocks
-		gXmlPt.setAttribute("mrn",pdoc.MRN)												; add found MRN to gXML
+		ptmp := parsePatDoc(pdoc)														; populate pdoc obj as array of document section text blocks
+		gXmlPt.setAttribute("mrn",ptmp.MRN)												; add found MRN to gXML
 		gXml.save("guac.xml")															; save the changes to gXML
-		GuiControl, , plMRNbut, % pdoc.MRN												; redisplay MRN on 
-		pt := checkChip(pdoc.MRN)														; check chipotle xml files for MRN, return data in obj pt
 		gosub PatDir																	; redraw entire patDir GUI
 	}
 	return
@@ -421,12 +425,10 @@ PatDir:
 
 PatLGuiClose:
 {
-/*	TODO: This would be a good place for a progress display
- *
- */
 	SetTimer, PatCxTimer, Off															; cancel PatCxTimer
 	Gui, PatCx:Destroy																	; destroy PatCx GUI
 	
+	Progress, 100, Progress, Closing files, % patName
 	Loop, Files, % filepath "\*" , F													; Loop through files in pat directory "filepath"
 	{
 		tmpNm := A_LoopFileName
@@ -440,6 +442,7 @@ PatLGuiClose:
 		gXml.setAtt("/root/id[@name='" patName "']",{dur:-PatTime})						; update gXML with new total dur
 		gXml.save("guac.xml")															; save gXML
 	}
+	Progress, Off
 	gosub MainGUI																		; all patient GUI's closed, reopen main GUI
 Return
 }
@@ -519,14 +522,12 @@ checkChip(mrn) {
 */
 	global y, arch
 	if IsObject(y.selectSingleNode("//id[@mrn='" mrn "']")) {							; present in currlist?
-		return pt := ptParse(mrn,y)
+		return ptParse(mrn,y)
 	} else if IsObject(arch.selectSingleNode("//id[@mrn='" mrn "']")) {					; check the archives
-		return pt := ptParse(mrn,arch)
-	} else {
-		;MsgBox Not on any list
-	}
-	return pt
-;	TODO: can prob remove "pt" from all these, fix final ELSE logic
+		return ptParse(mrn,arch)
+	} 
+	
+	return Error
 }
 
 breakDate(x) {
