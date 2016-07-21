@@ -417,8 +417,6 @@ PatDir:
 		ptmp := parsePatDoc(pdoc)														; populate pdoc obj as array of document section text blocks
 		gXmlPt.setAttribute("mrn",ptmp.MRN)												; add found MRN to gXML
 		gXml.save("guac.xml")															; save the changes to gXML
-		;GuiControl, , plMRNbut, % ptmp.MRN												; redisplay MRN on 
-		;pt := checkChip(pdoc.MRN)														; check chipotle xml files for MRN, return data in obj pt
 		gosub PatDir																	; redraw entire patDir GUI
 	}
 	return
