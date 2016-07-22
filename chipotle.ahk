@@ -503,8 +503,21 @@ readForecast:
 	
 	nb: this does not appear to work with PDF clipboard
 */
-	if !IsObject(y.selectSingleNode("/root/lists/forecast")) {
-		y.addElement("forecast","/root/lists")
+	; Find the most recently modified "*Electronic Forecast.xls" file
+	fcFile := 
+	fcFileLong := 
+	fcRecent :=
+	Loop, Files, % forecastPath "\" breakdate(A_Now).yyyy "\*Electronic Forecast*.xls*", F		; Scan through YYYY\Electronic Forecast.xlsx files
+	{
+		If (A_LoopFileTimeModified > fcRecent) {
+			fcRecent := A_LoopFileTimeModified													; update most recent Modified datetime
+			fcFileLong := A_LoopFileLongPath													; long path
+			fcFile := A_LoopFileName															; short path
+		}
+	}
+	if !FileExist(fcFileLong) {																	; no file found
+		MsgBox None!
+		return
 	}
 	fcDate:=[]
 	clipboard =
