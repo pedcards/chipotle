@@ -519,8 +519,19 @@ readForecast:
 		MsgBox None!
 		return
 	}
+	
+	; Initialize some stuff
 	fcDate:=[]
-	clipboard =
+	if !IsObject(y.selectSingleNode("/root/lists/forecast")) {					; create if for some reason doesn't exist
+		y.addElement("forecast","/root/lists")
+	} else {																	; and update modified time
+		
+	}
+	
+	; Scan through XLSX document
+	
+	
+	exitapp
 	clip_row := 0
 	clip := substr(clip,(clip ~= fcDateline))
 	Loop, parse, clip, `n, `r
