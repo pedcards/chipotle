@@ -33,15 +33,15 @@ scr:=screenDims()
 win:=winDim(scr)
 
 servfold := "patlist"
-storkPath := "\\childrens\files\HCCardiologyFiles\Fetal\"
-forecastPath := "\\childrens\files\HCSchedules\Electronic Forecast\"
+storkPath := "\\childrens\files\HCCardiologyFiles\Fetal"
+forecastPath := "\\childrens\files\HCSchedules\Electronic Forecast"
 if (InStr(A_WorkingDir,"Ahk")) {
 	tmp:=CMsgBox("Data source","Data from which system?","&Local|&Test Server|Production","Q","V")
 	if (tmp="Local") {
 		isLocal := true
 		;FileDelete, currlist.xml
-		storkPath := ".\files\"
-		forecastPath := ".\files\"
+		storkPath := "files\Fetal"
+		forecastPath := "files\Electronic Forecast"
 	}
 	if (tmp="Test Server") {
 		isLocal := false
@@ -503,11 +503,35 @@ readForecast:
 	
 	nb: this does not appear to work with PDF clipboard
 */
-	if !IsObject(y.selectSingleNode("/root/lists/forecast")) {
-		y.addElement("forecast","/root/lists")
+	; Find the most recently modified "*Electronic Forecast.xls" file
+	fcFile := 
+	fcFileLong := 
+	fcRecent :=
+	Loop, Files, % forecastPath "\" breakdate(A_Now).yyyy "\*Electronic Forecast*.xls*", F		; Scan through YYYY\Electronic Forecast.xlsx files
+	{
+		If (A_LoopFileTimeModified > fcRecent) {
+			fcRecent := A_LoopFileTimeModified													; update most recent Modified datetime
+			fcFileLong := A_LoopFileLongPath													; long path
+			fcFile := A_LoopFileName															; short path
+		}
 	}
+	if !FileExist(fcFileLong) {																	; no file found
+		MsgBox None!
+		return
+	}
+	
+	; Initialize some stuff
 	fcDate:=[]
-	clipboard =
+	if !IsObject(y.selectSingleNode("/root/lists/forecast")) {					; create if for some reason doesn't exist
+		y.addElement("forecast","/root/lists")
+	} else {																	; and update modified time
+		
+	}
+	
+	; Scan through XLSX document
+	
+	
+	exitapp
 	clip_row := 0
 	clip := substr(clip,(clip ~= fcDateline))
 	Loop, parse, clip, `n, `r
