@@ -67,6 +67,7 @@ Menu, MenuBar, Add, System, :menuSys
 Menu, menuFile, Add, Find/Add a patient, FindPt
 Menu, menuFile, Add
 Menu, menuFile, Add, Import Stork List, readStorkList
+Menu, menuFile, Add, Update Electronic Forecast, readForecast
 Menu, MenuBar, Add, File, :menuFile
 
 Menu, menuHelp, Add, Help, buttonHelp
