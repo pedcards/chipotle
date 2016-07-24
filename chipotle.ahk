@@ -529,9 +529,28 @@ readForecast:
 	}
 	
 	; Scan through XLSX document
-	
+	oWorkbook := ComObjGet(fcLongName)
 	
 	exitapp
+	storkPath := A_WorkingDir "\files\stork.xls"
+	oWorkbook := ComObjGet(storkPath)
+	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] ;array of column letters
+	stork_hdr := Object()
+	stork_cel := Object()
+	Loop 
+	{
+		RowNum := A_Index
+		chk := oWorkbook.Sheets(1).Range("A" RowNum).value
+		if (RowNum=1) {
+			upDate := chk
+			continue
+		}
+		if !(chk)
+			break
+		Progress,,% rownum, Scanning Stork List
+
+
+
 	clip_row := 0
 	clip := substr(clip,(clip ~= fcDateline))
 	Loop, parse, clip, `n, `r
