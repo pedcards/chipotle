@@ -521,22 +521,66 @@ readForecast:
 	}
 	
 	; Initialize some stuff
-	fcDate:=[]
 	if !IsObject(y.selectSingleNode("/root/lists/forecast")) {					; create if for some reason doesn't exist
 		y.addElement("forecast","/root/lists")
 	} else {																	; and update modified time
 		
 	}
+	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] ; array of column letters
+	fcDate:=[]																		; array of dates
+	
+	oWorkbook := ComObjGet(fcLongName)
+	fc_hdr := Object()
+	fc_cel := Object()
+	getVals := false
 	
 	; Scan through XLSX document
-	oWorkbook := ComObjGet(fcLongName)
-	
+	Loop
+	{
+		RowNum := A_Index
+		if (rowNum=1) {																	; first row is title, skip
+			continue
+		}
+		Loop
+		{
+			colNum := A_Index															; next column
+			if (colNum:=1) {
+				label:=true																; first column (e.g. A1) is label column
+			} else {
+				label:=false
+			}
+			if (ColNum>maxCol) {														; increment maxCol
+				maxCol:=colNum
+			}
+			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value
+			if ((cel="") && (colnum=maxcol)) {											; at maxCol and empty, break this cols loop
+				break
+			}
+			j := 0
+			if (cel~="\b\d{1,2}.\d{1,2}(.\d{2,4})?\b") {								; matches date format
+				getVals := true
+				j ++																	; increment date column index
+				tmp := parseDate(cel)													; cel date parts into tmp[]
+				if !tmp.YYYY {															; get today's YYYY if not given
+					tmp.YYYY := substr(sessdate,1,4)
+				}
+				tmpDt := tmp.YYYY . tmp.MM . tmp.DD										; tmpDt in format YYYYMMDD
+				fcDate[j] := tmpDt														; fill fcDate[1-7] with date strings
+				if !IsObject(y.selectSingleNode("/root/lists/forecast/call[@date='" tmpDt "']")) {
+					y.addElement("call","/root/lists/forecast", {date:tmpDt})			; create node if doesn't exist
+				}
+				continue																; keep getting col dates but don't get values yet
+			}
+			if !(getVals) {																; don't parse until we have passed date row
+				break
+			}
+			
+			
+		}
+	}
 	exitapp
-	storkPath := A_WorkingDir "\files\stork.xls"
-	oWorkbook := ComObjGet(storkPath)
-	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] ;array of column letters
-	stork_hdr := Object()
-	stork_cel := Object()
+
+
 	Loop 
 	{
 		RowNum := A_Index
@@ -548,7 +592,45 @@ readForecast:
 		if !(chk)
 			break
 		Progress,,% rownum, Scanning Stork List
-
+		Loop
+		{	
+			ColNum := A_Index
+			if (colnum>maxcol)
+				maxcol:=colnum
+			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value
+			if ((cel="") && (colnum=maxcol))
+				break
+			if (rownum=2) {
+				if (cel~="Mother's Name") {
+					cel:="Names"
+				}
+				if (cel~="Mother.*SCH.*#") {
+					cel:="Mother SCH"
+				}
+				if (cel~="Mother.*\sU.*#") {
+					cel:="Mother UW"
+				}
+				if (cel~="Planned.*del.*date") {
+					cel:="Planned date"
+				}
+				if (cel~="i)Most.*Recent.*Consult") {
+					cel:="Recent dates"
+				}
+				if (cel~="i)cord.*blood") {
+					cel:="Cord blood"
+				}
+				if (cel~="i)care.*plan.*ORCA") {
+					cel:="Orca plan"
+				}
+				if (cel~="i)Continuity.*Cardio") {
+					cel:="CRD"
+				}
+				stork_hdr[ColNum] := trim(cel)
+			} else {
+				stork_cel[ColNum] := cel
+			}
+		}
+	}
 
 
 	clip_row := 0
