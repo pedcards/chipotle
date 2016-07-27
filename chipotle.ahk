@@ -529,7 +529,7 @@ readForecast:
 	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] ; array of column letters
 	fcDate:=[]																		; array of dates
 	
-	oWorkbook := ComObjGet(fcLongName)
+	oWorkbook := ComObjGet(fcFileLong)
 	fc_hdr := Object()
 	fc_cel := Object()
 	getVals := false
@@ -541,10 +541,11 @@ readForecast:
 		if (rowNum=1) {																	; first row is title, skip
 			continue
 		}
+		j := 0
 		Loop																			; COLUMNS
 		{
 			colNum := A_Index															; next column
-			if (colNum:=1) {
+			if (colNum=1) {
 				label:=true																; first column (e.g. A1) is label column
 			} else {
 				label:=false
@@ -553,10 +554,10 @@ readForecast:
 				maxCol:=colNum
 			}
 			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value
+			MsgBox,, % colArr[colNum] RowNum, % cel
 			if ((cel="") && (colnum=maxcol)) {											; at maxCol and empty, break this cols loop
 				break
 			}
-			j := 0
 			if (cel~="\b\d{1,2}.\d{1,2}(.\d{2,4})?\b") {								; matches date format
 				getVals := true
 				j ++																	; increment date column index
@@ -568,6 +569,7 @@ readForecast:
 				fcDate[j] := tmpDt														; fill fcDate[1-7] with date strings
 				if !IsObject(y.selectSingleNode("/root/lists/forecast/call[@date='" tmpDt "']")) {
 					y.addElement("call","/root/lists/forecast", {date:tmpDt})			; create node if doesn't exist
+					MsgBox % "Added " tmpDt
 				}
 				continue																; keep getting col dates but don't get values yet
 			}
