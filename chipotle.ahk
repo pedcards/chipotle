@@ -533,6 +533,7 @@ readForecast:
 	fc_hdr := Object()
 	fc_cel := Object()
 	getVals := false
+	valsEnd := false
 	
 	; Scan through XLSX document
 	Loop																				; ROWS
@@ -540,6 +541,9 @@ readForecast:
 		RowNum := A_Index
 		if (rowNum=1) {																	; first row is title, skip
 			continue
+		}
+		if (valsEnd) {
+			break
 		}
 		j := 0
 		Loop																			; COLUMNS
@@ -554,7 +558,7 @@ readForecast:
 				maxCol:=colNum
 			}
 			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value
-			MsgBox,, % colArr[colNum] RowNum, % cel
+			;MsgBox,, % colArr[colNum] RowNum, % cel
 			if ((cel="") && (colnum=maxcol)) {											; at maxCol and empty, break this cols loop
 				break
 			}
@@ -566,20 +570,23 @@ readForecast:
 					tmp.YYYY := substr(sessdate,1,4)
 				}
 				tmpDt := tmp.YYYY . tmp.MM . tmp.DD										; tmpDt in format YYYYMMDD
-				fcDate[j] := tmpDt														; fill fcDate[1-7] with date strings
+				fcDate[colNum] := tmpDt														; fill fcDate[1-7] with date strings
 				if !IsObject(y.selectSingleNode("/root/lists/forecast/call[@date='" tmpDt "']")) {
 					y.addElement("call","/root/lists/forecast", {date:tmpDt})			; create node if doesn't exist
-					MsgBox % "Added " tmpDt
+					;MsgBox % "Added " tmpDt
 				}
 				continue																; keep getting col dates but don't get values yet
 			}
 			if !(getVals) {																; don't start parsing until we have passed date row
 				continue
 			}
-			
-			
+			if ((label) && !(cel)) {
+				valsEnd := true
+				break
+			}
 		}
 	}
+	MsgBox done
 	exitapp
 
 
