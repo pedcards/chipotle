@@ -535,13 +535,13 @@ readForecast:
 	getVals := false
 	
 	; Scan through XLSX document
-	Loop
+	Loop																				; ROWS
 	{
 		RowNum := A_Index
 		if (rowNum=1) {																	; first row is title, skip
 			continue
 		}
-		Loop
+		Loop																			; COLUMNS
 		{
 			colNum := A_Index															; next column
 			if (colNum:=1) {
@@ -571,8 +571,8 @@ readForecast:
 				}
 				continue																; keep getting col dates but don't get values yet
 			}
-			if !(getVals) {																; don't parse until we have passed date row
-				break
+			if !(getVals) {																; don't start parsing until we have passed date row
+				continue
 			}
 			
 			
