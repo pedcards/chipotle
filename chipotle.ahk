@@ -123,8 +123,6 @@ Loop, Read, outdocs.csv
 outGrpV["Other"] := "callGrp" . (tmpIdxG+1)
 outGrpV["TO CALL"] := "callGrp" . (tmpIdxG+2)
 
-fcDateline:=Forecast_val[objHasValue(Forecast_svc,"Dateline")]
-
 SetTimer, SeekCores, 250
 SetTimer, SeekWordErr, 250
 
@@ -198,10 +196,7 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 	if (location="CSR" or location="CICU") {
 		gosub IcuMerge
 	}
-} else if ((clip ~= fcDateline) and !(soText)) {										; Check if Electronic Forecast
-		Gosub readForecast
-	;	TODO: convert this to an XLS read
-}
+} 
 
 Return
 }
