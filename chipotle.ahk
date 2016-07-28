@@ -512,7 +512,7 @@ readForecast:
 		If (A_LoopFileTimeModified > fcRecent) {
 			fcRecent := A_LoopFileTimeModified													; update most recent Modified datetime
 			fcFileLong := A_LoopFileLongPath													; long path
-			fcFile := A_LoopFileName															; short path
+			fcFile := A_LoopFileName															; filename, no path
 		}
 	}
 	if !FileExist(fcFileLong) {																	; no file found
@@ -521,30 +521,26 @@ readForecast:
 	}
 	
 	; Initialize some stuff
-	Progress, , Opening... , Parsing XLSX
+	Progress, , % fcFile, Opening...
 	if !IsObject(y.selectSingleNode("/root/lists/forecast")) {					; create if for some reason doesn't exist
 		y.addElement("forecast","/root/lists")
 	} 
 	
-	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] ; array of column letters
-	fcDate:=[]																		; array of dates
+	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] 	; array of column letters
+	fcDate:=[]																			; array of dates
 	
-	oWorkbook := ComObjGet(fcFileLong)
-	fc_hdr := Object()
-	fc_cel := Object()
-	getVals := false
-	valsEnd := false
+	FileCopy, %fcFileLong%, fcTemp.xlsx, 1												; create local copy to avoid conflict if open
+	oWorkbook := ComObjGet(A_WorkingDir "\fcTemp.xlsx")
+	getVals := false																	; flag when have hit the Date vals row
+	valsEnd := false																	; flag when reached the last row
 	
 	; Scan through XLSX document
 	While !(valsEnd)																	; ROWS
 	{
 		RowNum := A_Index
-		row_nm :=
+		row_nm :=																		; ROW name (service name)
 		if (rowNum=1) {																	; first row is title, skip
 			continue
-		}
-		if (valsEnd) {
-			break
 		}
 		
 		Loop																			; COLUMNS
@@ -559,7 +555,7 @@ readForecast:
 				maxCol:=colNum
 			}
 			
-			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value
+			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value				; Scan Sheet1 A2.. etc
 			Progress, % 100*rowNum/36, % cel, % row_nm
 			if ((cel="") && (colnum=maxcol)) {											; at maxCol and empty, break this cols loop
 				break
@@ -598,63 +594,13 @@ readForecast:
 			}
 			
 			fcNode := "/root/lists/forecast/call[@date='" fcDate[colNum] "']"
-			if !IsObject(y.selectSingleNode(fcNode "/" row_nm)) {
+			if !IsObject(y.selectSingleNode(fcNode "/" row_nm)) {						; create node for service person if not present
 				y.addElement(row_nm,fcNode)
 			}
-			y.setText(fcNode "/" row_nm, cel)
+			y.setText(fcNode "/" row_nm, cel)											; setText changes text value for that node
 		}
 	}
-	y.save("currlist.xml")
-	exitapp
 
-
-	clip_row := 0
-	clip := substr(clip,(clip ~= fcDateline))
-	Loop, parse, clip, `n, `r
-	{
-		clip_full := A_LoopField
-		If !(clip_full)															; blank line exits scan
-			break
-		if (clip_full ~= fcDateline)											; ignore date header
-			continue
-		if (clip_full ~= "(\d{1,2}/\d{1,2}(/\d{2,4})?\t){3,}") {					; date line matches 3 or more date strings
-			j := 0
-			Loop, parse, clip_full, %A_Tab%
-			{
-				i := A_LoopField
-				if (i ~= "\b\d{1,2}/\d{1,2}(/\d{2,4})?\b") {						; only parse actual date strings
-					j ++
-					tmp := parseDate(i)
-					if !tmp.YYYY {
-						tmp.YYYY := substr(sessdate,1,4)
-					}
-					tmpDt := tmp.YYYY . tmp.MM . tmp.DD
-					fcDate[j] := tmpDt											; fill fcDate[1-7] with date strings
-					if IsObject(y.selectSingleNode("/root/lists/forecast/call[@date='" tmpDt "']")) {
-						RemoveNode("/root/lists/forecast/call[@date='" tmpDt "']")				; clear existing node
-					}
-					y.addElement("call","/root/lists/forecast", {date:tmpDt})					; and create node
-				}
-			} 
-		} else {																; otherwise parse line
-			Loop, parse, clip_full, %A_Tab%
-			{
-				tmpDt:=A_index
-				i:=trim(A_LoopField)
-				i:=RegExReplace(i,"\s+"," ")
-				if (tmpDt=1) {													; first column is service
-					if (j:=objHasValue(Forecast_val,i,"RX")) {						; match in Forecast_val array
-						clip_nm := Forecast_svc[j]
-					} else {
-						clip_nm := i
-						clip_nm := RegExReplace(clip_nm,"(\s+)|[\/\*\?]","_")	; replace space, /, \, *, ? with "_"
-					}
-					continue
-				}
-				y.addElement(clip_nm,"/root/lists/forecast/call[@date='" fcDate[tmpDt-1] "']",i)		; or create it
-			}
-		}
-	}
 	loop, % (fcN := y.selectNodes("/root/lists/forecast/call")).length			; Remove old call elements
 	{
 		k:=fcN.item(A_index-1)
