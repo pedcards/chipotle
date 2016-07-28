@@ -490,13 +490,8 @@ parsePnProv(ByRef txt) {
 
 readForecast:
 {
-/*	Parse the block into another table:
-	[3/1/15] [PM/Weekend_A] [PM/Weekend_F] [Ward_A] [Ward_F] [ICU_A] [ICU_F] ...
-	[3/2/15] ... ... ...
-	
+/*	Read electronic forecast XLS
 	Move into /lists/forecast/call {date=20150301}/<PM_We_F>Del Toro</PM_We_F>
-	
-	nb: this does not appear to work with PDF clipboard
 */
 	; Find the most recently modified "*Electronic Forecast.xls" file
 	fcFile := 
