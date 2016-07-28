@@ -186,7 +186,7 @@ GetConfDir:
 	gXml.save("guac.xml")													; Write Guac XML
 	
 	Gui, Font, s16
-	Gui, Add, ListView, % "r" confList.length() " x20 w720 Hdr AltSubmit Grid BackgroundSilver NoSortHdr NoSort gPatDir", Name|Diagnosis|Done|Takt|Note
+	Gui, Add, ListView, % "r" confList.length() " x20 w720 Hdr AltSubmit Grid BackgroundSilver NoSortHdr NoSort gPatDir", Name|Done|Takt|Diagnosis|Note
 	Progress,,,Rendering conference list
 	for key,val in confList
 	{
@@ -199,18 +199,18 @@ GetConfDir:
 			keyNote := (tmp:=gXml.selectSingleNode(keyElement "/notes").text) ? tmp : ""	; NOTE, if present
 			LV_Add(""
 				,keyNm														; UPPER CASE name
-				,keyDx														; Diagnosis
 				,(keyDone) ? "x" : ""										; DONE or not
 				,(keyDur) ? keyDur.MM ":" keyDur.SS : ""					; total DUR spent on this patient MM:SS
+				,(keyDx) ? keyDx : ""										; Diagnosis
 				,(keyNote) ? keyNote : "")									; note for this patient
 		}
 	}
 	Progress, Off
 	LV_ModifyCol()
 	LV_ModifyCol(1,"200")
-	LV_ModifyCol(2,"AutoHdr")
+	LV_ModifyCol(2,"AutoHdr Center")
 	LV_ModifyCol(3,"AutoHdr Center")
-	LV_ModifyCol(4,"AutoHdr Center")
+	LV_ModifyCol(4,"AutoHdr")
 	LV_ModifyCol(5,"AutoHdr")
 	Return
 }
