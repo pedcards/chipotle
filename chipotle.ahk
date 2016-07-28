@@ -536,7 +536,7 @@ readForecast:
 	valsEnd := false
 	
 	; Scan through XLSX document
-	Loop																				; ROWS
+	While !(valsEnd)																	; ROWS
 	{
 		RowNum := A_Index
 		if (rowNum=1) {																	; first row is title, skip
@@ -580,15 +580,44 @@ readForecast:
 			if !(getVals) {																; don't start parsing until we have passed date row
 				continue
 			}
-			if ((label) && !(cel)) {
-				valsEnd := true
-				break
+			;~ if ((label) && !(cel)) {													; blank label means we've reached the end of rows
+				;~ valsEnd := true															; flag to end
+				;~ break																	; break out
+			;~ }
+			cel := trim(RegExReplace(cel,"\s+"," "))									; remove extraneous whitespace
+			if (label) {
+				if !(cel) {																; blank label means we've reached the end of rows
+					valsEnd := true														; flag to end
+					break																; break out
+				}
+				if (j:=objHasValue(Forecast_val,cel,"RX")) {							; match index value from Forecast_val
+					col_nm := Forecast_svc[j]											; get abbrev string from index
+				} else {
+					col_nm := RegExReplace(cel,"(\s+)|[\/\*\?]","_")					; no match, create ad hoc and replace space, /, \, *, ? with "_"
+				}
+				;if !IsObject(y.selectSingleNode("/root/lists/forecast/call[@date='" fcDate[)
 			}
 		}
 	}
-	MsgBox done
+	MsgBox % rowNum
 	exitapp
 
+			Loop, parse, clip_full, %A_Tab%
+			{
+				tmpDt:=A_index
+				i:=trim(A_LoopField)
+				i:=RegExReplace(i,"\s+"," ")
+				if (tmpDt=1) {													; first column is service
+					if (j:=objHasValue(Forecast_val,i,"RX")) {						; match in Forecast_val array
+						clip_nm := Forecast_svc[j]
+					} else {
+						clip_nm := i
+						clip_nm := RegExReplace(clip_nm,"(\s+)|[\/\*\?]","_")	; replace space, /, \, *, ? with "_"
+					}
+					continue
+				}
+				y.addElement(clip_nm,"/root/lists/forecast/call[@date='" fcDate[tmpDt-1] "']",i)		; or create it
+			}
 
 	Loop 
 	{
