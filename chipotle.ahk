@@ -590,6 +590,7 @@ readForecast:
 			y.setText(fcNode "/" row_nm, cel)											; setText changes text value for that node
 		}
 	}
+	Progress, off
 
 	loop, % (fcN := y.selectNodes("/root/lists/forecast/call")).length			; Remove old call elements
 	{
