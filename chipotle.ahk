@@ -521,11 +521,11 @@ readForecast:
 	}
 	
 	; Initialize some stuff
+	Progress, , Opening... , Parsing XLSX
 	if !IsObject(y.selectSingleNode("/root/lists/forecast")) {					; create if for some reason doesn't exist
 		y.addElement("forecast","/root/lists")
-	} else {																	; and update modified time
-		
-	}
+	} 
+	
 	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] ; array of column letters
 	fcDate:=[]																		; array of dates
 	
@@ -539,13 +539,14 @@ readForecast:
 	While !(valsEnd)																	; ROWS
 	{
 		RowNum := A_Index
+		row_nm :=
 		if (rowNum=1) {																	; first row is title, skip
 			continue
 		}
 		if (valsEnd) {
 			break
 		}
-		j := 0
+		;j := 0
 		Loop																			; COLUMNS
 		{
 			colNum := A_Index															; next column
@@ -557,118 +558,57 @@ readForecast:
 			if (ColNum>maxCol) {														; increment maxCol
 				maxCol:=colNum
 			}
+			
 			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value
-			;MsgBox,, % colArr[colNum] RowNum, % cel
+			;Progress, % 100*rowNum/36, % cel, % row_nm
+			progress, off
+			MsgBox,, % colArr[colNum] rowNum, % row_nm "`n" cel
 			if ((cel="") && (colnum=maxcol)) {											; at maxCol and empty, break this cols loop
 				break
 			}
 			if (cel~="\b\d{1,2}.\d{1,2}(.\d{2,4})?\b") {								; matches date format
 				getVals := true
-				j ++																	; increment date column index
+				;j ++																	; increment date column index
 				tmp := parseDate(cel)													; cel date parts into tmp[]
 				if !tmp.YYYY {															; get today's YYYY if not given
 					tmp.YYYY := substr(sessdate,1,4)
 				}
 				tmpDt := tmp.YYYY . tmp.MM . tmp.DD										; tmpDt in format YYYYMMDD
-				fcDate[colNum] := tmpDt														; fill fcDate[1-7] with date strings
+				fcDate[colNum] := tmpDt													; fill fcDate[1-7] with date strings
 				if !IsObject(y.selectSingleNode("/root/lists/forecast/call[@date='" tmpDt "']")) {
 					y.addElement("call","/root/lists/forecast", {date:tmpDt})			; create node if doesn't exist
-					;MsgBox % "Added " tmpDt
 				}
 				continue																; keep getting col dates but don't get values yet
 			}
+			
 			if !(getVals) {																; don't start parsing until we have passed date row
 				continue
 			}
-			;~ if ((label) && !(cel)) {													; blank label means we've reached the end of rows
-				;~ valsEnd := true															; flag to end
-				;~ break																	; break out
-			;~ }
+			
 			cel := trim(RegExReplace(cel,"\s+"," "))									; remove extraneous whitespace
 			if (label) {
 				if !(cel) {																; blank label means we've reached the end of rows
 					valsEnd := true														; flag to end
-					break																; break out
+					break																; break out of LOOP to next WHILE
 				}
+				
 				if (j:=objHasValue(Forecast_val,cel,"RX")) {							; match index value from Forecast_val
-					col_nm := Forecast_svc[j]											; get abbrev string from index
+					row_nm := Forecast_svc[j]											; get abbrev string from index
 				} else {
-					col_nm := RegExReplace(cel,"(\s+)|[\/\*\?]","_")					; no match, create ad hoc and replace space, /, \, *, ? with "_"
+					row_nm := RegExReplace(cel,"(\s+)|[\/\*\?]","_")					; no match, create ad hoc and replace space, /, \, *, ? with "_"
 				}
-				;if !IsObject(y.selectSingleNode("/root/lists/forecast/call[@date='" fcDate[)
+				continue																; results in some ROW NAME, now move to the next column
 			}
+			
+			fcNode := "/root/lists/forecast/call[@date='" fcDate[colNum] "']"
+			if !IsObject(y.selectSingleNode(fcNode "/" row_nm)) {
+				y.addElement(row_nm,fcNode)
+			}
+			y.setText(fcNode "/" row_nm, cel)
 		}
 	}
-	MsgBox % rowNum
+	y.save("currlist.xml")
 	exitapp
-
-			Loop, parse, clip_full, %A_Tab%
-			{
-				tmpDt:=A_index
-				i:=trim(A_LoopField)
-				i:=RegExReplace(i,"\s+"," ")
-				if (tmpDt=1) {													; first column is service
-					if (j:=objHasValue(Forecast_val,i,"RX")) {						; match in Forecast_val array
-						clip_nm := Forecast_svc[j]
-					} else {
-						clip_nm := i
-						clip_nm := RegExReplace(clip_nm,"(\s+)|[\/\*\?]","_")	; replace space, /, \, *, ? with "_"
-					}
-					continue
-				}
-				y.addElement(clip_nm,"/root/lists/forecast/call[@date='" fcDate[tmpDt-1] "']",i)		; or create it
-			}
-
-	Loop 
-	{
-		RowNum := A_Index
-		chk := oWorkbook.Sheets(1).Range("A" RowNum).value
-		if (RowNum=1) {
-			upDate := chk
-			continue
-		}
-		if !(chk)
-			break
-		Progress,,% rownum, Scanning Stork List
-		Loop
-		{	
-			ColNum := A_Index
-			if (colnum>maxcol)
-				maxcol:=colnum
-			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value
-			if ((cel="") && (colnum=maxcol))
-				break
-			if (rownum=2) {
-				if (cel~="Mother's Name") {
-					cel:="Names"
-				}
-				if (cel~="Mother.*SCH.*#") {
-					cel:="Mother SCH"
-				}
-				if (cel~="Mother.*\sU.*#") {
-					cel:="Mother UW"
-				}
-				if (cel~="Planned.*del.*date") {
-					cel:="Planned date"
-				}
-				if (cel~="i)Most.*Recent.*Consult") {
-					cel:="Recent dates"
-				}
-				if (cel~="i)cord.*blood") {
-					cel:="Cord blood"
-				}
-				if (cel~="i)care.*plan.*ORCA") {
-					cel:="Orca plan"
-				}
-				if (cel~="i)Continuity.*Cardio") {
-					cel:="CRD"
-				}
-				stork_hdr[ColNum] := trim(cel)
-			} else {
-				stork_cel[ColNum] := cel
-			}
-		}
-	}
 
 
 	clip_row := 0
