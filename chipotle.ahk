@@ -546,7 +546,7 @@ readForecast:
 		if (valsEnd) {
 			break
 		}
-		;j := 0
+		
 		Loop																			; COLUMNS
 		{
 			colNum := A_Index															; next column
@@ -560,15 +560,12 @@ readForecast:
 			}
 			
 			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value
-			;Progress, % 100*rowNum/36, % cel, % row_nm
-			progress, off
-			MsgBox,, % colArr[colNum] rowNum, % row_nm "`n" cel
+			Progress, % 100*rowNum/36, % cel, % row_nm
 			if ((cel="") && (colnum=maxcol)) {											; at maxCol and empty, break this cols loop
 				break
 			}
 			if (cel~="\b\d{1,2}.\d{1,2}(.\d{2,4})?\b") {								; matches date format
 				getVals := true
-				;j ++																	; increment date column index
 				tmp := parseDate(cel)													; cel date parts into tmp[]
 				if !tmp.YYYY {															; get today's YYYY if not given
 					tmp.YYYY := substr(sessdate,1,4)
