@@ -59,6 +59,8 @@ if (CIS_W) {
 Menu, menuSys, Add, GUACAMOLE, buttonGuac
 Menu, menuSys, Add, NACHOS, buttonNachos
 Menu, menuSys, Add, QUESO, buttonAdmin
+Menu, menuSys, Add, CHILI, buttonChili
+Menu, menuSys, Add, CON CARNE, buttonConCarne
 Menu, menuSys, Add
 Menu, menuSys, Add, Save && Quit..., mainGUIdone
 Menu, menuSys, Add, Quit..., mainGuiclose
@@ -153,6 +155,16 @@ Only available to CHIPOTLE Administrators.
 )
 }
 return
+}
+
+ButtonChili:
+{
+	return
+}
+
+ButtonConCarne:
+{
+	return
 }
 
 MainGuiClose:
