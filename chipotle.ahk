@@ -591,6 +591,8 @@ readForecast:
 		}
 	}
 	Progress, off
+	y.selectSingleNode("/root/lists/forecast").setAttribute("xlsdate",fcRecent)			; change forecast[@xlsdate] to the XLS mod date
+	y.selectSingleNode("/root/lists/forecast").setAttribute("mod",A_Now)				; change forecast[@mod] to now
 
 	loop, % (fcN := y.selectNodes("/root/lists/forecast/call")).length			; Remove old call elements
 	{
