@@ -328,6 +328,9 @@ saveCensus:
 		FileAppend, % censM "/" censD "/" censY "," totCRD "," totCSR "," totTxCICU "," totTxWard "`n" , logs/census.csv
 		eventlog("Daily census updated.")
 	}
+	if (A_WDay > 5) {
+		gosub readForecast
+	}
 	return
 }
 
