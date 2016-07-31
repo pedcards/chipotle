@@ -600,12 +600,12 @@ readForecast:
 	y.selectSingleNode("/root/lists/forecast").setAttribute("xlsdate",fcRecent)			; change forecast[@xlsdate] to the XLS mod date
 	y.selectSingleNode("/root/lists/forecast").setAttribute("mod",A_Now)				; change forecast[@mod] to now
 
-	loop, % (fcN := y.selectNodes("/root/lists/forecast/call")).length			; Remove old call elements
+	loop, % (fcN := y.selectNodes("/root/lists/forecast/call")).length					; Remove old call elements
 	{
-		k:=fcN.item(A_index-1)
-		tmpDt := k.getAttribute("date")
-		tmpDt -= A_Now, Days
-		if (tmpDt < -21) {																		; save call schedule for 3 weeks (for TRRIQ)
+		k:=fcN.item(A_index-1)															; each item[0] on forward
+		tmpDt := k.getAttribute("date")													; date attribute
+		tmpDt -= A_Now, Days															; diff dates
+		if (tmpDt < -21) {																; save call schedule for 3 weeks (for TRRIQ)
 			RemoveNode("/root/lists/forecast/call[@date='" k.getAttribute("date") "']")
 		}
 	}
