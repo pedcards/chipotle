@@ -506,7 +506,7 @@ readForecast:
 		}
 	}
 	if !FileExist(fcFileLong) {																	; no file found
-		MsgBox None!
+		MsgBox,48,, % "Electronic Forecast.xlsx`nfile not found!"
 		return
 	}
 	
@@ -516,6 +516,7 @@ readForecast:
 		y.addElement("forecast","/root/lists")
 	} 
 	if (fcRecent = y.selectSingleNode("/root/lists/forecast").getAttribute("xlsdate")) {
+		Progress, off
 		MsgBox,64,, "Electronic Forecast is up to date."
 		return																			; no edits to XLS have been made
 	}
