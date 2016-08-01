@@ -255,3 +255,20 @@ plFormSave:
 Return
 }
 
+GetNotes(mrn,type) {
+	if (type="weekly") {
+		node := "/notes/weekly/summary"
+	} else if (type="updates") {
+		node := "/notes/updates/note"
+	} else {
+		return error
+	}
+	global y
+	Loop, % (notes := y.selectNodes("/root/id[@mrn='" mrn "']" node)).length {
+		note := notes.item(A_Index-1)
+		date := breakDate(note.getAttribute("date"))
+		text .= "[" date.MM "/" date.DD "] " note.text . "`n"
+	}
+	return text
+}
+
