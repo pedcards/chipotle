@@ -314,3 +314,15 @@ InjSumm:
 	
 	return
 }
+
+InjUpd:
+{
+	
+	return
+}
+
+InjLabs:
+{
+	
+	return
+}
