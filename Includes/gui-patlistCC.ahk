@@ -39,12 +39,13 @@ PatListGUIcc:
 		Gui, Add, Edit, % edit1, % edVal
 		y0 += h0
 	}
-	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gPatListGUI Disabled", Switch to other view
+	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gPlSumm", Weekly Summary
 	Gui, Add, Button, % "xP+"win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5 " gPlTasksList", Tasks/Todo
 	Gui, Add, Button, % "xP+"win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5 " gplMar", Medications
 	Gui, Add, Button, % "x"win.bor+win.boxF " yP w"win.boxQ-20 " h"win.rh*2.5,Hello >'o'<
 	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gplHealthMaint", Health Maintenance
 	Gui, Add, Button, % "xP+"win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5 " Disabled", Cath Plan
+	Gui, Add, Button, % "xP+"win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5 " gplDCinject", Discharge note injector
 	Gui, Add, Button, % "x"win.bor+win.boxF " yP w"win.boxQ-20 " h"win.rh*2.5 " gplSave", SAVE
 	Gui, Show, % "w"winFw " h"win.wY, % "CON CARNE - " pl_nameL
 
@@ -287,3 +288,29 @@ CountLines(Text)
 	 Return ErrorLevel + 1
 	}
 
+plDCinject:
+{
+	Gui, gDCinj:Destroy
+	Gui, gDCinj:Default
+	Gui, +AlwaysOnTop
+	Gui, Add, Text, 
+		, % "Select the item you want,`n"
+		. "then paste (Ctrl-V) it where you want."
+	Gui, Add, Button, w200 gInjSumm, Summaries
+	Gui, Add, Button, w200 gInjUpd, Updates
+	Gui, Add, Button, w200 gInjLabs, Labs
+	Gui, Show, , Note Injector
+	return
+}
+
+DCinjGuiClose:
+{
+	Gui, gDCinj:Destroy
+	return
+}
+
+InjSumm:
+{
+	
+	return
+}

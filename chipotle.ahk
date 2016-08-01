@@ -24,7 +24,7 @@ FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.ex
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.8.0.1"
+vers := "1.8.0.2"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -506,7 +506,7 @@ readForecast:
 		}
 	}
 	if !FileExist(fcFileLong) {																	; no file found
-		MsgBox None!
+		MsgBox,48,, % "Electronic Forecast.xlsx`nfile not found!"
 		return
 	}
 	
@@ -515,6 +515,11 @@ readForecast:
 	if !IsObject(y.selectSingleNode("/root/lists/forecast")) {					; create if for some reason doesn't exist
 		y.addElement("forecast","/root/lists")
 	} 
+	if (fcRecent = y.selectSingleNode("/root/lists/forecast").getAttribute("xlsdate")) {
+		Progress, off
+		MsgBox,64,, "Electronic Forecast is up to date."
+		return																			; no edits to XLS have been made
+	}
 	
 	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] 	; array of column letters
 	fcDate:=[]																			; array of dates
@@ -591,13 +596,16 @@ readForecast:
 		}
 	}
 	Progress, off
+	
+	y.selectSingleNode("/root/lists/forecast").setAttribute("xlsdate",fcRecent)			; change forecast[@xlsdate] to the XLS mod date
+	y.selectSingleNode("/root/lists/forecast").setAttribute("mod",A_Now)				; change forecast[@mod] to now
 
-	loop, % (fcN := y.selectNodes("/root/lists/forecast/call")).length			; Remove old call elements
+	loop, % (fcN := y.selectNodes("/root/lists/forecast/call")).length					; Remove old call elements
 	{
-		k:=fcN.item(A_index-1)
-		tmpDt := k.getAttribute("date")
-		tmpDt -= A_Now, Days
-		if (tmpDt < -21) {																		; save call schedule for 3 weeks (for TRRIQ)
+		k:=fcN.item(A_index-1)															; each item[0] on forward
+		tmpDt := k.getAttribute("date")													; date attribute
+		tmpDt -= A_Now, Days															; diff dates
+		if (tmpDt < -21) {																; save call schedule for 3 weeks (for TRRIQ)
 			RemoveNode("/root/lists/forecast/call[@date='" k.getAttribute("date") "']")
 		}
 	}
