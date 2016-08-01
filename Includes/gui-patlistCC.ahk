@@ -311,13 +311,25 @@ DCinjGuiClose:
 
 InjSumm:
 {
-	
+	tmp := GetNotes(mrn,"weekly")
+	if (tmp) {
+		Clipboard := tmp
+		MsgBox Text has been copied to clipboard.`nPaste (Ctrl-V) where you want.
+	} else {
+		MsgBox No notes found!
+	}
 	return
 }
 
 InjUpd:
 {
-	
+	tmp := GetNotes(mrn,"updates")
+	if (tmp) {
+		Clipboard := tmp
+		MsgBox Text has been copied to clipboard.`nPaste (Ctrl-V) where you want.
+	} else {
+		MsgBox No notes found!
+	}
 	return
 }
 
