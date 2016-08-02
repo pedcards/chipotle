@@ -312,29 +312,60 @@ DCinjGuiClose:
 InjSumm:
 {
 	tmp := GetNotes(mrn,"weekly")
+	Gui, gDCinj:Hide
 	if (tmp) {
 		Clipboard := tmp
 		MsgBox Text has been copied to clipboard.`nPaste (Ctrl-V) where you want.
 	} else {
 		MsgBox No notes found!
 	}
+	Gui, gDCinj:Show
 	return
 }
 
 InjUpd:
 {
 	tmp := GetNotes(mrn,"updates")
+	Gui, gDCinj:Hide
 	if (tmp) {
 		Clipboard := tmp
 		MsgBox Text has been copied to clipboard.`nPaste (Ctrl-V) where you want.
 	} else {
 		MsgBox No notes found!
 	}
+	Gui, gDCinj:Show
 	return
 }
 
 InjLabs:
 {
+	tmpD := BreakDate(A_Now)
+	dcLabs := y.selectSingleNode("//id[@mrn='" MRN "']/info[@date='" tmpDarr[tmpD.MM "/" tmpD.DD] "']/labs")
+	dcDate := dcLabs.getAttribute("date")
+	Gui, gDCinj:Hide
+	if !IsObject(dcLabs) {
+		MsgBox,,% dcDate, No labs!
+		Gui, gDCinj:Show
+		return
+	}
 	
+	if (i:=dcLabs.selectSingleNode("CBC")) {
+		Loop, % (j:=i.selectNodes("*")).length {
+			k := j.item(A_Index-1)
+			node := k.nodeName
+			nodeTxt := k.text
+			MsgBox,,% node, % nodeTxt
+		}
+	}
+	if (i:=dcLabs.selectSingleNode("Lytes")) {
+		Loop, % (j:=i.selectNodes("*")).length {
+			k := j.item(A_Index-1)
+			node := k.nodeName
+			nodeTxt := k.text
+			MsgBox,,% node, % nodeTxt
+		}
+	}
+		
+	Gui, gDCinj:Show
 	return
 }
