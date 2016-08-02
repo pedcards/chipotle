@@ -315,7 +315,7 @@ InjSumm:
 	Gui, gDCinj:Hide
 	if (tmp) {
 		Clipboard := tmp
-		MsgBox Text has been copied to clipboard.`nPaste (Ctrl-V) where you want.
+		MsgBox Summary notes have been copied to clipboard.`nPaste (Ctrl-V) where you want.
 	} else {
 		MsgBox No notes found!
 	}
@@ -329,7 +329,7 @@ InjUpd:
 	Gui, gDCinj:Hide
 	if (tmp) {
 		Clipboard := tmp
-		MsgBox Text has been copied to clipboard.`nPaste (Ctrl-V) where you want.
+		MsgBox Updates notes have been copied to clipboard.`nPaste (Ctrl-V) where you want.
 	} else {
 		MsgBox No notes found!
 	}
@@ -339,33 +339,34 @@ InjUpd:
 
 InjLabs:
 {
+	tmp :=
 	tmpD := BreakDate(A_Now)
-	dcLabs := y.selectSingleNode("//id[@mrn='" MRN "']/info[@date='" tmpDarr[tmpD.MM "/" tmpD.DD] "']/labs")
-	dcDate := dcLabs.getAttribute("date")
-	Gui, gDCinj:Hide
-	if !IsObject(dcLabs) {
+	dcLabs := y.selectSingleNode("//id[@mrn='" MRN "']/info[@date='" tmpDarr[tmpD.MM "/" tmpD.DD] "']/labs")	; get today's info/labs node 
+	Gui, gDCinj:Hide																							; from the tmpDarr[] obj used for tabs
+	if !IsObject(dcLabs) {																; no node exists	
 		MsgBox,,% dcDate, No labs!
 		Gui, gDCinj:Show
 		return
 	}
 	
-	if (i:=dcLabs.selectSingleNode("CBC")) {
-		Loop, % (j:=i.selectNodes("*")).length {
-			k := j.item(A_Index-1)
-			node := k.nodeName
-			nodeTxt := k.text
-			MsgBox,,% node, % nodeTxt
+	if (i:=dcLabs.selectSingleNode("CBC")) {											; CBC node exists
+		tmp .= "CBC:`n"
+		Loop, % (j:=i.selectNodes("*")).length {										; step through all child nodes (WBC, Hgb, Hct, Plt, etc)
+			k := j.item(A_Index-1)														; get the node
+			tmp .= k.nodeName "=" k.text "  "											; add the nodename and text
 		}
+		tmp .= "`n"
 	}
-	if (i:=dcLabs.selectSingleNode("Lytes")) {
-		Loop, % (j:=i.selectNodes("*")).length {
+	if (i:=dcLabs.selectSingleNode("Lytes")) {											; Lytes node exists
+		tmp .= "Lytes:`n"
+		Loop, % (j:=i.selectNodes("*")).length {										; step through child nodes (Na, K, HCO3, Cl, etc)
 			k := j.item(A_Index-1)
-			node := k.nodeName
-			nodeTxt := k.text
-			MsgBox,,% node, % nodeTxt
+			tmp .= k.nodeName "=" k.text "  "
 		}
+		tmp .= "`n"
 	}
-		
+	clipboard := tmp
+	MsgBox Labs have been copied to the clipboard.`nPaste (Ctrl-V) where you want.
 	Gui, gDCinj:Show
 	return
 }
