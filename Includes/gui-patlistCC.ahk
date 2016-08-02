@@ -311,6 +311,62 @@ DCinjGuiClose:
 
 InjSumm:
 {
+	tmp := GetNotes(mrn,"weekly")
+	Gui, gDCinj:Hide
+	if (tmp) {
+		Clipboard := tmp
+		MsgBox Summary notes have been copied to clipboard.`nPaste (Ctrl-V) where you want.
+	} else {
+		MsgBox No notes found!
+	}
+	Gui, gDCinj:Show
+	return
+}
+
+InjUpd:
+{
+	tmp := GetNotes(mrn,"updates")
+	Gui, gDCinj:Hide
+	if (tmp) {
+		Clipboard := tmp
+		MsgBox Updates notes have been copied to clipboard.`nPaste (Ctrl-V) where you want.
+	} else {
+		MsgBox No notes found!
+	}
+	Gui, gDCinj:Show
+	return
+}
+
+InjLabs:
+{
+	tmp :=
+	tmpD := BreakDate(A_Now)
+	dcLabs := y.selectSingleNode("//id[@mrn='" MRN "']/info[@date='" tmpDarr[tmpD.MM "/" tmpD.DD] "']/labs")	; get today's info/labs node 
+	Gui, gDCinj:Hide																							; from the tmpDarr[] obj used for tabs
+	if !IsObject(dcLabs) {																; no node exists	
+		MsgBox,,% dcDate, No labs!
+		Gui, gDCinj:Show
+		return
+	}
 	
+	if (i:=dcLabs.selectSingleNode("CBC")) {											; CBC node exists
+		tmp .= "CBC:`n"
+		Loop, % (j:=i.selectNodes("*")).length {										; step through all child nodes (WBC, Hgb, Hct, Plt, etc)
+			k := j.item(A_Index-1)														; get the node
+			tmp .= k.nodeName "=" k.text "  "											; add the nodename and text
+		}
+		tmp .= "`n"
+	}
+	if (i:=dcLabs.selectSingleNode("Lytes")) {											; Lytes node exists
+		tmp .= "Lytes:`n"
+		Loop, % (j:=i.selectNodes("*")).length {										; step through child nodes (Na, K, HCO3, Cl, etc)
+			k := j.item(A_Index-1)
+			tmp .= k.nodeName "=" k.text "  "
+		}
+		tmp .= "`n"
+	}
+	clipboard := tmp
+	MsgBox Labs have been copied to the clipboard.`nPaste (Ctrl-V) where you want.
+	Gui, gDCinj:Show
 	return
 }
