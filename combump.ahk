@@ -44,6 +44,8 @@ FileCopy, chipotle.exe, %fileOut%, 1
 FileMove, chipotle.ini, chipotle.ini, 1
 FileMove, chipotle.tmp, chipotle.ahk, 1
 
+MsgBox % "Compiled and bumped to version " versNew
+
 ExitApp
 
 StrX( H,  BS="",BO=0,BT=1,   ES="",EO=0,ET=1,  ByRef N="" ) { ;    | by Skan | 19-Nov-2009
