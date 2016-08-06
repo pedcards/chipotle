@@ -19,8 +19,8 @@ PatListGUIcc:
 	Gui, Add, GroupBox, % "xP yP+"win.demo_h/2-4 " wP hP"
 	Gui, Font, Normal
 	Gui, Add, Text, % "x"win.bor+10 " y"win.bor+20, % pl_demo
-	Gui, Add, Text, % "x"win.bor+win.boxH+10 " y"win.bor+10 " w"win.boxQ-14 , % "CRD: " pl_ProvCard "`n" ((pl_ProvSchCard) ? "CRD(SCH): " pl_ProvSchCard : "")
-	Gui, Add, Text, % "xP yP+"win.demo_h/2-4 " wP", % "CSR: " pl_provCSR
+	Gui, Add, Text, % "x"win.bor+win.boxH+10 " y"win.bor+10 " w"win.boxQ-14 " gPlInputCard", % "CRD: " pl_ProvCard "`n" ((pl_ProvSchCard) ? "CRD(SCH): " pl_ProvSchCard : "")
+	Gui, Add, Text, % "xP yP+"win.demo_h/2-4 " wP gPlInputCard", % "CSR: " pl_provCSR
 	y0 := win.bor+win.demo_h+win.bor
 	for key,val in ccFields {
 		x0 := win.bor
