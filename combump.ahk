@@ -13,7 +13,7 @@ SendMode Input ; Recommended for new scripts due to its superior speed and relia
 SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 
 user := A_UserName
-ahk_path := ((user="tchun1") ? "O:\PApps\PortableApps" : "C:\Program Files (x86)") . "\AutoHotkey\Compiler"
+ahk_path := ((user="tchun1") ? "O:\PApps\PortableApps" : "C:\Program Files") . "\AutoHotkey\Compiler"
 ahk2exe_loc := ahk_path "\Ahk2Exe.exe"
 ahk2exe_mpr := ahk_path "\mpress.exe"
 
@@ -43,6 +43,8 @@ RunWait, %ahk2exe_loc% /in "chipotle.tmp" /out "chipotle.exe" /icon %fileIco% /m
 FileCopy, chipotle.exe, %fileOut%, 1
 FileMove, chipotle.ini, chipotle.ini, 1
 FileMove, chipotle.tmp, chipotle.ahk, 1
+
+MsgBox % "Compiled and bumped to version " versNew
 
 ExitApp
 
