@@ -347,7 +347,7 @@ PatDir:
 	PatName := confList[A_EventInfo]								; get PatName from confList pointer from A_EventInfo; could we just get the first column?
 	PatTime := A_Now												; timer start
 	PatTime += -gXml.getAtt("/root/id[@name='" patName "']","dur"), Seconds		; add to previous cumulative dur time from gXml
-	filepath := netdir "\" confdir "\" RegExReplace(PatName,"_","\'")						; PatName is name of folder
+	filepath := netdir "\" confdir "\" RegExReplace(PatName,"_","'")						; PatName is name of folder
 	filePmax = 														; clear max file field length
 	fileNmax =														; clear max filename length
 	filelist =														; clear out filelist
