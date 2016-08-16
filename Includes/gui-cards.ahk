@@ -1,18 +1,30 @@
 plInputCard:
 {
 	CrdType:=A_GuiControl
-	if (InStr(CrdType,"primary")) {
-		ed_Crd := pl_ProvCard									; provider value
-		ed_type := "provCard"									; provider attribute name
-		ed_var := "pl_Card"										; GUI variable name
-	} else if (InStr(CrdType,"continuity")) {
-		ed_Crd := pl_ProvSchCard
-		ed_type := "SchCard"
-		ed_var := "pl_SCHcard"
-	} else if (InStr(CrdType,"surgeon")) {
-		ed_Crd := pl_ProvCSR
-		ed_type := "CSR"
-		ed_var := "pl_CSR"
+	if (isARNP) {
+		if (instr(CrdType,"card")) {
+			ed_Crd := pl_ProvCard
+			ed_type := "provCard"
+			ed_var := "pl_Card"
+		} else if (instr(CrdType,"CSR")) {
+			ed_Crd := pl_ProvCSR
+			ed_type := "CSR"
+			ed_var := "pl_CSR"
+		}
+	} else {
+		if (InStr(CrdType,"primary")) {
+			ed_Crd := pl_ProvCard									; provider value
+			ed_type := "provCard"									; provider attribute name
+			ed_var := "pl_Card"										; GUI variable name
+		} else if (InStr(CrdType,"continuity")) {
+			ed_Crd := pl_ProvSchCard
+			ed_type := "SchCard"
+			ed_var := "pl_SCHcard"
+		} else if (InStr(CrdType,"surgeon")) {
+			ed_Crd := pl_ProvCSR
+			ed_type := "CSR"
+			ed_var := "pl_CSR"
+		}
 	}
 	InputBox, ed_Crd, % "Change " CrdType, %ed_Crd%,,,,,,,,%ed_Crd%
 	if (ed_Crd="") {
