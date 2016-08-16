@@ -170,6 +170,7 @@ GetConfDir:
 			}
 			continue
 		}
+		tmpNm := RegExReplace(tmpNm,"\'","_")
 		if !IsObject(confList[tmpNm]) {										; confList is empty
 			tmpNmUP := format("{:U}",tmpNm)									; place filename in all UPPER CASE
 			confList.Push(tmpNmUP)											; add it to end of confList
@@ -302,7 +303,7 @@ ReadXls:
 		xls_name := xls_cel[ObjHasValue(xls_hdr,"Name")]								; Get name from xls_hdr Name column
 		if !(xls_mrn)																	; Empty MRN, move on
 			continue
-		xls_nameL := strX(xls_name,"",1,1,",",1,1)
+		xls_nameL := RegExReplace(strX(xls_name,"",1,1,",",1,1),"\'","_")
 		StringUpper, xls_nameUP, xls_nameL												; Name in upper case
 		xls_id := "/root/id[@name='" xls_nameUP "']"									; Element string for id[@name]
 		
