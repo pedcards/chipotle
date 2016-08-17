@@ -27,35 +27,36 @@ GetIt:
 	}
 	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
 
-	if (isLocal) {
+	if (isLocal) {																	; local run, copy existing currlist to templist
 		FileCopy, currlist.xml, templist.xml, 1
-	} else {
+	} else {																		; live run, download currlist from server to templist
 		Run pscp.exe -sftp -i chipotle-pr.ppk -p pedcards@homer.u.washington.edu:public_html/%servfold%/currlist.xml templist.xml,, Min
 		sleep 500
-		ConsWin := WinExist("ahk_class ConsoleWindowClass")
+		ConsWin := WinExist("ahk_class ConsoleWindowClass")							; find existing console window
 		IfWinExist ahk_id %consWin% 
 		{
-			ControlSend,, {y}{Enter}, ahk_id %consWin%
+			ControlSend,, {y}{Enter}, ahk_id %consWin%								; blindly send {y}{enter} string to console (in case asks to add SFTP key)
 			;Progress,, Console %consWin% found
 			Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 		}
 		WinWaitClose ahk_id %consWin%
 	}
 	Progress, 60, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-
-	FileRead, templist, templist.xml					; the downloaded list.
-		StringReplace, templist, templist, `r`n,, All	; AHK XML cannot handle the UNIX format when modified on server.
-		StringReplace, templist, templist, `n,, All	
-	z := new XML(templist)								; convert templist into XML object Z
-	Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	
-
-	if !(FileExist("currlist.xml")) {
-		z.save("currlist.xml")
+	FileRead, templist, templist.xml												; the downloaded list.
+		StringReplace, templist, templist, `r`n,, All								; MSXML cannot handle the UNIX format when modified on server.
+		StringReplace, templist, templist, `n,, All
+	z := new XML(templist)															; convert var templist into XML object Z
+	Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+	/*																				This would be the place to check integrity of templist.xml
+	*/
+	
+	if !(FileExist("currlist.xml")) {												; no currlist exists (really?)
+		z.save("currlist.xml")														; create currlist from object Z
 	}
-	FileDelete, oldlist.xml
-	FileCopy, currlist.xml, oldlist.xml, 1									; Backup currlist to oldlist.
-	x := new XML("currlist.xml")											; Load currlist into working X.
+	FileDelete, oldlist.xml															; remove existing oldlist
+	FileCopy, currlist.xml, oldlist.xml, 1											; Backup currlist to oldlist.
+	x := new XML("currlist.xml")													; Load currlist into working X.
 	
 ;	 Get last dates
 /*	 Cycle through lists
