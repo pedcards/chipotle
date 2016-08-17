@@ -1,31 +1,31 @@
 GetIt:
 {
-	; ==================
+	; ==================															; temporarily delete this when testing to avoid delays.
 	;FileDelete, .currlock
 	; ==================
-	filecheck()
-	FileOpen(".currlock", "W")													; Create lock file.
-	if !(vSaveIt=true)
+	filecheck()																		; delay loop if .currlock set (currlist write in process)
+	FileOpen(".currlock", "W")														; Create lock file.
+	if !(vSaveIt=true)																; not launched from SaveIt:
 		Progress, b w300, Reading data..., % "- = C H I P O T L E = -`nversion " vers "`n"
 			;. "`n`nNow with " rand(20,99) "% less E. coli!"									; This could be a space for a random message
 	else
 		Progress, b w300, Consolidating data..., 
-	Progress, 20
+	Progress, 20																	; launched from SaveIt, no CHIPOTLE header
 
 	Loop, 5
 	{
-		whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-			whr.Open("GET","https://depts.washington.edu/pedcards/change", true)
-			whr.Send()
+		whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")							; initialize http request in object whr
+			whr.Open("GET","https://depts.washington.edu/pedcards/change", true)	; set the http verb to GET file "change"
+			whr.Send()																; SEND the command to the address
 			whr.WaitForResponse()
-		ckUrl := whr.ResponseText
-		if !instr(ckUrl, "proxy")
+		ckUrl := whr.ResponseText													; the http response
+		if !instr(ckUrl, "proxy")													; might contain "proxy" if did not work
 			break
-		Sleep 1000
+		Sleep 1000																	; wait a sec, and try again
 		tries := A_Index
 		Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	}
-	FileGetTime, currtime, currlist.xml
+	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
 
 	if (isLocal) {
 		FileCopy, currlist.xml, templist.xml, 1
