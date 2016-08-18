@@ -58,28 +58,31 @@ GetIt:
 	FileCopy, currlist.xml, oldlist.xml, 1											; Backup currlist to oldlist.
 	x := new XML("currlist.xml")													; Load currlist into working X.
 	
-;	 Get last dates
+/*	Get last dates
+	Could skip these loops if server data has not changed from the server side
+*/
+
 /*	 Cycle through lists
 	 	Server lists are always old data. Currlist can be newer than the server.
 		Copy Citrix copy for latest.
 */
-	Loop, % (zList := z.selectNodes("/root/lists/*")).length {
+	Loop, % (zList := z.selectNodes("/root/lists/*")).length {						; loop through each /root/list in Z (templist)
 		k := zList.item((i:=A_Index)-1).nodeName
 		if !IsObject(x.selectSingleNode("/root/lists/" k)) {						; list does not exist on current XML
-			x.addElement(k,"/root/lists")									; create a blank
+			x.addElement(k,"/root/lists")											; create a blank
 		}
-		locPath := x.selectSingleNode("/root/lists")
-		locNode := locPath.selectSingleNode(k)
-		locDate := locNode.getAttribute("date")
-		remPath := z.selectSingleNode("/root/lists")
-		remNode := remPath.selectSingleNode(k)
-		remDate := remNode.getAttribute("date")
+		locPath := x.selectSingleNode("/root/lists")								; local path
+		locNode := locPath.selectSingleNode(k)										; ... and node
+		locDate := locNode.getAttribute("date")										; ... modified date
+		remPath := z.selectSingleNode("/root/lists")								; remote path
+		remNode := remPath.selectSingleNode(k)										; ... and node
+		remDate := remNode.getAttribute("date")										; ... modified date
 		if (remDate<locDate) {								; local edit is newer.
 			continue
 		} 
 		if (remDate>locDate) {								; remote is newer than local.
-			clone := remnode.cloneNode(true)
-			locPath.replaceChild(clone,locNode)
+			clone := remnode.cloneNode(true)										; make clone
+			locPath.replaceChild(clone,locNode)										; this is why I needed vars for local path and node
 		}
 	}
 	Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
