@@ -98,83 +98,78 @@ GetIt:
 		<notes/progress> - (note) updated on either side.
 		<plan/tasks> - (todo) updated on either side.
 */
-	Loop, % (zID := z.selectNodes("/root/id")).length {				; Loop through each MRN in tempList
+	Loop, % (zID := z.selectNodes("/root/id")).length {									; Loop through each MRN in tempList
 		k := zID.item((i:=A_Index)-1)
 		kMRN := k.getAttribute("mrn")
-		kMRNstring := "/root/id[@mrn='" kMRN "']"
+		kMRNstring := "/root/id[@mrn='" kMRN "']"										; derive MRN string for Xpath
 		
-		if !IsObject(x.selectSingleNode(kMRNstring)) {									; No MRN in X but exists in Z?
-			clone := z.selectSingleNode(kMRNstring).cloneNode(true)
+		if !IsObject(x.selectSingleNode(kMRNstring)) {									; No MRN in X but exists in Z (when would this ever happen?)
+			clone := z.selectSingleNode(kMRNstring).cloneNode(true)						; possibly if 
 			x.selectSingleNode("/root").appendChild(clone)						; Copy entire MRN node from Z to X
 			continue															; and move on.
 		}
 		; Check <status>
-		compareDates(kMRNstring,"status")
+		compareDates(kMRNstring,"status")												; make sure X contains most recent data
 		; Check <diagnoses>
-		compareDates(kMRNstring,"diagnoses")
+		compareDates(kMRNstring,"diagnoses")											; for these nodes and children
 		
 		compareDates(kMRNstring,"prov")
 		if !IsObject(x.selectSingleNode(kMRNstring "/prov")) {
 			x.addElement("prov", kMRNstring)
 		}
-		if IsObject(x.selectSingleNode(kMRNstring "/diagnoses/prov")) {
+		if IsObject(x.selectSingleNode(kMRNstring "/diagnoses/prov")) {					; fix older nodes. move /diagnoses/prov to /prov
 			clone := x.selectSingleNode(kMRNstring "/diagnoses/prov").cloneNode(true)
 			x.selectSingleNode(kMRNstring).replaceChild(clone,x.selectSingleNode(kMRNstring "/prov"))
 			x.selectSingleNode(kMRNstring "/diagnoses").removeChild(x.selectSingleNode(kMRNstring "/diagnoses/prov"))
 		}
 		
 		; Check <trash>
-		Loop % (zTrash := k.selectNodes("trash/*")).length { ; Loop through trash items.
+		Loop % (zTrash := k.selectNodes("trash/*")).length { 							; Loop through trash items in Z.
 			zTr := zTrash.item(A_Index-1)
 			zTrCr := zTr.getAttribute("created")
-			xTr := x.selectSingleNode(kMRNstring "/trash/*[@created='" zTrCr "']")
-			if IsObject(xTr) and (zTr.text = xTr.text) {			; if exists in trash, skip to next
+			xTr := x.selectSingleNode(kMRNstring "/trash/*[@created='" zTrCr "']")		; same dated trash node in X
+			if IsObject(xTr) and (zTr.text = xTr.text) {								; if trash nodes in X and Z are equal, skip to next
 				continue
 			} 
-			if !IsObject(x.selectSingleNode(kMRNstring "/trash")) {		; make sure that <trash> exists
+			if !IsObject(x.selectSingleNode(kMRNstring "/trash")) {						; make sure that <trash> exists
 				x.addElement("trash", kMRNstring)
-			}															; then copy the clone into <trash>
-			clone := zTr.cloneNode(true)
+			}
+			clone := zTr.cloneNode(true)												; then clone <trash> node from Z into X
 			x.selectSingleNode(kMRNstring "/trash").appendChild(clone)
 		}
 		
 		; Check <notes/weekly>
-		Loop, % (zNotes := k.selectNodes("notes/weekly/summary")).length {	; Loop through each /root/id@MRN/notes/weekly/summary note.
+		Loop, % (zNotes := k.selectNodes("notes/weekly/summary")).length {				; Loop through each /root/id@MRN/notes/weekly/summary note.
 			zWN := zNotes.item(A_Index-1)
 			zWND := zWN.getAttribute("created")
-			if IsObject(x.selectSingleNode(kMRNstring "/trash/summary[@created='" zWND "']"))
+			if IsObject(x.selectSingleNode(kMRNstring "/trash/summary[@created='" zWND "']"))	; node has been moved into x.trash already, move on
 				continue
 			Else
-				compareDates(kMRNstring "/notes/weekly","summary[@created='" zWND "']")
+				compareDates(kMRNstring "/notes/weekly","summary[@created='" zWND "']")	; compare and make X most up to date
 		}
 		; Check <notes/progress>
 		
 		; Check <plan/done>
-		Loop, % (zTasks := k.selectNodes("plan/done/todo")).length {	; Loop through each /root/id@MRN/plan/done/todo.
+		Loop, % (zTasks := k.selectNodes("plan/done/todo")).length {					; Loop through each /root/id@MRN/plan/done/todo.
 			zTD := zTasks.item(A_Index-1)
 			zWND := zTD.getAttribute("created")
-			if IsObject(x.selectSingleNode(kMRNstring "/trash/todo[@created='" zWND "']"))
+			if IsObject(x.selectSingleNode(kMRNstring "/trash/todo[@created='" zWND "']"))		; node has been moved into x.trash already, move on
 				continue
 			else
-				compareDates(kMRNstring "/plan/done","todo[@created='" zWND "']")
+				compareDates(kMRNstring "/plan/done","todo[@created='" zWND "']")		; compare and make X most up to date
 		}
 		; Check <plan/tasks>
-		Loop, % (zTasks := k.selectNodes("plan/tasks/todo")).length {	; Loop through each /root/id@MRN/plan/tasks/todo.
+		Loop, % (zTasks := k.selectNodes("plan/tasks/todo")).length {					; Loop through each /root/id@MRN/plan/tasks/todo.
 			zTD := zTasks.item(A_Index-1)
 			zWND := zTD.getAttribute("created")
 			if IsObject(x.selectSingleNode(kMRNstring "/trash/todo[@created='" zWND "']")) or IsObject(x.selectSingleNode(kMRNstring "/plan/done/todo[@created='" zWND "']"))
-				continue
-				; skip if index exists in completed or deleted.
+				continue																; skip if index exists in completed or deleted
 			else
-				compareDates(kMRNstring "/plan/tasks","todo[@created='" zWND "']")
+				compareDates(kMRNstring "/plan/tasks","todo[@created='" zWND "']")		; otherwise compare and make X most up to date
 		}
 	}
-	x.save("currlist.xml")
-	y := new XML("currlist.xml")							; open fresh currlist.XML into Y
-	;~ while (str := loc[i:=A_Index]) {						; get the dates for each of the lists
-		;~ loc[str,"date"] := y.getAtt("/root/lists/" . str, "date")
-	;~ }
-	;~ DateCORES := y.getAtt("/root/lists/cores", "date")
+	x.save("currlist.xml")																; save X to currlist
+	y := new XML("currlist.xml")														; load this fresh currlist.XML into Y
 	Progress 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 
 
