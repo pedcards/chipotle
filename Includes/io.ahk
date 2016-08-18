@@ -14,6 +14,7 @@ GetIt:
 
 	Loop, 5
 	{
+		tries := A_Index
 		whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")							; initialize http request in object whr
 			whr.Open("GET","https://depts.washington.edu/pedcards/change", true)	; set the http verb to GET file "change"
 			whr.Send()																; SEND the command to the address
@@ -23,7 +24,6 @@ GetIt:
 		if !instr(ckUrl, "proxy")													; might contain "proxy" if did not work
 			break
 		Sleep 1000																	; wait a sec, and try again
-		tries := A_Index
 		Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	}
 	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
@@ -59,7 +59,7 @@ GetIt:
 	FileCopy, currlist.xml, oldlist.xml, 1											; Backup currlist to oldlist.
 	x := new XML("currlist.xml")													; Load currlist into working X.
 	
-	if (1=2) {																		; ensure that we don't run any of these loop checks
+	if (true==false) {																; ensure that we don't run any of these loop checks
 		
 /*	Get last dates
 	Could skip these loops if server data has not changed from the server side
