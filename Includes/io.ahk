@@ -206,44 +206,46 @@ Return
 
 SaveIt:
 {
-	vSaveIt:=true
-	gosub GetIt														; recheck the server side currlist.xml
-	vSaveIt:=
+	vSaveIt:=true																		; inform GetIt that run from SaveIt, changes progress window
+	gosub GetIt																			; recheck the server side currlist.xml
+	vSaveIt:=																			; clear bit
 	
-	filecheck()
-	FileOpen(".currlock", "W")													; Create lock file.
+	filecheck()																			; file in use, delay until .currlock cleared
+	FileOpen(".currlock", "W")															; Create lock file.
 
 	Progress, b w300, Processing...
-	y := new XML("currlist.xml")									; Load freshest copy of Currlist
-	yArch := new XML("archlist.xml")
+	y := new XML("currlist.xml")														; Load freshest copy of Currlist
+	yArch := new XML("archlist.xml")													; and ArchList
+	
 	; Save all MRN, Dx, Notes, ToDo, etc in arch.xml
-	Loop, % (yaN := y.selectNodes("/root/id")).length {				; Loop through each MRN in Currlist
+	Loop, % (yaN := y.selectNodes("/root/id")).length {									; Loop through each ID/MRN in Currlist
 		k := yaN.item((i:=A_Index)-1)
 		kMRN := k.getAttribute("mrn")
-		errnum=0
-		Loop, % (yaList := y.selectNodes("/root/lists/*/mrn")).length {		; Compare each MRN against the list of
-			yaMRN := yaList.item((j:=A_Index)-1).text						; MRNs in /root/lists
-			if (kMRN == yaMRN) {											; If a hit, then move on
+		errnum=0																		; for counting hits in lists
+		
+		Loop, % (yaList := y.selectNodes("/root/lists/*/mrn")).length {					; Compare each MRN against the list of
+			yaMRN := yaList.item((j:=A_Index)-1).text									; MRNs in /root/lists
+			if (kMRN == yaMRN) {														; If a hit, then move on
 				errnum+=1
 				continue
 			}
 		}
-		if !(errnum) {								; If did not match, delete the ID/MRN
-			yaMRN := yArch.selectSingleNode("/root/id[@mrn='" kMRN "']")					; Find equivalent MRN node in Archlist previously written in SaveIt.
+		if !(errnum) {																	; If did not match, archive the ID/MRN
+			yaMRN := yArch.selectSingleNode("/root/id[@mrn='" kMRN "']")				; Find equivalent MRN node in Archlist previously written in SaveIt.
 			ArchiveNode("demog")
 			ArchiveNode("diagnoses")
 			ArchiveNode("prov")
-			ArchiveNode("notes",1)						; ArchiveNode(node,1) to archive this node by today's date
+			ArchiveNode("notes",1)														; ArchiveNode(node,1) to archive this node by today's date
 			ArchiveNode("plan",1)
-			errtext := errtext . "* " . k.selectSingleNode("demog/name_first").text . " " . k.selectSingleNode("demog/name_last").text . "`n"
-			RemoveNode("/root/id[@mrn='" kMRN "']")
+			errtext .= "* " . k.selectSingleNode("demog/name_first").text . " " . k.selectSingleNode("demog/name_last").text . "`n"
+			RemoveNode("/root/id[@mrn='" kMRN "']")										; ID node is archived, remove it from Y.
 			eventlog(kMRN " removed from active lists.")
 		}
 	}
 
 	Progress, 80, Compressing nodes...
-	yArch.save("archlist.xml")						; Writeout
-	if !(errnum) {
+	yArch.save("archlist.xml")															; Writeout archlist
+	if !(errnum) {																		; dialog to show if there were any hits
 		Progress, hide
 		MsgBox, 48
 			, Database cleaning
@@ -254,14 +256,14 @@ SaveIt:
 	y.save("currlist.xml")
 	eventlog("Currlist cleaned up.")
 	
-	if !(isLocal) {
+	if !(isLocal) {																		; for live data, send to server
 		Run pscp.exe -sftp -i chipotle-pr.ppk -p currlist.xml pedcards@homer.u.washington.edu:public_html/%servfold%/currlist.xml,, Min
-		sleep 500																; CIS VM needs longer delay than 200ms to recognize window
-		ConsWin := WinExist("ahk_class ConsoleWindowClass")
+		sleep 500																		; CIS VM needs longer delay than 200ms to recognize window
+		ConsWin := WinExist("ahk_class ConsoleWindowClass")								; get window ID
 		IfWinExist ahk_id %consWin% 
 		{
-			ControlSend,, {y}{Enter}, ahk_id %consWin%
-			Progress,, Console %consWin% found
+			ControlSend,, {y}{Enter}, ahk_id %consWin%									; blindly send {y}{enter} string to console
+			Progress,, Console %consWin% found											; to get past save keys query
 		}
 		WinWaitClose ahk_id %consWin%
 		Run pscp.exe -sftp -i chipotle-pr.ppk -p logs/%sessdate%.log pedcards@homer.u.washington.edu:public_html/%servfold%/logs/%sessdate%.log,, Min
