@@ -171,6 +171,7 @@ GetIt:
 				compareDates(kMRNstring "/plan/tasks","todo[@created='" zWND "']")		; otherwise compare and make X most up to date
 		}
 	}
+	
 	}																					; end of exclude loop
 	
 	x.save("currlist.xml")																; save X to currlist
@@ -183,6 +184,7 @@ GetIt:
 		yArch.addElement("root")														; then create it.
 	}
 	
+	yNum := y.selectNodes("/root/id").length
 	Loop, % (yN := y.selectNodes("/root/id")).length {									; Loop through each MRN in Currlist
 		k := yN.item((i:=A_Index)-1)
 		kMRN := k.getAttribute("mrn")
@@ -199,8 +201,8 @@ GetIt:
 		ArchiveNode("prov")
 		ArchiveNode("notes")
 		ArchiveNode("plan")
+	Progress, % 80+20*(i/yNum), % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	}
-	Progress, 100, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 
 	yArch.save("archlist.xml")															; Write out archlist
 	Sleep 500
