@@ -16,16 +16,31 @@ GetIt:
 	{
 		tries := A_Index
 		whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")							; initialize http request in object whr
-			whr.Open("GET","https://depts.washington.edu/pedcards/change", true)	; set the http verb to GET file "change"
+			whr.Open("GET"															; set the http verb to GET file "change"
+				,"https://depts.washington.edu/pedcards/change/change"
+				, true)
 			whr.Send()																; SEND the command to the address
 			whr.WaitForResponse()
 		ckUrl := whr.ResponseText													; the http response
-		ckUrlDT := whr.getResponseHeader("Last-Modified")							; file modified date
-		if !instr(ckUrl, "proxy")													; might contain "proxy" if did not work
+		if instr(ckUrl, "does not exist") {											; no "change" file
+			ckUrl := ""																; clear values and skip out
+			ckUrlDT := ""
 			break
+		}
+		if instr(ckUrl, "permission denied") {										; permissions problem, check .htaccess on server
+			ckUrl := ""																; clear values and skip out
+			ckUrlDT := ""
+			break
+		}
+		if (ckUrlDT := whr.getResponseHeader("Last-Modified")) {					; file exists, get modified date
+			break																	; and break out
+		}
+		;~ if !instr(ckUrl, "proxy")													; might contain "proxy" if did not work
+			;~ break																	; don't think I need these?
 		Sleep 1000																	; wait a sec, and try again
 		Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	}
+	;MsgBox,, % tries, % ckUrl "`n`n" ckUrlDT "`n`n"
 	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
 
 	if (isLocal) {																	; local run, copy existing currlist to templist
@@ -184,7 +199,7 @@ GetIt:
 		yArch.addElement("root")														; then create it.
 	}
 	
-	if (true==false) {
+	if (true==false) {																	; Ensure that this block does not run
 		
 	yNum := y.selectNodes("/root/id").length
 	Loop, % (yN := y.selectNodes("/root/id")).length {									; Loop through each MRN in Currlist
