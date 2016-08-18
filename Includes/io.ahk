@@ -59,6 +59,8 @@ GetIt:
 	FileCopy, currlist.xml, oldlist.xml, 1											; Backup currlist to oldlist.
 	x := new XML("currlist.xml")													; Load currlist into working X.
 	
+	if (1=2) {																		; ensure that we don't run any of these loop checks
+		
 /*	Get last dates
 	Could skip these loops if server data has not changed from the server side
 */
@@ -169,6 +171,8 @@ GetIt:
 				compareDates(kMRNstring "/plan/tasks","todo[@created='" zWND "']")		; otherwise compare and make X most up to date
 		}
 	}
+	}																					; end of exclude loop
+	
 	x.save("currlist.xml")																; save X to currlist
 	y := new XML("currlist.xml")														; load this fresh currlist.XML into Y
 	Progress 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
