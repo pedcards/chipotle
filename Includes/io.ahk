@@ -12,51 +12,56 @@ GetIt:
 		Progress, b w300, Consolidating data..., 
 	Progress, 20																	; launched from SaveIt, no CHIPOTLE header
 
-	Loop, 5
-	{
-		tries := A_Index
-		whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")							; initialize http request in object whr
-			whr.Open("GET"															; set the http verb to GET file "change"
-				,"https://depts.washington.edu/pedcards/change/change"
-				, true)
-			whr.Send()																; SEND the command to the address
-			whr.WaitForResponse()
-		ckUrl := whr.ResponseText													; the http response
-		if instr(ckUrl, "does not exist") {											; no "change" file
-			ckUrl := ""																; clear values and skip out
-			ckUrlDT := ""
-			break
+	if (isLocal) {																	; local run, copy existing currlist to templist
+		FileCopy, currlist.xml, templist.xml, 1
+	} else {																		; live run, download currlist from server to templist
+		Loop, 5
+		{
+			tries := A_Index
+			whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")						; initialize http request in object whr
+				whr.Open("GET"														; set the http verb to GET file "change"
+					,"https://depts.washington.edu/pedcards/change/change"
+					, true)
+				whr.Send()															; SEND the command to the address
+				whr.WaitForResponse()
+			ckUrl := whr.ResponseText												; the http response
+			if instr(ckUrl, "does not exist") {										; no "change" file
+				ckUrl := ""															; clear values and skip out
+				ckUrlDT := ""
+				break
 		}
-		if instr(ckUrl, "permission denied") {										; permissions problem, check .htaccess on server
-			ckUrl := ""																; clear values and skip out
-			ckUrlDT := ""
-			break
+			if instr(ckUrl, "permission denied") {									; permissions problem, check .htaccess on server
+				ckUrl := ""															; clear values and skip out
+				ckUrlDT := ""
+				break
 		}
-		if (ckUrlDT := whr.getResponseHeader("Last-Modified")) {					; file exists, get modified date
-			break																	; and break out
+			if (ckUrlDT := whr.getResponseHeader("Last-Modified")) {				; file exists, get modified date
+				break																; and break out
 		}
-		;~ if !instr(ckUrl, "proxy")													; might contain "proxy" if did not work
-			;~ break																	; don't think I need these?
-		Sleep 1000																	; wait a sec, and try again
-		Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+			;~ if !instr(ckUrl, "proxy")													; might contain "proxy" if did not work
+				;~ break																	; don't think I need these?
+			Sleep 1000																	; wait a sec, and try again
+			Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+		}
+		FileCopy, currlist.xml, templist.xml, 1										; OBSOLETE? Change this when getting info from server. 
 	}
 	;MsgBox,, % tries, % ckUrl "`n`n" ckUrlDT "`n`n"
 	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
 
-	if (isLocal) {																	; local run, copy existing currlist to templist
-		FileCopy, currlist.xml, templist.xml, 1
-	} else {																		; live run, download currlist from server to templist
-		Run pscp.exe -sftp -i chipotle-pr.ppk -p pedcards@homer.u.washington.edu:public_html/%servfold%/currlist.xml templist.xml,, Min
-		sleep 500
-		ConsWin := WinExist("ahk_class ConsoleWindowClass")							; find existing console window
-		IfWinExist ahk_id %consWin% 
-		{
-			ControlSend,, {y}{Enter}, ahk_id %consWin%								; blindly send {y}{enter} string to console (in case asks to add SFTP key)
-			;Progress,, Console %consWin% found
-			Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-		}
-		WinWaitClose ahk_id %consWin%
-	}
+	;~ if (isLocal) {																	; local run, copy existing currlist to templist
+		;~ FileCopy, currlist.xml, templist.xml, 1
+	;~ } else {																		; live run, download currlist from server to templist
+		;~ Run pscp.exe -sftp -i chipotle-pr.ppk -p pedcards@homer.u.washington.edu:public_html/%servfold%/currlist.xml templist.xml,, Min
+		;~ sleep 500
+		;~ ConsWin := WinExist("ahk_class ConsoleWindowClass")							; find existing console window
+		;~ IfWinExist ahk_id %consWin% 
+		;~ {
+			;~ ControlSend,, {y}{Enter}, ahk_id %consWin%								; blindly send {y}{enter} string to console (in case asks to add SFTP key)
+			;~ ;Progress,, Console %consWin% found
+			;~ Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+		;~ }
+		;~ WinWaitClose ahk_id %consWin%
+	;~ }
 	Progress, 60, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	
 	FileRead, templist, templist.xml												; the downloaded list.
