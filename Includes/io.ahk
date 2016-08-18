@@ -48,19 +48,19 @@ GetIt:
 
 	Progress, 60, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	
-	z := new XML("templist.xml")													; load templist into XML object Z
+	;~ z := new XML("templist.xml")													; load templist into XML object Z -- UNNECESSARY if templist is untouched
 	Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	/*																				This would be the place to check integrity of templist.xml
 	*/
 	
-	if !(FileExist("currlist.xml")) {												; no currlist exists (really?) -- this would only occur if no local currlist
-		z.save("currlist.xml")														; create currlist from object Z
-	}
+	;~ if !(FileExist("currlist.xml")) {												; no currlist exists (really?) -- this would only occur if no local currlist
+		;~ z.save("currlist.xml")														; create currlist from object Z
+	;~ }
 	FileDelete, oldlist.xml															; remove existing oldlist
 	FileCopy, currlist.xml, oldlist.xml, 1											; Backup currlist to oldlist.
-	x := new XML("currlist.xml")													; Load currlist into working X.
+	;~ x := new XML("currlist.xml")													; Load currlist into working X.
 	
-	x.save("currlist.xml")																; save X to currlist
+	;~ x.save("currlist.xml")																; save X to currlist
 	y := new XML("currlist.xml")														; load this fresh currlist.XML into Y
 	Progress 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 
