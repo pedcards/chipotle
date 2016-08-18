@@ -184,6 +184,8 @@ GetIt:
 		yArch.addElement("root")														; then create it.
 	}
 	
+	if (true==false) {
+		
 	yNum := y.selectNodes("/root/id").length
 	Loop, % (yN := y.selectNodes("/root/id")).length {									; Loop through each MRN in Currlist
 		k := yN.item((i:=A_Index)-1)
@@ -202,6 +204,8 @@ GetIt:
 		ArchiveNode("notes")
 		ArchiveNode("plan")
 	Progress, % 80+20*(i/yNum), % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+	}
+	
 	}
 
 	yArch.save("archlist.xml")															; Write out archlist
