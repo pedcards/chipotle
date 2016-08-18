@@ -12,10 +12,9 @@ GetIt:
 		Progress, b w300, Consolidating data..., 
 	Progress, 20																	; launched from SaveIt, no CHIPOTLE header
 
-	if (isLocal) {																	; local run, copy existing currlist to templist
-		FileCopy, currlist.xml, templist.xml, 1
-	} else {																		; live run, download currlist from server to templist
-		Loop, 5
+	FileCopy, currlist.xml, templist.xml, 1											; create templist copy from currlist
+	if !(isLocal) {																	; live run, download changes file from server
+		Loop, 5																		; do i really need to loop this?
 		{
 			tries := A_Index
 			whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")						; initialize http request in object whr
@@ -43,36 +42,18 @@ GetIt:
 			Sleep 1000																	; wait a sec, and try again
 			Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 		}
-		FileCopy, currlist.xml, templist.xml, 1										; OBSOLETE? Change this when getting info from server. 
 	}
 	;MsgBox,, % tries, % ckUrl "`n`n" ckUrlDT "`n`n"
 	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
 
-	;~ if (isLocal) {																	; local run, copy existing currlist to templist
-		;~ FileCopy, currlist.xml, templist.xml, 1
-	;~ } else {																		; live run, download currlist from server to templist
-		;~ Run pscp.exe -sftp -i chipotle-pr.ppk -p pedcards@homer.u.washington.edu:public_html/%servfold%/currlist.xml templist.xml,, Min
-		;~ sleep 500
-		;~ ConsWin := WinExist("ahk_class ConsoleWindowClass")							; find existing console window
-		;~ IfWinExist ahk_id %consWin% 
-		;~ {
-			;~ ControlSend,, {y}{Enter}, ahk_id %consWin%								; blindly send {y}{enter} string to console (in case asks to add SFTP key)
-			;~ ;Progress,, Console %consWin% found
-			;~ Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-		;~ }
-		;~ WinWaitClose ahk_id %consWin%
-	;~ }
 	Progress, 60, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	
-	FileRead, templist, templist.xml												; the downloaded list.
-		StringReplace, templist, templist, `r`n,, All								; MSXML cannot handle the UNIX format when modified on server.
-		StringReplace, templist, templist, `n,, All
-	z := new XML(templist)															; convert var templist into XML object Z
+	z := new XML("templist.xml")													; load templist into XML object Z
 	Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	/*																				This would be the place to check integrity of templist.xml
 	*/
 	
-	if !(FileExist("currlist.xml")) {												; no currlist exists (really?)
+	if !(FileExist("currlist.xml")) {												; no currlist exists (really?) -- this would only occur if no local currlist
 		z.save("currlist.xml")														; create currlist from object Z
 	}
 	FileDelete, oldlist.xml															; remove existing oldlist
