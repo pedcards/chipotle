@@ -56,7 +56,6 @@ GetIt:
 	;~ if !(FileExist("currlist.xml")) {												; no currlist exists (really?) -- this would only occur if no local currlist
 		;~ z.save("currlist.xml")														; create currlist from object Z
 	;~ }
-	FileDelete, oldlist.xml															; remove existing oldlist
 	FileCopy, currlist.xml, oldlist.xml, 1											; Backup currlist to oldlist.
 	;~ x := new XML("currlist.xml")													; Load currlist into working X.
 	
@@ -68,9 +67,9 @@ GetIt:
 	yArch := new XML("archlist.xml")
 	if !IsObject(yArch.selectSingleNode("/root")) {										; if yArch is empty,
 		yArch.addElement("root")														; then create it.
+		yArch.save("archlist.xml")															; Write out archlist
 	}
 	
-	yArch.save("archlist.xml")															; Write out archlist
 	Sleep 500
 	Progress, off
 	FileDelete, .currlock

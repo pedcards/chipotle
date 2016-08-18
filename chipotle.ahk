@@ -46,11 +46,11 @@ if (InStr(A_WorkingDir,"Ahk")) {
 	if (tmp="Test Server") {
 		isLocal := false
 		servfold := "testlist"
-		FileDelete, currlist.xml
+		;FileDelete, currlist.xml
 	}
 	if (tmp="Production") {
 		isLocal := false
-		FileDelete, currlist.xml
+		;FileDelete, currlist.xml
 	}
 }
 if (ObjHasValue(admins,user)) {
