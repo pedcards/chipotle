@@ -19,6 +19,7 @@ GetIt:
 			whr.Send()																; SEND the command to the address
 			whr.WaitForResponse()
 		ckUrl := whr.ResponseText													; the http response
+		ckUrlDT := whr.getResponseHeader("Last-Modified")							; file modified date
 		if !instr(ckUrl, "proxy")													; might contain "proxy" if did not work
 			break
 		Sleep 1000																	; wait a sec, and try again
