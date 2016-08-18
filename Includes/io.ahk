@@ -70,30 +70,6 @@ GetIt:
 		yArch.addElement("root")														; then create it.
 	}
 	
-	if (true==false) {																	; Ensure that this block does not run
-		
-	yNum := y.selectNodes("/root/id").length
-	Loop, % (yN := y.selectNodes("/root/id")).length {									; Loop through each MRN in Currlist
-		k := yN.item((i:=A_Index)-1)
-		kMRN := k.getAttribute("mrn")
-		if !IsObject(yaMRN:=yArch.selectSingleNode("/root/id[@mrn='" kMRN "']")) {		; If ID MRN node does not exist in Archlist,
-			yArch.addElement("id","root", {mrn: kMRN})									; then create it
-			yArch.addElement("demog","/root/id[@mrn='" kMRN "']")						; along with the placeholder children
-			yArch.addElement("diagnoses","/root/id[@mrn='" kMRN "']")
-			yArch.addElement("notes","/root/id[@mrn='" kMRN "']")
-			yArch.addElement("plan","/root/id[@mrn='" kMRN "']")
-			eventlog(kMRN " added to archlist.")
-		}
-		ArchiveNode("demog")															; clone nodes to arch if not already done
-		ArchiveNode("diagnoses")
-		ArchiveNode("prov")
-		ArchiveNode("notes")
-		ArchiveNode("plan")
-	Progress, % 80+20*(i/yNum), % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	}
-	
-	}
-
 	yArch.save("archlist.xml")															; Write out archlist
 	Sleep 500
 	Progress, off
