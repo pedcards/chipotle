@@ -179,7 +179,7 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 		MsgBox, 16, Wrong format!, % "Requires """ CORES_type """"
 		WinClose, % CORES_window
 	}
-} else if ((clipCk ~= CIS_colRx["Attg"]) 
+} else if ((clipCk ~= CIS_colRx["Name"]) 
 		&& (clipCk ~= CIS_colRx["Room"])
 		&& (clipCk ~= CIS_colRx["MRN"])) {												; Check for features of CIS patient list
 	Gosub initClipSub
