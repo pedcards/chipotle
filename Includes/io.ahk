@@ -28,7 +28,7 @@ GetIt:
 			ckUrl := "DENIED"														; clear values and skip out
 			ckUrlDT := ""
 		} else {
-			ckUrlDT := whr.getResponseHeader("Last-Modified")						; file exists, get modified date
+			;ckUrlDT := whr.getResponseHeader("Last-Modified")						; file exists, get modified date
 		}
 		;~ if !instr(ckUrl, "proxy")													; might contain "proxy" if did not work
 			;~ break																	; don't think I need these?
