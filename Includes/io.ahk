@@ -83,20 +83,31 @@ SaveIt:
 	Loop, % (yaN := y.selectNodes("/root/id")).length {									; Loop through each ID/MRN in Currlist
 		k := yaN.item((i:=A_Index)-1)
 		kMRN := k.getAttribute("mrn")
-		errnum=0																		; for counting hits in lists
+		if !IsObject(yaMRN:=yArch.selectSingleNode("/root/id[@mrn='" kMRN "']")) {		; If ID MRN node does not exist in Archlist, 
+			yArch.addElement("id","root", {mrn: kMRN})									; then create it 
+			yArch.addElement("demog","/root/id[@mrn='" kMRN "']")						; along with the placeholder children 
+			yArch.addElement("diagnoses","/root/id[@mrn='" kMRN "']") 
+			yArch.addElement("notes","/root/id[@mrn='" kMRN "']") 
+			yArch.addElement("plan","/root/id[@mrn='" kMRN "']") 
+			eventlog(kMRN " added to archlist.") 
+		}
+		ArchiveNode("demog")															; clone nodes to arch if not already done 
+		ArchiveNode("diagnoses") 
+		ArchiveNode("prov") 
+		ArchiveNode("notes") 
+		ArchiveNode("plan") 
+		Progress, % 80+20*(i/yNum), % dialogVals[Rand(dialogVals.MaxIndex())] "..." 
+		
+		errList:=false																		; for counting hits in lists
 		
 		Loop, % (yaList := y.selectNodes("/root/lists/*/mrn")).length {					; Compare each MRN against the list of
 			yaMRN := yaList.item((j:=A_Index)-1).text									; MRNs in /root/lists
-			if (kMRN == yaMRN) {														; If a hit, then move on
-				errnum+=1
-				continue
+			if (kMRN == yaMRN) {														; If MRN matches in any list, then move on
+				errList:=true
+				break																	; break out of list search loop
 			}
 		}
-		if !(errnum) {																	; If did not match, archive the ID/MRN
-			yaMRN := yArch.selectSingleNode("/root/id[@mrn='" kMRN "']")				; Find equivalent MRN node in Archlist previously written in SaveIt.
-			ArchiveNode("demog")
-			ArchiveNode("diagnoses")
-			ArchiveNode("prov")
+		if !(errList) {																	; If did not match any list, archive the ID/MRN
 			ArchiveNode("notes",1)														; ArchiveNode(node,1) to archive this node by today's date
 			ArchiveNode("plan",1)
 			errtext .= "* " . k.selectSingleNode("demog/name_first").text . " " . k.selectSingleNode("demog/name_last").text . "`n"
@@ -107,7 +118,7 @@ SaveIt:
 
 	Progress, 80, Compressing nodes...
 	yArch.save("archlist.xml")															; Writeout archlist
-	if !(errnum) {																		; dialog to show if there were any hits
+	if !(errList) {																		; dialog to show if there were any hits
 		Progress, hide
 		MsgBox, 48
 			, Database cleaning
