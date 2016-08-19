@@ -24,12 +24,12 @@ GetIt:
 		if instr(ckUrl, "does not exist") {										; no "change" file
 			ckUrl := ""															; clear values and skip out
 			ckUrlDT := ""
-		}
-		if instr(ckUrl, "permission denied") {									; permissions problem, check .htaccess on server
+		} else if instr(ckUrl, "permission denied") {							; permissions problem, check .htaccess on server
 			ckUrl := ""															; clear values and skip out
 			ckUrlDT := ""
+		} else {
+			ckUrlDT := whr.getResponseHeader("Last-Modified")					; file exists, get modified date
 		}
-		ckUrlDT := whr.getResponseHeader("Last-Modified")						; file exists, get modified date
 		;~ if !instr(ckUrl, "proxy")													; might contain "proxy" if did not work
 			;~ break																	; don't think I need these?
 	}
