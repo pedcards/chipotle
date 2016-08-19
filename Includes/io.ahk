@@ -80,6 +80,7 @@ SaveIt:
 	yArch := new XML("archlist.xml")													; and ArchList
 	
 	; Save all MRN, Dx, Notes, ToDo, etc in arch.xml
+	yaNum := y.selectNodes("/root/id").length
 	Loop, % (yaN := y.selectNodes("/root/id")).length {									; Loop through each ID/MRN in Currlist
 		k := yaN.item((i:=A_Index)-1)
 		kMRN := k.getAttribute("mrn")
@@ -96,7 +97,7 @@ SaveIt:
 		ArchiveNode("prov") 
 		ArchiveNode("notes") 
 		ArchiveNode("plan") 
-		Progress, % 80+20*(i/yNum), % dialogVals[Rand(dialogVals.MaxIndex())] "..." 
+		Progress, % 80*(i/yaNum), % dialogVals[Rand(dialogVals.MaxIndex())] "..." 
 		
 		errList:=false																		; for counting hits in lists
 		
@@ -116,7 +117,7 @@ SaveIt:
 		}
 	}
 
-	Progress, 80, Compressing nodes...
+	Progress, 80, Saving updates...
 	yArch.save("archlist.xml")															; Writeout archlist
 	if !(errList) {																		; dialog to show if there were any hits
 		Progress, hide
@@ -149,7 +150,7 @@ SaveIt:
 
 	FileDelete, .currlock
 	eventlog("CHIPS server updated.")
-	Progress, 100, Saving updates...
+	Progress, 100, Done!
 	;Sleep, 1000
 
 Return
