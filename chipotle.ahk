@@ -775,10 +775,15 @@ ArchiveNode(node,i:=0) {
 		;MsgBox Fail
 		return
 	}
-	clone := x.cloneNode(true)											; make a copy
 	if !IsObject(yArch.selectSingleNode(MRN "/" node))					; if no node exists,
 		yArch.addElement(node,MRN)										; create it.
 	arcX := yArch.selectSingleNode(MRN "/" node)						; get the node, whether existant or new
+	
+	if (arcX.getAttribute("ed") == x.getAttribute("ed")) {				; nodes in Y and yArch are equivalent
+		return
+	}
+	
+	clone := x.cloneNode(true)											; make a copy
 	yArch.selectSingleNode(MRN).replaceChild(clone,arcX)				; replace arcX with the clone.
 	
 	if ((node="demog") and (yArch.selectSingleNode(MRN "/demog/data"))){
@@ -793,6 +798,7 @@ ArchiveNode(node,i:=0) {
 		yArch.addElement("dc",MRN "/archive", {date: dcdate})
 		yArch.selectSingleNode(MRN "/archive/dc[@date='" dcdate "']").appendChild(clone)
 	}																	; move element here
+	return
 }
 
 FetchNode(node) {
