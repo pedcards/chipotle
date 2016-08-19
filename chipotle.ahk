@@ -506,7 +506,6 @@ readForecast:
 			fcFileLong := A_LoopFileLongPath											; long path
 			fcFile := A_LoopFileName													; filename, no path
 			fcRecent := A_LoopFileTimeCreated											; update most recent created datetime
-			MsgBox % fcFile
 		}
 	}
 	if !FileExist(fcFileLong) {															; no file found
