@@ -24,7 +24,7 @@ FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.ex
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.9.0.2"
+vers := "1.9.0.3"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -179,7 +179,7 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 		MsgBox, 16, Wrong format!, % "Requires """ CORES_type """"
 		WinClose, % CORES_window
 	}
-} else if ((clipCk ~= CIS_colRx["Attg"]) 
+} else if ((clipCk ~= CIS_colRx["Name"]) 
 		&& (clipCk ~= CIS_colRx["Room"])
 		&& (clipCk ~= CIS_colRx["MRN"])) {												; Check for features of CIS patient list
 	Gosub initClipSub
