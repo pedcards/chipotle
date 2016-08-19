@@ -33,7 +33,6 @@ GetIt:
 		;~ if !instr(ckUrl, "proxy")													; might contain "proxy" if did not work
 			;~ break																	; don't think I need these?
 	}
-	MsgBox,, % tries, % ckUrl "`n`n" ckUrlDT "`n`n"
 	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
 
 	Progress, 60, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
