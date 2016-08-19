@@ -24,7 +24,7 @@ FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.ex
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "1.9.0.1"
+vers := "1.9.0.2"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -499,13 +499,16 @@ readForecast:
 	fcRecent :=
 	Loop, Files, % forecastPath "\" breakdate(A_Now).yyyy "\*Electronic Forecast*.xls*", F		; Scan through YYYY\Electronic Forecast.xlsx files
 	{
-		If (A_LoopFileTimeModified > fcRecent) {
-			fcRecent := A_LoopFileTimeModified													; update most recent Modified datetime
-			fcFileLong := A_LoopFileLongPath													; long path
-			fcFile := A_LoopFileName															; filename, no path
+		if InStr(A_LoopFileName,"~") {
+			continue																	; skip ~tmp files
+		}
+		If (A_LoopFileTimeCreated > fcRecent) {
+			fcFileLong := A_LoopFileLongPath											; long path
+			fcFile := A_LoopFileName													; filename, no path
+			fcRecent := A_LoopFileTimeCreated											; update most recent created datetime
 		}
 	}
-	if !FileExist(fcFileLong) {																	; no file found
+	if !FileExist(fcFileLong) {															; no file found
 		MsgBox,48,, % "Electronic Forecast.xlsx`nfile not found!"
 		return
 	}
