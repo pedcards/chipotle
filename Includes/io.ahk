@@ -126,6 +126,11 @@ SaveIt:
 		Progress, 85
 	}
 	; =================================================
+	if IsObject(y.selectSingleNode("/root/lists/SURGCNTR")) {
+		RemoveNode("/root/lists/SURGCNTR")
+		MsgBox SURGCNTR removed.
+	}
+	
 	y.save("currlist.xml")
 	eventlog("Currlist cleaned up.")
 	
