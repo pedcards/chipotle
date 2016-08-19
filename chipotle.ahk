@@ -499,13 +499,17 @@ readForecast:
 	fcRecent :=
 	Loop, Files, % forecastPath "\" breakdate(A_Now).yyyy "\*Electronic Forecast*.xls*", F		; Scan through YYYY\Electronic Forecast.xlsx files
 	{
-		If (A_LoopFileTimeModified > fcRecent) {
-			fcRecent := A_LoopFileTimeModified													; update most recent Modified datetime
-			fcFileLong := A_LoopFileLongPath													; long path
-			fcFile := A_LoopFileName															; filename, no path
+		if InStr(A_LoopFileName,"~") {
+			continue																	; skip ~tmp files
+		}
+		If (A_LoopFileTimeCreated > fcRecent) {
+			fcFileLong := A_LoopFileLongPath											; long path
+			fcFile := A_LoopFileName													; filename, no path
+			fcRecent := A_LoopFileTimeCreated											; update most recent created datetime
+			MsgBox % fcFile
 		}
 	}
-	if !FileExist(fcFileLong) {																	; no file found
+	if !FileExist(fcFileLong) {															; no file found
 		MsgBox,48,, % "Electronic Forecast.xlsx`nfile not found!"
 		return
 	}
