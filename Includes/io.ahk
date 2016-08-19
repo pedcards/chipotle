@@ -1,204 +1,65 @@
 GetIt:
 {
-	; ==================
+	; ==================															; temporarily delete this when testing to avoid delays.
 	;FileDelete, .currlock
 	; ==================
-	filecheck()
-	FileOpen(".currlock", "W")													; Create lock file.
-	if !(vSaveIt=true)
+	filecheck()																		; delay loop if .currlock set (currlist write in process)
+	FileOpen(".currlock", "W")														; Create lock file.
+	if !(vSaveIt=true)																; not launched from SaveIt:
 		Progress, b w300, Reading data..., % "- = C H I P O T L E = -`nversion " vers "`n"
 			;. "`n`nNow with " rand(20,99) "% less E. coli!"									; This could be a space for a random message
 	else
 		Progress, b w300, Consolidating data..., 
-	Progress, 20
+	Progress, 20																	; launched from SaveIt, no CHIPOTLE header
 
-	Loop, 5
-	{
-		whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-			whr.Open("GET","https://depts.washington.edu/pedcards/change", true)
-			whr.Send()
+	FileCopy, currlist.xml, templist.xml, 1											; create templist copy from currlist
+	if !(isLocal) {																	; live run, download changes file from server
+		whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")						; initialize http request in object whr
+			whr.Open("GET"														; set the http verb to GET file "change"
+				,"https://depts.washington.edu/pedcards/change/change"
+				, true)
+			whr.Send()															; SEND the command to the address
 			whr.WaitForResponse()
-		ckUrl := whr.ResponseText
-		if !instr(ckUrl, "proxy")
-			break
-		Sleep 1000
-		tries := A_Index
-		Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	}
-	FileGetTime, currtime, currlist.xml
-
-	if (isLocal) {
-		FileCopy, currlist.xml, templist.xml, 1
-	} else {
-		Run pscp.exe -sftp -i chipotle-pr.ppk -p pedcards@homer.u.washington.edu:public_html/%servfold%/currlist.xml templist.xml,, Min
-		sleep 500
-		ConsWin := WinExist("ahk_class ConsoleWindowClass")
-		IfWinExist ahk_id %consWin% 
-		{
-			ControlSend,, {y}{Enter}, ahk_id %consWin%
-			;Progress,, Console %consWin% found
-			Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+		ckUrl := whr.ResponseText												; the http response
+		if instr(ckUrl, "does not exist") {										; no "change" file
+			ckUrl := ""															; clear values and skip out
+			ckUrlDT := ""
 		}
-		WinWaitClose ahk_id %consWin%
+		if instr(ckUrl, "permission denied") {									; permissions problem, check .htaccess on server
+			ckUrl := ""															; clear values and skip out
+			ckUrlDT := ""
+		}
+		ckUrlDT := whr.getResponseHeader("Last-Modified")						; file exists, get modified date
+		;~ if !instr(ckUrl, "proxy")													; might contain "proxy" if did not work
+			;~ break																	; don't think I need these?
 	}
+	;MsgBox,, % tries, % ckUrl "`n`n" ckUrlDT "`n`n"
+	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
+
 	Progress, 60, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-
-	FileRead, templist, templist.xml					; the downloaded list.
-		StringReplace, templist, templist, `r`n,, All	; AHK XML cannot handle the UNIX format when modified on server.
-		StringReplace, templist, templist, `n,, All	
-	z := new XML(templist)								; convert templist into XML object Z
+	
+	;~ z := new XML("templist.xml")													; load templist into XML object Z -- UNNECESSARY if templist is untouched
 	Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+	/*																				This would be the place to check integrity of templist.xml
+	*/
 	
-
-	if !(FileExist("currlist.xml")) {
-		z.save("currlist.xml")
-	}
-	FileDelete, oldlist.xml
-	FileCopy, currlist.xml, oldlist.xml, 1									; Backup currlist to oldlist.
-	x := new XML("currlist.xml")											; Load currlist into working X.
-	
-;	 Get last dates
-/*	 Cycle through lists
-	 	Server lists are always old data. Currlist can be newer than the server.
-		Copy Citrix copy for latest.
-*/
-	Loop, % (zList := z.selectNodes("/root/lists/*")).length {
-		k := zList.item((i:=A_Index)-1).nodeName
-		if !IsObject(x.selectSingleNode("/root/lists/" k)) {						; list does not exist on current XML
-			x.addElement(k,"/root/lists")									; create a blank
-		}
-		locPath := x.selectSingleNode("/root/lists")
-		locNode := locPath.selectSingleNode(k)
-		locDate := locNode.getAttribute("date")
-		remPath := z.selectSingleNode("/root/lists")
-		remNode := remPath.selectSingleNode(k)
-		remDate := remNode.getAttribute("date")
-		if (remDate<locDate) {								; local edit is newer.
-			continue
-		} 
-		if (remDate>locDate) {								; remote is newer than local.
-			clone := remnode.cloneNode(true)
-			locPath.replaceChild(clone,locNode)
-		}
-	}
-	Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	
-	
-/*	 Cycle through ID@MRN's
-		<demog> - never modified. local info always newest.
-		<info> - from CORES. never modified on server.
-		<mar> - from CORES. never modified on server.
-		<status> - can be updated.
-		<diagnoses> - (notes, card, ep, surg, prob, prov) can be updated on either side.
-		<notes/weekly> - (summary) updated on either side.
-		<notes/progress> - (note) updated on either side.
-		<plan/tasks> - (todo) updated on either side.
-*/
-	Loop, % (zID := z.selectNodes("/root/id")).length {				; Loop through each MRN in tempList
-		k := zID.item((i:=A_Index)-1)
-		kMRN := k.getAttribute("mrn")
-		kMRNstring := "/root/id[@mrn='" kMRN "']"
-		
-		if !IsObject(x.selectSingleNode(kMRNstring)) {									; No MRN in X but exists in Z?
-			clone := z.selectSingleNode(kMRNstring).cloneNode(true)
-			x.selectSingleNode("/root").appendChild(clone)						; Copy entire MRN node from Z to X
-			continue															; and move on.
-		}
-		; Check <status>
-		compareDates(kMRNstring,"status")
-		; Check <diagnoses>
-		compareDates(kMRNstring,"diagnoses")
-		
-		compareDates(kMRNstring,"prov")
-		if !IsObject(x.selectSingleNode(kMRNstring "/prov")) {
-			x.addElement("prov", kMRNstring)
-		}
-		if IsObject(x.selectSingleNode(kMRNstring "/diagnoses/prov")) {
-			clone := x.selectSingleNode(kMRNstring "/diagnoses/prov").cloneNode(true)
-			x.selectSingleNode(kMRNstring).replaceChild(clone,x.selectSingleNode(kMRNstring "/prov"))
-			x.selectSingleNode(kMRNstring "/diagnoses").removeChild(x.selectSingleNode(kMRNstring "/diagnoses/prov"))
-		}
-		
-		; Check <trash>
-		Loop % (zTrash := k.selectNodes("trash/*")).length { ; Loop through trash items.
-			zTr := zTrash.item(A_Index-1)
-			zTrCr := zTr.getAttribute("created")
-			xTr := x.selectSingleNode(kMRNstring "/trash/*[@created='" zTrCr "']")
-			if IsObject(xTr) and (zTr.text = xTr.text) {			; if exists in trash, skip to next
-				continue
-			} 
-			if !IsObject(x.selectSingleNode(kMRNstring "/trash")) {		; make sure that <trash> exists
-				x.addElement("trash", kMRNstring)
-			}															; then copy the clone into <trash>
-			clone := zTr.cloneNode(true)
-			x.selectSingleNode(kMRNstring "/trash").appendChild(clone)
-		}
-		
-		; Check <notes/weekly>
-		Loop, % (zNotes := k.selectNodes("notes/weekly/summary")).length {	; Loop through each /root/id@MRN/notes/weekly/summary note.
-			zWN := zNotes.item(A_Index-1)
-			zWND := zWN.getAttribute("created")
-			if IsObject(x.selectSingleNode(kMRNstring "/trash/summary[@created='" zWND "']"))
-				continue
-			Else
-				compareDates(kMRNstring "/notes/weekly","summary[@created='" zWND "']")
-		}
-		; Check <notes/progress>
-		
-		; Check <plan/done>
-		Loop, % (zTasks := k.selectNodes("plan/done/todo")).length {	; Loop through each /root/id@MRN/plan/done/todo.
-			zTD := zTasks.item(A_Index-1)
-			zWND := zTD.getAttribute("created")
-			if IsObject(x.selectSingleNode(kMRNstring "/trash/todo[@created='" zWND "']"))
-				continue
-			else
-				compareDates(kMRNstring "/plan/done","todo[@created='" zWND "']")
-		}
-		; Check <plan/tasks>
-		Loop, % (zTasks := k.selectNodes("plan/tasks/todo")).length {	; Loop through each /root/id@MRN/plan/tasks/todo.
-			zTD := zTasks.item(A_Index-1)
-			zWND := zTD.getAttribute("created")
-			if IsObject(x.selectSingleNode(kMRNstring "/trash/todo[@created='" zWND "']")) or IsObject(x.selectSingleNode(kMRNstring "/plan/done/todo[@created='" zWND "']"))
-				continue
-				; skip if index exists in completed or deleted.
-			else
-				compareDates(kMRNstring "/plan/tasks","todo[@created='" zWND "']")
-		}
-	}
-	x.save("currlist.xml")
-	y := new XML("currlist.xml")							; open fresh currlist.XML into Y
-	;~ while (str := loc[i:=A_Index]) {						; get the dates for each of the lists
-		;~ loc[str,"date"] := y.getAtt("/root/lists/" . str, "date")
+	;~ if !(FileExist("currlist.xml")) {												; no currlist exists (really?) -- this would only occur if no local currlist
+		;~ z.save("currlist.xml")														; create currlist from object Z
 	;~ }
-	;~ DateCORES := y.getAtt("/root/lists/cores", "date")
+	FileCopy, currlist.xml, oldlist.xml, 1											; Backup currlist to oldlist.
+	;~ x := new XML("currlist.xml")													; Load currlist into working X.
+	
+	;~ x.save("currlist.xml")																; save X to currlist
+	y := new XML("currlist.xml")														; load this fresh currlist.XML into Y
 	Progress 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 
 
 	yArch := new XML("archlist.xml")
-	if !IsObject(yArch.selectSingleNode("/root")) {			; if yArch is empty,
-		yArch.addElement("root")					; then create it.
+	if !IsObject(yArch.selectSingleNode("/root")) {										; if yArch is empty,
+		yArch.addElement("root")														; then create it.
+		yArch.save("archlist.xml")															; Write out archlist
 	}
 	
-	Loop, % (yN := y.selectNodes("/root/id")).length {				; Loop through each MRN in Currlist
-		k := yN.item((i:=A_Index)-1)
-		kMRN := k.getAttribute("mrn")
-		if !IsObject(yaMRN:=yArch.selectSingleNode("/root/id[@mrn='" kMRN "']")) {		; If ID MRN node does not exist in Archlist,
-			yArch.addElement("id","root", {mrn: kMRN})							; then create it
-			yArch.addElement("demog","/root/id[@mrn='" kMRN "']")				; along with the placeholder children
-			yArch.addElement("diagnoses","/root/id[@mrn='" kMRN "']")
-			yArch.addElement("notes","/root/id[@mrn='" kMRN "']")
-			yArch.addElement("plan","/root/id[@mrn='" kMRN "']")
-			eventlog(kMRN " added to archlist.")
-		}
-		ArchiveNode("demog")
-		ArchiveNode("diagnoses")
-		ArchiveNode("prov")
-		ArchiveNode("notes")
-		ArchiveNode("plan")
-	}
-	Progress, 100, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-
-	yArch.save("archlist.xml")											; Write out
 	Sleep 500
 	Progress, off
 	FileDelete, .currlock
@@ -207,44 +68,58 @@ Return
 
 SaveIt:
 {
-	vSaveIt:=true
-	gosub GetIt														; recheck the server side currlist.xml
-	vSaveIt:=
+	vSaveIt:=true																		; inform GetIt that run from SaveIt, changes progress window
+	gosub GetIt																			; recheck the server side currlist.xml
+	vSaveIt:=																			; clear bit
 	
-	filecheck()
-	FileOpen(".currlock", "W")													; Create lock file.
+	filecheck()																			; file in use, delay until .currlock cleared
+	FileOpen(".currlock", "W")															; Create lock file.
 
 	Progress, b w300, Processing...
-	y := new XML("currlist.xml")									; Load freshest copy of Currlist
-	yArch := new XML("archlist.xml")
+	y := new XML("currlist.xml")														; Load freshest copy of Currlist
+	yArch := new XML("archlist.xml")													; and ArchList
+	
 	; Save all MRN, Dx, Notes, ToDo, etc in arch.xml
-	Loop, % (yaN := y.selectNodes("/root/id")).length {				; Loop through each MRN in Currlist
+	yaNum := y.selectNodes("/root/id").length
+	Loop, % (yaN := y.selectNodes("/root/id")).length {									; Loop through each ID/MRN in Currlist
 		k := yaN.item((i:=A_Index)-1)
 		kMRN := k.getAttribute("mrn")
-		errnum=0
-		Loop, % (yaList := y.selectNodes("/root/lists/*/mrn")).length {		; Compare each MRN against the list of
-			yaMRN := yaList.item((j:=A_Index)-1).text						; MRNs in /root/lists
-			if (kMRN == yaMRN) {											; If a hit, then move on
-				errnum+=1
-				continue
+		if !IsObject(yaMRN:=yArch.selectSingleNode("/root/id[@mrn='" kMRN "']")) {		; If ID MRN node does not exist in Archlist, 
+			yArch.addElement("id","root", {mrn: kMRN})									; then create it 
+			yArch.addElement("demog","/root/id[@mrn='" kMRN "']")						; along with the placeholder children 
+			yArch.addElement("diagnoses","/root/id[@mrn='" kMRN "']") 
+			yArch.addElement("notes","/root/id[@mrn='" kMRN "']") 
+			yArch.addElement("plan","/root/id[@mrn='" kMRN "']") 
+			eventlog(kMRN " added to archlist.") 
+		}
+		ArchiveNode("demog")															; clone nodes to arch if not already done 
+		ArchiveNode("diagnoses") 
+		ArchiveNode("prov") 
+		ArchiveNode("notes") 
+		ArchiveNode("plan") 
+		Progress, % 80*(i/yaNum), % dialogVals[Rand(dialogVals.MaxIndex())] "..." 
+		
+		errList:=false																		; for counting hits in lists
+		
+		Loop, % (yaList := y.selectNodes("/root/lists/*/mrn")).length {					; Compare each MRN against the list of
+			yaMRN := yaList.item((j:=A_Index)-1).text									; MRNs in /root/lists
+			if (kMRN == yaMRN) {														; If MRN matches in any list, then move on
+				errList:=true
+				break																	; break out of list search loop
 			}
 		}
-		if !(errnum) {								; If did not match, delete the ID/MRN
-			yaMRN := yArch.selectSingleNode("/root/id[@mrn='" kMRN "']")					; Find equivalent MRN node in Archlist previously written in SaveIt.
-			ArchiveNode("demog")
-			ArchiveNode("diagnoses")
-			ArchiveNode("prov")
-			ArchiveNode("notes",1)						; ArchiveNode(node,1) to archive this node by today's date
+		if !(errList) {																	; If did not match any list, archive the ID/MRN
+			ArchiveNode("notes",1)														; ArchiveNode(node,1) to archive this node by today's date
 			ArchiveNode("plan",1)
-			errtext := errtext . "* " . k.selectSingleNode("demog/name_first").text . " " . k.selectSingleNode("demog/name_last").text . "`n"
-			RemoveNode("/root/id[@mrn='" kMRN "']")
+			errtext .= "* " . k.selectSingleNode("demog/name_first").text . " " . k.selectSingleNode("demog/name_last").text . "`n"
+			RemoveNode("/root/id[@mrn='" kMRN "']")										; ID node is archived, remove it from Y.
 			eventlog(kMRN " removed from active lists.")
 		}
 	}
 
-	Progress, 80, Compressing nodes...
-	yArch.save("archlist.xml")						; Writeout
-	if !(errnum) {
+	Progress, 80, Saving updates...
+	yArch.save("archlist.xml")															; Writeout archlist
+	if !(errList) {																		; dialog to show if there were any hits
 		Progress, hide
 		MsgBox, 48
 			, Database cleaning
@@ -252,17 +127,22 @@ SaveIt:
 		Progress, 85
 	}
 	; =================================================
+	if IsObject(y.selectSingleNode("/root/lists/SURGCNTR")) {
+		RemoveNode("/root/lists/SURGCNTR")
+		MsgBox SURGCNTR removed.
+	}
+	
 	y.save("currlist.xml")
 	eventlog("Currlist cleaned up.")
 	
-	if !(isLocal) {
+	if !(isLocal) {																		; for live data, send to server
 		Run pscp.exe -sftp -i chipotle-pr.ppk -p currlist.xml pedcards@homer.u.washington.edu:public_html/%servfold%/currlist.xml,, Min
-		sleep 500																; CIS VM needs longer delay than 200ms to recognize window
-		ConsWin := WinExist("ahk_class ConsoleWindowClass")
+		sleep 500																		; CIS VM needs longer delay than 200ms to recognize window
+		ConsWin := WinExist("ahk_class ConsoleWindowClass")								; get window ID
 		IfWinExist ahk_id %consWin% 
 		{
-			ControlSend,, {y}{Enter}, ahk_id %consWin%
-			Progress,, Console %consWin% found
+			ControlSend,, {y}{Enter}, ahk_id %consWin%									; blindly send {y}{enter} string to console
+			Progress,, Console %consWin% found											; to get past save keys query
 		}
 		WinWaitClose ahk_id %consWin%
 		Run pscp.exe -sftp -i chipotle-pr.ppk -p logs/%sessdate%.log pedcards@homer.u.washington.edu:public_html/%servfold%/logs/%sessdate%.log,, Min
@@ -270,7 +150,7 @@ SaveIt:
 
 	FileDelete, .currlock
 	eventlog("CHIPS server updated.")
-	Progress, 100, Saving updates...
+	Progress, 100, Done!
 	;Sleep, 1000
 
 Return
