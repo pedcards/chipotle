@@ -22,10 +22,10 @@ GetIt:
 			whr.WaitForResponse()
 		ckUrl := whr.ResponseText												; the http response
 		if instr(ckUrl, "does not exist") {										; no "change" file
-			ckUrl := ""															; clear values and skip out
+			ckUrl := "EXIST"															; clear values and skip out
 			ckUrlDT := ""
 		} else if instr(ckUrl, "permission denied") {							; permissions problem, check .htaccess on server
-			ckUrl := ""															; clear values and skip out
+			ckUrl := "DENIED"															; clear values and skip out
 			ckUrlDT := ""
 		} else {
 			ckUrlDT := whr.getResponseHeader("Last-Modified")					; file exists, get modified date
@@ -33,7 +33,7 @@ GetIt:
 		;~ if !instr(ckUrl, "proxy")													; might contain "proxy" if did not work
 			;~ break																	; don't think I need these?
 	}
-	;MsgBox,, % tries, % ckUrl "`n`n" ckUrlDT "`n`n"
+	MsgBox,, % tries, % ckUrl "`n`n" ckUrlDT "`n`n"
 	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
 
 	Progress, 60, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
