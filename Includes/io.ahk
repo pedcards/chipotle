@@ -36,6 +36,7 @@ GetIt:
 	Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	/*																				This would be the place to check integrity of templist.xml
 	*/
+	checkXML(z)
 	
 	;~ if !(FileExist("currlist.xml")) {												; no currlist exists (really?) -- this would only occur if no local currlist
 		;~ z.save("currlist.xml")														; create currlist from object Z
@@ -217,6 +218,20 @@ httpComm(do) {
 		whr.Send()																; SEND the command to the address
 		whr.WaitForResponse()	
 	return whr.ResponseText													; the http response
+}
+
+checkXML(xml) {
+/*	Simple integrity check to see if XML stream ends with </root>
+ */
+	Loop, Parse, xml
+	{
+		lastline := A_LoopField
+	}
+	if instr(lastline,"</root>") {
+		return "good"
+	} else {
+		return "bad"
+	}
 }
 
 eventlog(event) {
