@@ -14,24 +14,19 @@ GetIt:
 
 	FileCopy, currlist.xml, templist.xml, 1											; create templist copy from currlist
 	if !(isLocal) {																	; live run, download changes file from server
-		whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")							; initialize http request in object whr
-			whr.Open("GET"															; set the http verb to GET file "change"
-				, "https://depts.washington.edu/pedcards/change/direct.php?do=sync"
-				, true)
-			whr.Send()																; SEND the command to the address
-			whr.WaitForResponse()	
-		ckUrl := whr.ResponseText													; the http response
-		if instr(ckUrl, "does not exist") {											; no "change" file
-			ckUrl := "EXIST"														; clear values and skip out
-			ckUrlDT := ""
-		} else if instr(ckUrl, "permission denied") {								; permissions problem, check .htaccess on server
-			ckUrl := "DENIED"														; clear values and skip out
-			ckUrlDT := ""
-		} else {
-			;ckUrlDT := whr.getResponseHeader("Last-Modified")						; file exists, get modified date
+		/*	Can accept do verbs "get", "root", "save"
+		*/
+		ckRes := httpComm("get")
+		
+		if (ckRes=="NONE") {														; no change.xml file present
+			; nothing here
+			MsgBox No change file.
+		} else if (instr(ckRes,"proxy")) {											; hospital proxy problem
+			MsgBox Hospital proxy problem.
+		} else {																	; actual response
+			; merge blob
+			ckXML := new XML(ckRes)
 		}
-		;~ if !instr(ckUrl, "proxy")													; might contain "proxy" if did not work
-			;~ break																	; don't think I need these?
 	}
 	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
 
@@ -211,6 +206,17 @@ saveCensus:
 		gosub readForecast
 	}
 	return
+}
+
+httpComm(do) {
+	; consider two parameters?
+	whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")							; initialize http request in object whr
+		whr.Open("GET"															; set the http verb to GET file "change"
+			, "https://depts.washington.edu/pedcards/change/direct.php?do=" . do
+			, true)
+		whr.Send()																; SEND the command to the address
+		whr.WaitForResponse()	
+	return whr.ResponseText													; the http response
 }
 
 eventlog(event) {
