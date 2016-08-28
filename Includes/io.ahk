@@ -25,8 +25,8 @@ GetIt:
 			MsgBox Hospital proxy problem.
 		} else {																	; actual response
 			; merge blob
-			StringReplace, ckRes, ckRes, `r`n,, All									; MSXML cannot handle the UNIX format when modified on server. 
-			StringReplace, ckRes, ckRes, `n,, All 
+			StringReplace, ckRes, ckRes, `r`n,`n, All								; MSXML cannot handle the UNIX format when modified on server 
+			StringReplace, ckRes, ckRes, `n,`r`n, All								; so convert all MS CRLF to Unix LF, then all LF back to CRLF
 			ckXML := new XML(ckRes)
 		}
 	}
@@ -216,7 +216,9 @@ httpComm(verb) {
 	global servFold
 	whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")							; initialize http request in object whr
 		whr.Open("GET"															; set the http verb to GET file "change"
-			, "https://depts.washington.edu/pedcards/change/direct.php?" ((servFold="testlist") ? "test=true&" : "") "do=" . verb
+			, "https://depts.washington.edu/pedcards/change/direct.php?" 
+				. ((servFold="testlist") ? "test=true&" : "") 
+				. "do=" . verb
 			, true)
 		whr.Send()																; SEND the command to the address
 		whr.WaitForResponse()	
