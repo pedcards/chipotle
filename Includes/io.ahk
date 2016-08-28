@@ -25,6 +25,8 @@ GetIt:
 			MsgBox Hospital proxy problem.
 		} else {																	; actual response
 			; merge blob
+			StringReplace, ckRes, ckRes, `r`n,, All									; MSXML cannot handle the UNIX format when modified on server. 
+			StringReplace, ckRes, ckRes, `n,, All 
 			ckXML := new XML(ckRes)
 		}
 	}
