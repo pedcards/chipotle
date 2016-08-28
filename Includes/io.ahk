@@ -211,9 +211,10 @@ saveCensus:
 
 httpComm(verb) {
 	; consider two parameters?
+	global servFold
 	whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")							; initialize http request in object whr
 		whr.Open("GET"															; set the http verb to GET file "change"
-			, "https://depts.washington.edu/pedcards/change/direct.php?do=" . verb
+			, "https://depts.washington.edu/pedcards/change/direct.php?" ((servFold="testlist") ? "test=true" : "") "?do=" . verb
 			, true)
 		whr.Send()																; SEND the command to the address
 		whr.WaitForResponse()	
