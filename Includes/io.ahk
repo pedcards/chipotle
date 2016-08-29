@@ -226,16 +226,23 @@ httpComm(verb) {
 }
 
 checkXML(xml) {
-/*	Simple integrity check to see if XML stream ends with </root>
+/*	Simple integrity check for XML files.
+	Reads XML file into string, checks if string ends with </root>
+	If success, returns obj. If not, returns error.
  */
-	Loop, Parse, xml
+	FileRead, str, % xml	
+	Loop, parse, str, `n, `r
 	{
-		lastline := A_LoopField
+		test := A_LoopField
+		if !(test) {
+			continue
+		}
+		lastline := test
 	}
 	if instr(lastline,"</root>") {
-		return "good"
+		return str
 	} else {
-		return "bad"
+		return error 
 	}
 }
 
