@@ -12,42 +12,57 @@ GetIt:
 		Progress, b w300, Consolidating data..., 
 	Progress, 20																	; launched from SaveIt, no CHIPOTLE header
 
-	FileCopy, currlist.xml, templist.xml, 1											; create templist copy from currlist
-	if !(isLocal) {																	; live run, download changes file from server
-		/*	Can accept do verbs "get", "root", "save"
-		*/
-		ckRes := httpComm("get")
-		
-		if (ckRes=="NONE") {														; no change.xml file present
-			; nothing here
-			MsgBox No change file.
-		} else if (instr(ckRes,"proxy")) {											; hospital proxy problem
-			MsgBox Hospital proxy problem.
-		} else {																	; actual response
-			; merge blob
-			StringReplace, ckRes, ckRes, `r`n,`n, All								; MSXML cannot handle the UNIX format when modified on server 
-			StringReplace, ckRes, ckRes, `n,`r`n, All								; so convert all MS CRLF to Unix LF, then all LF back to CRLF
-			ckXML := new XML(ckRes)
-		}
-	}
-	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
-
-	Progress, 60, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	
-	;~ z := new XML("templist.xml")													; load templist into XML object Z -- UNNECESSARY if templist is untouched
-	Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	/*																				This would be the place to check integrity of templist.xml
-	*/
-	checkXML(z)
-	
 	;~ if !(FileExist("currlist.xml")) {												; no currlist exists (really?) -- this would only occur if no local currlist
 		;~ z.save("currlist.xml")														; create currlist from object Z
 	;~ }
+	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
+	;FileCopy, currlist.xml, templist.xml, 1											; create templist copy from currlist
 	FileCopy, currlist.xml, oldlist.xml, 1											; Backup currlist to oldlist.
-	;~ x := new XML("currlist.xml")													; Load currlist into working X.
+	progress, hide
+	if !(str:=checkXML("currlist.xml")) {
+		MsgBox bad currlist file
+		ExitApp
+		/*	This would be a good place to try the backup copy.
+		*/
+	}
+	y := new XML(str)																; currlist.xml intact, load into Y
 	
-	;~ x.save("currlist.xml")																; save X to currlist
-	y := new XML("currlist.xml")														; load this fresh currlist.XML into Y
+	;~ FileDelete, .currlock
+	;~ ExitApp
+	if !(isLocal) {																	; live run, download changes file from server
+		ckRes := httpComm("get")
+		
+		if (ckRes=="NONE") {														; no change.xml file present
+			MsgBox No change file.
+		} else if (instr(ckRes,"proxy")) {											; hospital proxy problem
+			MsgBox Hospital proxy problem.
+		} else {																	; actual response, merge the blob
+			StringReplace, ckRes, ckRes, `r`n,`n, All								; MSXML cannot handle the UNIX format when modified on server 
+			StringReplace, ckRes, ckRes, `n,`r`n, All								; so convert all MS CRLF to Unix LF, then all LF back to CRLF
+			ckXML := new XML(ckRes)
+			
+				;~ locPath := y.selectSingleNode(path)
+				;~ locNode := locPath.selectSingleNode(node)
+				;~ clone := locNode.cloneNode(true)											; make copy of y.node
+			progress, hide
+			loop, % (ckNode:=ckXML.selectNodes("//node")).length
+			{
+				k := ckNode.item(A_index-1)
+				kMRN := k.getAttribute("MRN")
+				kType := k.getAttribute("type")
+				kNode := 
+				MsgBox % kMRN "`n" kType
+			}
+			progress, show
+		}
+	}
+
+	Progress, 60, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+	
+	Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+	/*																				This would be the place to check integrity of templist.xml
+	*/
+	
 	Progress 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 
 
