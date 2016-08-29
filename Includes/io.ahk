@@ -39,19 +39,27 @@ GetIt:
 		} else {																	; actual response, merge the blob
 			StringReplace, ckRes, ckRes, `r`n,`n, All								; MSXML cannot handle the UNIX format when modified on server 
 			StringReplace, ckRes, ckRes, `n,`r`n, All								; so convert all MS CRLF to Unix LF, then all LF back to CRLF
-			ckXML := new XML(ckRes)
+			z := new XML(ckRes)
 			
 				;~ locPath := y.selectSingleNode(path)
 				;~ locNode := locPath.selectSingleNode(node)
 				;~ clone := locNode.cloneNode(true)											; make copy of y.node
+				;~ zPath := z.selectSingleNode(path)											; find same "node" in z
+				;~ zNode := zPath.selectSingleNode(node)
+				;~ zPath.replaceChild(clone,zNode)												; replace existing zNode with node clone
 			progress, hide
-			loop, % (ckNode:=ckXML.selectNodes("//node")).length
+			loop, % (ckNode:=z.selectNodes("//node")).length
 			{
-				k := ckNode.item(A_index-1)
+				zPath := ckNode.item(A_index-1)
+				zNode := zPath.childNodes.item(0)
+				clone := zNode.cloneNode(true)
+				zAu := zNode.getAttribute("au")
+				zEd := zNode.getAttribute("ed")
+				MsgBox % zAu " - " zEd "`n" IsObject(clone)
+				
 				kMRN := k.getAttribute("MRN")
 				kType := k.getAttribute("type")
 				kNode := 
-				MsgBox % kMRN "`n" kType
 			}
 			progress, show
 		}
