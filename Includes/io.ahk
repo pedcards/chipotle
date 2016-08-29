@@ -53,13 +53,10 @@ GetIt:
 				zPath := ckNode.item(A_index-1)
 				zNode := zPath.childNodes.item(0)
 				clone := zNode.cloneNode(true)
-				zAu := zNode.getAttribute("au")
-				zEd := zNode.getAttribute("ed")
-				MsgBox % zAu " - " zEd "`n" IsObject(clone)
 				
-				kMRN := k.getAttribute("MRN")
-				kType := k.getAttribute("type")
-				kNode := 
+				zMRN := zPath.getAttribute("MRN")
+				zType := zPath.getAttribute("type")
+				
 			}
 			progress, show
 		}
