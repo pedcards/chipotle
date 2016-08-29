@@ -41,24 +41,9 @@ GetIt:
 			StringReplace, ckRes, ckRes, `n,`r`n, All								; so convert all MS CRLF to Unix LF, then all LF back to CRLF
 			z := new XML(ckRes)
 			
-				;~ locPath := y.selectSingleNode(path)
-				;~ locNode := locPath.selectSingleNode(node)
-				;~ clone := locNode.cloneNode(true)											; make copy of y.node
-				;~ zPath := z.selectSingleNode(path)											; find same "node" in z
-				;~ zNode := zPath.selectSingleNode(node)
-				;~ zPath.replaceChild(clone,zNode)												; replace existing zNode with node clone
-			progress, hide
-			loop, % (ckNode:=z.selectNodes("//node")).length
-			{
-				zPath := ckNode.item(A_index-1)
-				zNode := zPath.childNodes.item(0)
-				clone := zNode.cloneNode(true)
-				
-				zMRN := zPath.getAttribute("MRN")
-				zType := zPath.getAttribute("type")
-				
-			}
-			progress, show
+			;~ progress, hide
+			compareDates()
+			;~ progress, show
 		}
 	}
 
@@ -267,6 +252,22 @@ checkXML(xml) {
 }
 
 compareDates(path,node) {
+	global y, z																	; access to Y (currlist) and Z (update blob)
+	
+	loop, % (ck:=z.selectNodes("//node")).length
+	{
+		zPath := ck.item(A_index-1)
+		zNode := zPath.childNodes.item(0)
+		clone := zNode.cloneNode(true)											; clone the changed node
+		
+		zMRN := zPath.getAttribute("MRN")
+		zType := zPath.getAttribute("type")
+		
+	}
+	
+}
+
+OLD_compareDates(path,node) {
 	global x, y, z, zWND, kMRNstring, dialogVals
 	;progress,,%node%
 	progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
