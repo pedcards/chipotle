@@ -12,6 +12,12 @@ GetIt:
 		Progress, b w300, Consolidating data..., 
 	Progress, 20																	; launched from SaveIt, no CHIPOTLE header
 
+	yArch := new XML("archlist.xml")
+	if !IsObject(yArch.selectSingleNode("/root")) {										; if yArch is empty,
+		yArch.addElement("root")														; then create it.
+		yArch.save("archlist.xml")															; Write out archlist
+	}
+	
 	;~ if !(FileExist("currlist.xml")) {												; no currlist exists (really?) -- this would only occur if no local currlist
 		;~ z.save("currlist.xml")														; create currlist from object Z
 	;~ }
@@ -55,13 +61,6 @@ GetIt:
 	
 	Progress 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 
-
-	yArch := new XML("archlist.xml")
-	if !IsObject(yArch.selectSingleNode("/root")) {										; if yArch is empty,
-		yArch.addElement("root")														; then create it.
-		yArch.save("archlist.xml")															; Write out archlist
-	}
-	
 	Sleep 500
 	Progress, off
 	FileDelete, .currlock
@@ -251,7 +250,7 @@ checkXML(xml) {
 	}
 }
 
-importNodes(path,node) {
+importNodes() {
 	global y, z																	; access to Y (currlist) and Z (update blob)
 	
 	loop, % (ck:=z.selectNodes("//node")).length
@@ -260,9 +259,12 @@ importNodes(path,node) {
 		zNode := zPath.childNodes.item(0)
 		clone := zNode.cloneNode(true)											; clone the changed node
 		
-		zMRN := zPath.getAttribute("MRN")
+		zMRN := zPath.getAttribute("MRN")										; get the MRN, element type, and delete flag
 		zType := zPath.getAttribute("type")
+		zDel := zPath.getAttribute("del")
 		
+		yPath := y.selectSingleNode("//id[@mrn='" zMRN "']")
+		yNode := yPath.selectSingleNode(ztype)
 	}
 	
 }
