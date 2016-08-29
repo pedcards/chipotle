@@ -266,6 +266,109 @@ checkXML(xml) {
 	}
 }
 
+compareDates(path,node) {
+	global x, y, z, zWND, kMRNstring, dialogVals
+	;progress,,%node%
+	progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+	if !IsObject(z.selectSingleNode(path "/" node))					; If does not exist in Z, return
+		return
+	if !IsObject(x.selectSingleNode(path "/" node)) {				; If no node exists in X, create a placeholder
+		if (substr(node,1,7)="summary") {
+			if !IsObject(x.selectSingleNode(kMRNstring "/notes"))
+				x.addElement("notes", kMRNstring)
+			if !IsObject(x.selectSingleNode(kMRNstring "/notes/weekly"))
+				x.addElement("weekly", kMRNstring "/notes")
+			x.addElement("summary", path, {created: zWND})		; Summary requires date attribute
+			err := true
+		} 
+		if (substr(node,1,4)="todo") {
+			if !IsObject(x.selectSingleNode(kMRNstring "/plan"))
+				x.addElement("plan", kMRNstring)
+			if !IsObject(x.selectSingleNode(kMRNstring "/plan/tasks"))
+				x.addElement("tasks", kMRNstring "/plan")
+			x.addElement("todo", path, {created: zWND})
+			err := true
+		} 
+		if !(err) {
+			x.addElement(node, path)							; Everything else just needs an element.
+			err = true
+		}
+	}
+	locPath := x.selectSingleNode(path)
+	locNode := locPath.selectSingleNode(node)
+	locDate := locNode.getAttribute("ed")
+	remPath := z.selectSingleNode(path)
+	remNode := remPath.selectSingleNode(node)
+	remDate := remNode.getAttribute("ed")
+	clone := remnode.cloneNode(true)
+
+	if (remDate<locDate) {								; local edit is newer.
+		return
+	} 
+	if (remDate>locDate) {								; remote is newer than local.
+		locPath.replaceChild(clone,locNode)
+		return
+	} 
+	if (remDate="") {									; No date exists.
+		FormatTime, tmpdate, A_Now, yyyyMMddHHmmss		; add it.
+		locNode.setAttribute("ed", tmpdate)
+		return
+	}
+}
+
+ArchiveNode(node,i:=0) {
+	global y, yArch, kMRN											; Initialize global variables
+	MRN := "/root/id[@mrn='" kMRN "']"
+	x := y.selectSingleNode(MRN "/" node)							; Get "node" from k (y.id[mrn])
+	if !IsObject(x) {
+		;MsgBox Fail
+		return
+	}
+	if !IsObject(yArch.selectSingleNode(MRN "/" node))					; if no node exists,
+		yArch.addElement(node,MRN)										; create it.
+	arcX := yArch.selectSingleNode(MRN "/" node)						; get the node, whether existant or new
+	
+	if (arcX.getAttribute("ed") == x.getAttribute("ed")) {				; nodes in Y and yArch are equivalent
+		return
+	}
+	
+	clone := x.cloneNode(true)											; make a copy
+	yArch.selectSingleNode(MRN).replaceChild(clone,arcX)				; replace arcX with the clone.
+	
+	if ((node="demog") and (yArch.selectSingleNode(MRN "/demog/data"))){
+		yArch.selectSingleNode(MRN "/demog").removeChild(yArch.selectSingleNode(MRN "/demog/data"))
+	}
+	
+	if (i=1)	{														; create <id/archive/discharge[date=now]>
+		if !IsObject(yArch.selectSingleNode(MRN "/archive")) {
+			yArch.addElement("archive",MRN)
+		}
+		FormatTime, dcdate, A_Now, yyyyMMdd
+		yArch.addElement("dc",MRN "/archive", {date: dcdate})
+		yArch.selectSingleNode(MRN "/archive/dc[@date='" dcdate "']").appendChild(clone)
+	}																	; move element here
+	return
+}
+
+FetchNode(node) {
+	global
+	local x, clone
+	if IsObject(yArch.selectSingleNode(MRNstring "/" node)) {		; Node arch exists
+		x := yArch.selectSingleNode(MRNstring "/" node)
+		clone := x.cloneNode(true)
+		y.selectSingleNode(MRNstring).appendChild(clone)			; using appendChild as no Child exists yet.
+	} else {
+		y.addElement(node, MRNstring)								; If no node arch exists, create placeholder
+	}
+}
+
+RemoveNode(node) {
+	global
+	local q
+	q := y.selectSingleNode(node)
+	q.parentNode.removeChild(q)
+}
+
 eventlog(event) {
 	global user, sessdate
 	comp := A_ComputerName
