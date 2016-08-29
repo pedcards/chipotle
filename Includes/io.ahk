@@ -42,7 +42,7 @@ GetIt:
 			z := new XML(ckRes)
 			
 			;~ progress, hide
-			compareDates()
+			importNodes()
 			;~ progress, show
 		}
 	}
@@ -251,7 +251,7 @@ checkXML(xml) {
 	}
 }
 
-compareDates(path,node) {
+importNodes(path,node) {
 	global y, z																	; access to Y (currlist) and Z (update blob)
 	
 	loop, % (ck:=z.selectNodes("//node")).length
@@ -264,6 +264,10 @@ compareDates(path,node) {
 		zType := zPath.getAttribute("type")
 		
 	}
+	
+}
+
+compareDates() {
 	
 }
 
