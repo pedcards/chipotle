@@ -253,15 +253,15 @@ importNodes() {
 	
 	loop, % (ck:=z.selectNodes("//node")).length
 	{
-		zPath := ck.item(A_index-1)
-		zNode := zPath.childNodes.item(0)
+		zPath := ck.item(A_index-1)												; zPath is each <node>
+		zNode := zPath.childNodes.item(0)										; zNode is child to clone
 		clone := zNode.cloneNode(true)											; clone the changed node
 		
 		zMRN := zPath.getAttribute("MRN")										; get the MRN, element type, and delete flag
 		zType := zPath.getAttribute("type")
 		zDel := zPath.getAttribute("del")
 		
-		zMRN := 1490993
+		zMRN := 1490993															; temporary test values
 		zType := "diagnoses"
 		
 		if !IsObject(yPath := y.selectSingleNode("//id[@mrn='" zMRN "']")) {	; Missing MRN will only happen if ID has been archived
@@ -270,7 +270,18 @@ importNodes() {
 		if !(IsObject(yNode := yPath.selectSingleNode(ztype)) {					; Similarly skip if missing element in Y?
 			continue
 		}
-		MsgBox,, % zMRN, % zType "`n" IsObject(yNode)
+		
+		; tasks and notes can be deleted.
+		; if @del=true, element has been moved to <trash> on server
+		; check if this item is already in trash: "/trash/*[@created=' created ']" exists and text of both is equal
+		; if not, move node to trash
+		
+		; check <notes/weekly>
+		
+		; check <plan/done>
+		
+		; check <plan/todo>
+		
 		yPath.replaceChild(clone,yNode)
 	}
 	return
