@@ -47,9 +47,7 @@ GetIt:
 			StringReplace, ckRes, ckRes, `n,`r`n, All								; so convert all MS CRLF to Unix LF, then all LF back to CRLF
 			z := new XML(ckRes)
 			
-			;~ progress, hide
 			importNodes()
-			;~ progress, show
 		}
 	}
 
@@ -263,10 +261,19 @@ importNodes() {
 		zType := zPath.getAttribute("type")
 		zDel := zPath.getAttribute("del")
 		
-		yPath := y.selectSingleNode("//id[@mrn='" zMRN "']")
-		yNode := yPath.selectSingleNode(ztype)
+		zMRN := 1490993
+		zType := "diagnoses"
+		
+		if !IsObject(yPath := y.selectSingleNode("//id[@mrn='" zMRN "']")) {	; Missing MRN will only happen if ID has been archived
+			continue															; so skip to next index
+		}
+		if !(IsObject(yNode := yPath.selectSingleNode(ztype)) {					; Similarly skip if missing element in Y?
+			continue
+		}
+		MsgBox,, % zMRN, % zType "`n" IsObject(yNode)
+		yPath.replaceChild(clone,yNode)
 	}
-	
+	return
 }
 
 compareDates() {
