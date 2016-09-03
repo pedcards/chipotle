@@ -295,7 +295,9 @@ importNodes() {
 		<notes/weekly> - (summary) updated on either side.
 		<notes/progress> - (note) updated on either side.
 		<plan/tasks> - (todo) updated on either side.
-*/
+; remove "*" to function
+; place "*/" to read code
+/
 	Loop, % (zID := z.selectNodes("/root/id")).length {									; Loop through each MRN in tempList
 		k := zID.item((i:=A_Index)-1)
 		kMRN := k.getAttribute("mrn")
@@ -359,7 +361,7 @@ importNodes() {
 		}
 	}
 ; the end of pasted stuff	
-	
+*/	
 }
 
 compareDates() {
