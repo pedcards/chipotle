@@ -257,34 +257,17 @@ importNodes() {
 		zNode := zPath.childNodes.item(0)										; zNode is child to clone
 		clone := zNode.cloneNode(true)											; clone the changed node
 		
-		zMRN := zPath.getAttribute("MRN")										; get the MRN, element type, and delete flag
+		zMRN := zPath.getAttribute("MRN")										; get the MRN, element type, and changed flags (add, done, del, undel)
 		zType := zPath.getAttribute("type")
-		zDel := zPath.getAttribute("del")
+		zChange := zPath.getAttribute("change")
 		
 		zMRN := 1490993															; temporary test values
 		zType := "diagnoses"
 		
-		if !IsObject(yPath := y.selectSingleNode("//id[@mrn='" zMRN "']")) {	; Missing MRN will only happen if ID has been archived
-			continue															; so skip to next index
-		}
-		if !IsObject(yNode := yPath.selectSingleNode(ztype)) {					; Similarly skip if missing element in Y?
-			continue
-		}
-		
-		; todo tasks and notes can be deleted.
-		; if @del=true, element has been moved to <trash> on server
-		; check if this item is already in trash: "/trash/*[@created=' created ']" exists and text of both is equal
-		; if not, move node to trash
-		
-		; check <notes/weekly>
-		
-		; check <plan/done>
-		
-		; check <plan/todo>
-		
-		yPath.replaceChild(clone,yNode)
+		compareDates(zType,zChange)
 	}
 	return
+}
 	
 /*	 Cycle through ID@MRN's
 		<demog> - never modified. local info always newest.
@@ -362,10 +345,45 @@ importNodes() {
 	}
 ; the end of pasted stuff	
 */	
-}
 
-compareDates() {
+
+compareDates(zType, zChange:="") {
+	global y, z, zPath, zNode, clone, zMRN
+	nodePath := {"todo":"plan/tasks","summary":"notes/weekly"}
 	
+	if !IsObject(yPath := y.selectSingleNode("//id[@mrn='" zMRN "']")) {	; Missing MRN will only happen if ID has been archived since last server sync
+		return																; so skip to next index
+	}
+	;~ if !IsObject(yNode := yPath.selectSingleNode(ztype)) {					; Similarly skip if missing element in Y?
+		;~ return
+	;~ }
+	
+	znAu := zNode.getAttribute("au")
+	znEd := zNode.getAttribute("ed")
+	znCreated := zNode.getAttribute("created")
+	znDate := zNode.getAttribute("date")
+	
+	; todo tasks and notes can be deleted.
+	; if @del=true, element has been moved to <trash> on server
+	; check if this item is already in trash: "/trash/*[@created=' created ']" exists and text of both is equal
+	; if not, move node to trash
+	
+	if (zChange="add") {													; new <plan/tasks/todo> or <notes/weekly/summary>
+		if !IsObject(yPath.selectSingleNode(nodePath[zType])) {
+			path1 := strX(nodePath[zType], "",1,0, "/",1,1)
+			path2 := strX(nodePath[zType], "/",1,1, "",1,0)
+			y.addChild(
+		yNode := yPath.selectSingleNode(nodePath[zType])
+
+
+
+	; check <notes/weekly>
+
+	; check <plan/done>
+
+	; check <plan/todo>
+
+	yPath.replaceChild(clone,yNode)
 }
 
 OLD_compareDates(path,node) {
