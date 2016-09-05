@@ -369,8 +369,10 @@ compareDates(zType, zChange:="") {
 	; if not, move node to trash
 	
 	if (zChange="add") {													; new <plan/tasks/todo> or <notes/weekly/summary>
-		makeNodes(zMRN,nodePath[zType])
+		makeNodes(zMRN,nodePath[zType])										; ensure that <plan/tasks> or <notes/weekly> exist
 		yNode := yPath.selectSingleNode(nodePath[zType])
+		ynCreated := yNode.getAttribute("created")
+		ynEd := yNode.getAttribute("ed")
 	}
 
 
