@@ -12,7 +12,12 @@
 
 nodepath := "weekly/notes"
 
-path1 := strX(nodePath, "",1,0, "/",1,1)
-path2 := strX(nodePath, "/",1,1, "",1,0)
+loop, Parse, nodepath, /
+{
+	MsgBox % A_Index " - " A_LoopField
+}
 
-MsgBox,, % nodepath, % path1 "`n" path2
+;~ path1 := strX(nodePath, "",1,0, "/",1,1)
+;~ path2 := strX(nodePath, "/",1,1, "",1,0)
+
+;~ MsgBox,, % nodepath, % path1 "`n" path2
