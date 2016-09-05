@@ -369,11 +369,9 @@ compareDates(zType, zChange:="") {
 	; if not, move node to trash
 	
 	if (zChange="add") {													; new <plan/tasks/todo> or <notes/weekly/summary>
-		if !IsObject(yPath.selectSingleNode(nodePath[zType])) {
-			path1 := strX(nodePath[zType], "",1,0, "/",1,1)
-			path2 := strX(nodePath[zType], "/",1,1, "",1,0)
-			y.addChild(
+		makeNodes(zMRN,nodePath[zType])
 		yNode := yPath.selectSingleNode(nodePath[zType])
+	}
 
 
 
@@ -384,6 +382,29 @@ compareDates(zType, zChange:="") {
 	; check <plan/todo>
 
 	yPath.replaceChild(clone,yNode)
+}
+
+makeNodes(MRN,path) {
+/*	Checks Y for presence of the node in path
+ *	Creates path as needed
+ */
+	global y
+	mrnPath :=  "//id[@mrn='" MRN "']"
+	if IsObject(yNode := y.selectSingleNode(mrnPath "/" path)) {						; path exists, return
+		return
+	}
+	loop, parse, path, /
+	{
+		step := A_LoopField																; each next level of path
+		
+		if IsObject(y.selectSingleNode(mrnPath "/" step)) {								; this level exists,
+			mrnPath .= "/" step															; add to mrnPath string
+			continue																	; and move to next level
+		}
+		y.addElement(step, mrnPath)														; does not exist, add this element
+		mrnPath .= "/" step																; add to mrnPath string and move to next
+	}
+	return
 }
 
 OLD_compareDates(path,node) {
