@@ -257,15 +257,16 @@ importNodes() {
 		zNode := zPath.childNodes.item(0)										; zNode is child to clone
 		clone := zNode.cloneNode(true)											; clone the changed node
 		
-		zMRN := zPath.getAttribute("MRN")										; get the MRN, element type, and changed flags (add, done, del, undel)
-		zType := zPath.getAttribute("type")
-		zChange := zPath.getAttribute("change")
+		zMRN := zPath.getAttribute("MRN")										; get the MRN, 
+		zType := zPath.getAttribute("type")										; element type, e.g. diagnoses, prov, status, todo, summary
+		zChange := zPath.getAttribute("change")									; and changed flags (add, del, done, undo)
 		
 		zMRN := 1490993															; temporary test values
 		zType := "diagnoses"
 		
 		compareDates(zType,zChange)
 	}
+	
 	return
 }
 	
