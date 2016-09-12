@@ -368,19 +368,19 @@ compareDates(zType, zChange:="") {
 	; check if this item is already in trash: "/trash/*[@created=' created ']" exists and text of both is equal
 	; if not, move node to trash
 	
-	if (zChange="del") {
+	if (zChange="del") {																; move existing plan/task/todo or notes/weekly/summary to trash
 		
-	} else if (zChange="undel") {
+	} else if (zChange="undel") {														; move plan/task/todo or notes/weekly/summary item back from trash
 		
 	} else if (zChange="add") {															; new <plan/tasks/todo> or <notes/weekly/summary>
 		makeNodes(zMRN,nodePath[zType])													; ensure that path to <plan/tasks> or <notes/weekly> exist in Y
-		yPath := yID.selectSingleNode(nodePath[zType])									; the parent node
 		
-		if !IsObject(yPath.selectSingleNode(NodeStr)) {									; no existing node
+		if !IsObject(y.selectSingleNode(PathStr "/" NodeStr)) {							; no existing node
 			y.addElement(zType,pathStr,{created: znCreated})							; create an element node with created date so we can clone to it
 		}
-	} else {
-		yPath := yID.selectSingleNode(zType)											; remaining instances are 
+		yPath := yID.selectSingleNode(nodePath[zType])									; the parent node
+	} else {																			; remaining instances are diagnosis, status, prov
+		yPath := yID
 	}
 	
 	yNode := yPath.selectSingleNode(NodeStr)											; get the local node
