@@ -428,56 +428,6 @@ makeNodes(MRN,path) {
 	return
 }
 
-OLD_compareDates(path,node) {
-	global x, y, z, zWND, kMRNstring, dialogVals
-	;progress,,%node%
-	progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	if !IsObject(z.selectSingleNode(path "/" node))					; If does not exist in Z, return
-		return
-	if !IsObject(x.selectSingleNode(path "/" node)) {				; If no node exists in X, create a placeholder
-		if (substr(node,1,7)="summary") {
-			if !IsObject(x.selectSingleNode(kMRNstring "/notes"))
-				x.addElement("notes", kMRNstring)
-			if !IsObject(x.selectSingleNode(kMRNstring "/notes/weekly"))
-				x.addElement("weekly", kMRNstring "/notes")
-			x.addElement("summary", path, {created: zWND})		; Summary requires date attribute
-			err := true
-		} 
-		if (substr(node,1,4)="todo") {
-			if !IsObject(x.selectSingleNode(kMRNstring "/plan"))
-				x.addElement("plan", kMRNstring)
-			if !IsObject(x.selectSingleNode(kMRNstring "/plan/tasks"))
-				x.addElement("tasks", kMRNstring "/plan")
-			x.addElement("todo", path, {created: zWND})
-			err := true
-		} 
-		if !(err) {
-			x.addElement(node, path)							; Everything else just needs an element.
-			err = true
-		}
-	}
-	locPath := x.selectSingleNode(path)
-	locNode := locPath.selectSingleNode(node)
-	locDate := locNode.getAttribute("ed")
-	remPath := z.selectSingleNode(path)
-	remNode := remPath.selectSingleNode(node)
-	remDate := remNode.getAttribute("ed")
-	clone := remnode.cloneNode(true)
-
-	if (remDate<locDate) {								; local edit is newer.
-		return
-	} 
-	if (remDate>locDate) {								; remote is newer than local.
-		locPath.replaceChild(clone,locNode)
-		return
-	} 
-	if (remDate="") {									; No date exists.
-		FormatTime, tmpdate, A_Now, yyyyMMddHHmmss		; add it.
-		locNode.setAttribute("ed", tmpdate)
-		return
-	}
-}
-
 ArchiveNode(node,i:=0) {
 	global y, yArch, kMRN											; Initialize global variables
 	MRN := "/root/id[@mrn='" kMRN "']"
