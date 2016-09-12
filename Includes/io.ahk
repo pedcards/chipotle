@@ -354,9 +354,6 @@ compareDates(zType, zChange:="") {
 	if !IsObject(yID := y.selectSingleNode("//id[@mrn='" zMRN "']")) {					; Missing MRN will only happen if ID has been archived since last server sync
 		return																			; so skip to next index
 	}
-	;~ if !IsObject(yNode := yPath.selectSingleNode(ztype)) {					; Similarly skip if missing element in Y?
-		;~ return
-	;~ }
 	
 	znAu := zNode.getAttribute("au")													; author of change
 	znEd := zNode.getAttribute("ed")													; last edit date/time
@@ -371,30 +368,29 @@ compareDates(zType, zChange:="") {
 	; check if this item is already in trash: "/trash/*[@created=' created ']" exists and text of both is equal
 	; if not, move node to trash
 	
-	if (zChange="add") {																; new <plan/tasks/todo> or <notes/weekly/summary>
+	if (zChange="del") {
+		
+	} else if (zChange="undel") {
+		
+	} else if (zChange="add") {															; new <plan/tasks/todo> or <notes/weekly/summary>
 		makeNodes(zMRN,nodePath[zType])													; ensure that path to <plan/tasks> or <notes/weekly> exist in Y
 		yPath := yID.selectSingleNode(nodePath[zType])									; the parent node
 		
 		if !IsObject(yPath.selectSingleNode(NodeStr)) {									; no existing node
 			y.addElement(zType,pathStr,{created: znCreated})							; create an element node with created date so we can clone to it
 		}
-		yNode := yPath.selectSingleNode(NodeStr)
-		ynEd := yNode.getAttribute("ed")												; last edit time
-		
-		if (znEd>ynEd) {																; as long as remote node ed is more recent
-			yPath.replaceChild(clone,yNode)												; make the clone
-		}
+	} else {
+		yPath := yID.selectSingleNode(zType)											; remaining instances are 
 	}
-
-
-
-	; check <notes/weekly>
-
-	; check <plan/done>
-
-	; check <plan/todo>
-
-	yPath.replaceChild(clone,yNode)
+	
+	yNode := yPath.selectSingleNode(NodeStr)											; get the local node
+	ynEd := yNode.getAttribute("ed")													; last edit time
+		
+	if (znEd>ynEd) {																	; as long as remote node ed is more recent
+		yPath.replaceChild(clone,yNode)													; make the clone
+	}
+	
+	return
 }
 
 makeNodes(MRN,path) {
