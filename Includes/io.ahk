@@ -24,8 +24,10 @@ GetIt:
 	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
 	;FileCopy, currlist.xml, templist.xml, 1											; create templist copy from currlist
 	FileCopy, currlist.xml, oldlist.xml, 1											; Backup currlist to oldlist.
-	progress, hide
+	
+	Progress, 20, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	if !(str:=checkXML("currlist.xml")) {
+		progress, hide
 		MsgBox bad currlist file
 		ExitApp
 		/*	This would be a good place to try the backup copy.
@@ -35,6 +37,7 @@ GetIt:
 	
 	;~ FileDelete, .currlock
 	;~ ExitApp
+	Progress, 40, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	if !(isLocal) {																	; live run, download changes file from server
 		ckRes := httpComm("get")
 		
@@ -43,22 +46,25 @@ GetIt:
 		} else if (instr(ckRes,"proxy")) {											; hospital proxy problem
 			MsgBox Hospital proxy problem.
 		} else {																	; actual response, merge the blob
+			eventlog("Import blob found.")
 			StringReplace, ckRes, ckRes, `r`n,`n, All								; MSXML cannot handle the UNIX format when modified on server 
 			StringReplace, ckRes, ckRes, `n,`r`n, All								; so convert all MS CRLF to Unix LF, then all LF back to CRLF
 			z := new XML(ckRes)
 			
 			importNodes()
+			
+			eventlog("Import complete.")
+			
+			/*	Writeout Y
+				Check integrity of Y
+			*/
 		}
 	}
 
-	Progress, 60, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	
-	Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	/*																				This would be the place to check integrity of templist.xml
 	*/
 	
-	Progress 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-
+	Progress 100, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	Sleep 500
 	Progress, off
 	FileDelete, .currlock
