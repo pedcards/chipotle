@@ -389,8 +389,10 @@ compareDates(zType, zChange:="") {
 			y.addElement(zType,pathStr,{created: znCreated})							; create an element node with created date so we can clone to it
 		}
 		yPath := yID.selectSingleNode(nodePath[zType])									; the parent node
+		eventlog("<--ADD::" zType "::" znCreated "::" au "::" ed )
 	} else {																			; remaining instances are diagnosis, status, prov
 		yPath := yID
+		eventlog("<--CHG::" zType "::" au "::" ed )
 	}
 	
 	yNode := yPath.selectSingleNode(NodeStr)											; get the local node
@@ -398,6 +400,8 @@ compareDates(zType, zChange:="") {
 		
 	if (znEd>ynEd) {																	; as long as remote node ed is more recent
 		yPath.replaceChild(clone,yNode)													; make the clone
+	} else {
+		eventlog("X--BLK::" zType ((znCreated) ? "::" znCreated : "") "::" au "::" ed " not newer.")
 	}
 	
 	return
