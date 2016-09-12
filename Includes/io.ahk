@@ -360,7 +360,8 @@ compareDates(zType, zChange:="") {
 	znCreated := zNode.getAttribute("created")											; creation date/time (for notes and tasks)
 	znDate := zNode.getAttribute("date")												; target date (for notes and tasks)
 	
-	PathStr := "//id[@mrn='" zMRN "']/" nodePath[zType]									; string to full path
+	mrnStr := "//id[@mrn='" zMRN "']"
+	PathStr := mrnStr "/" nodePath[zType]												; string to full path
 	NodeStr := zType . ((znCreated) ? "[@created='" znCreated "']" : "")				; string to zType with created attr if present in zNode
 	
 	; todo tasks and notes can be deleted.
@@ -369,8 +370,17 @@ compareDates(zType, zChange:="") {
 	; if not, move node to trash
 	
 	if (zChange="del") {																; move existing plan/task/todo or notes/weekly/summary to trash
+		if !IsObject(y.selectSingleNode(mrnStr "/trash") {								; create trash node if not present
+			y.addElement("trash",mrnStr)
+		}
+		y.selectSingleNode(mrnStr "/trash").appendChild(clone)							; create item in trash
+		removeNode(pathStr "/" nodeStr)													; remove item from plan/task/todo or notes/weekly/summary
+		eventlog("<--DEL::" zType "::" znCreated "::" au "::" ed )
+		return
 		
-	} else if (zChange="undel") {														; move plan/task/todo or notes/weekly/summary item back from trash
+	} else if (zChange="done") {														; mark plan/task/todo as done; move to plan/done/todo
+		
+	} else if (zChange="undo") {														; move from plan/done/todo to plan/task/todo
 		
 	} else if (zChange="add") {															; new <plan/tasks/todo> or <notes/weekly/summary>
 		makeNodes(zMRN,nodePath[zType])													; ensure that path to <plan/tasks> or <notes/weekly> exist in Y
