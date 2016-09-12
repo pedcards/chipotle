@@ -349,30 +349,41 @@ importNodes() {
 
 compareDates(zType, zChange:="") {
 	global y, z, zPath, zNode, clone, zMRN
-	nodePath := {"todo":"plan/tasks","summary":"notes/weekly"}
+	nodePath := {"todo":"plan/tasks","summary":"notes/weekly"}							; array to map proper path for import node
 	
-	if !IsObject(yPath := y.selectSingleNode("//id[@mrn='" zMRN "']")) {	; Missing MRN will only happen if ID has been archived since last server sync
-		return																; so skip to next index
+	if !IsObject(yID := y.selectSingleNode("//id[@mrn='" zMRN "']")) {					; Missing MRN will only happen if ID has been archived since last server sync
+		return																			; so skip to next index
 	}
 	;~ if !IsObject(yNode := yPath.selectSingleNode(ztype)) {					; Similarly skip if missing element in Y?
 		;~ return
 	;~ }
 	
-	znAu := zNode.getAttribute("au")
-	znEd := zNode.getAttribute("ed")
-	znCreated := zNode.getAttribute("created")
-	znDate := zNode.getAttribute("date")
+	znAu := zNode.getAttribute("au")													; author of change
+	znEd := zNode.getAttribute("ed")													; last edit date/time
+	znCreated := zNode.getAttribute("created")											; creation date/time (for notes and tasks)
+	znDate := zNode.getAttribute("date")												; target date (for notes and tasks)
+	
+	PathStr := "//id[@mrn='" zMRN "']/" nodePath[zType]									; string to full path
+	NodeStr := zType . ((znCreated) ? "[@created='" znCreated "']" : "")				; string to zType with created attr if present in zNode
 	
 	; todo tasks and notes can be deleted.
 	; if @del=true, element has been moved to <trash> on server
 	; check if this item is already in trash: "/trash/*[@created=' created ']" exists and text of both is equal
 	; if not, move node to trash
 	
-	if (zChange="add") {													; new <plan/tasks/todo> or <notes/weekly/summary>
-		makeNodes(zMRN,nodePath[zType])										; ensure that <plan/tasks> or <notes/weekly> exist
-		yNode := yPath.selectSingleNode(nodePath[zType])
-		ynCreated := yNode.getAttribute("created")
-		ynEd := yNode.getAttribute("ed")
+	if (zChange="add") {																; new <plan/tasks/todo> or <notes/weekly/summary>
+		makeNodes(zMRN,nodePath[zType])													; ensure that path to <plan/tasks> or <notes/weekly> exist in Y
+		yPath := yID.selectSingleNode(nodePath[zType])									; the parent node
+		
+		if !IsObject(yPath.selectSingleNode(NodeStr)) {									; no existing node
+			y.addElement(zType,pathStr,{created: znCreated})							; create an element node with created date so we can clone to it
+		}
+		yNode := yPath.selectSingleNode(NodeStr)
+		ynEd := yNode.getAttribute("ed")												; last edit time
+		
+		if (znEd>ynEd) {																; as long as remote node ed is more recent
+			yPath.replaceChild(clone,yNode)												; make the clone
+		}
 	}
 
 
