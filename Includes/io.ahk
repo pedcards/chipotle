@@ -370,9 +370,7 @@ compareDates(zType, zChange:="") {
 	; if not, move node to trash
 	
 	if (zChange="del") {																; move existing plan/task/todo or notes/weekly/summary to trash
-		if !IsObject(y.selectSingleNode(mrnStr "/trash") {								; create trash node if not present
-			y.addElement("trash",mrnStr)
-		}
+		makeNodes(zMRN,"trash")															; create trash node if not present
 		y.selectSingleNode(mrnStr "/trash").appendChild(clone)							; create item in trash
 		removeNode(pathStr "/" nodeStr)													; remove item from plan/task/todo or notes/weekly/summary
 		eventlog("<--DEL::" zType "::" znCreated "::" au "::" ed )
