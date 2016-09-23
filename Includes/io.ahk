@@ -39,7 +39,7 @@ GetIt:
 	;~ ExitApp
 	Progress, 40, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	if !(isLocal) {																	; live run, download changes file from server
-		ckRes := httpComm("get")
+		ckRes := httpComm("get")													; Check response from "get"
 		
 		if (ckRes=="NONE") {														; no change.xml file present
 			MsgBox No change file.
@@ -49,9 +49,9 @@ GetIt:
 			eventlog("Import blob found.")
 			StringReplace, ckRes, ckRes, `r`n,`n, All								; MSXML cannot handle the UNIX format when modified on server 
 			StringReplace, ckRes, ckRes, `n,`r`n, All								; so convert all MS CRLF to Unix LF, then all LF back to CRLF
-			z := new XML(ckRes)
+			z := new XML(ckRes)														; Z is the imported updates blob
 			
-			importNodes()
+			importNodes()															; parse Z blob
 			
 			eventlog("Import complete.")
 			
