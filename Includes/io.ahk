@@ -71,6 +71,23 @@ GetIt:
 Return
 }
 
+WriteFile() 
+{
+	global y
+	
+	y.save("currlist.xml")
+	
+	if !(checkXML("currlist.xml")) {
+		progress, hide
+		MsgBox Bad copy process`n`nRestoring last good copy.
+		FileCopy, currlist.bak, currlist.xml, 1
+		return Error
+	} else {
+		return "good"
+	}
+}
+
+
 SaveIt:
 {
 	vSaveIt:=true																		; inform GetIt that run from SaveIt, changes progress window
