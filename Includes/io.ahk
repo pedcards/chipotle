@@ -58,12 +58,16 @@ GetIt:
 			/*	Writeout Y
 				Check integrity of Y
 			*/
+			FileMove, currlist.xml, currlist.bak, 1 								; make copy of good currlist
+			Loop, 5
+			{
+				if (WriteFile()) {													; try 5 times to successfully save currlist
+					break
+				}
+			}
 		}
 	}
 
-	/*																				This would be the place to check integrity of templist.xml
-	*/
-	
 	Progress 100, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	Sleep 500
 	Progress, off
@@ -75,12 +79,12 @@ WriteFile()
 {
 	global y
 	
-	y.save("currlist.xml")
+	y.save("currlist.xml")															; write currlist
 	
-	if !(checkXML("currlist.xml")) {
+	if !(checkXML("currlist.xml")) {												; if saved currlist is not intact (does not end with </root>)
 		progress, hide
 		MsgBox Bad copy process`n`nRestoring last good copy.
-		FileCopy, currlist.bak, currlist.xml, 1
+		FileCopy, currlist.bak, currlist.xml, 1										; then restore the last good xml
 		return Error
 	} else {
 		return "good"
