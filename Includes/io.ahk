@@ -296,9 +296,9 @@ importNodes() {
 	return
 }
 	
-compareDates(zType, zChange:="") {
-	global y, z, zPath, zNode, clone, zMRN
-	nodePath := {"todo":"plan/tasks","summary":"notes/weekly"}							; array to map proper path for import node
+compareDates(zMRN, zType, zChange:="") {
+	global y, z, zNode, zClone
+	nodePath := {"todo":"plan/tasks","summary":"notes/weekly","stat":"status","dx":"diagnoses"}			; array to map proper path for import node
 	
 	if !IsObject(yID := y.selectSingleNode("//id[@mrn='" zMRN "']")) {					; Missing MRN will only happen if ID has been archived since last server sync
 		return																			; so skip to next index
@@ -308,6 +308,7 @@ compareDates(zType, zChange:="") {
 	znEd := zNode.getAttribute("ed")													; last edit date/time
 	znCreated := zNode.getAttribute("created")											; creation date/time (for notes and tasks)
 	znDate := zNode.getAttribute("date")												; target date (for notes and tasks)
+	;MsgBox % "`n`n`n`n`n`n" zType "`n" zMRN "`n" znED "`n" zClone.getAttribute("ed") "`nISOBJ " IsObject(zClone) 
 	
 	mrnStr := "//id[@mrn='" zMRN "']"
 	PathStr := mrnStr "/" nodePath[zType]												; string to full path
@@ -320,15 +321,17 @@ compareDates(zType, zChange:="") {
 	
 	if (zChange="del") {																; move existing plan/task/todo or notes/weekly/summary to trash
 		makeNodes(zMRN,"trash")															; create trash node if not present
-		y.selectSingleNode(mrnStr "/trash").appendChild(clone)							; create item in trash
+		y.selectSingleNode(mrnStr "/trash").appendChild(zClone)							; create item in trash
 		removeNode(pathStr "/" nodeStr)													; remove item from plan/task/todo or notes/weekly/summary
 		eventlog("<--DEL::" zType "::" znCreated "::" au "::" ed )
 		return
 		
 	} else if (zChange="done") {														; mark plan/task/todo as done; move to plan/done/todo
 		
+		return
 	} else if (zChange="undo") {														; move from plan/done/todo to plan/task/todo
 		
+		return
 	} else if (zChange="add") {															; new <plan/tasks/todo> or <notes/weekly/summary>
 		makeNodes(zMRN,nodePath[zType])													; ensure that path to <plan/tasks> or <notes/weekly> exist in Y
 		
@@ -337,16 +340,18 @@ compareDates(zType, zChange:="") {
 		}
 		yPath := yID.selectSingleNode(nodePath[zType])									; the parent node
 		eventlog("<--ADD::" zType "::" znCreated "::" au "::" ed )
+		return
 	} else {																			; remaining instances are diagnosis, status, prov
+		
 		yPath := yID
 		eventlog("<--CHG::" zType "::" au "::" ed )
 	}
 	
-	yNode := yPath.selectSingleNode(NodeStr)											; get the local node
+	yNode := yPath.selectSingleNode(nodePath[zType])									; get the local node
 	ynEd := yNode.getAttribute("ed")													; last edit time
-		
+	
 	if (znEd>ynEd) {																	; as long as remote node ed is more recent
-		yPath.replaceChild(clone,yNode)													; make the clone
+		yPath.replaceChild(zClone,yNode)												; make the clone
 	} else {
 		eventlog("X--BLK::" zType ((znCreated) ? "::" znCreated : "") "::" au "::" ed " not newer.")
 	}
