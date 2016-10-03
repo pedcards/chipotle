@@ -42,9 +42,9 @@ GetIt:
 		ckRes := httpComm("get")													; Check response from "get"
 		
 		if (ckRes=="NONE") {														; no change.xml file present
-			MsgBox No change file.
+			eventlog("No change file.")
 		} else if (instr(ckRes,"proxy")) {											; hospital proxy problem
-			MsgBox Hospital proxy problem.
+			eventlog("Hospital proxy problem.")
 		} else {																	; actual response, merge the blob
 			eventlog("Import blob found.")
 			StringReplace, ckRes, ckRes, `r`n,`n, All								; MSXML cannot handle the UNIX format when modified on server 
@@ -54,6 +54,8 @@ GetIt:
 			importNodes()															; parse Z blob
 			
 			eventlog("Import complete.")
+			ckRes := httpComm("unlink")
+			eventlog((ckRes="unlink") ? "Changefile unlinked." : "Not unlinked.")
 			
 			/*	Writeout Y
 				Check integrity of Y
