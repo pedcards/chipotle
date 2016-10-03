@@ -278,22 +278,19 @@ checkXML(xml) {
 }
 
 importNodes() {
-	global y, z																	; access to Y (currlist) and Z (update blob)
+	global y, z, zNode, zClone													; access to Y (currlist) and Z (update blob)
 	
 	loop, % (ck:=z.selectNodes("//node")).length
 	{
 		zPath := ck.item(A_index-1)												; zPath is each <node>
 		zNode := zPath.childNodes.item(0)										; zNode is child to clone
-		clone := zNode.cloneNode(true)											; clone the changed node
+		zClone := zNode.cloneNode(true)											; clone the changed node
 		
 		zMRN := zPath.getAttribute("MRN")										; get the MRN, 
 		zType := zPath.getAttribute("type")										; element type, e.g. diagnoses, prov, status, todo, summary
 		zChange := zPath.getAttribute("change")									; and changed flags (add, del, done, undo)
 		
-		zMRN := 1490993															; temporary test values
-		zType := "diagnoses"
-		
-		compareDates(zType,zChange)
+		compareDates(zMRN,zType,zChange)
 	}
 	
 	return
