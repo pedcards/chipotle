@@ -18,11 +18,7 @@ GetIt:
 		yArch.save("archlist.xml")															; Write out archlist
 	}
 	
-	;~ if !(FileExist("currlist.xml")) {												; no currlist exists (really?) -- this would only occur if no local currlist
-		;~ z.save("currlist.xml")														; create currlist from object Z
-	;~ }
 	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
-	;FileCopy, currlist.xml, templist.xml, 1											; create templist copy from currlist
 	FileCopy, currlist.xml, oldlist.xml, 1											; Backup currlist to oldlist.
 	
 	Progress, 20, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
@@ -35,8 +31,6 @@ GetIt:
 	}
 	y := new XML(str)																; currlist.xml intact, load into Y
 	
-	;~ FileDelete, .currlock
-	;~ ExitApp
 	Progress, 40, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	if !(isLocal) {																	; live run, download changes file from server
 		ckRes := httpComm("get")													; Check response from "get"
