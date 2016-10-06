@@ -18,17 +18,19 @@ GetIt:
 		yArch.save("archlist.xml")															; Write out archlist
 	}
 	
+	Progress, 20, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+	Loop, 5																			; 5 tries
+		if !(str:=checkXML("currlist.xml")) {
+			;progress, hide
+			eventlog("Bad currlist.xml, attempting currlist.bak restore.")
+			FileCopy, currlist.bak, currlist.xml
+			ExitApp
+			/*	This would be a good place to try the backup copy.
+			*/
+		}
+	}
 	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
 	FileCopy, currlist.xml, oldlist.xml, 1											; Backup currlist to oldlist.
-	
-	Progress, 20, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	if !(str:=checkXML("currlist.xml")) {
-		progress, hide
-		MsgBox bad currlist file
-		ExitApp
-		/*	This would be a good place to try the backup copy.
-		*/
-	}
 	y := new XML(str)																; currlist.xml intact, load into Y
 	
 	Progress, 40, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
