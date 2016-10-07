@@ -29,6 +29,23 @@ GetIt:
 			sleep 500
 		} 
 	}
+	if !(str) {
+		Progress, 20, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+		eventlog("Failed. Attempting to download server backup.")
+		yf := httpComm("full")
+		FileDelete, templist.xml
+		FileAppend, %yf%, templist.xml
+		filecopy, templist.xml, currlist.xml, 1
+	}
+	if !(str:=checkXML("currlist.xml")) {
+		eventlog("Failed. Aborting.")
+		progress, off
+		MsgBox, 4112, Error, Serious IO error.`nAborting...
+		/*	This would be a good place to send a notification to sysadmin
+		*/
+		ExitApp
+	}
+	Progress, 30, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
 	FileCopy, currlist.xml, oldlist.xml, 1											; Backup currlist to oldlist.
 	y := new XML(str)																; currlist.xml intact, load into Y
