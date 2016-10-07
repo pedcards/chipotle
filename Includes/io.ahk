@@ -18,26 +18,23 @@ GetIt:
 		yArch.save("archlist.xml")															; Write out archlist
 	}
 	
-	Loop, 5																			; 5 tries
-		Progress, 20, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-		if (str:=checkXML("currlist.xml")) {
-			eventlog("currlist.xml intact.")
-			break
-		} else {
-			eventlog("Bad currlist.xml, attempting oldlist.xml restore. [" A_Index "]")
-			FileCopy, oldlist.xml, currlist.xml, 1
-			sleep 500
-		} 
-	}
+	Progress, 20, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+	str:=checkXML("currlist.xml")
 	if !(str) {
-		Progress, 20, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+		eventlog("Bad currlist.xml, attempting oldlist.xml restore.")
+		FileCopy, oldlist.xml, currlist.xml, 1
+		str:=checkXML("currlist.xml")
+	}
+	Progress, 20, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+	if !(str) {
 		eventlog("Failed. Attempting to download server backup.")
 		yf := httpComm("full")
 		FileDelete, templist.xml
 		FileAppend, %yf%, templist.xml
 		filecopy, templist.xml, currlist.xml, 1
+		str:=checkXML("currlist.xml")
 	}
-	if !(str:=checkXML("currlist.xml")) {
+	if !(str) {
 		eventlog("Failed. Aborting.")
 		progress, off
 		MsgBox, 4112, Error, Serious IO error.`nAborting...
@@ -46,6 +43,7 @@ GetIt:
 		ExitApp
 	}
 	Progress, 30, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+	eventlog("Currlist integrity check - PASSED")
 	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
 	FileCopy, currlist.xml, oldlist.xml, 1											; Backup currlist to oldlist.
 	y := new XML(str)																; currlist.xml intact, load into Y
