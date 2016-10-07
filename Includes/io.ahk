@@ -13,35 +13,38 @@ GetIt:
 	Progress, 20																	; launched from SaveIt, no CHIPOTLE header
 
 	yArch := new XML("archlist.xml")
-	if !IsObject(yArch.selectSingleNode("/root")) {										; if yArch is empty,
-		yArch.addElement("root")														; then create it.
-		yArch.save("archlist.xml")															; Write out archlist
+	if !IsObject(yArch.selectSingleNode("/root")) {									; if yArch is empty,
+		yArch.addElement("root")													; then create it.
+		yArch.save("archlist.xml")													; Write out archlist
 	}
 	
 	Progress, 20, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	str:=checkXML("currlist.xml")
-	if !(str) {
+	if !(str) {																		; checkXML returns error or null
 		eventlog("Bad currlist.xml, attempting oldlist.xml restore.")
-		FileCopy, oldlist.xml, currlist.xml, 1
-		str:=checkXML("currlist.xml")
+		FileCopy, oldlist.xml, currlist.xml, 1										; copy oldlist to currlist
+		str:=checkXML("currlist.xml")												; check again
+		/*	This would be a good place to send a notification to sysadmin
+		*/
 	}
 	Progress, 20, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	if !(str) {
+	if !(str) {																		; checkXML returns error on what was oldlist
 		eventlog("Failed. Attempting to download server backup.")
-		yf := httpComm("full")
+		yf := httpComm("full")														; call download of FULL list from server, not just changes
 		FileDelete, templist.xml
-		FileAppend, %yf%, templist.xml
-		filecopy, templist.xml, currlist.xml, 1
-		str:=checkXML("currlist.xml")
+		FileAppend, %yf%, templist.xml												; write out as templist
+		filecopy, templist.xml, currlist.xml, 1										; copy templist to currlist
+		str:=checkXML("currlist.xml")												; check again
 	}
-	if !(str) {
-		eventlog("Failed. Aborting.")
+	if !(str) {																		; still no go (failed to retrieve currlist, oldlist, and serverlist)
+		eventlog("Failed. Aborting.")												; something is seriously wrong
 		progress, off
 		MsgBox, 4112, Error, Serious IO error.`nAborting...
 		/*	This would be a good place to send a notification to sysadmin
 		*/
 		ExitApp
 	}
+	
 	Progress, 30, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	eventlog("Currlist integrity check - PASSED")
 	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
