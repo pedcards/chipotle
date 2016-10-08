@@ -47,11 +47,11 @@ GetIt:
 	
 	Progress, 30, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	eventlog("Currlist integrity check - PASSED")
-	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
+	FileGetTime, currtime, currlist.xml												; get modified date for currlist.xml
 	FileCopy, currlist.xml, oldlist.xml, 1											; Backup currlist to oldlist.
 	y := new XML(str)																; currlist.xml intact, load into Y
 	
-	Progress, 40, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+	Progress, 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	if !(isLocal) {																	; live run, download changes file from server
 		ckRes := httpComm("get")													; Check response from "get"
 		
@@ -66,20 +66,14 @@ GetIt:
 			z := new XML(ckRes)														; Z is the imported updates blob
 			
 			importNodes()															; parse Z blob
-			
 			eventlog("Import complete.")
-			ckRes := httpComm("unlink")
-			eventlog((ckRes="unlink") ? "Changefile unlinked." : "Not unlinked.")
 			
-			/*	Writeout Y
-				Check integrity of Y
-			*/
-			FileMove, currlist.xml, currlist.bak, 1 								; make copy of good currlist
-			Loop, 5
-			{
-				if (WriteFile()) {													; try 5 times to successfully save currlist
-					break
-				}
+			if (WriteFile()) {														; Write updated Y to currlist
+				eventlog("Successful currlist update.")
+				ckRes := httpComm("unlink")
+				eventlog((ckRes="unlink") ? "Changefile unlinked." : "Not unlinked.")
+			} else {
+				eventlog("Failed to write currlist.")
 			}
 		}
 	}
@@ -95,15 +89,27 @@ WriteFile()
 {
 	global y
 	
-	y.save("currlist.xml")															; write currlist
+	FileCopy, currlist.xml, currlist.bak, 1 								; make copy of good currlist
 	
-	if !(checkXML("currlist.xml")) {												; if saved currlist is not intact (does not end with </root>)
+	Loop, 5
+	{																		; try 5 times
+		y.save("currlist.xml")												; to write currlist
+		
+		if (chk := checkXML("currlist.xml")) {								; success, break out
+			break
+		} else {
+			eventlog("WriteFile unsuccessful. [" A_index "]")
+			sleep 500
+		}
+	}
+	
+	if (chk) {																; successful check
+		return "good"
+	} else {																; unsuccessful check
 		progress, hide
 		MsgBox Bad copy process`n`nRestoring last good copy.
-		FileCopy, currlist.bak, currlist.xml, 1										; then restore the last good xml
+		FileMove, currlist.bak, currlist.xml, 1								; then restore the last good xml
 		return Error
-	} else {
-		return "good"
 	}
 }
 
