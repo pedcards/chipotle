@@ -18,38 +18,9 @@ GetIt:
 		yArch.save("archlist.xml")													; Write out archlist
 	}
 	
-	Progress, 20, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	str:=checkXML("currlist.xml")
-	if !(str) {																		; checkXML returns error or null
-		eventlog("Bad currlist.xml, attempting oldlist.xml restore.")
-		FileCopy, oldlist.xml, currlist.xml, 1										; copy oldlist to currlist
-		str:=checkXML("currlist.xml")												; check again
-		/*	This would be a good place to send a notification to sysadmin
-		*/
-	}
-	Progress, 20, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	if !(str) {																		; checkXML returns error on what was oldlist
-		eventlog("Failed. Attempting to download server backup.")
-		yf := httpComm("full")														; call download of FULL list from server, not just changes
-		FileDelete, templist.xml
-		FileAppend, %yf%, templist.xml												; write out as templist
-		filecopy, templist.xml, currlist.xml, 1										; copy templist to currlist
-		str:=checkXML("currlist.xml")												; check again
-	}
-	if !(str) {																		; still no go (failed to retrieve currlist, oldlist, and serverlist)
-		eventlog("Failed. Aborting.")												; something is seriously wrong
-		progress, off
-		MsgBox, 4112, Error, Serious IO error.`nAborting...
-		/*	This would be a good place to send a notification to sysadmin
-		*/
-		ExitApp
-	}
-	
 	Progress, 30, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	eventlog("Currlist integrity check - PASSED")
-	FileGetTime, currtime, currlist.xml												; get modified date for currlist.xml
-	FileCopy, currlist.xml, oldlist.xml, 1											; Backup currlist to oldlist.
-	y := new XML(str)																; currlist.xml intact, load into Y
+	refreshXML(1)																	; Get currlist, bak, or server copy
+	eventlog("Valid currlist acquired")
 	
 	Progress, 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	if !(isLocal) {																	; live run, download changes file from server
