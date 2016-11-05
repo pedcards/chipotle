@@ -488,28 +488,46 @@ refreshCurr(fix:="") {
 	filecheck()
 	FileOpen(".currlock", "W")													; Create lock file
 	if (z:=checkXML("currlist.xml")) {											; Valid XML
-		y := new XML(z)																; <== Is this valid?
+		y := new XML(z)														; <== Is this valid?
 		FileDelete, .currlock													; Clear the file lock
 		return																	; Return with refreshed Y
 	}
 	
+	eventlog("Failed to read currlist. Attempting backup restore.")
 	dirlist :=
-	Loop, bak\*.*
+	Loop, files, bak\*.bak
 	{
 		dirlist .= A_LoopFileTimeCreated "`t" A_LoopFileName "`n"				; build up dirlist with Created time `t Filename
 	}
 	Sort, dirlist, R															; Sort in reverse chron order
-	
 	Loop, parse, dirlist, `n
 	{
 		name := strX(A_LoopField,"`t",1,1,"",0)									; Get filename between TAB and NL
 		if (z:=checkXML("bak\" name)) {											; Is valid XML
 			y := new XML(z)														; Replace Y with Z
+			eventlog("Successful restore from " name)
+			FileCopy, bak\%name%, currlist.xml, 1							; Replace currlist.xml with good copy
 			FileDelete, .currlock												; Clear file lock
 			return
 		}
 	}
-
+	
+	eventlog("Failed to restore backup. Attempting to download server backup.")
+	sz := httpComm("full")														; call download of FULL list from server, not just changes
+	FileDelete, templist.xml
+	FileAppend, %sz%, templist.xml												; write out as templist
+	if (z:=checkXML("templist.xml")) {
+		y := new XML(z)															; Replace Y with Z
+		eventlog("Successful restore from server.")
+		filecopy, templist.xml, currlist.xml, 1									; copy templist to currlist
+		FileDelete, .currlock													; clear file lock
+		return
+	}
+	
+	eventlog("Failed to restore from server.")									; All attempts fail. Something bad has happened.
+	FileDelete, .currlock
+	MsgBox, 16, CRITICAL ERROR, Unable to read currlist. `n`nExiting.
+	ExitApp
 }
 
 repairXML(ByRef y, ByRef z) {
