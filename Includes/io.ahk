@@ -482,9 +482,22 @@ refreshCurr(fix:="") {
 /*	Refresh Y in memory with currlist.xml to reflect changes from other users.
 	If invalid XML, try to read the most recent .bak file in reverse chron order.
 	If all .bak files fail, get last saved server copy.
-	If fix=1, will call replicase() to anneal broken file.
+	If fix=1, will call replicase repairXML(y,z) to anneal broken file.
 */
 
+}
+
+repairXML(ByRef y, ByRef z) {
+/*	Attempt to repair broken XML file.
+	"Y" = broken XML, "Z" = last good bak version
+	Get X chars from broken tail for polymerase annealing.
+	Search for "<id mrn=" backwards from broken tail, get the MRN string.
+	Search for same "tail" within the same ID MRN in Z.
+	Copy the remainder of Z from that point.
+	Attach to broken tail of Y.
+*/
+
+	; Cool idea, but will this really be relevant if we have a constant supply of good bak files?
 }
 
 WriteOut(path,node) {
