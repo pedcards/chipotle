@@ -478,6 +478,14 @@ FilePrepend( Text, Filename ) {
     File.Close()
 }
 
+refreshCurr(fix:="") {
+/*	Refresh Y in memory with currlist.xml to reflect changes from other users.
+	If invalid XML, try to read the most recent .bak file in reverse chron order.
+	If all .bak files fail, get last saved server copy.
+	If fix=1, will call replicase() to anneal broken file.
+*/
+
+
 WriteOut(path,node) {
 /* 
 	Prevents concurrent writing of y.MRN data. If someone is saving data (.currlock exists), script will wait
