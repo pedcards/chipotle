@@ -490,6 +490,7 @@ refreshCurr(fix:="") {
 	z := new XML("currlist.xml")												; Open existing live currlist.xml into temp Z
 	if (checkXML(z)) {															; Valid XML
 		y := z																; <== Is this valid?
+		FileDelete, .currlock													; Clear the file lock
 		return																	; Return with refreshed Y
 	}
 
