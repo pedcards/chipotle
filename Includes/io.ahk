@@ -500,8 +500,9 @@ WriteOut(path,node) {
 	zPath := z.selectSingleNode(path)											; find same "node" in z
 	zNode := zPath.selectSingleNode(node)
 	zPath.replaceChild(clone,zNode)												; replace existing zNode with node clone
-
+	
 	z.save("currlist.xml")														; write z into currlist
+	z.save("bak/" A_now ".bak")													; create a backup for each writeout
 	y := new XML("currlist.xml")												; reload currlist into y
 	FileDelete, .currlock														; release lock file.
 }
