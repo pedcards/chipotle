@@ -468,6 +468,7 @@ refreshCurr(lock:="") {
 	}
 	
 	eventlog("Failed to read currlist. Attempting backup restore.")
+	httpComm("err200")															; trigger Pushover message of local currlist fail
 	dirlist :=
 	Loop, files, bak\*.bak
 	{
@@ -501,6 +502,7 @@ refreshCurr(lock:="") {
 	}
 	
 	eventlog("Failed to restore from server.")									; All attempts fail. Something bad has happened.
+	httpComm("err999")															; Pushover message of utter failure
 	FileDelete, .currlock
 	MsgBox, 16, CRITICAL ERROR, Unable to read currlist. `n`nExiting.
 	ExitApp
