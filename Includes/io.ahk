@@ -484,6 +484,14 @@ refreshCurr(fix:="") {
 	If all .bak files fail, get last saved server copy.
 	If fix=1, will call replicase repairXML(y,z) to anneal broken file.
 */
+	global y
+	filecheck()
+	FileOpen(".currlock", "W")													; Create lock file
+	z := new XML("currlist.xml")												; Open existing live currlist.xml into temp Z
+	if (checkXML(z)) {															; Valid XML
+		y := z																; <== Is this valid?
+		return																	; Return with refreshed Y
+	}
 
 }
 
