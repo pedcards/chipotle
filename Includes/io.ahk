@@ -195,7 +195,10 @@ SaveIt:
 		WinWaitClose ahk_id %consWin%
 		Run pscp.exe -sftp -i chipotle-pr.ppk -p logs/%sessdate%.log pedcards@homer.u.washington.edu:public_html/%servfold%/logs/%sessdate%.log,, Min
 	}
-
+	
+	/*	Need to add a bit here to clean up the bak/ folder of files older than 24-48 hrs old?
+	*/
+	
 	FileDelete, .currlock
 	eventlog("CHIPS server updated.")
 	Progress, 100, Done!
