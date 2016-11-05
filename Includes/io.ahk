@@ -485,6 +485,7 @@ refreshCurr(fix:="") {
 	If fix=1, will call replicase() to anneal broken file.
 */
 
+}
 
 WriteOut(path,node) {
 /* 
