@@ -449,18 +449,21 @@ FilePrepend( Text, Filename ) {
     File.Close()
 }
 
-refreshCurr(fix:="") {
+refreshCurr(lock:="") {
 /*	Refresh Y in memory with currlist.xml to reflect changes from other users.
 	If invalid XML, try to read the most recent .bak file in reverse chron order.
 	If all .bak files fail, get last saved server copy.
 	If fix=1, will call replicase repairXML(y,z) to anneal broken file.
 */
 	global y
-	filecheck()
-	FileOpen(".currlock", "W")													; Create lock file
+	if (lock) {
+		filecheck()
+		FileOpen(".currlock", "W")												; Create lock file
+	}
 	if (z:=checkXML("currlist.xml")) {											; Valid XML
 		y := new XML(z)														; <== Is this valid?
-		FileDelete, .currlock													; Clear the file lock
+		if (lock) 
+			FileDelete, .currlock													; Clear the file lock
 		return																	; Return with refreshed Y
 	}
 	
@@ -478,7 +481,8 @@ refreshCurr(fix:="") {
 			y := new XML(z)														; Replace Y with Z
 			eventlog("Successful restore from " name)
 			FileCopy, bak\%name%, currlist.xml, 1							; Replace currlist.xml with good copy
-			FileDelete, .currlock												; Clear file lock
+			if (lock)
+				FileDelete, .currlock												; Clear file lock
 			return
 		}
 	}
@@ -491,7 +495,8 @@ refreshCurr(fix:="") {
 		y := new XML(z)															; Replace Y with Z
 		eventlog("Successful restore from server.")
 		filecopy, templist.xml, currlist.xml, 1									; copy templist to currlist
-		FileDelete, .currlock													; clear file lock
+		if (lock)
+			FileDelete, .currlock													; clear file lock
 		return
 	}
 	
