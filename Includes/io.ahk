@@ -19,7 +19,7 @@ GetIt:
 	}
 	
 	Progress, 30, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	refreshXML(1)																	; Get currlist, bak, or server copy
+	refreshCurr(1)																	; Get currlist, bak, or server copy
 	eventlog("Valid currlist acquired")
 	
 	Progress, 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
