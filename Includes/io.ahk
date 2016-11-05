@@ -487,11 +487,27 @@ refreshCurr(fix:="") {
 	global y
 	filecheck()
 	FileOpen(".currlock", "W")													; Create lock file
-	z := new XML("currlist.xml")												; Open existing live currlist.xml into temp Z
-	if (checkXML(z)) {															; Valid XML
-		y := z																; <== Is this valid?
+	if (z:=checkXML("currlist.xml")) {											; Valid XML
+		y := new XML(z)																; <== Is this valid?
 		FileDelete, .currlock													; Clear the file lock
 		return																	; Return with refreshed Y
+	}
+	
+	dirlist :=
+	Loop, bak\*.*
+	{
+		dirlist .= A_LoopFileTimeCreated "`t" A_LoopFileName "`n"				; build up dirlist with Created time `t Filename
+	}
+	Sort, dirlist, R															; Sort in reverse chron order
+	
+	Loop, parse, dirlist, `n
+	{
+		name := strX(A_LoopField,"`t",1,1,"",0)									; Get filename between TAB and NL
+		if (z:=checkXML("bak\" name)) {											; Is valid XML
+			y := new XML(z)														; Replace Y with Z
+			FileDelete, .currlock												; Clear file lock
+			return
+		}
 	}
 
 }
