@@ -514,7 +514,7 @@ filecheck() {
 			if (FileExist(".currlock")) {
 				progress, %p%
 				Sleep 50
-				p += 1
+				p += 2
 			} else {
 				err=1
 				break
