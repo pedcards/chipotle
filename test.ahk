@@ -7,8 +7,10 @@
 	
 	loop, parse, dirlist, `n
 	{
-		;~ StringSplit, name, A_LoopField, `t
-		name := instr(A_LoopField, A_tab, 0)
-		MsgBox % name
+		name := strX(A_LoopField, "`t",1,1, "",0)
+		MsgBox % "'" name "'"
 	}
 	
+
+ExitApp
+#Include includes\strx.ahk
