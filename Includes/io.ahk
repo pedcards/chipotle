@@ -494,10 +494,12 @@ refreshCurr(lock:="") {
 		if (z:=checkXML("bak\" name)) {											; Is valid XML
 			y := new XML(z)														; Replace Y with Z
 			eventlog("Successful restore from " name)
-			FileCopy, bak\%name%, currlist.xml, 1							; Replace currlist.xml with good copy
+			FileCopy, bak\%name%, currlist.xml, 1								; Replace currlist.xml with good copy
 			if (lock)
-				FileDelete, .currlock												; Clear file lock
+				FileDelete, .currlock											; Clear file lock
 			return
+		} else {
+			FileDelete, bak\%name%												; Delete the bad bak file
 		}
 	}
 	
