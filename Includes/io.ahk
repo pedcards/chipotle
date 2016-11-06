@@ -169,14 +169,18 @@ SaveIt:
 		Run pscp.exe -sftp -i chipotle-pr.ppk -p logs/%sessdate%.log pedcards@homer.u.washington.edu:public_html/%servfold%/logs/%sessdate%.log,, Min
 	}
 	
+	bdir :=
 	Loop, files, bak/*.bak
 	{
-		k := A_LoopFileName
-		n := A_LoopFileTimeCreated														; Created date
-		n -= A_now, Days																; Difference from now
-		if (n < -2) {																	; More than 2 days prior
-			FileDelete, %k%																; Delete
-		}
+		bdir .= A_LoopFileTimeCreated "`t" A_LoopFileName "`n"
+	}
+	Sort, bdir, R
+	Loop, parse, bdir, `n
+	{
+		if (A_index < 10)																; skip the 10 most recent .bak files
+			continue
+		k := "bak/" strX(A_LoopField,"`t",1,1,"",0)										; Get filename between TAB and NL
+		FileDelete, %k%																	; Delete
 	}
 	
 	FileDelete, .currlock
