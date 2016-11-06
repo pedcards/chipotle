@@ -41,7 +41,7 @@ GetIt:
 			
 			if (WriteFile()) {														; Write updated Y to currlist
 				eventlog("Successful currlist update.")
-				ckRes := httpComm("unlink")
+				ckRes := httpComm("unlink")											; Send command to delete update blob
 				eventlog((ckRes="unlink") ? "Changefile unlinked." : "Not unlinked.")
 			} else {
 				eventlog("Failed to write currlist.")
@@ -549,7 +549,7 @@ WriteOut(path,node) {
 	
 	z.save("currlist.xml")														; write z into currlist
 	z.save("bak/" A_now ".bak")													; create a backup for each writeout
-	y := new XML("currlist.xml")												; reload currlist into y
+	y := z																		; make Y match Z, don't need a file op
 	FileDelete, .currlock														; release lock file.
 }
 
