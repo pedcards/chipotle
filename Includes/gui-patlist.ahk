@@ -57,6 +57,7 @@ PatListGet:
 	
 PatListGUI:
 {
+	refreshCurr(1)														; refresh Y with currlock
 	pl_demo := ""
 		. "DOB: " pl_DOB 
 		. "   Age: " (instr(pl_Age,"month")?RegExReplace(pl_Age,"i)month","mo"):instr(pl_Age,"year")?RegExReplace(pl_Age,"i)year","yr"):pl_Age) 

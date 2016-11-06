@@ -12,61 +12,82 @@ GetIt:
 		Progress, b w300, Consolidating data..., 
 	Progress, 20																	; launched from SaveIt, no CHIPOTLE header
 
-	FileCopy, currlist.xml, templist.xml, 1											; create templist copy from currlist
-	if !(isLocal) {																	; live run, download changes file from server
-		whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")							; initialize http request in object whr
-			whr.Open("GET"															; set the http verb to GET file "change"
-				, "https://depts.washington.edu/pedcards/change/direct.php?do=sync"
-				, true)
-			whr.Send()																; SEND the command to the address
-			whr.WaitForResponse()	
-		ckUrl := whr.ResponseText													; the http response
-		if instr(ckUrl, "does not exist") {											; no "change" file
-			ckUrl := "EXIST"														; clear values and skip out
-			ckUrlDT := ""
-		} else if instr(ckUrl, "permission denied") {								; permissions problem, check .htaccess on server
-			ckUrl := "DENIED"														; clear values and skip out
-			ckUrlDT := ""
-		} else {
-			;ckUrlDT := whr.getResponseHeader("Last-Modified")						; file exists, get modified date
-		}
-		;~ if !instr(ckUrl, "proxy")													; might contain "proxy" if did not work
-			;~ break																	; don't think I need these?
-	}
-	FileGetTime, currtime, currlist.xml												; modified date for currlist.xml
-
-	Progress, 60, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	
-	;~ z := new XML("templist.xml")													; load templist into XML object Z -- UNNECESSARY if templist is untouched
-	Progress,, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	/*																				This would be the place to check integrity of templist.xml
-	*/
-	
-	;~ if !(FileExist("currlist.xml")) {												; no currlist exists (really?) -- this would only occur if no local currlist
-		;~ z.save("currlist.xml")														; create currlist from object Z
-	;~ }
-	FileCopy, currlist.xml, oldlist.xml, 1											; Backup currlist to oldlist.
-	;~ x := new XML("currlist.xml")													; Load currlist into working X.
-	
-	;~ x.save("currlist.xml")																; save X to currlist
-	y := new XML("currlist.xml")														; load this fresh currlist.XML into Y
-	Progress 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-
-
 	yArch := new XML("archlist.xml")
-	if !IsObject(yArch.selectSingleNode("/root")) {										; if yArch is empty,
-		yArch.addElement("root")														; then create it.
-		yArch.save("archlist.xml")															; Write out archlist
+	if !IsObject(yArch.selectSingleNode("/root")) {									; if yArch is empty,
+		yArch.addElement("root")													; then create it.
+		yArch.save("archlist.xml")													; Write out archlist
 	}
 	
+	Progress, 30, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+	refreshCurr()																	; Get currlist, bak, or server copy
+	eventlog("Valid currlist.")
+	
+	Progress, 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+	if !(isLocal) {																	; live run, download changes file from server
+		ckRes := httpComm("get")													; Check response from "get"
+		
+		if (ckRes=="NONE") {														; no change.xml file present
+			eventlog("No change file.")
+		} else if (instr(ckRes,"proxy")) {											; hospital proxy problem
+			eventlog("Hospital proxy problem.")
+		} else {																	; actual response, merge the blob
+			eventlog("Import blob found.")
+			StringReplace, ckRes, ckRes, `r`n,`n, All								; MSXML cannot handle the UNIX format when modified on server 
+			StringReplace, ckRes, ckRes, `n,`r`n, All								; so convert all MS CRLF to Unix LF, then all LF back to CRLF
+			z := new XML(ckRes)														; Z is the imported updates blob
+			
+			importNodes()															; parse Z blob
+			eventlog("Import complete.")
+			
+			if (WriteFile()) {														; Write updated Y to currlist
+				eventlog("Successful currlist update.")
+				ckRes := httpComm("unlink")											; Send command to delete update blob
+				eventlog((ckRes="unlink") ? "Changefile unlinked." : "Not unlinked.")
+			} else {
+				eventlog("Failed to write currlist.")
+			}
+		}
+	}
+
+	Progress 100, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	Sleep 500
 	Progress, off
 	FileDelete, .currlock
 Return
 }
 
+WriteFile() 
+{
+	global y
+	
+	FileCopy, currlist.xml, currlist.bak, 1 								; make copy of good currlist
+	
+	Loop, 5
+	{																		; try 5 times
+		y.save("currlist.xml")												; to write currlist
+		
+		if (chk := checkXML("currlist.xml")) {								; success, break out
+			break
+		} else {
+			eventlog("WriteFile unsuccessful. [" A_index "]")
+			sleep 500
+		}
+	}
+	
+	if (chk) {																; successful check
+		return "good"
+	} else {																; unsuccessful check
+		progress, hide
+		MsgBox Bad copy process`n`nRestoring last good copy.
+		FileMove, currlist.bak, currlist.xml, 1								; then restore the last good xml
+		return Error
+	}
+}
+
+
 SaveIt:
 {
+	eventlog("Starting save...")
 	vSaveIt:=true																		; inform GetIt that run from SaveIt, changes progress window
 	gosub GetIt																			; recheck the server side currlist.xml
 	vSaveIt:=																			; clear bit
@@ -75,8 +96,8 @@ SaveIt:
 	FileOpen(".currlock", "W")															; Create lock file.
 
 	Progress, b w300, Processing...
-	y := new XML("currlist.xml")														; Load freshest copy of Currlist
-	yArch := new XML("archlist.xml")													; and ArchList
+	;~ y := new XML("currlist.xml")														; Load freshest copy of Currlist
+	;~ yArch := new XML("archlist.xml")													; and ArchList
 	
 	; Save all MRN, Dx, Notes, ToDo, etc in arch.xml
 	yaNum := y.selectNodes("/root/id").length
@@ -132,6 +153,7 @@ SaveIt:
 	}
 	
 	y.save("currlist.xml")
+	FileCopy, currlist.xml, % "bak/" A_now ".bak"
 	eventlog("Currlist cleaned up.")
 	
 	if !(isLocal) {																		; for live data, send to server
@@ -146,7 +168,21 @@ SaveIt:
 		WinWaitClose ahk_id %consWin%
 		Run pscp.exe -sftp -i chipotle-pr.ppk -p logs/%sessdate%.log pedcards@homer.u.washington.edu:public_html/%servfold%/logs/%sessdate%.log,, Min
 	}
-
+	
+	bdir :=
+	Loop, files, bak/*.bak
+	{
+		bdir .= A_LoopFileTimeCreated "`t" A_LoopFileName "`n"
+	}
+	Sort, bdir, R
+	Loop, parse, bdir, `n
+	{
+		if (A_index < 11)																; skip the 10 most recent .bak files
+			continue
+		k := "bak/" strX(A_LoopField,"`t",1,1,"",0)										; Get filename between TAB and NL
+		FileDelete, %k%																	; Delete
+	}
+	
 	FileDelete, .currlock
 	eventlog("CHIPS server updated.")
 	Progress, 100, Done!
@@ -213,6 +249,199 @@ saveCensus:
 	return
 }
 
+httpComm(verb) {
+	; consider two parameters?
+	global servFold
+	whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")							; initialize http request in object whr
+		whr.Open("GET"															; set the http verb to GET file "change"
+			, "https://depts.washington.edu/pedcards/change/direct.php?" 
+				. ((servFold="testlist") ? "test=true&" : "") 
+				. "do=" . verb
+			, true)
+		whr.Send()																; SEND the command to the address
+		whr.WaitForResponse()	
+	return whr.ResponseText													; the http response
+}
+
+checkXML(xml) {
+/*	Simple integrity check for XML files.
+	Reads XML file into string, checks if string ends with </root>
+	If success, returns obj. If not, returns error.
+ */
+	FileRead, str, % xml	
+	Loop, parse, str, `n, `r
+	{
+		test := A_LoopField
+		if !(test) {
+			continue
+		}
+		lastline := test
+	}
+	if instr(lastline,"</root>") {
+		return str
+	} else {
+		return error 
+	}
+}
+
+importNodes() {
+	global y, z, zNode, zClone													; access to Y (currlist) and Z (update blob)
+	
+	loop, % (ck:=z.selectNodes("//node")).length
+	{
+		zPath := ck.item(A_index-1)												; zPath is each <node>
+		zNode := zPath.childNodes.item(0)										; zNode is child to clone
+		zClone := zNode.cloneNode(true)											; clone the changed node
+		
+		zMRN := zPath.getAttribute("MRN")										; get the MRN, 
+		zType := zPath.getAttribute("type")										; element type, e.g. diagnoses, prov, status, todo, summary
+		zChange := zPath.getAttribute("change")									; and changed flags (add, del, done, undo)
+		
+		compareDates(zMRN,zType,zChange)
+	}
+	
+	return
+}
+	
+compareDates(zMRN, zType, zChange:="") {
+	global y, z, zNode, zClone
+	nodePath := {"todo":"plan/tasks","summary":"notes/weekly","stat":"status","dx":"diagnoses"}			; array to map proper path for import node
+	
+	if !IsObject(yID := y.selectSingleNode("//id[@mrn='" zMRN "']")) {					; Missing MRN will only happen if ID has been archived since last server sync
+		return																			; so skip to next index
+	}
+	
+	znAu := zNode.getAttribute("au")													; author of change
+	znEd := zNode.getAttribute("ed")													; last edit date/time
+	znCreated := zNode.getAttribute("created")											; creation date/time (for notes and tasks)
+	znDate := zNode.getAttribute("date")												; target date (for notes and tasks)
+	;MsgBox % "`n`n`n`n`n`n" zType "`n" zMRN "`n" znED "`n" zClone.getAttribute("ed") "`nISOBJ " IsObject(zClone) 
+	
+	mrnStr := "//id[@mrn='" zMRN "']"
+	PathStr := mrnStr "/" nodePath[zType]												; string to full path
+	NodeStr := zType . ((znCreated) ? "[@created='" znCreated "']" : "")				; string to zType with created attr if present in zNode
+	
+	; todo tasks and notes can be deleted.
+	; if @del=true, element has been moved to <trash> on server
+	; check if this item is already in trash: "/trash/*[@created=' created ']" exists and text of both is equal
+	; if not, move node to trash
+	
+	if (zChange="del") {																; move existing plan/task/todo or notes/weekly/summary to trash
+		makeNodes(zMRN,"trash")															; create trash node if not present
+		y.selectSingleNode(mrnStr "/trash").appendChild(zClone)							; create item in trash
+		removeNode(pathStr "/" nodeStr)													; remove item from plan/task/todo or notes/weekly/summary
+		eventlog("<--DEL::" zType "::" znCreated "::" au "::" ed )
+		return
+		
+	} else if (zChange="done") {														; mark plan/task/todo as done; move to plan/done/todo
+		
+		return
+	} else if (zChange="undo") {														; move from plan/done/todo to plan/task/todo
+		
+		return
+	} else if (zChange="add") {															; new <plan/tasks/todo> or <notes/weekly/summary>
+		makeNodes(zMRN,nodePath[zType])													; ensure that path to <plan/tasks> or <notes/weekly> exist in Y
+		
+		if !IsObject(y.selectSingleNode(PathStr "/" NodeStr)) {							; no existing node
+			y.addElement(zType,pathStr,{created: znCreated})							; create an element node with created date so we can clone to it
+		}
+		yPath := yID.selectSingleNode(nodePath[zType])									; the parent node
+		eventlog("<--ADD::" zType "::" znCreated "::" au "::" ed )
+		return
+	} else {																			; remaining instances are diagnosis, status, prov
+		
+		yPath := yID
+		eventlog("<--CHG::" zType "::" au "::" ed )
+	}
+	
+	yNode := yPath.selectSingleNode(nodePath[zType])									; get the local node
+	ynEd := yNode.getAttribute("ed")													; last edit time
+	
+	if (znEd>ynEd) {																	; as long as remote node ed is more recent
+		yPath.replaceChild(zClone,yNode)												; make the clone
+	} else {
+		eventlog("X--BLK::" zType ((znCreated) ? "::" znCreated : "") "::" au "::" ed " not newer.")
+	}
+	
+	return
+}
+
+makeNodes(MRN,path) {
+/*	Checks Y for presence of the node in path
+ *	Creates path as needed
+ */
+	global y
+	mrnPath :=  "//id[@mrn='" MRN "']"
+	if IsObject(yNode := y.selectSingleNode(mrnPath "/" path)) {						; path exists, return
+		return
+	}
+	loop, parse, path, /
+	{
+		step := A_LoopField																; each next level of path
+		
+		if IsObject(y.selectSingleNode(mrnPath "/" step)) {								; this level exists,
+			mrnPath .= "/" step															; add to mrnPath string
+			continue																	; and move to next level
+		}
+		y.addElement(step, mrnPath)														; does not exist, add this element
+		mrnPath .= "/" step																; add to mrnPath string and move to next
+	}
+	return
+}
+
+ArchiveNode(node,i:=0) {
+	global y, yArch, kMRN											; Initialize global variables
+	MRN := "/root/id[@mrn='" kMRN "']"
+	x := y.selectSingleNode(MRN "/" node)							; Get "node" from k (y.id[mrn])
+	if !IsObject(x) {
+		;MsgBox Fail
+		return
+	}
+	if !IsObject(yArch.selectSingleNode(MRN "/" node))					; if no node exists,
+		yArch.addElement(node,MRN)										; create it.
+	arcX := yArch.selectSingleNode(MRN "/" node)						; get the node, whether existant or new
+	
+	if (arcX.getAttribute("ed") == x.getAttribute("ed")) {				; nodes in Y and yArch are equivalent
+		return
+	}
+	
+	clone := x.cloneNode(true)											; make a copy
+	yArch.selectSingleNode(MRN).replaceChild(clone,arcX)				; replace arcX with the clone.
+	
+	if ((node="demog") and (yArch.selectSingleNode(MRN "/demog/data"))){
+		yArch.selectSingleNode(MRN "/demog").removeChild(yArch.selectSingleNode(MRN "/demog/data"))
+	}
+	
+	if (i=1)	{														; create <id/archive/discharge[date=now]>
+		if !IsObject(yArch.selectSingleNode(MRN "/archive")) {
+			yArch.addElement("archive",MRN)
+		}
+		FormatTime, dcdate, A_Now, yyyyMMdd
+		yArch.addElement("dc",MRN "/archive", {date: dcdate})
+		yArch.selectSingleNode(MRN "/archive/dc[@date='" dcdate "']").appendChild(clone)
+	}																	; move element here
+	return
+}
+
+FetchNode(node) {
+	global
+	local x, clone
+	if IsObject(yArch.selectSingleNode(MRNstring "/" node)) {		; Node arch exists
+		x := yArch.selectSingleNode(MRNstring "/" node)
+		clone := x.cloneNode(true)
+		y.selectSingleNode(MRNstring).appendChild(clone)			; using appendChild as no Child exists yet.
+	} else {
+		y.addElement(node, MRNstring)								; If no node arch exists, create placeholder
+	}
+}
+
+RemoveNode(node) {
+	global
+	local q
+	q := y.selectSingleNode(node)
+	q.parentNode.removeChild(q)
+}
+
 eventlog(event) {
 	global user, sessdate
 	comp := A_ComputerName
@@ -231,6 +460,80 @@ FilePrepend( Text, Filename ) {
     file.pos:=0
     File.Write(text)
     File.Close()
+}
+
+refreshCurr(lock:="") {
+/*	Refresh Y in memory with currlist.xml to reflect changes from other users.
+	If invalid XML, try to read the most recent .bak file in reverse chron order.
+	If all .bak files fail, get last saved server copy.
+	If fix=1, will call replicase repairXML(y,z) to anneal broken file.
+*/
+	global y
+	if (lock) {
+		filecheck()
+		FileOpen(".currlock", "W")												; Create lock file
+	}
+	if (z:=checkXML("currlist.xml")) {											; Valid XML
+		y := new XML(z)														; <== Is this valid?
+		if (lock) 
+			FileDelete, .currlock													; Clear the file lock
+		return																	; Return with refreshed Y
+	}
+	
+	eventlog("Failed to read currlist. Attempting backup restore.")
+	httpComm("err200")															; trigger Pushover message of local currlist fail
+	dirlist :=
+	Loop, files, bak\*.bak
+	{
+		dirlist .= A_LoopFileTimeCreated "`t" A_LoopFileName "`n"				; build up dirlist with Created time `t Filename
+	}
+	Sort, dirlist, R															; Sort in reverse chron order
+	Loop, parse, dirlist, `n
+	{
+		name := strX(A_LoopField,"`t",1,1,"",0)									; Get filename between TAB and NL
+		if (z:=checkXML("bak\" name)) {											; Is valid XML
+			y := new XML(z)														; Replace Y with Z
+			eventlog("Successful restore from " name)
+			FileCopy, bak\%name%, currlist.xml, 1								; Replace currlist.xml with good copy
+			if (lock)
+				FileDelete, .currlock											; Clear file lock
+			return
+		} else {
+			FileDelete, bak\%name%												; Delete the bad bak file
+		}
+	}
+	
+	eventlog("Failed to restore backup. Attempting to download server backup.")
+	sz := httpComm("full")														; call download of FULL list from server, not just changes
+	FileDelete, templist.xml
+	FileAppend, %sz%, templist.xml												; write out as templist
+	if (z:=checkXML("templist.xml")) {
+		y := new XML(z)															; Replace Y with Z
+		eventlog("Successful restore from server.")
+		filecopy, templist.xml, currlist.xml, 1									; copy templist to currlist
+		if (lock)
+			FileDelete, .currlock													; clear file lock
+		return
+	}
+	
+	eventlog("Failed to restore from server.")									; All attempts fail. Something bad has happened.
+	httpComm("err999")															; Pushover message of utter failure
+	FileDelete, .currlock
+	MsgBox, 16, CRITICAL ERROR, Unable to read currlist. `n`nExiting.
+	ExitApp
+}
+
+repairXML(ByRef y, ByRef z) {
+/*	Attempt to repair broken XML file.
+	"Y" = broken XML, "Z" = last good bak version
+	Get X chars from broken tail for polymerase annealing.
+	Search for "<id mrn=" backwards from broken tail, get the MRN string.
+	Search for same "tail" within the same ID MRN in Z.
+	Copy the remainder of Z from that point.
+	Attach to broken tail of Y.
+*/
+
+	; Cool idea, but will this really be relevant if we have a constant supply of good bak files?
 }
 
 WriteOut(path,node) {
@@ -258,9 +561,10 @@ WriteOut(path,node) {
 	zPath := z.selectSingleNode(path)											; find same "node" in z
 	zNode := zPath.selectSingleNode(node)
 	zPath.replaceChild(clone,zNode)												; replace existing zNode with node clone
-
+	
 	z.save("currlist.xml")														; write z into currlist
-	y := new XML("currlist.xml")												; reload currlist into y
+	FileCopy, currlist.xml, % "bak/" A_now ".bak"								; create a backup for each writeout
+	y := z																		; make Y match Z, don't need a file op
 	FileDelete, .currlock														; release lock file.
 }
 
@@ -271,8 +575,8 @@ filecheck() {
 		loop 50 {
 			if (FileExist(".currlock")) {
 				progress, %p%
-				Sleep 50
-				p += 1
+				Sleep 100
+				p += 2
 			} else {
 				err=1
 				break

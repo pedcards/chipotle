@@ -1,5 +1,6 @@
 MainGUI:
 {
+refreshCurr(1)																; Update currlist with currlock
 Gui, Main:+AlwaysOnTop
 Gui, Main:Color, Maroon
 Gui, Main:Font, s16 wBold

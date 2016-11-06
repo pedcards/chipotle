@@ -1,9 +1,16 @@
-whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")						; initialize http request in object whr
-	whr.Open("GET"														; set the http verb to GET file "change"
-		,"https://depts.washington.edu/pedcards/change/direct.php?do=sync"
-		, true)
-	whr.Send()															; SEND the command to the address
-	whr.WaitForResponse()
-ckUrl := whr.ResponseText												; the http response
+	dirlist :=
+	Loop, logs\*.*
+	{
+		dirlist .= A_LoopFileTimeCreated "`t" A_LoopFileName "`n"
+	}
+	sort, dirlist, R
+	
+	loop, parse, dirlist, `n
+	{
+		name := strX(A_LoopField, "`t",1,1, "",0)
+		MsgBox % "'" name "'"
+	}
+	
 
-MsgBox % ckUrl
+ExitApp
+#Include includes\strx.ahk
