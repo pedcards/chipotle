@@ -153,6 +153,7 @@ SaveIt:
 	}
 	
 	y.save("currlist.xml")
+	FileCopy, currlist.xml, % "bak/" A_now ".bak"
 	eventlog("Currlist cleaned up.")
 	
 	if !(isLocal) {																		; for live data, send to server
@@ -556,7 +557,7 @@ WriteOut(path,node) {
 	zPath.replaceChild(clone,zNode)												; replace existing zNode with node clone
 	
 	z.save("currlist.xml")														; write z into currlist
-	z.save("bak/" A_now ".bak")													; create a backup for each writeout
+	FileCopy, currlist.xml, % "bak/" A_now ".bak"								; create a backup for each writeout
 	y := z																		; make Y match Z, don't need a file op
 	FileDelete, .currlock														; release lock file.
 }
