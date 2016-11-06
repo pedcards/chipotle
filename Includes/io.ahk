@@ -177,7 +177,7 @@ SaveIt:
 	Sort, bdir, R
 	Loop, parse, bdir, `n
 	{
-		if (A_index < 10)																; skip the 10 most recent .bak files
+		if (A_index < 11)																; skip the 10 most recent .bak files
 			continue
 		k := "bak/" strX(A_LoopField,"`t",1,1,"",0)										; Get filename between TAB and NL
 		FileDelete, %k%																	; Delete
