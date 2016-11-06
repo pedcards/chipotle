@@ -20,7 +20,7 @@ GetIt:
 	
 	Progress, 30, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	refreshCurr()																	; Get currlist, bak, or server copy
-	eventlog("Valid currlist acquired.")
+	eventlog("Valid currlist.")
 	
 	Progress, 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	if !(isLocal) {																	; live run, download changes file from server
