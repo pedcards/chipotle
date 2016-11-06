@@ -87,6 +87,7 @@ WriteFile()
 
 SaveIt:
 {
+	eventlog("Starting save...")
 	vSaveIt:=true																		; inform GetIt that run from SaveIt, changes progress window
 	gosub GetIt																			; recheck the server side currlist.xml
 	vSaveIt:=																			; clear bit
@@ -95,8 +96,8 @@ SaveIt:
 	FileOpen(".currlock", "W")															; Create lock file.
 
 	Progress, b w300, Processing...
-	y := new XML("currlist.xml")														; Load freshest copy of Currlist
-	yArch := new XML("archlist.xml")													; and ArchList
+	;~ y := new XML("currlist.xml")														; Load freshest copy of Currlist
+	;~ yArch := new XML("archlist.xml")													; and ArchList
 	
 	; Save all MRN, Dx, Notes, ToDo, etc in arch.xml
 	yaNum := y.selectNodes("/root/id").length
