@@ -1,6 +1,7 @@
 TeamList:
 {
 	;Gui, 1:-AlwaysOnTop
+	refreshCurr(1)														; update Y with currlock
 	Gui, teamL:Destroy
 	if (A_GuiControl)
 		location := substr(A_GuiControl,2)
