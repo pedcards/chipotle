@@ -168,8 +168,15 @@ SaveIt:
 		Run pscp.exe -sftp -i chipotle-pr.ppk -p logs/%sessdate%.log pedcards@homer.u.washington.edu:public_html/%servfold%/logs/%sessdate%.log,, Min
 	}
 	
-	/*	Need to add a bit here to clean up the bak/ folder of files older than 24-48 hrs old?
-	*/
+	Loop, files, bak/*.bak
+	{
+		k := A_LoopFileName
+		n := A_LoopFileTimeCreated														; Created date
+		n -= A_now, Days																; Difference from now
+		if (n < -2) {																	; More than 2 days prior
+			FileDelete, %k%																; Delete
+		}
+	}
 	
 	FileDelete, .currlock
 	eventlog("CHIPS server updated.")
