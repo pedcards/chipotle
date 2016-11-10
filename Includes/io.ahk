@@ -466,7 +466,8 @@ refreshCurr(lock:="") {
 /*	Refresh Y in memory with currlist.xml to reflect changes from other users.
 	If invalid XML, try to read the most recent .bak file in reverse chron order.
 	If all .bak files fail, get last saved server copy.
-	If fix=1, will call replicase repairXML(y,z) to anneal broken file.
+	If lock="", filecheck()/currlock is handled from outside this function.
+	If lock=1, will handle the filecheck()/currlock within this call.
 */
 	global y
 	if (lock) {
