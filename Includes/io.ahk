@@ -44,7 +44,7 @@ GetIt:
 				ckRes := httpComm("unlink")											; Send command to delete update blob
 				eventlog((ckRes="unlink") ? "Changefile unlinked." : "Not unlinked.")
 			} else {
-				eventlog("Failed to write currlist.")
+				eventlog("*** httpComm failed to write currlist.")
 			}
 		}
 	}
@@ -69,7 +69,7 @@ WriteFile()
 		if (chk := checkXML("currlist.xml")) {								; success, break out
 			break
 		} else {
-			eventlog("WriteFile unsuccessful. [" A_index "]")
+			eventlog("*** WriteFile unsuccessful. [" A_index "]")
 			sleep 500
 		}
 	}
@@ -168,6 +168,7 @@ SaveIt:
 		}
 		WinWaitClose ahk_id %consWin%
 		Run pscp.exe -sftp -i chipotle-pr.ppk -p logs/%sessdate%.log pedcards@homer.u.washington.edu:public_html/%servfold%/logs/%sessdate%.log,, Min
+		eventlog("CHIPS server updated.")
 	}
 	
 	bdir :=
@@ -185,7 +186,7 @@ SaveIt:
 	}
 	
 	FileDelete, .currlock
-	eventlog("CHIPS server updated.")
+	eventlog("Save successful.")
 	Progress, 100, Done!
 	;Sleep, 1000
 
@@ -482,7 +483,7 @@ refreshCurr(lock:="") {
 		return																	; Return with refreshed Y
 	}
 	
-	eventlog("Failed to read currlist. Attempting backup restore.")
+	eventlog("*** Failed to read currlist. Attempting backup restore.")
 	httpComm("err200")															; trigger Pushover message of local currlist fail
 	dirlist :=
 	Loop, files, bak\*.bak
@@ -505,7 +506,7 @@ refreshCurr(lock:="") {
 		}
 	}
 	
-	eventlog("Failed to restore backup. Attempting to download server backup.")
+	eventlog("** Failed to restore backup. Attempting to download server backup.")
 	sz := httpComm("full")														; call download of FULL list from server, not just changes
 	FileDelete, templist.xml
 	FileAppend, %sz%, templist.xml												; write out as templist
@@ -518,7 +519,7 @@ refreshCurr(lock:="") {
 		return
 	}
 	
-	eventlog("Failed to restore from server.")									; All attempts fail. Something bad has happened.
+	eventlog("*** Failed to restore from server.")									; All attempts fail. Something bad has happened.
 	httpComm("err999")															; Pushover message of utter failure
 	FileDelete, .currlock
 	MsgBox, 16, CRITICAL ERROR, Unable to read currlist. `n`nExiting.
@@ -555,7 +556,7 @@ WriteOut(path,node) {
 	if (ck:=checkXML("currlist.xml")) {											; Valid XML
 		z := new XML(ck)
 	} else {
-		eventlog("WriteOut failed to read currlist.")
+		eventlog("*** WriteOut failed to read currlist.")
 		dirlist :=
 		Loop, files, bak\*.bak
 		{
