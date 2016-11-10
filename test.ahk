@@ -1,16 +1,13 @@
-	dirlist :=
-	Loop, logs\*.*
-	{
-		dirlist .= A_LoopFileTimeCreated "`t" A_LoopFileName "`n"
-	}
-	sort, dirlist, R
-	
-	loop, parse, dirlist, `n
-	{
-		name := strX(A_LoopField, "`t",1,1, "",0)
-		MsgBox % "'" name "'"
-	}
-	
+msg := test(0)
+
+MsgBox % (msg) ? "good" : "1"
 
 ExitApp
-#Include includes\strx.ahk
+
+test(val) {
+	if (val=1) {
+		return Error
+	} else {
+		return val
+	}
+}
