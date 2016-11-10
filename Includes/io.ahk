@@ -551,8 +551,31 @@ WriteOut(path,node) {
 	locPath := y.selectSingleNode(path)
 	locNode := locPath.selectSingleNode(node)
 	clone := locNode.cloneNode(true)											; make copy of y.node
-
-	z := new XML("currlist.xml")												; open most recent existing currlist.XML into temp Z
+	
+	if (ck:=checkXML("currlist.xml")) {											; Valid XML
+		z := new XML(ck)
+	} else {
+		eventlog("WriteOut failed to read currlist.")
+		dirlist :=
+		Loop, files, bak\*.bak
+		{
+			dirlist .= A_LoopFileTimeCreated "`t" A_LoopFileName "`n"			; build up dirlist with Created time `t Filename
+		}
+		Sort, dirlist, R														; Sort in reverse chron order
+		Loop, parse, dirlist, `n
+		{
+			name := strX(A_LoopField,"`t",1,1,"",0)								; Get filename between TAB and NL
+			if (ck:=checkXML("bak\" name)) {									; Is valid XML
+				z := new XML(ck)												; Replace Y with Z
+				eventlog("WriteOut restore Z from " name)
+				FileCopy, bak\%name%, currlist.xml, 1							; Replace currlist.xml with good copy
+				break
+			} else {
+				FileDelete, bak\%name%											; Delete the bad bak file
+			}
+		}											
+	}																			; temp Z will be most recent good currlist
+	
 	if !IsObject(z.selectSingleNode(path "/" node)) {
 		If instr(node,"id[@mrn") {
 			z.addElement("id","root",{mrn: strX(node,"='",1,2,"']",1,2)})
@@ -568,6 +591,7 @@ WriteOut(path,node) {
 	FileCopy, currlist.xml, % "bak/" A_now ".bak"								; create a backup for each writeout
 	y := z																		; make Y match Z, don't need a file op
 	FileDelete, .currlock														; release lock file.
+	return
 }
 
 filecheck() {
