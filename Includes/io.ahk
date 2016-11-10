@@ -62,8 +62,8 @@ WriteFile()
 	
 	FileCopy, currlist.xml, currlist.bak, 1 								; make copy of good currlist
 	
-	Loop, 5
-	{																		; try 5 times
+	Loop, 3
+	{																		; try 3 times
 		y.save("currlist.xml")												; to write currlist
 		
 		if (chk := checkXML("currlist.xml")) {								; success, break out
@@ -75,6 +75,7 @@ WriteFile()
 	}
 	
 	if (chk) {																; successful check
+		FileCopy, currlist.xml, bak/%A_Now%.bak
 		return "good"
 	} else {																; unsuccessful check
 		progress, hide
