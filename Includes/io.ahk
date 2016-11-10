@@ -587,10 +587,13 @@ filecheck() {
 		if !(err) {
 			;~ Progress off
 			;~ MsgBox This file appears to be locked.
-			FileDelete, .currlock
+			;~ FileDelete, .currlock
 			;~ ExitApp
+			progress off
+			return error
 		}
 	} 
 	progress off
+	return
 }
 
