@@ -2,9 +2,9 @@ processCIS:										;*** Parse CIS patient list
 {
 	filecheck()
 	FileOpen(".currlock", "W")													; Create lock file.
-	y := new XML("currlist.xml")												; Get latest local currlist into memory
-	RemoveNode("/root/lists/" . location)
-	y.addElement(location, "/root/lists", {date: timenow})
+	refreshCurr()																; Get latest local currlist into memory
+	RemoveNode("/root/lists/" . location)										; Clear existing /root/lists for this location
+	y.addElement(location, "/root/lists", {date: timenow})						; Refresh this list
 	rtfList :=
 	colTmp := {"FIN":0, "MRN":0, "Sex":0, "Age":0, "Adm":0, "DOB":0, "Days":0, "Room":0, "Svc":0, "Attg":0, "Name":0}
 
@@ -137,7 +137,7 @@ processCIS:										;*** Parse CIS patient list
 		}
 	}
 	listsort(location)
-	y.save("currlist.xml")
+	writefile()
 	eventlog(location " list updated.")
 	FileDelete, .currlock
 		
@@ -153,7 +153,7 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 {
 	filecheck()
 	FileOpen(".currlock", "W")													; Create lock file.
-	y := new XML("currlist.xml")												; load freshest currlist into memory
+	refreshCurr()																; load freshest currlist into memory
 
 	Progress, b,, Scanning...
 	RemoveNode("/root/lists/cores")
@@ -313,7 +313,7 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 		}
 	}
 	Progress off
-	y.save("currlist.xml")
+	writeFile()
 	eventlog("CORES data updated.")
 	FileDelete, .currlock
 	Return

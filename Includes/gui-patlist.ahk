@@ -1,5 +1,6 @@
 PatListGet:
 {
+	refreshCurr(1)																		; get most recent currlist
 	if (A_GuiControl="TeamLV") {
 		LV_GetText(mrn, A_EventInfo)
 	}

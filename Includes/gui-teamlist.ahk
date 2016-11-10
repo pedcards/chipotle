@@ -58,6 +58,7 @@ TeamList:
 
 TeamTasks:
 {
+	refreshCurr(1)
 	Gui, ttask:Destroy
 	Gui, ttask:Add, ListView, -Multi NoSortHdr Grid w780 vTeamTaskLV gTeamTaskPt hwndHLV
 		, DateFull|Due|MRN|Name|Task

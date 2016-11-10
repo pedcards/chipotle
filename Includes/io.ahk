@@ -44,7 +44,7 @@ GetIt:
 				ckRes := httpComm("unlink")											; Send command to delete update blob
 				eventlog((ckRes="unlink") ? "Changefile unlinked." : "Not unlinked.")
 			} else {
-				eventlog("Failed to write currlist.")
+				eventlog("*** httpComm failed to write currlist.")
 			}
 		}
 	}
@@ -62,19 +62,20 @@ WriteFile()
 	
 	FileCopy, currlist.xml, currlist.bak, 1 								; make copy of good currlist
 	
-	Loop, 5
-	{																		; try 5 times
+	Loop, 3
+	{																		; try 3 times
 		y.save("currlist.xml")												; to write currlist
 		
 		if (chk := checkXML("currlist.xml")) {								; success, break out
 			break
 		} else {
-			eventlog("WriteFile unsuccessful. [" A_index "]")
+			eventlog("*** WriteFile unsuccessful. [" A_index "]")
 			sleep 500
 		}
 	}
 	
 	if (chk) {																; successful check
+		FileCopy, currlist.xml, bak/%A_Now%.bak
 		return "good"
 	} else {																; unsuccessful check
 		progress, hide
@@ -167,6 +168,7 @@ SaveIt:
 		}
 		WinWaitClose ahk_id %consWin%
 		Run pscp.exe -sftp -i chipotle-pr.ppk -p logs/%sessdate%.log pedcards@homer.u.washington.edu:public_html/%servfold%/logs/%sessdate%.log,, Min
+		eventlog("CHIPS server updated.")
 	}
 	
 	bdir :=
@@ -184,7 +186,7 @@ SaveIt:
 	}
 	
 	FileDelete, .currlock
-	eventlog("CHIPS server updated.")
+	eventlog("Save successful.")
 	Progress, 100, Done!
 	;Sleep, 1000
 
@@ -466,7 +468,8 @@ refreshCurr(lock:="") {
 /*	Refresh Y in memory with currlist.xml to reflect changes from other users.
 	If invalid XML, try to read the most recent .bak file in reverse chron order.
 	If all .bak files fail, get last saved server copy.
-	If fix=1, will call replicase repairXML(y,z) to anneal broken file.
+	If lock="", filecheck()/currlock is handled from outside this function.
+	If lock=1, will handle the filecheck()/currlock within this call.
 */
 	global y
 	if (lock) {
@@ -480,7 +483,7 @@ refreshCurr(lock:="") {
 		return																	; Return with refreshed Y
 	}
 	
-	eventlog("Failed to read currlist. Attempting backup restore.")
+	eventlog("*** Failed to read currlist. Attempting backup restore.")
 	httpComm("err200")															; trigger Pushover message of local currlist fail
 	dirlist :=
 	Loop, files, bak\*.bak
@@ -503,7 +506,7 @@ refreshCurr(lock:="") {
 		}
 	}
 	
-	eventlog("Failed to restore backup. Attempting to download server backup.")
+	eventlog("** Failed to restore backup. Attempting to download server backup.")
 	sz := httpComm("full")														; call download of FULL list from server, not just changes
 	FileDelete, templist.xml
 	FileAppend, %sz%, templist.xml												; write out as templist
@@ -516,7 +519,7 @@ refreshCurr(lock:="") {
 		return
 	}
 	
-	eventlog("Failed to restore from server.")									; All attempts fail. Something bad has happened.
+	eventlog("*** Failed to restore from server.")									; All attempts fail. Something bad has happened.
 	httpComm("err999")															; Pushover message of utter failure
 	FileDelete, .currlock
 	MsgBox, 16, CRITICAL ERROR, Unable to read currlist. `n`nExiting.
@@ -549,8 +552,31 @@ WriteOut(path,node) {
 	locPath := y.selectSingleNode(path)
 	locNode := locPath.selectSingleNode(node)
 	clone := locNode.cloneNode(true)											; make copy of y.node
-
-	z := new XML("currlist.xml")												; open most recent existing currlist.XML into temp Z
+	
+	if (ck:=checkXML("currlist.xml")) {											; Valid XML
+		z := new XML(ck)
+	} else {
+		eventlog("*** WriteOut failed to read currlist.")
+		dirlist :=
+		Loop, files, bak\*.bak
+		{
+			dirlist .= A_LoopFileTimeCreated "`t" A_LoopFileName "`n"			; build up dirlist with Created time `t Filename
+		}
+		Sort, dirlist, R														; Sort in reverse chron order
+		Loop, parse, dirlist, `n
+		{
+			name := strX(A_LoopField,"`t",1,1,"",0)								; Get filename between TAB and NL
+			if (ck:=checkXML("bak\" name)) {									; Is valid XML
+				z := new XML(ck)												; Replace Y with Z
+				eventlog("WriteOut restore Z from " name)
+				FileCopy, bak\%name%, currlist.xml, 1							; Replace currlist.xml with good copy
+				break
+			} else {
+				FileDelete, bak\%name%											; Delete the bad bak file
+			}
+		}											
+	}																			; temp Z will be most recent good currlist
+	
 	if !IsObject(z.selectSingleNode(path "/" node)) {
 		If instr(node,"id[@mrn") {
 			z.addElement("id","root",{mrn: strX(node,"='",1,2,"']",1,2)})
@@ -566,6 +592,7 @@ WriteOut(path,node) {
 	FileCopy, currlist.xml, % "bak/" A_now ".bak"								; create a backup for each writeout
 	y := z																		; make Y match Z, don't need a file op
 	FileDelete, .currlock														; release lock file.
+	return
 }
 
 filecheck() {
@@ -585,10 +612,13 @@ filecheck() {
 		if !(err) {
 			;~ Progress off
 			;~ MsgBox This file appears to be locked.
-			FileDelete, .currlock
+			;~ FileDelete, .currlock
 			;~ ExitApp
+			progress off
+			return error
 		}
 	} 
 	progress off
+	return
 }
 
