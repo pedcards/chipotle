@@ -513,6 +513,7 @@ readForecast:
 		d1 := zDigit(strX(fcFile,"",1,0,"-",1,1)) . zDigit(strX(fcFile,"-",1,1," ",1,1))
 		if (d1 = conf.mm conf.dd) {
 			fcFileLong := A_LoopFileLongPath											; long path
+			fcRecent := A_LoopFileTimeModified											; update most recent modified datetime 
 			break
 		}
 	}
@@ -525,6 +526,11 @@ readForecast:
 	Progress, , % fcFile, Opening...
 	if !IsObject(y.selectSingleNode("/root/lists/forecast")) {					; create if for some reason doesn't exist
 		y.addElement("forecast","/root/lists")
+	} 
+	if (fcRecent = y.selectSingleNode("/root/lists/forecast").getAttribute("xlsdate")) { 
+		Progress, off 
+		MsgBox,64,, Electronic Forecast is up to date.
+		return                                      ; no edits to XLS have been made 
 	} 
 	
 	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] 	; array of column letters
