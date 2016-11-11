@@ -491,13 +491,21 @@ parsePnProv(ByRef txt) {
 readForecast:
 {
 /*	Read electronic forecast XLS
+	\\childrens\files\HCSchedules\Electronic Forecast\2016\11-7 thru 11-13_2016 Electronic Forecast.xlsx
 	Move into /lists/forecast/call {date=20150301}/<PM_We_F>Del Toro</PM_We_F>
 */
 	; Find the most recently modified "*Electronic Forecast.xls" file
 	fcFile := 
 	fcFileLong := 
 	fcRecent :=
-	Loop, Files, % forecastPath "\" breakdate(A_Now).yyyy "\*Electronic Forecast*.xls*", F		; Scan through YYYY\Electronic Forecast.xlsx files
+	
+	dt:=A_Now
+	FormatTime, Wday,%dt%, Wday										; Today's day of the week (Sun=1)
+	dt += (9-Wday), days											; Get next Monday's date
+	conf := breakdate(dt)											; conf.yyyy conf.mm conf.dd
+	;~ fcFile := % forecastPath "\" conf.yyyy "\" "*Electronic Forecast*.xls*"
+	
+	Loop, Files, % forecastPath "\" conf.yyyy "\*Electronic Forecast*.xls*", F		; Scan through YYYY\Electronic Forecast.xlsx files
 	{
 		if InStr(A_LoopFileName,"~") {
 			continue																	; skip ~tmp files
