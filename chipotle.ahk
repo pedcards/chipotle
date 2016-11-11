@@ -24,7 +24,7 @@ FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.ex
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "2.0.1"
+vers := "2.0.2"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
