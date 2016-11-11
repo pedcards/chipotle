@@ -150,7 +150,7 @@ SaveIt:
 	; =================================================
 	if IsObject(y.selectSingleNode("/root/lists/SURGCNTR")) {
 		RemoveNode("/root/lists/SURGCNTR")
-		MsgBox SURGCNTR removed.
+		eventlog("SURGCNTR removed.")
 	}
 	
 	y.save("currlist.xml")
