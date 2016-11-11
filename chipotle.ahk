@@ -505,15 +505,17 @@ readForecast:
 	conf := breakdate(dt)											; conf.yyyy conf.mm conf.dd
 	;~ fcFile := % forecastPath "\" conf.yyyy "\" "*Electronic Forecast*.xls*"
 	
+	
 	Loop, Files, % forecastPath "\" conf.yyyy "\*Electronic Forecast*.xls*", F		; Scan through YYYY\Electronic Forecast.xlsx files
 	{
 		if InStr(A_LoopFileName,"~") {
 			continue																	; skip ~tmp files
 		}
-		If (A_LoopFileTimeCreated > fcRecent) {
+		fcFile := A_LoopFileName														; filename, no path
+		d1 := zDigit(strX(fcFile,"",1,0,"-",1,1)) . zDigit(strX(fcFile,"-",1,1," ",1,1))
+		if (d1 = conf.mm conf.dd) {
 			fcFileLong := A_LoopFileLongPath											; long path
-			fcFile := A_LoopFileName													; filename, no path
-			fcRecent := A_LoopFileTimeCreated											; update most recent created datetime
+			break
 		}
 	}
 	if !FileExist(fcFileLong) {															; no file found
