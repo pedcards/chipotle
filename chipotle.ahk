@@ -24,7 +24,7 @@ FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.ex
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "2.0.2"
+vers := "2.0.3"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -604,7 +604,7 @@ readForecast:
 			if !IsObject(y.selectSingleNode(fcNode "/" row_nm)) {						; create node for service person if not present
 				y.addElement(row_nm,fcNode)
 			}
-			y.setText(fcNode "/" row_nm, cel)											; setText changes text value for that node
+			y.setText(fcNode "/" row_nm, cleanString(cel))								; setText changes text value for that node
 		}
 	}
 	Progress, off
@@ -804,7 +804,8 @@ zDigit(x) {
 }
 
 cleanString(x) {
-	replace := {"{":"[","}":"]","\":"/"}
+	replace := {"{":"[", "}":"]", "\":"/"
+				,"ñ":"n"}
 	for what, with in replace
 	{
 		StringReplace, x, x, %what%, %with%, All
