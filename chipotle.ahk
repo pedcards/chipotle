@@ -24,7 +24,7 @@ FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.ex
 
 Sleep 500
 #Persistent		; Keep program resident until ExitApp
-vers := "2.0.1"
+vers := "2.0.2"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 
@@ -491,21 +491,30 @@ parsePnProv(ByRef txt) {
 readForecast:
 {
 /*	Read electronic forecast XLS
+	\\childrens\files\HCSchedules\Electronic Forecast\2016\11-7 thru 11-13_2016 Electronic Forecast.xlsx
 	Move into /lists/forecast/call {date=20150301}/<PM_We_F>Del Toro</PM_We_F>
 */
 	; Find the most recently modified "*Electronic Forecast.xls" file
 	fcFile := 
 	fcFileLong := 
 	fcRecent :=
-	Loop, Files, % forecastPath "\" breakdate(A_Now).yyyy "\*Electronic Forecast*.xls*", F		; Scan through YYYY\Electronic Forecast.xlsx files
+	
+	dt:=A_Now
+	FormatTime, Wday,%dt%, Wday										; Today's day of the week (Sun=1)
+	dt += (9-Wday), days											; Get next Monday's date
+	conf := breakdate(dt)											; conf.yyyy conf.mm conf.dd
+	
+	Loop, Files, % forecastPath "\" conf.yyyy "\*Electronic Forecast*.xls*", F		; Scan through YYYY\Electronic Forecast.xlsx files
 	{
 		if InStr(A_LoopFileName,"~") {
 			continue																	; skip ~tmp files
 		}
-		If (A_LoopFileTimeCreated > fcRecent) {
+		fcFile := A_LoopFileName														; filename, no path
+		d1 := zDigit(strX(fcFile,"",1,0,"-",1,1)) . zDigit(strX(fcFile,"-",1,1," ",1,1))
+		if (d1 = conf.mm conf.dd) {
 			fcFileLong := A_LoopFileLongPath											; long path
-			fcFile := A_LoopFileName													; filename, no path
-			fcRecent := A_LoopFileTimeCreated											; update most recent created datetime
+			fcRecent := A_LoopFileTimeModified											; update most recent modified datetime 
+			break
 		}
 	}
 	if !FileExist(fcFileLong) {															; no file found
@@ -518,11 +527,11 @@ readForecast:
 	if !IsObject(y.selectSingleNode("/root/lists/forecast")) {					; create if for some reason doesn't exist
 		y.addElement("forecast","/root/lists")
 	} 
-	if (fcRecent = y.selectSingleNode("/root/lists/forecast").getAttribute("xlsdate")) {
-		Progress, off
-		MsgBox,64,, "Electronic Forecast is up to date."
-		return																			; no edits to XLS have been made
-	}
+	if (fcRecent = y.selectSingleNode("/root/lists/forecast").getAttribute("xlsdate")) { 
+		Progress, off 
+		MsgBox,64,, Electronic Forecast is up to date.
+		return                                      ; no edits to XLS have been made 
+	} 
 	
 	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] 	; array of column letters
 	fcDate:=[]																			; array of dates
@@ -599,6 +608,9 @@ readForecast:
 		}
 	}
 	Progress, off
+	
+	oExcel := oWorkbook.Application
+	oExcel.quit
 	
 	y.selectSingleNode("/root/lists/forecast").setAttribute("xlsdate",fcRecent)			; change forecast[@xlsdate] to the XLS mod date
 	y.selectSingleNode("/root/lists/forecast").setAttribute("mod",A_Now)				; change forecast[@mod] to now
