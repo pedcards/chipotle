@@ -188,7 +188,7 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 		CORES_Code := StrX( ptBlock, "Code Status: " ,1,13, "`r" ,1,1, NN )		; Line 7
 
 		CORES_HX =
-		CORES_HX := RegExReplace(StRegX( ptBlock, "`r",NN,2, "Medications.*(DRIPS|SCH MEDS)",1,NN),"[^[:print:]]")
+		CORES_HX := RegExReplace(StRegX( ptBlock, "`r",NN,2, "Medications.*(DRIPS|SCH MEDS)",1,NN),"[^[:ascii:]]","~")
 			StringReplace, CORES_hx, CORES_hx, •%A_space%, *%A_Space%, ALL
 			StringReplace, CORES_hx, CORES_hx, `r`n, <br>, ALL
 			StringReplace, CORES_hx, CORES_hx, Medical History, <hr><b><i>Medical History</i></b>

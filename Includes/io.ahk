@@ -150,7 +150,7 @@ SaveIt:
 	; =================================================
 	if IsObject(y.selectSingleNode("/root/lists/SURGCNTR")) {
 		RemoveNode("/root/lists/SURGCNTR")
-		MsgBox SURGCNTR removed.
+		eventlog("SURGCNTR removed.")
 	}
 	
 	y.save("currlist.xml")
@@ -280,6 +280,10 @@ checkXML(xml) {
 		lastline := test
 	}
 	if instr(lastline,"</root>") {
+		if (pos:=RegExMatch(str,"[^[:ascii:]]")) {
+			eventlog("Illegal chars detected in " xml " at position " pos ".")
+			str := RegExReplace(str,"[^[:ascii:]]","~")
+		}
 		return str
 	} else {
 		return error 
