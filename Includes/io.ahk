@@ -280,7 +280,11 @@ checkXML(xml) {
 		lastline := test
 	}
 	if instr(lastline,"</root>") {
-		return RegExReplace(str,"[^[:ascii:]]","~")
+		if (pos:=RegExMatch(str,"[^[:ascii:]]")) {
+			eventlog("Illegal chars detected in " xml " at position " pos ".")
+			str := RegExReplace(str,"[^[:ascii:]]","~")
+		}
+		return str
 	} else {
 		return error 
 	}
