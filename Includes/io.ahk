@@ -280,7 +280,7 @@ checkXML(xml) {
 		lastline := test
 	}
 	if instr(lastline,"</root>") {
-		return str
+		return RegExReplace(str,"[^[:ascii:]]","~")
 	} else {
 		return error 
 	}
