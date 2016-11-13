@@ -58,6 +58,8 @@ Return
 
 WriteFile() 
 {
+/*	This is only called during GetIt, SaveIt, ProcessCIS, and ProcessCORES
+*/
 	global y
 	
 	FileCopy, currlist.xml, currlist.bak, 1 								; make copy of good currlist
@@ -593,11 +595,24 @@ WriteOut(path,node) {
 	
 	z.save("currlist.xml")														; write z into currlist
 	FileCopy, currlist.xml, % "bak/" A_now ".bak"								; create a backup for each writeout
+	FileGetSize, currSize, currlist.xml, k
+	if (currSize > 500) {
+		notify("err200")
+	}
 	y := z																		; make Y match Z, don't need a file op
 	FileDelete, .currlock														; release lock file.
 	return
 }
 
+notify(verb) {
+/*	if ".notify" not set, notify Admin
+*/
+	if !FileExist(".notify") {
+		httpComm("err200")
+	}
+	FileOpen(".notify","W")
+	return
+}
 filecheck() {
 	if FileExist(".currlock") {
 		err=0
