@@ -488,7 +488,6 @@ refreshCurr(lock:="") {
 	}
 	
 	eventlog("*** Failed to read currlist. Attempting backup restore.")
-	httpComm("err200")															; trigger Pushover message of local currlist fail
 	dirlist :=
 	Loop, files, bak\*.bak
 	{
