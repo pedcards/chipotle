@@ -283,7 +283,10 @@ checkXML(xml) {
 	}
 	if instr(lastline,"</root>") {
 		if (pos:=RegExMatch(str,"[^[:ascii:]]")) {
-			eventlog("Illegal chars detected in " xml " at position " pos ".")
+			per := instr(str,"<id",,pos-strlen(str))
+			RegExMatch(str,"O)<\w+((\s+\w+(\s*=\s*(?:"".*?""|'.*?'|[\^'"">\s]+))?)+\s*|\s*)/?>",pre,per)
+			RegExMatch(str,"O)</\w+\s*[\^>]*>",post,pos)
+			eventlog("Illegal chars detected in " xml " in " pre.value "/" post.value ".")
 			str := RegExReplace(str,"[^[:ascii:]]","~")
 		}
 		return str
