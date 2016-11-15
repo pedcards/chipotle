@@ -11,6 +11,11 @@ SendMode Input ; Recommended for new scripts due to its superior speed and relia
 SetTitleMatchMode, 2
 SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
+#Persistent		; Keep program resident until ExitApp
+
+vers := "2.0.5"
+user := A_UserName
+FormatTime, sessdate, A_Now, yyyyMM
 WinClose, View Downloads -
 LV_Colors.OnMessage()
 
@@ -18,15 +23,16 @@ FileGetTime, iniDT, chipotle.ini
 FileGetTime, exeDT, chipotle.exe
 iniDT -= %exeDT%, Seconds										; Will be negative if chipotle.ini is older.
 FileInstall, chipotle.ini, chipotle.ini, (iniDT<0)				; Overwrite if chipotle.exe is newer (and contains newer .ini)
+if (iniDT < 0) {
+	eventlog("==============================")
+	eventlog("Initialized version " vers)
+	eventlog("==============================")
+}
 ;FileInstall, pscp.exe, pscp.exe								; Necessary files (?)
 ;FileInstall, queso.exe, queso.exe
 ;FileInstall, printer.png, printer.png
 
 Sleep 500
-#Persistent		; Keep program resident until ExitApp
-vers := "2.0.4"
-user := A_UserName
-FormatTime, sessdate, A_Now, yyyyMM
 
 gosub ReadIni
 scr:=screenDims()
@@ -810,7 +816,7 @@ cleanString(x) {
 	{
 		StringReplace, x, x, %what%, %with%, All
 	}
-	x := RegExReplace(x,"[^[:print:]]")									; filter unprintable (esc) chars
+	x := RegExReplace(x,"[^[:ascii:]]")									; filter unprintable (esc) chars
 	return x
 }
 

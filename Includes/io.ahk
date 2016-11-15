@@ -58,6 +58,8 @@ Return
 
 WriteFile() 
 {
+/*	This is only called during GetIt, SaveIt, ProcessCIS, and ProcessCORES
+*/
 	global y
 	
 	FileCopy, currlist.xml, currlist.bak, 1 								; make copy of good currlist
@@ -281,7 +283,10 @@ checkXML(xml) {
 	}
 	if instr(lastline,"</root>") {
 		if (pos:=RegExMatch(str,"[^[:ascii:]]")) {
-			eventlog("Illegal chars detected in " xml " at position " pos ".")
+			per := instr(str,"<id",,pos-strlen(str))
+			RegExMatch(str,"O)<\w+((\s+\w+(\s*=\s*(?:"".*?""|'.*?'|[\^'"">\s]+))?)+\s*|\s*)/?>",pre,per)
+			RegExMatch(str,"O)</\w+\s*[\^>]*>",post,pos)
+			eventlog("Illegal chars detected in " xml " in " pre.value "/" post.value ".")
 			str := RegExReplace(str,"[^[:ascii:]]","~")
 		}
 		return str
@@ -488,7 +493,6 @@ refreshCurr(lock:="") {
 	}
 	
 	eventlog("*** Failed to read currlist. Attempting backup restore.")
-	httpComm("err200")															; trigger Pushover message of local currlist fail
 	dirlist :=
 	Loop, files, bak\*.bak
 	{
@@ -594,11 +598,24 @@ WriteOut(path,node) {
 	
 	z.save("currlist.xml")														; write z into currlist
 	FileCopy, currlist.xml, % "bak/" A_now ".bak"								; create a backup for each writeout
+	FileGetSize, currSize, currlist.xml, k
+	if (currSize > 500) {
+		notify("err200")
+	}
 	y := z																		; make Y match Z, don't need a file op
 	FileDelete, .currlock														; release lock file.
 	return
 }
 
+notify(verb) {
+/*	if ".notify" not set, notify Admin
+*/
+	if !FileExist(".notify") {
+		httpComm("err200")
+	}
+	FileOpen(".notify","W")
+	return
+}
 filecheck() {
 	if FileExist(".currlock") {
 		err=0

@@ -12,6 +12,7 @@
 SendMode Input ; Recommended for new scripts due to its superior speed and reliability.
 SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 
+Progress, 20, Finding files..., COMBUMP
 user := A_UserName
 ahk_path := ((user="tchun1") ? "O:\PApps\PortableApps" : "C:\Program Files") . "\AutoHotkey\Compiler"
 ahk2exe_loc := ahk_path "\Ahk2Exe.exe"
@@ -20,16 +21,20 @@ ahk2exe_mpr := ahk_path "\mpress.exe"
 fileIn := "chipotle.ahk"
 fileIco := "pepper32.ico"
 
+Progress, 40, Reading chipotle.ahk, COMBUMP
 FileRead, txt, %fileIn%
 
 RegExMatch(txt,"Oi)vers := "".*""",vers) 
 versOld := strX(vers.value,"""",1,1,"""",1,1)
+Progress, hide
 InputBox, versNew, Change version string, % "Previous version: " versOld,,,,,,,,% versOld
+Progress, show
 versNewStr := "vers := """ versNew """"
 if ErrorLevel {
 	MsgBox Cancelled
 	ExitApp
 }
+Progress, 60, Moving files..., COMBUMP
 ;FileDelete chipotle.tmp.bak
 FileMove, %fileIn%, chipotle.tmp.bak, 1
 
@@ -38,12 +43,15 @@ txtOut := RegExReplace(txt,vers.value,versNewStr,,1)
 FileDelete chipotle.tmp
 FileAppend, %txtOut%, chipotle.tmp
 
+Progress, 80, Compiling new version..., COMBUMP
 fileOut := "chipotle-" versNew "-" A_Now ".exe" 
 RunWait, %ahk2exe_loc% /in "chipotle.tmp" /out "chipotle.exe" /icon %fileIco% /mpress 1
 FileCopy, chipotle.exe, %fileOut%, 1
 FileMove, chipotle.ini, chipotle.ini, 1
 FileMove, chipotle.tmp, chipotle.ahk, 1
 
+Progress, 100, Finishing..., COMBUMP
+Progress, off
 MsgBox % "Compiled and bumped to version " versNew
 
 ExitApp
