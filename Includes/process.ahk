@@ -231,7 +231,7 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 		CORES_LabsBlock := strx(ptblock, "Labs (72 Hrs) / Studies",1,23, "",0,0)
 			CORES_Labs := trim(StRegX( CORES_LabsBlock, "" ,1,1, "\`n(Studies|Notes)",1))
 			CORES_Studies := trim(StrX( CORES_LabsBlock, "`nStudies",1,8, "`nNotes",1,6))
-			CORES_Notes := trim(StrX( CORES_LabsBlock, "`nNotes",1,6, "",0,0))
+			CORES_Notes := RegExReplace(trim(StrX( CORES_LabsBlock, "`nNotes",1,6, "",0,0)),"[^[:ascii:]]","~")
 		
 		n0 += 1
 		; List parsed, now place in XML(y)
