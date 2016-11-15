@@ -190,12 +190,12 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 		CORES_HX =
 		CORES_HX := RegExReplace(StRegX( ptBlock, "`r",NN,2, "Medications.*(DRIPS|SCH MEDS)",1,NN),"[^[:ascii:]]","~")
 			StringReplace, CORES_hx, CORES_hx, •%A_space%, *%A_Space%, ALL
-			StringReplace, CORES_hx, CORES_hx, `r`n, <br>, ALL
-			StringReplace, CORES_hx, CORES_hx, Medical History, <hr><b><i>Medical History</i></b>
-			StringReplace, CORES_hx, CORES_hx, ID Statement, <hr><b><i>ID Statement</i></b>
-			StringReplace, CORES_hx, CORES_hx, Active Issues, <hr><b><i>Active Issues</i></b>
-			StringReplace, CORES_hx, CORES_hx, Social Hx, <hr><b><i>Social Hx</i></b>
-			StringReplace, CORES_hx, CORES_hx, Action Items - To Dos, <hr><b><i>Action Items - To Dos</i></b>
+			;~ StringReplace, CORES_hx, CORES_hx, `r`n, <br>, ALL
+			;~ StringReplace, CORES_hx, CORES_hx, Medical History, <hr><b><i>Medical History</i></b>
+			;~ StringReplace, CORES_hx, CORES_hx, ID Statement, <hr><b><i>ID Statement</i></b>
+			;~ StringReplace, CORES_hx, CORES_hx, Active Issues, <hr><b><i>Active Issues</i></b>
+			;~ StringReplace, CORES_hx, CORES_hx, Social Hx, <hr><b><i>Social Hx</i></b>
+			;~ StringReplace, CORES_hx, CORES_hx, Action Items - To Dos, <hr><b><i>Action Items - To Dos</i></b>
 		CORES_Diet := substr(cores_hx,RegExMatch(cores_hx,"m)Diet.*\*"))
 			StringReplace, CORES_Diet, CORES_Diet, Diet *, *
 			StringReplace, CORES_Diet, CORES_Diet, <br>, `r`n, ALL
