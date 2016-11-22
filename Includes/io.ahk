@@ -341,7 +341,7 @@ compareDates(zMRN, zType, zChange:="") {
 		makeNodes(zMRN,"trash")															; create trash node if not present
 		y.selectSingleNode(mrnStr "/trash").appendChild(zClone)							; create item in trash
 		removeNode(pathStr "/" nodeStr)													; remove item from plan/task/todo or notes/weekly/summary
-		eventlog("<--DEL::" zType "::" znCreated "::" znAu "::" znEd )
+		eventlog(zMRN " <--DEL::" zType "::" znCreated "::" znAu "::" znEd )
 		return
 		
 	} else if (zChange="done") {														; mark plan/task/todo as done; move to plan/done/todo
@@ -357,12 +357,12 @@ compareDates(zMRN, zType, zChange:="") {
 			y.addElement(zType,pathStr,{created: znCreated})							; create an element node with created date so we can clone to it
 		}
 		yPath := yID.selectSingleNode(nodePath[zType])									; the parent node
-		eventlog("<--ADD::" zType "::" znCreated "::" znAu "::" znEd )
+		eventlog(zMRN " <--ADD::" zType "::" znCreated "::" znAu "::" znEd )
 		return
 	} else {																			; remaining instances are diagnosis, status, prov
 		
 		yPath := yID
-		eventlog("<--CHG::" zType "::" znAu "::" znEd )
+		eventlog(zMRN " <--CHG::" zType "::" znAu "::" znEd )
 	}
 	
 	yNode := yPath.selectSingleNode(nodePath[zType])									; get the local node
@@ -371,7 +371,7 @@ compareDates(zMRN, zType, zChange:="") {
 	if (znEd>ynEd) {																	; as long as remote node ed is more recent
 		yPath.replaceChild(zClone,yNode)												; make the clone
 	} else {
-		eventlog("X--BLK::" zType ((znCreated) ? "::" znCreated : "") "::" znAu "::" znEd " not newer.")
+		eventlog(zMRN " X--BLK::" zType ((znCreated) ? "::" znCreated : "") "::" znAu "::" znEd " not newer.")
 	}
 	
 	return
