@@ -316,7 +316,11 @@ importNodes() {
 	
 compareDates(zMRN, zType, zChange:="") {
 	global y, z, zNode, zClone
-	nodePath := {"todo":"plan/tasks","summary":"notes/weekly","stat":"status","dx":"diagnoses"}			; array to map proper path for import node
+	nodePath := {"todo":"plan/tasks"													; array to map nodetype:idpath for import node
+				,"summary":"notes/weekly"
+				,"stat":"status"
+				,"dx":"diagnoses"
+				,"prov":"prov"}
 	
 	if !IsObject(yID := y.selectSingleNode("//id[@mrn='" zMRN "']")) {					; Missing MRN will only happen if ID has been archived since last server sync
 		return																			; so skip to next index
