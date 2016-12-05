@@ -356,12 +356,13 @@ compareDates(zMRN, zType, zChange:="") {
 		return
 	} else if (zChange="add") {															; new <plan/tasks/todo> or <notes/weekly/summary>
 		makeNodes(zMRN,nodePath[zType])													; ensure that path to <plan/tasks> or <notes/weekly> exist in Y
-		
-		if !IsObject(y.selectSingleNode(PathStr "/" NodeStr)) {							; no existing node
-			y.addElement(zType,pathStr,{created: znCreated})							; create an element node with created date so we can clone to it
-		}
 		yPath := yID.selectSingleNode(nodePath[zType])									; the parent node
+		yPath.appendChild(zClone)
 		eventlog(zMRN " <--ADD::" zType "::" znCreated "::" znAu "::" znEd )
+		return
+	} else if (zChange="edit") {
+		yPath := yID.selectSingleNode(nodePath[zType])
+		yPath.replaceChild(zClone,yPath.selectSingleNode(nodeStr))
 		return
 	} else {																			; remaining instances are diagnosis, status, prov
 		
