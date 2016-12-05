@@ -364,17 +364,15 @@ compareDates(zMRN, zType, zChange:="") {
 		yPath := yID.selectSingleNode(nodePath[zType])
 		yPath.replaceChild(zClone,yPath.selectSingleNode(nodeStr))
 		return
-	} else {																			; remaining instances are diagnosis, status, prov
-		
-		yPath := yID
-		eventlog(zMRN " <--CHG::" zType "::" znAu "::" znEd )
-	}
-	
+	} 
+	; remaining instances are diagnosis, status, prov
+	yPath := yID
 	yNode := yPath.selectSingleNode(nodePath[zType])									; get the local node
 	ynEd := yNode.getAttribute("ed")													; last edit time
 	
 	if (znEd>ynEd) {																	; as long as remote node ed is more recent
 		yPath.replaceChild(zClone,yNode)												; make the clone
+		eventlog(zMRN " <--CHG::" zType "::" znAu "::" znEd )
 	} else {
 		eventlog(zMRN " X--BLK::" zType ((znCreated) ? "::" znCreated : "") "::" znAu "::" znEd " not newer.")
 	}
