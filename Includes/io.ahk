@@ -168,8 +168,8 @@ SaveIt:
 			ControlSend,, {y}{Enter}, ahk_id %consWin%									; blindly send {y}{enter} string to console
 			Progress,, Console %consWin% found											; to get past save keys query
 		}
-		WinWaitClose ahk_id %consWin%
 		Run pscp.exe -sftp -i chipotle-pr.ppk -p logs/%sessdate%.log pedcards@homer.u.washington.edu:public_html/%servfold%/logs/%sessdate%.log,, Min
+		WinWaitClose ahk_id %consWin%
 		eventlog("CHIPS server updated.")
 	}
 	
