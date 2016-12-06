@@ -507,6 +507,9 @@ PatFileGet:
 	{
 		patloopfile := A_LoopField														; file name
 		patdirfile := filepath "\" PatloopFile											; path + file name
+		if (patdirfile = pdoc) {														; save the pdoc file for last
+			continue
+		}
 		Run, %patDirFile%																; open by Windows default method
 	}
 	Run, %pdoc%																			; force the PCC doc to the top
