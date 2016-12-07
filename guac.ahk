@@ -31,8 +31,8 @@ y := new XML(chipdir "currlist.xml")												; Get latest local currlist into
 arch := new XML(chipdir "archlist.xml")												; Get archive.xml
 datedir := Object()
 mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-;ConfStart := "20160416132100"
 ConfStart := A_Now
+;~ ConfStart := "20160416132100"
 
 Gosub MainGUI																		; Draw the main GUI
 SetTimer, ConfTime, 1000															; Update ConfTime every 1000 ms

@@ -168,8 +168,8 @@ SaveIt:
 			ControlSend,, {y}{Enter}, ahk_id %consWin%									; blindly send {y}{enter} string to console
 			Progress,, Console %consWin% found											; to get past save keys query
 		}
-		WinWaitClose ahk_id %consWin%
 		Run pscp.exe -sftp -i chipotle-pr.ppk -p logs/%sessdate%.log pedcards@homer.u.washington.edu:public_html/%servfold%/logs/%sessdate%.log,, Min
+		WinWaitClose ahk_id %consWin%
 		eventlog("CHIPS server updated.")
 	}
 	
@@ -316,7 +316,11 @@ importNodes() {
 	
 compareDates(zMRN, zType, zChange:="") {
 	global y, z, zNode, zClone
-	nodePath := {"todo":"plan/tasks","summary":"notes/weekly","stat":"status","dx":"diagnoses"}			; array to map proper path for import node
+	nodePath := {"todo":"plan/tasks"													; array to map nodetype:idpath for import node
+				,"summary":"notes/weekly"
+				,"stat":"status"
+				,"dx":"diagnoses"
+				,"prov":"prov"}
 	
 	if !IsObject(yID := y.selectSingleNode("//id[@mrn='" zMRN "']")) {					; Missing MRN will only happen if ID has been archived since last server sync
 		return																			; so skip to next index
@@ -341,37 +345,41 @@ compareDates(zMRN, zType, zChange:="") {
 		makeNodes(zMRN,"trash")															; create trash node if not present
 		y.selectSingleNode(mrnStr "/trash").appendChild(zClone)							; create item in trash
 		removeNode(pathStr "/" nodeStr)													; remove item from plan/task/todo or notes/weekly/summary
-		eventlog("<--DEL::" zType "::" znCreated "::" au "::" ed )
+		eventlog(zMRN " <--DEL::" zType "::" znCreated "::" znAu "::" znEd )
 		return
-		
 	} else if (zChange="done") {														; mark plan/task/todo as done; move to plan/done/todo
-		
+		makeNodes(zMRN,"plan/done")														; plan/task already exists, make sure plan/done exists
+		y.selectSingleNode(mrnStr "/plan/done").appendChild(zClone)
+		removeNode(pathStr "/" nodeStr)
+		eventlog(zMRN " <--DONE::" zType "::" znCreated "::" znAu "::" znEd )
 		return
 	} else if (zChange="undo") {														; move from plan/done/todo to plan/task/todo
-		
+		MsgBox % pathStr "/" nodeStr
+		y.selectSingleNode(pathStr).appendChild(zClone)
+		removeNode(mrnStr "/plan/done/" nodeStr)
+		eventlog(zMRN " <--UNCHK::" zType "::" znCreated "::" znAu "::" znEd )
 		return
 	} else if (zChange="add") {															; new <plan/tasks/todo> or <notes/weekly/summary>
 		makeNodes(zMRN,nodePath[zType])													; ensure that path to <plan/tasks> or <notes/weekly> exist in Y
-		
-		if !IsObject(y.selectSingleNode(PathStr "/" NodeStr)) {							; no existing node
-			y.addElement(zType,pathStr,{created: znCreated})							; create an element node with created date so we can clone to it
-		}
 		yPath := yID.selectSingleNode(nodePath[zType])									; the parent node
-		eventlog("<--ADD::" zType "::" znCreated "::" au "::" ed )
+		yPath.appendChild(zClone)
+		eventlog(zMRN " <--ADD::" zType "::" znCreated "::" znAu "::" znEd )
 		return
-	} else {																			; remaining instances are diagnosis, status, prov
-		
-		yPath := yID
-		eventlog("<--CHG::" zType "::" au "::" ed )
-	}
-	
+	} else if (zChange="edit") {
+		yPath := yID.selectSingleNode(nodePath[zType])
+		yPath.replaceChild(zClone,yPath.selectSingleNode(nodeStr))
+		return
+	} 
+	; remaining instances are diagnosis, status, prov
+	yPath := yID
 	yNode := yPath.selectSingleNode(nodePath[zType])									; get the local node
 	ynEd := yNode.getAttribute("ed")													; last edit time
 	
 	if (znEd>ynEd) {																	; as long as remote node ed is more recent
 		yPath.replaceChild(zClone,yNode)												; make the clone
+		eventlog(zMRN " <--CHG::" zType "::" znAu "::" znEd )
 	} else {
-		eventlog("X--BLK::" zType ((znCreated) ? "::" znCreated : "") "::" au "::" ed " not newer.")
+		eventlog(zMRN " X--BLK::" zType ((znCreated) ? "::" znCreated : "") "::" znAu "::" znEd " not newer.")
 	}
 	
 	return
