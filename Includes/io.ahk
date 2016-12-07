@@ -347,12 +347,17 @@ compareDates(zMRN, zType, zChange:="") {
 		removeNode(pathStr "/" nodeStr)													; remove item from plan/task/todo or notes/weekly/summary
 		eventlog(zMRN " <--DEL::" zType "::" znCreated "::" znAu "::" znEd )
 		return
-		
 	} else if (zChange="done") {														; mark plan/task/todo as done; move to plan/done/todo
-		
+		makeNodes(zMRN,"plan/done")														; plan/task already exists, make sure plan/done exists
+		y.selectSingleNode(mrnStr "/plan/done").appendChild(zClone)
+		removeNode(pathStr "/" nodeStr)
+		eventlog(zMRN " <--DONE::" zType "::" znCreated "::" znAu "::" znEd )
 		return
 	} else if (zChange="undo") {														; move from plan/done/todo to plan/task/todo
-		
+		MsgBox % pathStr "/" nodeStr
+		y.selectSingleNode(pathStr).appendChild(zClone)
+		removeNode(mrnStr "/plan/done/" nodeStr)
+		eventlog(zMRN " <--UNCHK::" zType "::" znCreated "::" znAu "::" znEd )
 		return
 	} else if (zChange="add") {															; new <plan/tasks/todo> or <notes/weekly/summary>
 		makeNodes(zMRN,nodePath[zType])													; ensure that path to <plan/tasks> or <notes/weekly> exist in Y
