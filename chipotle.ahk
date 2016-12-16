@@ -666,7 +666,6 @@ IcuMerge:
 	}
 	writeOut("/root/lists","CICUSur")
 	
-	SurUnitLoc := "SUR-R4"
 	SurUnitPath := "/root/lists/SurUnit"											; Clear old Sur-R6 list
 	if IsObject(y.selectSingleNode(SurUnitPath)) {
 		removeNode(SurUnitPath)
@@ -677,7 +676,7 @@ IcuMerge:
 		c1mrn := c1.item(A_Index-1).text
 		c1str := "/root/id[@mrn='" c1mrn "']"
 		c1loc := y.selectSingleNode(c1str "/demog/data/unit").text
-		if (c1loc=SurUnitLoc) {
+		if (c1loc=loc_Surg) {
 			y.addElement("mrn",SurUnitPath,c1mrn)
 		}
 	}
