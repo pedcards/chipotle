@@ -67,6 +67,10 @@ Forecast_val:=[]
 			loc.Insert(c1)
 			loc[c1] := {name:c2, datevar:"GUI" c3 "TXT"}
 		}
+		if (sec="Hosp_Loc") {
+			splitIni(i,c1,c2)
+			%c1% := c2
+		}
 		if (sec="CIS_strings") {
 			splitIni(i,c1,c2)
 			%c1% := c2
