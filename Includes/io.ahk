@@ -232,7 +232,7 @@ saveCensus:
 		}
 		cens.selectSingleNode(c1 "/TXP").setAttribute("tot",totTXP:=cens.selectNodes(c1 "/TXP//mrn").length)
 		cens.selectSingleNode(c1 "/TXP/CICU").setAttribute("tot",totTxCICU:=cens.selectNodes(c1 "/TXP/CICU/mrn").length)
-		cens.selectSingleNode(c1 "/TXP/SUR-R6").setAttribute("tot",totTxWard:=cens.selectNodes(c1 "/TXP/SUR-R6/mrn").length)
+		cens.selectSingleNode(c1 "/TXP/" loc_Surg).setAttribute("tot",totTxWard:=cens.selectNodes(c1 "/TXP/" loc_Surg "/mrn").length)
 	}
 	
 	eventlog("CENSUS '" location "' updated.")
@@ -243,7 +243,7 @@ saveCensus:
 		
 	if ((totCRD:=censCrd.getAttribute("tot")) and (totCSR:=censCSR.getAttribute("tot")) and (totTXP:=censTxp.getAttribute("tot"))) {
 		totTxCICU := cens.selectSingleNode(c1 "/TXP/CICU").getAttribute("tot")
-		totTxWard := cens.selectSingleNode(c1 "/TXP/SUR-R6").getAttribute("tot")
+		totTxWard := cens.selectSingleNode(c1 "/TXP/" loc_Surg).getAttribute("tot")
 		FileAppend, % censM "/" censD "/" censY "," totCRD "," totCSR "," totTxCICU "," totTxWard "`n" , logs/census.csv
 		eventlog("Daily census updated.")
 	}
