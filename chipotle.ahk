@@ -666,21 +666,22 @@ IcuMerge:
 	}
 	writeOut("/root/lists","CICUSur")
 	
-	SurR6Path := "/root/lists/SurR6"											; Clear old Sur-R6 list
-	if IsObject(y.selectSingleNode(SurR6Path)) {
-		removeNode(SurR6Path)
+	SurUnitLoc := "SUR-R4"
+	SurUnitPath := "/root/lists/SurUnit"											; Clear old Sur-R6 list
+	if IsObject(y.selectSingleNode(SurUnitPath)) {
+		removeNode(SurUnitPath)
 	}
-	y.addElement("SurR6","/root/lists", {date:timenow})
+	y.addElement("SurUnit","/root/lists", {date:timenow})
 	
 	Loop, % (c1:=y.selectNodes("/root/lists/CSR/mrn")).length {					; Select CSR patients on SUR-R6
 		c1mrn := c1.item(A_Index-1).text
 		c1str := "/root/id[@mrn='" c1mrn "']"
 		c1loc := y.selectSingleNode(c1str "/demog/data/unit").text
-		if (c1loc="SUR-R6") {
-			y.addElement("mrn",SurR6Path,c1mrn)
-			WriteOut("/root/lists","SurR6")
+		if (c1loc=SurUnitLoc) {
+			y.addElement("mrn",SurUnitPath,c1mrn)
 		}
 	}
+	WriteOut("/root/lists","SurUnit")
 	
 	if (tmpDT_csr=tmpDT_cicu) {													; Scan CSR list for SURGCNTR patients
 		Loop, % (c2:=y.selectNodes("/root/lists/CSR/mrn")).length {

@@ -22,7 +22,7 @@ if (isCICU) {
 	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gTeamList vECICUSur", CICU+Surg patients
 }
 if (isARNP) {
-	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gTeamList vESurR6", Surg R6
+	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gTeamList vESurUnit", Surg Unit
 	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gTeamList vESURGCNTR", Surgery Center
 }
 if (isCICU or isARNP) {																				; CICU interface
