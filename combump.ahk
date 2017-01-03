@@ -6,6 +6,13 @@
 	- delete old chipotle.exe
 	- copy chipotle-VER-DATETIME.exe to chipotle.exe
 	- if on network, copy new chipotle.exe to shared folder
+	
+	- Create Release branch
+	- Make sure Release branch ready to go
+	- Right click Custom Command, com+bump
+	- Commit latest file (AHK file has changed version string now)
+	- Finish Release branch, tag with new version number – will finalize changes to the Dev and Master branches
+
 */
 
 #NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
@@ -20,6 +27,22 @@ ahk2exe_mpr := ahk_path "\mpress.exe"
 
 fileIn := "chipotle.ahk"
 fileIco := "pepper32.ico"
+
+;	=============================================================================
+;	Check that release branch is created and selected
+;	=============================================================================
+githead := "..\CHIPOTLE\.git\HEAD"
+FileRead, head, %githead%
+if !RegExMatch(head,"i)release\/.+") {
+	Progress, off
+	MsgBox, 16, RELEASE, 
+(
+* Start RELEASE branch
+* Make sure release branch is ready to go
+* Then try again
+)
+	ExitApp
+}
 
 Progress, 40, Reading chipotle.ahk, COMBUMP
 FileRead, txt, %fileIn%
@@ -52,8 +75,14 @@ FileMove, chipotle.tmp, chipotle.ahk, 1
 
 Progress, 100, Finishing..., COMBUMP
 Progress, off
-MsgBox % "Compiled and bumped to version " versNew
+MsgBox, 64, Compiled, 
+(
+Version bumped to %versNew%
 
+Now commit the latest chipotle.ahk version
+Then finish the RELEASE branch
+Update the shared exe when not in use
+)
 ExitApp
 
 StrX( H,  BS="",BO=0,BT=1,   ES="",EO=0,ET=1,  ByRef N="" ) { ;    | by Skan | 19-Nov-2009
