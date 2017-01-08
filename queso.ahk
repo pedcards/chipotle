@@ -225,17 +225,27 @@ Unlock:
 Query:
 {
 	Gui, main:Hide
-	;~ InputBox, q, Search..., Search for "Ruggerie"
-	q := "rugge"
+	InputBox, q, Search..., Enter provider search string
+	;~ q := "rugge"
+	qres := 
+	
 	Loop, % (totarch := za.selectNodes("/root/id/prov")).length
 	{
 		k := totarch.item(A_index-1)
 		pc := k.getAttribute("provCard")
 		if (pc~="i)" . q ) {
-			i := k.parentNode
-			mrn := i.getAttribute("mrn")
-			MsgBox % mrn
+			id := k.parentNode
+			mrn := id.getAttribute("mrn")
+			ed_pc := k.getAttribute("ed")
+			ed_dx := id.selectSingleNode("diagnoses").getAttribute("ed")
+			eddt := (ed_pc > ed_dx) ? ed_pc : ed_dx
+			qres .= mrn ", " eddt "`r`n"
 		}
+	}
+	if (qres) {
+		qres .= "`r`nResults copied to CLIPBOARD, can be pasted into another program."
+		Clipboard := qres
+		MsgBox % qres
 	}
 	Gui, main:Show
 	return
