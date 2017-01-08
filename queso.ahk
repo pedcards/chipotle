@@ -227,12 +227,14 @@ Query:
 	Gui, main:Hide
 	;~ InputBox, q, Search..., Search for "Ruggerie"
 	q := "rugge"
-	Loop, % (totarch := z.selectNodes("/root/id/prov")).length
+	Loop, % (totarch := za.selectNodes("/root/id/prov")).length
 	{
 		k := totarch.item(A_index-1)
 		pc := k.getAttribute("provCard")
 		if (pc~="i)" . q ) {
-			MsgBox % pc
+			i := k.parentNode
+			mrn := i.getAttribute("mrn")
+			MsgBox % mrn
 		}
 	}
 	Gui, main:Show
