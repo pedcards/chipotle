@@ -28,7 +28,7 @@ MainGUI:
 	Gui, main:Add, Button, w150 gStatsGUI, Statistics
 	Gui, main:Add, Button, wp gViewLog, View logs
 	Gui, main:Add, Button, wp gUnlock, Release lock
-	Gui, main:Add, Button, wp, Search archive
+	Gui, main:Add, Button, wp gQuery, Query archive
 	Gui, main:Add, Button, wp gCleanArch, Clean archive
 	Gui, main:Add, Button, wp gEnvInfo, Env Info
 	Gui, main:Add, Button, wp gActiveWindow, ActiveWindowInfo
@@ -220,6 +220,11 @@ Unlock:
 		MsgBox,48,Unlock, No lock file exists!
 	}
 	Return
+}
+
+Query:
+{
+	return
 }
 
 CleanArch:
