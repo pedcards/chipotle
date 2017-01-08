@@ -224,6 +224,18 @@ Unlock:
 
 Query:
 {
+	Gui, main:Hide
+	;~ InputBox, q, Search..., Search for "Ruggerie"
+	q := "rugge"
+	Loop, % (totarch := z.selectNodes("/root/id/prov")).length
+	{
+		k := totarch.item(A_index-1)
+		pc := k.getAttribute("provCard")
+		if (pc~="i)" . q ) {
+			MsgBox % pc
+		}
+	}
+	Gui, main:Show
 	return
 }
 
