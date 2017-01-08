@@ -48,15 +48,6 @@ Gui, Main:Add, Text, vGUIcoresTXT x137 y%posy% w130 h20 , % strCO.MM "/" strCO.D
 
 Gui, Main:Add, Button, % "x80 y" (posy+=40) " w100 h30 gMainGUIdone", Update && Exit!
 
-WinGetPos, , , CIS_W, CIS_H, % CIS_window
-if (CIS_W) {
-	CIS_W := CIS_W - 300
-	CIS_H := CIS_H - posy - 120
-} else {
-	CIS_W := A_ScreenWidth-280
-	CIS_H := A_ScreenHeight-posy-120
-}
-
 Menu, menuSys, Add, GUACAMOLE, buttonGuac
 Menu, menuSys, Add, NACHOS, buttonNachos
 Menu, menuSys, Add, QUESO, buttonAdmin
@@ -78,7 +69,13 @@ Menu, menuHelp, Add, About CHIPOTLE, buttonInfo
 Menu, MenuBar, Add, Help, :menuHelp
 
 Gui, Main:Menu, MenuBar
-Gui, Main:Show, x%CIS_W% y%CIS_H% w260 , % "CHIPOTLE main" (servfold="testlist" ? " TEST" : "")
+
+Gui, Main:Show, w260 , % "CHIPOTLE main" (servfold="testlist" ? " TEST" : "")			; draw initial GUI
+
+WinGetPos, tmpX, tmpY, tmpW, tmpH, CHIPOTLE main										; get GUI coordinates
+SysGet, tmpMon, MonitorWorkArea															; get screen params
+Gui, Main:Show, % "x" (tmpMonRight-tmpW) " y" (tmpMonBottom-tmpH)						; reposition GUI relative to screen
+
 return
 }
 
@@ -165,6 +162,7 @@ ButtonChili:
 
 ButtonConCarne:
 {
+	isARNP := true
 	return
 }
 

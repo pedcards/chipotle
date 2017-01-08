@@ -28,7 +28,7 @@ MainGUI:
 	Gui, main:Add, Button, w150 gStatsGUI, Statistics
 	Gui, main:Add, Button, wp gViewLog, View logs
 	Gui, main:Add, Button, wp gUnlock, Release lock
-	Gui, main:Add, Button, wp, Search archive
+	Gui, main:Add, Button, wp gQuery, Query archive
 	Gui, main:Add, Button, wp gCleanArch, Clean archive
 	Gui, main:Add, Button, wp gEnvInfo, Env Info
 	Gui, main:Add, Button, wp gActiveWindow, ActiveWindowInfo
@@ -220,6 +220,35 @@ Unlock:
 		MsgBox,48,Unlock, No lock file exists!
 	}
 	Return
+}
+
+Query:
+{
+	Gui, main:Hide
+	InputBox, q, Search..., Enter provider search string
+	;~ q := "rugge"
+	qres := 
+	
+	Loop, % (totarch := za.selectNodes("/root/id/prov")).length
+	{
+		k := totarch.item(A_index-1)
+		pc := k.getAttribute("provCard")
+		if (pc~="i)" . q ) {
+			id := k.parentNode
+			mrn := id.getAttribute("mrn")
+			ed_pc := k.getAttribute("ed")
+			ed_dx := id.selectSingleNode("diagnoses").getAttribute("ed")
+			eddt := (ed_pc > ed_dx) ? ed_pc : ed_dx
+			qres .= mrn ", " eddt "`r`n"
+		}
+	}
+	if (qres) {
+		qres .= "`r`nResults copied to CLIPBOARD, can be pasted into another program."
+		Clipboard := qres
+		MsgBox % qres
+	}
+	Gui, main:Show
+	return
 }
 
 CleanArch:
