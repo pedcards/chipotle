@@ -418,10 +418,6 @@ ArchiveNode(node,i:=0) {
 		yArch.addElement(node,MRN)										; create it.
 	arcX := yArch.selectSingleNode(MRN "/" node)						; get the node, whether existant or new
 	
-	if (arcX.getAttribute("ed") == x.getAttribute("ed")) {				; nodes in Y and yArch are equivalent
-		return
-	}
-	
 	clone := x.cloneNode(true)											; make a copy
 	yArch.selectSingleNode(MRN).replaceChild(clone,arcX)				; replace arcX with the clone.
 	
