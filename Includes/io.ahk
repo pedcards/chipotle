@@ -92,20 +92,18 @@ SaveIt:
 {
 	eventlog("Starting save...")
 	vSaveIt:=true																		; inform GetIt that run from SaveIt, changes progress window
-	gosub GetIt																			; recheck the server side currlist.xml
+	gosub GetIt																			; refresh latest y and yarch from local and server
 	vSaveIt:=																			; clear bit
 	
 	filecheck()																			; file in use, delay until .currlock cleared
 	FileOpen(".currlock", "W")															; Create lock file.
 
 	Progress, b w300, Processing...
-	;~ y := new XML("currlist.xml")														; Load freshest copy of Currlist
-	;~ yArch := new XML("archlist.xml")													; and ArchList
 	
 	; Save all MRN, Dx, Notes, ToDo, etc in arch.xml
 	yaNum := y.selectNodes("/root/id").length
 	Loop, % (yaN := y.selectNodes("/root/id")).length {									; Loop through each ID/MRN in Currlist
-		k := yaN.item((i:=A_Index)-1)
+		k := yaN.item(A_Index-1)
 		kMRN := k.getAttribute("mrn")
 		if !IsObject(yaMRN:=yArch.selectSingleNode("/root/id[@mrn='" kMRN "']")) {		; If ID MRN node does not exist in Archlist, 
 			yArch.addElement("id","root", {mrn: kMRN})									; then create it 
@@ -125,7 +123,7 @@ SaveIt:
 		errList:=false																		; for counting hits in lists
 		
 		Loop, % (yaList := y.selectNodes("/root/lists/*/mrn")).length {					; Compare each MRN against the list of
-			yaMRN := yaList.item((j:=A_Index)-1).text									; MRNs in /root/lists
+			yaMRN := yaList.item(A_Index-1).text									; MRNs in /root/lists
 			if (kMRN == yaMRN) {														; If MRN matches in any list, then move on
 				errList:=true
 				break																	; break out of list search loop
@@ -419,10 +417,6 @@ ArchiveNode(node,i:=0) {
 	if !IsObject(yArch.selectSingleNode(MRN "/" node))					; if no node exists,
 		yArch.addElement(node,MRN)										; create it.
 	arcX := yArch.selectSingleNode(MRN "/" node)						; get the node, whether existant or new
-	
-	if (arcX.getAttribute("ed") == x.getAttribute("ed")) {				; nodes in Y and yArch are equivalent
-		return
-	}
 	
 	clone := x.cloneNode(true)											; make a copy
 	yArch.selectSingleNode(MRN).replaceChild(clone,arcX)				; replace arcX with the clone.
