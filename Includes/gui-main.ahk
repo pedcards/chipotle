@@ -196,11 +196,6 @@ if !(qldone) {
 Return
 }
 
-;~ qListGuiClose:
-	;~ locString := ""
-	;~ Gui, qList:Hide
-;~ Return
-
 UpdateMainGUI:
 {
 	location := A_GuiControl
