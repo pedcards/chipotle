@@ -118,7 +118,9 @@ SaveIt:
 		ArchiveNode("prov") 
 		ArchiveNode("notes") 
 		ArchiveNode("plan") 
-		Progress, % 80*(i/yaNum), % dialogVals[Rand(dialogVals.MaxIndex())] "..." 
+		if (A_index/10 == Round(A_index/10)) {
+			Progress, % 80*(A_Index/yaNum), % dialogVals[Rand(dialogVals.MaxIndex())] "..." 
+		}
 		
 		errList:=false																		; for counting hits in lists
 		
@@ -138,7 +140,7 @@ SaveIt:
 		}
 	}
 
-	Progress, 80, Saving updates...
+	Progress, 90, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	yArch.save("archlist.xml")															; Writeout archlist
 	if !(errList) {																		; dialog to show if there were any hits
 		Progress, hide
