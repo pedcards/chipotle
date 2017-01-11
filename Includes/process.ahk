@@ -72,7 +72,8 @@ processCIS:										;*** Parse CIS patient list
 			StrX(CIS_attg,",",1,2," ",1,2,n )							; Get ATTG last,first name
 			CIS_attg := substr(CIS_attg,1,n)
 		CIS_adm_full := clip_elem[clip_num,colIdx["Adm"]]				; Admit date/time
-			CIS_admit := StrX(CIS_adm_full, ,0,0, " ",1,0)
+			i := parseDate(StrX(CIS_adm_full, ,0,0, " ",1,0))
+			CIS_admit := i.YYYY . i.MM . i.DD
 		CIS_sex := clip_elem[clip_num,colIdx["Sex"]]					; Sex
 		CIS_age := clip_elem[clip_num,colIdx["Age"]]					; Age
 		CIS_svc := clip_elem[clip_num,colIdx["Svc"]]					; Service
@@ -113,6 +114,11 @@ processCIS:										;*** Parse CIS patient list
 		y.addElement("room", MRNstring . "/demog/data", CIS_loc_room)
 		y.addElement("mrn", "/root/lists/" . location, CIS_mrn)
 		
+		; Capture each encounter
+		if !IsObject(y.selectSingleNode(MRNstring "/prov/enc[@adm='" CIS_admit "']")) {
+			y.addElement("enc", MRNstring "/prov", {adm:CIS_admit, attg:CIS_attg, svc:CIS_svc})
+		}
+		
 		; Auto label Transplant patients admitted by Txp attg
 		if !IsObject(y.selectSingleNode(MRNstring "/status")) {							; If no status, add it.
 			y.addElement("status", MRNstring)
@@ -125,7 +131,6 @@ processCIS:										;*** Parse CIS patient list
 		}
 		
 		; Add Cardiology/SURGCNTR patients to SURGCNTR list, these are cath patients, will fall off when discharged?
-;		if (location="Cards" and CIS_sex="Female") {
 		if (location="Cards" and CIS_loc_unit="SURGCNTR") {
 			SurgCntrPath := "/root/lists/SURGCNTR"
 			if !IsObject(y.selectSingleNode(SurgCntrPath)) {
