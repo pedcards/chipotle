@@ -386,6 +386,11 @@ plPMsettings:
 
 plPMsave:
 {
-	
+	if (PM_chk="Temporary") {
+		if !IsObject(y.selectSingleNode(pl_MRNstring "/pacing"))
+			y.addElement("pacing", pl_MRNstring)
+			WriteOut(pl_mrnstring, "pacing")
+			MsgBox eventlog(mrn " saved.")
+		}
 	return
 }
