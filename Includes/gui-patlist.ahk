@@ -346,6 +346,33 @@ plPMsettings:
 		. "&Permanent"
 		,"Q","")
 	if (instr(PM_chk,"Temp")) {
+		Gui, PmGui:Destroy
+		Gui, PmGui:Default
+		Gui, Add, Text, Center, Pacemaker Settings
+		Gui, Add, Text, Section, MODE
+		Gui, Add, Text, xm yp+22, LRL
+		Gui, Add, Text, xm yp+22, URL
+		Gui, Add, Text, xm yp+22, AVI
+		Gui, Add, Text, xm yp+22, PVARP
+		Gui, Add, Text, xm yp+30, Ap
+		Gui, Add, Text, xm yp+22, As
+		Gui, Add, Text, xm yp+22, Vp
+		Gui, Add, Text, xm yp+22, Vs
+		
+		Gui, Add, Edit, ys-2 w60, DDD
+		Gui, Add, Edit, yp+22 w60, 60
+		Gui, Add, Edit, yp+22 w60, 180
+		Gui, Add, Edit, yp+22 w60, 100
+		Gui, Add, Edit, yp+22 w60, 250
+		Gui, Add, Edit, yp+30 w60, 1.0
+		Gui, Add, Edit, yp+22 w60, 0.5
+		Gui, Add, Edit, yp+22 w60, 1.0
+		Gui, Add, Edit, yp+22 w60, 2.0
+		
+		Gui, Add, Button, xm w100 Center, Save values
+		
+		Gui, -MinimizeBox -MaximizeBox
+		Gui, Show, AutoSize, PM
 		return
 	}
 	else if (instr(PM_chk,"Perm")) {
