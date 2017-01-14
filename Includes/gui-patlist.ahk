@@ -91,7 +91,7 @@ PatListGUI:
 	Gui, Add, CheckBox, xp yp+20 h20 Checked%pl_statPM% vpl_statPM gplInputNote, Pacemaker
 	if (pl_statPM) {
 		Gui, Font, s6
-		Gui, Add, Button, x+m h8, Settings
+		Gui, Add, Button, x+m yp+3 h8, Settings
 		Gui, Font
 	}
 
