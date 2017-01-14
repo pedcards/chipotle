@@ -369,7 +369,7 @@ plPMsettings:
 		Gui, Add, Edit, yp+22 w60, 1.0
 		Gui, Add, Edit, yp+22 w60, 2.0
 		
-		Gui, Add, Button, xm w100 Center, Save values
+		Gui, Add, Button, xm w100 Center gplPMsave, Save values
 		
 		Gui, -MinimizeBox -MaximizeBox
 		Gui, Show, AutoSize, PM
@@ -381,5 +381,11 @@ plPMsettings:
 		return
 	} 
 	MsgBox Exit
+	return
+}
+
+plPMsave:
+{
+	
 	return
 }
