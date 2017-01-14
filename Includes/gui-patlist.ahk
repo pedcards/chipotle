@@ -345,7 +345,7 @@ plPMsettings:
 		, "*&Temporary|"
 		. "&Permanent"
 		,"Q","")
-	if (instr(PM_chk,"Temp")) {
+	if (PM_chk="Temporary") {
 		Gui, PmGui:Destroy
 		Gui, PmGui:Default
 		Gui, Add, Text, Center, Pacemaker Settings
@@ -375,7 +375,7 @@ plPMsettings:
 		Gui, Show, AutoSize, PM
 		return
 	}
-	else if (instr(PM_chk,"Perm")) {
+	else if (PM_chk="Permanent") {
 		MsgBox Permanent
 		
 		return
