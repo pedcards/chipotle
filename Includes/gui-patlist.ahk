@@ -341,6 +341,18 @@ SetStatus(mrn,node,att,value) {
 
 plPMsettings:
 {
-	
+	PM_chk := CMsgBox("Which device type?",""
+		, "*&Temporary|"
+		. "&Permanent"
+		,"Q","")
+	if (instr(PM_chk,"Temp")) {
+		return
+	}
+	else if (instr(PM_chk,"Perm")) {
+		MsgBox Permanent
+		
+		return
+	} 
+	MsgBox Exit
 	return
 }
