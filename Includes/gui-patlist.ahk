@@ -314,6 +314,7 @@ PtParse(mrn) {
 		, "callN":pl.selectSingleNode("plan/call").getAttribute("next")
 		, "callL":pl.selectSingleNode("plan/call").getAttribute("last")
 		, "callBy":pl.selectSingleNode("plan/call").getAttribute("by")
+		, "PM":pl.selectSingleNode("diagnoses/ep")
 		, "CORES":pl.selectSingleNode("info/hx").text
 		, "info":pl.selectSingleNode("info")
 		, "MAR":pl.selectSingleNode("MAR")
