@@ -387,7 +387,7 @@ plPMsettings:
 		Gui, Add, Edit, yp+22 w40 vPmSet_AsThr, % PmSet.AsThr
 		Gui, Add, Edit, yp+22 w40 vPmSet_VpThr, % PmSet.VpThr
 		Gui, Add, Edit, yp+22 w40 vPmSet_VsThr, % PmSet.VsThr
-
+		
 		Gui, Add, Text, xm+120 ys, Ap (mA)
 		Gui, Add, Text, xp yp+22, As (mV)
 		Gui, Add, Text, xp yp+22, Vp (mA)
@@ -396,10 +396,10 @@ plPMsettings:
 		Gui, Add, Edit, yp+22 w40 vPmSet_As, % PmSet.As
 		Gui, Add, Edit, yp+22 w40 vPmSet_Vp, % PmSet.Vp
 		Gui, Add, Edit, yp+22 w40 vPmSet_Vs, % PmSet.Vs
-
+		
 		Gui, Add, Edit, xm yp+30 w210 r2 vPmSet_notes, % PmSet.notes
 		Gui, Add, Button, xm w210 Center gplPMsave, Save values
-
+		
 		Gui, -MinimizeBox -MaximizeBox
 		Gui, Show, AutoSize, % PM_chk
 		return
@@ -448,7 +448,7 @@ plPMsettings:
 		Gui, Add, Edit, yp+22 w40 vPmSet_AsThr, % PmSet.AsThr
 		Gui, Add, Edit, yp+22 w40 vPmSet_VpThr, % PmSet.VpThr
 		Gui, Add, Edit, yp+22 w40 vPmSet_VsThr, % PmSet.VsThr
-
+		
 		Gui, Add, Text, xm+120 ys, Ap (V@ms)
 		Gui, Add, Text, xp yp+22, As (mV)
 		Gui, Add, Text, xp yp+22, Vp (V@ms)
@@ -457,7 +457,7 @@ plPMsettings:
 		Gui, Add, Edit, yp+22 w40 vPmSet_As, % PmSet.As
 		Gui, Add, Edit, yp+22 w40 vPmSet_Vp, % PmSet.Vp
 		Gui, Add, Edit, yp+22 w40 vPmSet_Vs, % PmSet.Vs
-
+		
 		Gui, Add, Edit, xm yp+30 w210 r2 vPmSet_notes, % PmSet.notes
 		Gui, Add, Button, xm w210 Center , Save values
 
