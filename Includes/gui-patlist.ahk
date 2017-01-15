@@ -459,8 +459,8 @@ plPMsettings:
 		Gui, Add, Edit, yp+22 w40 vPmSet_Vs, % PmSet.Vs
 		
 		Gui, Add, Edit, xm yp+30 w210 r2 vPmSet_notes, % PmSet.notes
-		Gui, Add, Button, xm w210 Center , Save values
-
+		Gui, Add, Button, xm w210 Center gplPMsave, Save values
+		
 		Gui, -MinimizeBox -MaximizeBox
 		Gui, Show, AutoSize, % PM_chk
 		return
