@@ -387,10 +387,17 @@ plPMsettings:
 plPMsave:
 {
 	if (PM_chk="Temporary") {
-		if !IsObject(y.selectSingleNode(pl_MRNstring "/pacing"))
-			y.addElement("pacing", pl_MRNstring)
-			WriteOut(pl_mrnstring, "pacing")
-			MsgBox eventlog(mrn " saved.")
+		if !IsObject(y.selectSingleNode(pl_MRNstring "/pacing")) {
+			y.addElement("pacing", pl_MRNstring)										; Add <pacing> element if necessary
+			y.addElement("leads", pl_MRNstring "/pacing").setAttribute("date",A_now)	; and a <leads> element
 		}
+		pl_PM := y.selectSingleNode(pl_MRNstring "/pacing")								; get <pacing> element into pl_PM
+		loop % (i := pl_PM.selectNodes("leads")).length {
+			j := i.item(A_Index-1)														; read through last <pacing/leads> element
+		}
+		MsgBox % j.getAttribute("date")
+	}
+	WriteOut(pl_mrnstring, "pacing")
+	MsgBox eventlog(mrn " saved.")
 	return
 }
