@@ -372,8 +372,10 @@ plPMsettings:
 		Gui, Add, Edit, ys-2 w40 vPmSet_AVI, % PmSet.AVI
 		Gui, Add, Edit, yp+22 w40 vPmSet_PVARP, % PmSet.PVARP
 		
+		Gui, add, text, xm yp+60 w210 h1 0x7  ;Horizontal Line > Black
+		
 		Gui, Font, Bold
-		Gui, Add, Text, xm yp+60, Tested
+		Gui, Add, Text, xm yp+22, Tested
 		Gui, Add, Text, xm+120 yp, Programmed
 		
 		Gui, Font, Normal
@@ -396,7 +398,7 @@ plPMsettings:
 		Gui, Add, Edit, yp+22 w40 vPmSet_Vs, % PmSet.Vs
 
 		Gui, Add, Edit, xm yp+30 w210 r2 vPmSet_notes, % PmSet.notes
-		Gui, Add, Button, xm w210 Center , Save values
+		Gui, Add, Button, xm w210 Center gplPMsave, Save values
 
 		Gui, -MinimizeBox -MaximizeBox
 		Gui, Show, AutoSize, % PM_chk
