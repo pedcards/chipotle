@@ -346,9 +346,20 @@ plPMsettings:
 		. "&Permanent"
 		,"Q","")
 	if (PM_chk="Temporary") {
+		loop % (i := y.selectNodes(pl_MRNstring "/pacing/temp")).length {				; get <pacing> element into pl_PM
+			j := i.item(A_Index-1)														; read through last <pacing/leads> element
+		}
+		pmDate := breakDate(j.getAttribute("date"))
+		PmSet := Object()																; clear pmSet object
+		Loop % (i := j.selectNodes("*")).length {
+			k := i.item(A_Index-1)														; read each element <mode>, <LRL>, etc
+			PmSet[k.nodeName] := k.text													; and set value for pmSet.mode, pmSet.LRL, etc
+		}
+		
 		Gui, PmGui:Destroy
 		Gui, PmGui:Default
 		Gui, Add, Text, Center, Pacemaker Settings
+		Gui, Add, Text, Center, % (pmDate.MM) ? pmDate.MM "/" pmDate.DD "/" pmDate.YYYY " @ " pmDate.HH ":" pmDate.min ":" pmDate.sec : ""
 		Gui, Add, Text, Section, MODE
 		Gui, Add, Text, xm yp+22, LRL
 		Gui, Add, Text, xm yp+22, URL
@@ -359,15 +370,15 @@ plPMsettings:
 		Gui, Add, Text, xm yp+22, Vp
 		Gui, Add, Text, xm yp+22, Vs
 		
-		Gui, Add, Edit, ys-2 w60, DDD
-		Gui, Add, Edit, yp+22 w60, 60
-		Gui, Add, Edit, yp+22 w60, 180
-		Gui, Add, Edit, yp+22 w60, 100
-		Gui, Add, Edit, yp+22 w60, 250
-		Gui, Add, Edit, yp+30 w60, 1.0
-		Gui, Add, Edit, yp+22 w60, 0.5
-		Gui, Add, Edit, yp+22 w60, 1.0
-		Gui, Add, Edit, yp+22 w60, 2.0
+		Gui, Add, Edit, ys-2 w60 vPmSet_mode, % PmSet.mode
+		Gui, Add, Edit, yp+22 w60 vPmSet_LRL, % PmSet.LRL
+		Gui, Add, Edit, yp+22 w60 vPmSet_URL, % PmSet.URL
+		Gui, Add, Edit, yp+22 w60 vPmSet_AVI, % PmSet.AVI
+		Gui, Add, Edit, yp+22 w60 vPmSet_PVARP, % PmSet.PVARP
+		Gui, Add, Edit, yp+30 w60 vPmSet_Ap, % PmSet.Ap
+		Gui, Add, Edit, yp+22 w60 vPmSet_As, % PmSet.As
+		Gui, Add, Edit, yp+22 w60 vPmSet_Vp, % PmSet.Vp
+		Gui, Add, Edit, yp+22 w60 vPmSet_Vs, % PmSet.Vs
 		
 		Gui, Add, Button, xm w100 Center gplPMsave, Save values
 		
@@ -384,20 +395,33 @@ plPMsettings:
 	return
 }
 
+pmGuiGuiClose:
+{
+	Gui, PmGUI:Destroy
+return
+}
+
 plPMsave:
 {
+	Gui, PmGui:Submit
 	if (PM_chk="Temporary") {
 		if !IsObject(y.selectSingleNode(pl_MRNstring "/pacing")) {
 			y.addElement("pacing", pl_MRNstring)										; Add <pacing> element if necessary
-			y.addElement("leads", pl_MRNstring "/pacing").setAttribute("date",A_now)	; and a <leads> element
 		}
-		pl_PM := y.selectSingleNode(pl_MRNstring "/pacing")								; get <pacing> element into pl_PM
-		loop % (i := pl_PM.selectNodes("leads")).length {
-			j := i.item(A_Index-1)														; read through last <pacing/leads> element
-		}
-		MsgBox % j.getAttribute("date")
+		pmNow := A_Now
+		pmNowString := pl_MRNstring "/pacing/temp[@date='" pmNow "']"
+		y.addElement("temp", pl_MRNstring "/pacing", {date:pmNow, au:user})		; and a <leads> element
+			y.addElement("mode", pmNowString, PmSet_mode)
+			y.addElement("LRL", pmNowString, PmSet_LRL)
+			y.addElement("URL", pmNowString, PmSet_URL)
+			y.addElement("AVI", pmNowString, PmSet_AVI)
+			y.addElement("PVARP", pmNowString, PmSet_PVARP)
+			y.addElement("Ap", pmNowString, PmSet_Ap)
+			y.addElement("As", pmNowString, PmSet_As)
+			y.addElement("Vp", pmNowString, PmSet_Vp)
+			y.addElement("Vs", pmNowString, PmSet_Vs)
 	}
 	WriteOut(pl_mrnstring, "pacing")
-	MsgBox eventlog(mrn " saved.")
+	eventlog(mrn " " pm_chk " pacer settings changed.")
 	return
 }
