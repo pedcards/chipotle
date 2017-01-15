@@ -380,7 +380,8 @@ plPMsettings:
 		Gui, Add, Edit, yp+22 w60 vPmSet_Vp, % PmSet.Vp
 		Gui, Add, Edit, yp+22 w60 vPmSet_Vs, % PmSet.Vs
 		
-		Gui, Add, Button, xm w100 Center gplPMsave, Save values
+		Gui, Add, Edit, xm yp+30 w160 r4 vPmSet_notes, % PmSet.notes
+		Gui, Add, Button, xm w160 Center gplPMsave, Save values
 		
 		Gui, -MinimizeBox -MaximizeBox
 		Gui, Show, AutoSize, % PM_chk
@@ -420,6 +421,7 @@ plPMsave:
 			y.addElement("As", pmNowString, PmSet_As)
 			y.addElement("Vp", pmNowString, PmSet_Vp)
 			y.addElement("Vs", pmNowString, PmSet_Vs)
+			y.addElement("notes", pmNowString, PmSet_notes)
 	}
 	WriteOut(pl_mrnstring, "pacing")
 	eventlog(mrn " " pm_chk " pacer settings changed.")
