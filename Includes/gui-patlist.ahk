@@ -363,33 +363,101 @@ plPMsettings:
 		Gui, Add, Text, Section, MODE
 		Gui, Add, Text, xm yp+22, LRL
 		Gui, Add, Text, xm yp+22, URL
-		Gui, Add, Text, xm yp+22, AVI
-		Gui, Add, Text, xm yp+22, PVARP
-		Gui, Add, Text, xm yp+30, Ap (mA)
+		Gui, Add, Edit, ys-2 w40 vPmSet_mode, % PmSet.mode
+		Gui, Add, Edit, yp+22 w40 vPmSet_LRL, % PmSet.LRL
+		Gui, Add, Edit, yp+22 w40 vPmSet_URL, % PmSet.URL
+		
+		Gui, Add, Text, xm+120 ys, AVI
+		Gui, Add, Text, xp yp+22, PVARP
+		Gui, Add, Edit, ys-2 w40 vPmSet_AVI, % PmSet.AVI
+		Gui, Add, Edit, yp+22 w40 vPmSet_PVARP, % PmSet.PVARP
+		
+		Gui, Font, Bold
+		Gui, Add, Text, xm yp+60, Tested
+		Gui, Add, Text, xm+120 yp, Programmed
+		
+		Gui, Font, Normal
+		Gui, Add, Text, Section xm yp+22, Ap (mA)
 		Gui, Add, Text, xm yp+22, As (mV)
 		Gui, Add, Text, xm yp+22, Vp (mA)
 		Gui, Add, Text, xm yp+22, Vs (mV)
-		
-		Gui, Add, Edit, ys-2 w60 vPmSet_mode, % PmSet.mode
-		Gui, Add, Edit, yp+22 w60 vPmSet_LRL, % PmSet.LRL
-		Gui, Add, Edit, yp+22 w60 vPmSet_URL, % PmSet.URL
-		Gui, Add, Edit, yp+22 w60 vPmSet_AVI, % PmSet.AVI
-		Gui, Add, Edit, yp+22 w60 vPmSet_PVARP, % PmSet.PVARP
-		Gui, Add, Edit, yp+30 w60 vPmSet_Ap, % PmSet.Ap
-		Gui, Add, Edit, yp+22 w60 vPmSet_As, % PmSet.As
-		Gui, Add, Edit, yp+22 w60 vPmSet_Vp, % PmSet.Vp
-		Gui, Add, Edit, yp+22 w60 vPmSet_Vs, % PmSet.Vs
-		
-		Gui, Add, Edit, xm yp+30 w160 r4 vPmSet_notes, % PmSet.notes
-		Gui, Add, Button, xm w160 Center gplPMsave, Save values
-		
+		Gui, Add, Edit, ys-2 w40 vPmSet_ApThr, % PmSet.ApThr
+		Gui, Add, Edit, yp+22 w40 vPmSet_AsThr, % PmSet.AsThr
+		Gui, Add, Edit, yp+22 w40 vPmSet_VpThr, % PmSet.VpThr
+		Gui, Add, Edit, yp+22 w40 vPmSet_VsThr, % PmSet.VsThr
+
+		Gui, Add, Text, xm+120 ys, Ap (mA)
+		Gui, Add, Text, xp yp+22, As (mV)
+		Gui, Add, Text, xp yp+22, Vp (mA)
+		Gui, Add, Text, xp yp+22, Vs (mV)
+		Gui, Add, Edit, ys-2 w40 vPmSet_Ap, % PmSet.Ap
+		Gui, Add, Edit, yp+22 w40 vPmSet_As, % PmSet.As
+		Gui, Add, Edit, yp+22 w40 vPmSet_Vp, % PmSet.Vp
+		Gui, Add, Edit, yp+22 w40 vPmSet_Vs, % PmSet.Vs
+
+		Gui, Add, Edit, xm yp+30 w210 r2 vPmSet_notes, % PmSet.notes
+		Gui, Add, Button, xm w210 Center , Save values
+
 		Gui, -MinimizeBox -MaximizeBox
 		Gui, Show, AutoSize, % PM_chk
 		return
 	}
 	else if (PM_chk="Permanent") {
-		MsgBox Permanent
+		if !IsObject(y.selectSingleNode(pl_MRNstring "/diagnoses/ep/device")) {
+			y.addElement("device", pl_MRNstring "/diagnoses/ep")						; Add <pacing> element if necessary
+		}
+		pm_dev := y.selectSingleNode(pl_MRNstring "/diagnoses/ep/device")
+		pmDate := breakDate(pm_dev.getAttribute("date"))
+		PmSet := Object()																; clear pmSet object
+		Loop % (i := pm_dev.selectNodes("*")).length {
+			k := i.item(A_Index-1)														; read each element <mode>, <LRL>, etc
+			PmSet[k.nodeName] := k.text													; and set value for pmSet.mode, pmSet.LRL, etc
+		}
 		
+		Gui, PmGui:Destroy
+		Gui, PmGui:Default
+		Gui, Add, Text, Center, Pacemaker Settings
+		Gui, Add, Text, Center, % (pmDate.MM) ? pmDate.MM "/" pmDate.DD "/" pmDate.YYYY " @ " pmDate.HH ":" pmDate.min ":" pmDate.sec : ""
+		Gui, Add, Text, Section, MODE
+		Gui, Add, Text, xm yp+22, LRL
+		Gui, Add, Text, xm yp+22, URL
+		Gui, Add, Edit, ys-2 w40 vPmSet_mode, % PmSet.mode
+		Gui, Add, Edit, yp+22 w40 vPmSet_LRL, % PmSet.LRL
+		Gui, Add, Edit, yp+22 w40 vPmSet_URL, % PmSet.URL
+		
+		Gui, Add, Text, xm+120 ys, AVI
+		Gui, Add, Text, xp yp+22, PVARP
+		Gui, Add, Edit, ys-2 w40 vPmSet_AVI, % PmSet.AVI
+		Gui, Add, Edit, yp+22 w40 vPmSet_PVARP, % PmSet.PVARP
+		
+		Gui, Font, Bold
+		Gui, Add, Text, xm yp+60, Tested
+		Gui, Add, Text, xm+120 yp, Programmed
+		
+		Gui, Font, Normal
+		Gui, Add, Text, Section xm yp+22, Ap (mA)
+		Gui, Add, Text, xm yp+22, As (mV)
+		Gui, Add, Text, xm yp+22, Vp (mA)
+		Gui, Add, Text, xm yp+22, Vs (mV)
+		Gui, Add, Edit, ys-2 w40 vPmSet_ApThr, % PmSet.ApThr
+		Gui, Add, Edit, yp+22 w40 vPmSet_AsThr, % PmSet.AsThr
+		Gui, Add, Edit, yp+22 w40 vPmSet_VpThr, % PmSet.VpThr
+		Gui, Add, Edit, yp+22 w40 vPmSet_VsThr, % PmSet.VsThr
+
+		Gui, Add, Text, xm+120 ys, Ap (mA)
+		Gui, Add, Text, xp yp+22, As (mV)
+		Gui, Add, Text, xp yp+22, Vp (mA)
+		Gui, Add, Text, xp yp+22, Vs (mV)
+		Gui, Add, Edit, ys-2 w40 vPmSet_Ap, % PmSet.Ap
+		Gui, Add, Edit, yp+22 w40 vPmSet_As, % PmSet.As
+		Gui, Add, Edit, yp+22 w40 vPmSet_Vp, % PmSet.Vp
+		Gui, Add, Edit, yp+22 w40 vPmSet_Vs, % PmSet.Vs
+
+		Gui, Add, Edit, xm yp+30 w210 r2 vPmSet_notes, % PmSet.notes
+		Gui, Add, Button, xm w210 Center , Save values
+
+		Gui, -MinimizeBox -MaximizeBox
+		Gui, Show, AutoSize, % PM_chk
 		return
 	} 
 	MsgBox Exit
@@ -417,6 +485,10 @@ plPMsave:
 			y.addElement("URL", pmNowString, PmSet_URL)
 			y.addElement("AVI", pmNowString, PmSet_AVI)
 			y.addElement("PVARP", pmNowString, PmSet_PVARP)
+			y.addElement("ApThr", pmNowString, PmSet_ApThr)
+			y.addElement("AsThr", pmNowString, PmSet_AsThr)
+			y.addElement("VpThr", pmNowString, PmSet_VpThr)
+			y.addElement("VsThr", pmNowString, PmSet_VsThr)
 			y.addElement("Ap", pmNowString, PmSet_Ap)
 			y.addElement("As", pmNowString, PmSet_As)
 			y.addElement("Vp", pmNowString, PmSet_Vp)
