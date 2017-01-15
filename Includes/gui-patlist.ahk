@@ -349,7 +349,7 @@ plPMsettings:
 		loop % (i := y.selectNodes(pl_MRNstring "/pacing/temp")).length {				; get <pacing> element into pl_PM
 			j := i.item(A_Index-1)														; read through last <pacing/leads> element
 		}
-		pmDate := breakDate(j.getAttribute("date"))
+		pmDate := breakDate(j.getAttribute("ed"))
 		PmSet := Object()																; clear pmSet object
 		Loop % (i := j.selectNodes("*")).length {
 			k := i.item(A_Index-1)														; read each element <mode>, <LRL>, etc
@@ -410,8 +410,8 @@ plPMsave:
 			y.addElement("pacing", pl_MRNstring)										; Add <pacing> element if necessary
 		}
 		pmNow := A_Now
-		pmNowString := pl_MRNstring "/pacing/temp[@date='" pmNow "']"
-		y.addElement("temp", pl_MRNstring "/pacing", {date:pmNow, au:user})		; and a <leads> element
+		pmNowString := pl_MRNstring "/pacing/temp[@ed='" pmNow "']"
+		y.addElement("temp", pl_MRNstring "/pacing", {ed:pmNow, au:user})		; and a <leads> element
 			y.addElement("mode", pmNowString, PmSet_mode)
 			y.addElement("LRL", pmNowString, PmSet_LRL)
 			y.addElement("URL", pmNowString, PmSet_URL)
