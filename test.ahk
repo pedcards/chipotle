@@ -11,7 +11,10 @@ Main:
 	Gui, PmGui:Default
 	Gui, Add, Text, Center, Pacemaker Settings
 	Gui, Add, Text, Center, % (pmDate.MM) ? pmDate.MM "/" pmDate.DD "/" pmDate.YYYY " @ " pmDate.HH ":" pmDate.min ":" pmDate.sec : ""
-	Gui, Add, Text, Section, MODE
+	Gui, Add, Text, Section xm yp+22, MODEL
+	Gui, Add, Edit, ys-2 w160 vPmSet_model, % PmSet.model
+	
+	Gui, Add, Text, Section xm, MODE
 	Gui, Add, Text, xm yp+22, LRL
 	Gui, Add, Text, xm yp+22, URL
 	Gui, Add, Edit, ys-2 w40 vPmSet_mode, % PmSet.mode
