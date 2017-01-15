@@ -499,14 +499,15 @@ plPMsave:
 			y.addElement("Vp", pmNowString, PmSet_Vp)
 			y.addElement("Vs", pmNowString, PmSet_Vs)
 			y.addElement("notes", pmNowString, PmSet_notes)
+		WriteOut(pl_mrnstring, "pacing")
 	}
 	if (PM_chk="Permanent") {
-		if !IsObject(y.selectSingleNode(pl_MRNstring "/diagnoses/ep/device")) {
-			y.addElement("device", pl_MRNstring "/diagnoses/ep")						; Add <pacing> element if necessary
+		if IsObject(y.selectSingleNode(pl_MRNstring "/diagnoses/ep/device")) {			; Remove node if present
+			removeNode(pl_MRNstring "/diagnoses/ep/device")
 		}
-		pmNow := A_Now
-		pmNowString := pl_MRNstring "/pacing/temp[@ed='" pmNow "']"
-		y.addElement("temp", pl_MRNstring "/pacing", {ed:pmNow, au:user})		; and a <leads> element
+		pmNowString := pl_MRNstring "/diagnoses/ep/device"
+		y.addElement("device", pl_MRNstring "/diagnoses/ep", {ed:A_now, au:user})		; Add <dx/ep/device> element
+			y.addElement("model", pmNowString, PmSet_model)
 			y.addElement("mode", pmNowString, PmSet_mode)
 			y.addElement("LRL", pmNowString, PmSet_LRL)
 			y.addElement("URL", pmNowString, PmSet_URL)
@@ -521,9 +522,8 @@ plPMsave:
 			y.addElement("Vp", pmNowString, PmSet_Vp)
 			y.addElement("Vs", pmNowString, PmSet_Vs)
 			y.addElement("notes", pmNowString, PmSet_notes)
-		
+		WriteOut(pl_MRNstring "/diagnoses/ep", "device")
 	}
-	WriteOut(pl_mrnstring, "pacing")
 	eventlog(mrn " " pm_chk " pacer settings changed.")
 	return
 }
