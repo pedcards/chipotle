@@ -365,10 +365,10 @@ plPMsettings:
 		Gui, Add, Text, xm yp+22, URL
 		Gui, Add, Text, xm yp+22, AVI
 		Gui, Add, Text, xm yp+22, PVARP
-		Gui, Add, Text, xm yp+30, Ap
-		Gui, Add, Text, xm yp+22, As
-		Gui, Add, Text, xm yp+22, Vp
-		Gui, Add, Text, xm yp+22, Vs
+		Gui, Add, Text, xm yp+30, Ap (mA)
+		Gui, Add, Text, xm yp+22, As (mV)
+		Gui, Add, Text, xm yp+22, Vp (mA)
+		Gui, Add, Text, xm yp+22, Vs (mV)
 		
 		Gui, Add, Edit, ys-2 w60 vPmSet_mode, % PmSet.mode
 		Gui, Add, Edit, yp+22 w60 vPmSet_LRL, % PmSet.LRL
@@ -383,7 +383,7 @@ plPMsettings:
 		Gui, Add, Button, xm w100 Center gplPMsave, Save values
 		
 		Gui, -MinimizeBox -MaximizeBox
-		Gui, Show, AutoSize, PM
+		Gui, Show, AutoSize, % PM_chk
 		return
 	}
 	else if (PM_chk="Permanent") {
