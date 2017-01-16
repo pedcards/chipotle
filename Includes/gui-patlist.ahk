@@ -94,9 +94,9 @@ PatListGUI:
 		Gui, Add, Button, x+m yp+3 h8 gplPMsettings, Settings
 		Gui, Font
 	}
-
+	
 	Gui, Add, Edit, x16 y132 w240 h40 gplInputNote vpl_misc, %pl_misc%
-	Gui, Add, Edit, x26 y196 w540 h48 vpl_dxNotes gplInputNote, %pl_dxNotes%
+	Gui, Add, Edit, x26 y196 w540 h48 vpl_dxNotes gplInputNote, % pmNoteChk(pl_dxNotes)
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxCard gplInputNote, %pl_dxCard%
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxEP gplInputNote, %pl_dxEP%
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxSurg gplInputNote, %pl_dxSurg%
@@ -526,4 +526,33 @@ plPMsave:
 	}
 	eventlog(mrn " " pm_chk " pacer settings changed.")
 	return
+}
+
+pmNoteChk(txt) {
+	global y, pl_MRNstring
+	if IsObject(y.selectSingleNode(pl_MRNstring "/pacing")) {
+		loop % (i := y.selectNodes(pl_MRNstring "/pacing/temp")).length {				; get <pacing> element into pl_PM
+			j := i.item(A_Index-1)														; read through last <pacing/leads> element
+		}
+		pl_pmStr := pl_MRNstring "/pacing/temp[@ed='" j.getAttribute("ed") "']"
+		
+		pm_str := "[PM Temp " y.getText(pl_pmStr "/mode") " "
+				. ((tmp:=y.getText(pl_pmStr "/LRL")) ? tmp : "")
+				. ((tmp:=y.getText(pl_pmStr "/URL")) ? "-" tmp : "")
+				. ", "
+				. ((tmp:=y.getText(pl_pmStr "/ApThr")) ? tmp : "")
+				. ((tmp:=y.getText(pl_pmStr "/Ap")) ? " => " tmp ", " : "")
+				. ((tmp:=y.getText(pl_pmStr "/VpThr")) ? tmp : "")
+				. ((tmp:=y.getText(pl_pmStr "/Vp")) ? " => " tmp : "")
+				. "] "
+	}
+	if IsObject(y.selectSingleNode(pl_MRNstring "/diagnoses/ep/device")) {
+		pl_pmStr := pl_MRNstring "/diagnoses/ep/device"
+		pm_str := "[PM " y.getText(pl_pmStr "/mode") " "
+				. ((tmp:=y.getText(pl_pmStr "/LRL")) ? tmp : "")
+				. ((tmp:=y.getText(pl_pmStr "/URL")) ? "-" tmp : "")
+				. "] "
+	}
+	txt := pm_str RegExReplace(txt, "\[PM .*\] ")
+Return txt	
 }
