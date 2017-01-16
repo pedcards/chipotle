@@ -67,7 +67,7 @@ PrintIt:
 		CIS_dx := ((pr.dxCard) ? "[[Dx]] " RegExReplace(pr.dxCard,"[\r\n]"," * ") "\line " : "")
 				. ((pr.dxSurg) ?  "[[Surg]] " RegExReplace(pr.dxSurg,"[\r\n]"," * ") "\line " : "")
 				. ((pr.dxEP) ? "[[EP]] " RegExReplace(pr.dxEP,"[\r\n]"," * ") "\line " : "")
-				. ((pr.dxNotes) ? "[[Notes]] " RegExReplace(pr.dxNotes,"[\r\n]"," * ") : "")
+				. ((pr.dxNotes) ? "[[Notes]] " RegExReplace(pmNoteChk(pr.dxNotes),"[\r\n]"," * ") : "")
 		
 		rtfList .= "\keepn\trowd\trgaph144\trkeep" rtfTblCols "`n\b"
 			. "\intbl " . pr.nameL ", " pr.nameF ((pr.provCard) ? "\fs12  (" pr.provCard . ((pr.provSchCard) ? "//" pr.provSchCard : "") ")\fs18" : "") "\cell`n"
@@ -240,7 +240,7 @@ PrintARNP:
 		CIS_dx := ((pr.dxCard) ? "Dx: " pr.dxCard "\line " : "")
 				. ((pr.dxSurg) ?  "Surg: " pr.dxSurg "\line " : "")
 				. ((pr.dxEP) ? "EP: " pr.dxEP "\line " : "")
-				. ((pr.dxNotes) ? "Notes: " pr.dxNotes : "")
+				. ((pr.dxNotes) ? "Notes: " pmNoteChk(pr.dxNotes) : "")
 		
 		if (A_Index>1) {
 			rtfList .= "\page\par`n"
