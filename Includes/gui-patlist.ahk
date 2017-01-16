@@ -541,9 +541,9 @@ pmNoteChk(txt) {
 				. ((tmp:=y.getText(pl_pmStr "/URL")) ? "-" tmp : "")
 				. ", "
 				. ((tmp:=y.getText(pl_pmStr "/ApThr")) ? tmp : "")
-				. ((tmp:=y.getText(pl_pmStr "/Ap")) ? " => " tmp ", " : "")
+				. ((tmp:=y.getText(pl_pmStr "/Ap")) ? " => " tmp " mA" : "")
 				. ((tmp:=y.getText(pl_pmStr "/VpThr")) ? tmp : "")
-				. ((tmp:=y.getText(pl_pmStr "/Vp")) ? " => " tmp : "")
+				. ((tmp:=y.getText(pl_pmStr "/Vp")) ? " => " tmp " mA" : "")
 				. "] "
 	}
 	if IsObject(y.selectSingleNode(pl_MRNstring "/diagnoses/ep/device")) {
