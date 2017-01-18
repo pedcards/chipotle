@@ -94,9 +94,9 @@ PatListGUI:
 		Gui, Add, Button, x+m yp+3 h8 gplPMsettings, Settings
 		Gui, Font
 	}
-
+	
 	Gui, Add, Edit, x16 y132 w240 h40 gplInputNote vpl_misc, %pl_misc%
-	Gui, Add, Edit, x26 y196 w540 h48 vpl_dxNotes gplInputNote, %pl_dxNotes%
+	Gui, Add, Edit, x26 y196 w540 h48 vpl_dxNotes gplInputNote, % pmNoteChk(pl_dxNotes)
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxCard gplInputNote, %pl_dxCard%
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxEP gplInputNote, %pl_dxEP%
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxSurg gplInputNote, %pl_dxSurg%
@@ -302,11 +302,11 @@ PtParse(mrn) {
 		, "Room":pl.selectSingleNode("demog/data/room").text
 		, "Admit":pl.selectSingleNode("demog/data/admit").text
 		, "Attg":pl.selectSingleNode("demog/data/attg").text
-		, "dxCard":pl.selectSingleNode("diagnoses/card").text
-		, "dxEP":pl.selectSingleNode("diagnoses/ep").text
-		, "dxSurg":pl.selectSingleNode("diagnoses/surg").text
-		, "dxNotes":pl.selectSingleNode("diagnoses/notes").text
-		, "dxProb":pl.selectSingleNode("diagnoses/prob").text
+		, "dxEP":y.getText(mrnstring "/diagnoses/ep")
+		, "dxCard":y.getText(mrnstring "/diagnoses/card")
+		, "dxSurg":y.getText(mrnstring "/diagnoses/surg")
+		, "dxNotes":y.getText(mrnstring "/diagnoses/notes")
+		, "dxProb":y.getText(mrnstring  "/diagnoses/prob")
 		, "misc":pl.selectSingleNode("diagnoses/misc").text
 		, "statCons":(pl.selectSingleNode("status").getAttribute("cons") == "on")
 		, "statRes":(pl.selectSingleNode("status").getAttribute("res") == "on")
@@ -526,4 +526,33 @@ plPMsave:
 	}
 	eventlog(mrn " " pm_chk " pacer settings changed.")
 	return
+}
+
+pmNoteChk(txt) {
+	global y, pl_MRNstring
+	if IsObject(y.selectSingleNode(pl_MRNstring "/pacing")) {
+		loop % (i := y.selectNodes(pl_MRNstring "/pacing/temp")).length {				; get <pacing> element into pl_PM
+			j := i.item(A_Index-1)														; read through last <pacing/leads> element
+		}
+		pl_pmStr := pl_MRNstring "/pacing/temp[@ed='" j.getAttribute("ed") "']"
+		
+		pm_str := "[PM Temp " y.getText(pl_pmStr "/mode") " "
+				. ((tmp:=y.getText(pl_pmStr "/LRL")) ? tmp : "")
+				. ((tmp:=y.getText(pl_pmStr "/URL")) ? "-" tmp : "")
+				. ", "
+				. ((tmp:=y.getText(pl_pmStr "/ApThr")) ? tmp : "")
+				. ((tmp:=y.getText(pl_pmStr "/Ap")) ? " => " tmp " mA" : "")
+				. ((tmp:=y.getText(pl_pmStr "/VpThr")) ? tmp : "")
+				. ((tmp:=y.getText(pl_pmStr "/Vp")) ? " => " tmp " mA" : "")
+				. "] "
+	}
+	if IsObject(y.selectSingleNode(pl_MRNstring "/diagnoses/ep/device")) {
+		pl_pmStr := pl_MRNstring "/diagnoses/ep/device"
+		pm_str := "[PM " y.getText(pl_pmStr "/mode") " "
+				. ((tmp:=y.getText(pl_pmStr "/LRL")) ? tmp : "")
+				. ((tmp:=y.getText(pl_pmStr "/URL")) ? "-" tmp : "")
+				. "] "
+	}
+	txt := pm_str RegExReplace(txt, "\[PM .*\] ")
+Return txt	
 }

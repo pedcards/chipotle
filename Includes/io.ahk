@@ -320,7 +320,9 @@ compareDates(zMRN, zType, zChange:="") {
 				,"summary":"notes/weekly"
 				,"stat":"status"
 				,"dx":"diagnoses"
-				,"prov":"prov"}
+				,"prov":"prov"
+				,"pmtemp":"pacing"
+				,"pmperm":"diagnoses/ep/device"}
 	
 	if !IsObject(yID := y.selectSingleNode("//id[@mrn='" zMRN "']")) {					; Missing MRN will only happen if ID has been archived since last server sync
 		return																			; so skip to next index
@@ -366,8 +368,10 @@ compareDates(zMRN, zType, zChange:="") {
 		eventlog(zMRN " <--ADD::" zType "::" znCreated "::" znAu "::" znEd )
 		return
 	} else if (zChange="edit") {
+		makeNodes(zMRN,nodePath[zType])
 		yPath := yID.selectSingleNode(nodePath[zType])
 		yPath.replaceChild(zClone,yPath.selectSingleNode(nodeStr))
+		eventlog(zMRN " <--CHG::" zType "::" znCreated "::" znAu "::" znEd )
 		return
 	} 
 	; remaining instances are diagnosis, status, prov
