@@ -302,11 +302,11 @@ PtParse(mrn) {
 		, "Room":pl.selectSingleNode("demog/data/room").text
 		, "Admit":pl.selectSingleNode("demog/data/admit").text
 		, "Attg":pl.selectSingleNode("demog/data/attg").text
-		, "dxEP":y.getText(mrnstring "/diagnoses/ep")
-		, "dxCard":y.getText(mrnstring "/diagnoses/card")
-		, "dxSurg":y.getText(mrnstring "/diagnoses/surg")
-		, "dxNotes":y.getText(mrnstring "/diagnoses/notes")
-		, "dxProb":y.getText(mrnstring  "/diagnoses/prob")
+		, "dxEP":pl.selectSingleNode("diagnoses/ep").text
+		, "dxCard":pl.selectSingleNode("diagnoses/card").text
+		, "dxSurg":pl.selectSingleNode("diagnoses/surg").text
+		, "dxNotes":pl.selectSingleNode("diagnoses/notes").text
+		, "dxProb":pl.selectSingleNode("diagnoses/prob").text
 		, "misc":pl.selectSingleNode("diagnoses/misc").text
 		, "statCons":(pl.selectSingleNode("status").getAttribute("cons") == "on")
 		, "statRes":(pl.selectSingleNode("status").getAttribute("res") == "on")
