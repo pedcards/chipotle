@@ -405,7 +405,7 @@ plPMsettings:
 		return
 	}
 	else if (PM_chk="Permanent") {
-		pm_dev := y.selectSingleNode(pl_MRNstring "/diagnoses/ep/device")
+		pm_dev := y.selectSingleNode(pl_MRNstring "/diagnoses/device")
 		pmDate := breakDate(pm_dev.getAttribute("ed"))
 		PmSet := Object()																; clear pmSet object
 		Loop % (i := pm_dev.selectNodes("*")).length {
@@ -502,11 +502,11 @@ plPMsave:
 		WriteOut(pl_mrnstring, "pacing")
 	}
 	if (PM_chk="Permanent") {
-		if IsObject(y.selectSingleNode(pl_MRNstring "/diagnoses/ep/device")) {			; Remove node if present
-			removeNode(pl_MRNstring "/diagnoses/ep/device")
+		if IsObject(y.selectSingleNode(pl_MRNstring "/diagnoses/device")) {			; Remove node if present
+			removeNode(pl_MRNstring "/diagnoses/device")
 		}
-		pmNowString := pl_MRNstring "/diagnoses/ep/device"
-		y.addElement("device", pl_MRNstring "/diagnoses/ep", {ed:A_now, au:user})		; Add <dx/ep/device> element
+		pmNowString := pl_MRNstring "/diagnoses/device"
+		y.addElement("device", pl_MRNstring "/diagnoses", {ed:A_now, au:user})		; Add <dx/ep/device> element
 			y.addElement("model", pmNowString, PmSet_model)
 			y.addElement("mode", pmNowString, PmSet_mode)
 			y.addElement("LRL", pmNowString, PmSet_LRL)
@@ -522,7 +522,7 @@ plPMsave:
 			y.addElement("Vp", pmNowString, PmSet_Vp)
 			y.addElement("Vs", pmNowString, PmSet_Vs)
 			y.addElement("notes", pmNowString, PmSet_notes)
-		WriteOut(pl_MRNstring "/diagnoses/ep", "device")
+		WriteOut(pl_MRNstring "/diagnoses", "device")
 	}
 	eventlog(mrn " " pm_chk " pacer settings changed.")
 	return
@@ -546,8 +546,8 @@ pmNoteChk(txt) {
 				. ((tmp:=y.getText(pl_pmStr "/Vp")) ? " => " tmp " mA" : "")
 				. "] "
 	}
-	if IsObject(y.selectSingleNode(pl_MRNstring "/diagnoses/ep/device")) {
-		pl_pmStr := pl_MRNstring "/diagnoses/ep/device"
+	if IsObject(y.selectSingleNode(pl_MRNstring "/diagnoses/device")) {
+		pl_pmStr := pl_MRNstring "/diagnoses/device"
 		pm_str := "[PM " y.getText(pl_pmStr "/mode") " "
 				. ((tmp:=y.getText(pl_pmStr "/LRL")) ? tmp : "")
 				. ((tmp:=y.getText(pl_pmStr "/URL")) ? "-" tmp : "")

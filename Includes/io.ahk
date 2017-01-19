@@ -322,7 +322,7 @@ compareDates(zMRN, zType, zChange:="") {
 				,"dx":"diagnoses"
 				,"prov":"prov"
 				,"pmtemp":"pacing"
-				,"pmperm":"diagnoses/ep/device"}
+				,"pmperm":"diagnoses/device"}
 	
 	if !IsObject(yID := y.selectSingleNode("//id[@mrn='" zMRN "']")) {					; Missing MRN will only happen if ID has been archived since last server sync
 		return																			; so skip to next index
