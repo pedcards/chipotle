@@ -368,12 +368,17 @@ compareDates(zMRN, zType, zChange:="") {
 		eventlog(zMRN " <--ADD::" zType "::" znCreated "::" znAu "::" znEd )
 		return
 	} else if (zChange="edit") {
-		makeNodes(zMRN,nodePath[zType])
-		yPath := yID.selectSingleNode(nodePath[zType])
+		yPath := yID.selectSingleNode(nodePath[zType])									; edit existing <plan/tasks> or <notes/weekly>
 		yPath.replaceChild(zClone,yPath.selectSingleNode(nodeStr))
 		eventlog(zMRN " <--CHG::" zType "::" znCreated "::" znAu "::" znEd )
 		return
-	} 
+	} else if (zChange="mod") {															; adds/mods node in zType
+		makeNodes(zMRN,nodePath[zType])
+		yPath := yID.selectSingleNode(nodePath[zType])
+		yPath.parentNode.replaceChild(zClone,yPath)
+		eventlog(zMRN " <--CHG::" zType "::" znAu "::" znEd )
+		return
+	}
 	; remaining instances are diagnosis, status, prov
 	yPath := yID
 	yNode := yPath.selectSingleNode(nodePath[zType])									; get the local node
