@@ -506,7 +506,7 @@ plPMsave:
 			removeNode(pl_MRNstring "/diagnoses/device")
 		}
 		pmNowString := pl_MRNstring "/diagnoses/device"
-		y.addElement("device", pl_MRNstring "/diagnoses", {ed:A_now, au:user})		; Add <dx/ep/device> element
+		y.addElement("device", pl_MRNstring "/diagnoses", {ed:A_now, au:user, model:PmSet_model, SN:PmSet_serial})		; Add <dx/ep/device> element
 			y.addElement("model", pmNowString, PmSet_model)
 			y.addElement("mode", pmNowString, PmSet_mode)
 			y.addElement("LRL", pmNowString, PmSet_LRL)
