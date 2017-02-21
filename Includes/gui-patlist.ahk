@@ -406,6 +406,7 @@ plPMsettings:
 	}
 	else if (PM_chk="Permanent") {
 		pm_dev := y.selectSingleNode(pl_MRNstring "/diagnoses/device")
+		pm_IPG := pm_dev.getAttribute("model")
 		pmDate := breakDate(pm_dev.getAttribute("ed"))
 		PmSet := Object()																; clear pmSet object
 		Loop % (i := pm_dev.selectNodes("*")).length {
@@ -419,7 +420,7 @@ plPMsettings:
 		Gui, Add, Text, Center, % (pmDate.MM) ? pmDate.MM "/" pmDate.DD "/" pmDate.YYYY " @ " pmDate.HH ":" pmDate.min ":" pmDate.sec : ""
 		
 		Gui, Add, Text, Section xm yp+22, MODEL
-		Gui, Add, Edit, ys-2 w160 vPmSet_model, % PmSet.model
+		Gui, Add, Edit, ys-2 w160 vPmSet_model, % pm_IPG
 		
 		Gui, Add, Text, Section xm, MODE
 		Gui, Add, Text, xm yp+22, LRL
@@ -507,7 +508,6 @@ plPMsave:
 		}
 		pmNowString := pl_MRNstring "/diagnoses/device"
 		y.addElement("device", pl_MRNstring "/diagnoses", {ed:A_now, au:user, model:PmSet_model, SN:PmSet_serial})		; Add <dx/ep/device> element
-			y.addElement("model", pmNowString, PmSet_model)
 			y.addElement("mode", pmNowString, PmSet_mode)
 			y.addElement("LRL", pmNowString, PmSet_LRL)
 			y.addElement("URL", pmNowString, PmSet_URL)
