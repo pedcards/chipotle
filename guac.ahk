@@ -11,7 +11,9 @@ WinClose, View Downloads - Windows Internet Explorer
 LV_Colors.OnMessage()
 
 user := A_UserName
-if (user="TC") {
+;~ if (user="TC") {
+IfInString, A_WorkingDir, AhkProjects
+{
 	netdir := A_WorkingDir "\files\Tuesday Conference"								; local files
 	chipdir := ""
 	isDevt := true
