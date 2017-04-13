@@ -531,11 +531,7 @@ readForecast:
 		MsgBox,48,, % "Electronic Forecast.xlsx`nfile not found!"
 		return
 	}
-	MsgBox Electronic Forecast updated.
-	Writeout("/root/lists","forecast")
-	Eventlog("Electronic Forecast updated.")
-	
-	return
+return
 }
 
 parseForecast:
@@ -642,6 +638,8 @@ parseForecast:
 			RemoveNode("/root/lists/forecast/call[@date='" k.getAttribute("date") "']")
 		}
 	}
+	Writeout("/root/lists","forecast")
+	Eventlog("Electronic Forecast " fcRecent " updated.")
 Return
 }
 
