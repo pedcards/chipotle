@@ -11,7 +11,9 @@ WinClose, View Downloads - Windows Internet Explorer
 LV_Colors.OnMessage()
 
 user := A_UserName
-if (user="TC") {
+;~ if (user="TC") {
+IfInString, A_WorkingDir, AhkProjects
+{
 	netdir := A_WorkingDir "\files\Tuesday Conference"								; local files
 	chipdir := ""
 	isDevt := true
@@ -26,6 +28,8 @@ IfMsgBox Yes
 else
 	Presenter := false
 
+firstRun := true
+SplashImage, % chipDir "gru.jpg", B2 
 
 y := new XML(chipdir "currlist.xml")												; Get latest local currlist into memory
 arch := new XML(chipdir "archlist.xml")												; Get archive.xml
@@ -35,6 +39,11 @@ ConfStart := A_Now
 ;~ ConfStart := "20160416132100"
 
 Gosub MainGUI																		; Draw the main GUI
+if (firstRun) {
+	SoundPlay, % chipDir "chillin.wav", Wait
+	SplashImage, off
+	firstRun := false
+}
 SetTimer, ConfTime, 1000															; Update ConfTime every 1000 ms
 WinWaitClose, GUACAMOLE Main														; wait until main GUI is closed
 ExitApp
