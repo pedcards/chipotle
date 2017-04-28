@@ -24,7 +24,7 @@ GetIt:
 	
 	Progress, 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	if !(isLocal) {																	; live run, download changes file from server
-		ckRes := httpComm("get")													; Check response from "get"
+		ckRes := httpComm("","get")													; Check response from "get"
 		
 		if (ckRes=="NONE") {														; no change.xml file present
 			eventlog("No change file.")
@@ -41,7 +41,7 @@ GetIt:
 			
 			if (WriteFile()) {														; Write updated Y to currlist
 				eventlog("Successful currlist update.")
-				ckRes := httpComm("unlink")											; Send command to delete update blob
+				ckRes := httpComm("","unlink")											; Send command to delete update blob
 				eventlog((ckRes="unlink") ? "Changefile unlinked." : "Not unlinked.")
 			} else {
 				eventlog("*** httpComm failed to write currlist.")
@@ -531,7 +531,7 @@ refreshCurr(lock:="") {
 	}
 	
 	eventlog("** Failed to restore backup. Attempting to download server backup.")
-	sz := httpComm("full")														; call download of FULL list from server, not just changes
+	sz := httpComm("","full")														; call download of FULL list from server, not just changes
 	FileDelete, templist.xml
 	FileAppend, %sz%, templist.xml												; write out as templist
 	if (z:=checkXML("templist.xml")) {
@@ -544,7 +544,7 @@ refreshCurr(lock:="") {
 	}
 	
 	eventlog("*** Failed to restore from server.")									; All attempts fail. Something bad has happened.
-	httpComm("err999")															; Pushover message of utter failure
+	httpComm("","err999")															; Pushover message of utter failure
 	FileDelete, .currlock
 	MsgBox, 16, CRITICAL ERROR, Unable to read currlist. `n`nExiting.
 	ExitApp
@@ -627,7 +627,7 @@ notify(verb) {
 /*	if ".notify" not set, notify Admin
 */
 	if !FileExist(".notify") {
-		httpComm("err200")
+		httpComm("","err200")
 	}
 	FileOpen(".notify","W")
 	return
