@@ -780,11 +780,39 @@ breakDate(x) {
 }
 
 parseDate(x) {
-; Disassembles "2/9/2015" or "2/9/2015 8:31" into Yr=2015 Mo=02 Da=09 Hr=08 Min=31
+; Disassembles dates into Yr=2015 Mo=02 Da=09 Hr=08 Min=31
+	; 03 Jan 2016
+	mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+	if (x~="i)(\d{1,2})[\-\s\.](Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\-\s\.](\d{2,4})") {
+		StringSplit, DT, x, %A_Space%-.
+		return {"DD":zDigit(DT1), "MM":zDigit(objHasValue(mo,DT2)), "MMM":DT2, "YYYY":year4dig(DT3)}
+	}
+	
+	; 03_06_17 or 03_06_2017
+	if (x~="\d{1,2}_\d{1,2}_\d{2,4}") {
+		StringSplit, DT, x, _
+		return {"MM":zDigit(DT1), "DD":zDigit(DT2), "MMM":mo[DT2], "YYYY":year4dig(DT3)}
+	}
+	
+	; 2017-02-11
+	if (x~="\d{4}-\d{2}-\d{2}") {
+		StringSplit, DT, x, -
+		return {"YYYY":DT1, "MM":DT2, "DD":DT3}
+	}
+	
+	; Mar 9, 2015 (8:33 am)?
+	if (x~="i)^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{1,2}, \d{4}") {
+		StringSplit, DT, x, %A_Space%
+		StringSplit, DHM, DT4, :
+		return {"MM":zDigit(objHasValue(mo,DT1)),"DD":zDigit(trim(DT2,",")),"YYYY":DT3
+			,	hr:zDigit((DT5~="i)p")?(DHM1+12):DHM1),min:DHM2}
+	}
+	
+	; Remaining are "2/9/2015" or "2/9/2015 8:31" 
 	StringSplit, DT, x, %A_Space%
 	StringSplit, DY, DT1, /
 	StringSplit, DHM, DT2, :
-	return {"MM":zDigit(DY1), "DD":zDigit(DY2), "YYYY":DY3, "hr":zDigit(DHM1), "min":zDigit(DHM2), "Date":DT1, "Time":DT2}
+	return {"MM":zDigit(DY1), "DD":zDigit(DY2), "YYYY":year4dig(DY3), "hr":zDigit(DHM1), "min":zDigit(DHM2), "Date":DT1, "Time":DT2}
 }
 
 Rand( a=0.0, b=1 ) {
@@ -816,7 +844,7 @@ cleanString(x) {
 	replace := {"{":"["															; substitutes for common error-causing chars
 				,"}":"]"
 				, "\":"/"
-				,"ñ":"n"}
+				,"ï¿½":"n"}
 	for what, with in replace													; convert each WHAT to WITH substitution
 	{
 		StringReplace, x, x, %what%, %with%, All
