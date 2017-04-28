@@ -266,8 +266,27 @@ httpComm(url:="",verb:="") {
 			, url
 			, true)
 		whr.Send()																; SEND the command to the address
-		whr.WaitForResponse()	
-	return whr.ResponseText													; the http response
+		whr.WaitForResponse()													; and wait for
+	return whr.ResponseText														; the http response
+}
+
+parseJSON(txt) {
+	out := {}
+	Loop																		; Go until we say STOP
+	{
+		ind := A_index															; INDex number for whole array
+		ele := strX(txt,"{",n,1, "}",1,1, n)									; Find next ELEment {"label":"value"}
+		if (n > strlen(txt)) {
+			break																; STOP when we reach the end
+		}
+		sub := StrSplit(ele,",")												; Array of SUBelements for this ELEment
+		Loop, % sub.MaxIndex()
+		{
+			StringSplit, key, % sub[A_Index] , : , `"							; Split each SUB into label (key1) and value (key2)
+			out[ind,key1] := key2												; Add to the array
+		}
+	}
+	return out
 }
 
 checkXML(xml) {
