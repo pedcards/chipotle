@@ -813,13 +813,25 @@ zDigit(x) {
 }
 
 cleanString(x) {
-	replace := {"{":"[", "}":"]", "\":"/"
+	replace := {"{":"["															; substitutes for common error-causing chars
+				,"}":"]"
+				, "\":"/"
 				,"ñ":"n"}
-	for what, with in replace
+	for what, with in replace													; convert each WHAT to WITH substitution
 	{
 		StringReplace, x, x, %what%, %with%, All
 	}
-	x := RegExReplace(x,"[^[:ascii:]]")									; filter unprintable (esc) chars
+	
+	x := RegExReplace(x,"[^[:ascii:]]")											; filter remaining unprintable (esc) chars
+	
+	StringReplace, txt,txt, `r`n,`n, All										; convert CRLF to just LF
+	loop																		; and remove completely null lines
+	{
+		StringReplace txt,txt,`n`n,`n, UseErrorLevel
+		if ErrorLevel = 0	
+			break
+	}
+	
 	return x
 }
 
@@ -843,17 +855,6 @@ cleanwhitespace(txt) {
 		}
 	}
 	return nxt
-}
-
-cleanblanks(ByRef txt) {
-	StringReplace, txt,txt, `r`n,`n, All
-	loop
-	{
-		StringReplace txt,txt,`n`n,`n, UseErrorLevel
-		if ErrorLevel = 0	
-			break
-	}
-	return txt
 }
 
 fieldType(x) {
