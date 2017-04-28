@@ -845,6 +845,17 @@ cleanwhitespace(txt) {
 	return nxt
 }
 
+cleanblanks(ByRef txt) {
+	StringReplace, txt,txt, `r`n,`n, All
+	loop
+	{
+		StringReplace txt,txt,`n`n,`n, UseErrorLevel
+		if ErrorLevel = 0	
+			break
+	}
+	return txt
+}
+
 fieldType(x) {
 	global CIS_colRx
 	for key,val in CIS_colRx
