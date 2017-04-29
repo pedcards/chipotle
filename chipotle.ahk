@@ -500,6 +500,11 @@ readForecast:
 	\\childrens\files\HCSchedules\Electronic Forecast\2016\11-7 thru 11-13_2016 Electronic Forecast.xlsx
 	Move into /lists/forecast/call {date=20150301}/<PM_We_F>Del Toro</PM_We_F>
 */
+	fcMod := substr(y.selectSingleNode("/root/lists/forecast").getAttribute("mod"),1,8)
+	if (fcMod = substr(A_now,1,8)) {
+		return																			; Skip this if already done today
+	}
+	
 	; Get Qgenda items
 	gosub readQgenda
 	
@@ -652,10 +657,6 @@ readQgenda:
 	Parse JSON into call elements
 	Move into /lists/forecast/call {date=20150301}/<PM_We_F>Del Toro</PM_We_F>
 */
-	fcMod := substr(y.selectSingleNode("/root/lists/forecast").getAttribute("mod"),1,8)
-	if (fcMod = substr(A_now,1,8)) {
-		return																			; Skip this if already done today
-	}
 	t0 := t1 := A_now
 	t1 += 14, Days
 	FormatTime,t0, %t0%, MM/dd/yyyy
