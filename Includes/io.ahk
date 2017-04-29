@@ -214,6 +214,9 @@ saveCensus:
 		cens.addElement("Cards", c1)
 		cens.addElement("CSR", c1)
 		cens.addElement("TXP", c1)
+		cens.addElement("Cons", c1)
+		cens.addElement("Ward", c1 "/Cons")
+		cens.addElement("ICU",  c1 "/Cons")
 	}
 	
 	if (cens.selectSingleNode(c1 "/" location).getAttribute("date"))			; if this location already done, then skip
@@ -234,8 +237,28 @@ saveCensus:
 			cens.addElement("mrn", c1 "/TXP/" cUnit, cMRN)						; add MRN to TXP/unit
 		}
 		cens.selectSingleNode(c1 "/TXP").setAttribute("tot",totTXP:=cens.selectNodes(c1 "/TXP//mrn").length)
-		cens.selectSingleNode(c1 "/TXP/CICU").setAttribute("tot",totTxCICU:=cens.selectNodes(c1 "/TXP/CICU/mrn").length)
+		cens.selectSingleNode(c1 "/TXP/CICU-F6").setAttribute("tot",totTxCICU:=cens.selectNodes(c1 "/TXP/CICU-F6/mrn").length)
 		cens.selectSingleNode(c1 "/TXP/" loc_Surg).setAttribute("tot",totTxWard:=cens.selectNodes(c1 "/TXP/" loc_Surg "/mrn").length)
+	}
+	
+	if (location="Cards") {
+		Loop % (c3:=y.selectNodes("/root/lists/Ward/mrn")).length {				; Scan all MRN in WARD
+			cMRN := c3.item(A_Index-1).text
+			cSvc := y.selectSingleNode("/root/id[@mrn='" cMRN "']/demog/data/service").text
+			if !(cSvc~="Cardi") {
+				cens.addElement("mrn", c1 "/Cons/Ward", cMRN)					; Non-cardiac go to Consult list
+			}
+		}
+		cens.selectSingleNode(c1 "/Cons/Ward").setAttribute("tot",cens.selectNodes(c1 "/Cons/Ward/mrn").length)
+		
+		Loop % (c3:=y.selectNodes("/root/lists/ICUCons/mrn")).length {			; Scan all MRN in ICUCons
+			cMRN := c3.item(A_Index-1).text
+			cSvc := y.selectSingleNode("/root/id[@mrn='" cMRN "']/demog/data/service").text
+			if !(cSvc~="Cardi") {
+				cens.addElement("mrn", c1 "/Cons/ICU", cMRN)					; Non-cardiac go to Consult list
+			}
+		}
+		cens.selectSingleNode(c1 "/Cons/ICU").setAttribute("tot",cens.selectNodes(c1 "/Cons/ICU/mrn").length)
 	}
 	
 	eventlog("CENSUS '" location "' updated.")
@@ -248,9 +271,11 @@ saveCensus:
 	; When Cens tot exists for all (CRD,CSR,TXP)
 	; add tot numbers to census.csv
 	if ((totCRD:=censCrd.getAttribute("tot")) and (totCSR:=censCSR.getAttribute("tot")) and (totTXP:=censTxp.getAttribute("tot"))) {
-		totTxCICU := cens.selectSingleNode(c1 "/TXP/CICU").getAttribute("tot")
+		totTxCICU := cens.selectSingleNode(c1 "/TXP/CICU-F6").getAttribute("tot")
 		totTxWard := cens.selectSingleNode(c1 "/TXP/" loc_Surg).getAttribute("tot")
-		FileAppend, % censM "/" censD "/" censY "," totCRD "," totCSR "," totTxCICU "," totTxWard "`n" , logs/census.csv
+		totConsWard := cens.selectSingleNode(c1 "/Cons/Ward").getAttribute("tot")
+		totConsICU  := cens.selectSingleNode(c1 "/Cons/ICU").getAttribute("tot")
+		FileAppend, % censM "/" censD "/" censY "," totCRD "," totCSR "," totTxCICU "," totTxWard "," totConsWard "," totConsICU "`n" , logs/census.csv
 		eventlog("Daily census updated.")
 	}
 	
