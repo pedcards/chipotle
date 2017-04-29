@@ -795,8 +795,7 @@ parseDate(x) {
 	}
 	
 	; 2017-02-11
-	if (x~="\d{4}-\d{2}-\d{2}") {
-		StringSplit, DT, x, -
+	if RegExMatch(x,"(\d{4})-(\d{2})-(\d{2})",DT) {
 		return {"YYYY":DT1, "MM":DT2, "DD":DT3}
 	}
 	
@@ -835,6 +834,16 @@ niceDate(x) {
 	return x
 }
 
+year4dig(x) {
+	if (StrLen(x)=4) {
+		return x
+	}
+	if (StrLen(x)=2) {
+		return (x<50)?("20" x):("19" x)
+	}
+	return error
+}
+
 zDigit(x) {
 ; Add leading zero to a number
 	return SubStr("0" . x, -1)
@@ -844,8 +853,7 @@ cleanString(x) {
 	replace := {"{":"["															; substitutes for common error-causing chars
 				,"}":"]"
 				, "\":"/"
-				,"�":"n"}
-	for what, with in replace													; convert each WHAT to WITH substitution
+				,"�":"n"	for what, with in replace													; convert each WHAT to WITH substitution
 	{
 		StringReplace, x, x, %what%, %with%, All
 	}
