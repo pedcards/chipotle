@@ -656,7 +656,9 @@ readQgenda:
 	t1 += 14, Days
 	FormatTime,t0, %t0%, MM/dd/yyyy
 	FormatTime,t1, %t1%, MM/dd/yyyy
-	url := "https://api.qgenda.com/v1/schedule?companyKey=e46679cc-45ac-4e59-8112-61165267e827"
+	IniRead, q_com, qgenda.ppk, api, com
+	IniRead, q_eml, qgenda.ppk, api, eml
+	url := "https://api.qgenda.com/v1/schedule?companyKey=" q_com
 		. "&startDate=" t0
 		. "&endDate=" t1
 		. "&$select=Date,TaskName,StaffLName,StaffFName"
@@ -674,7 +676,7 @@ readQgenda:
 	;	.	"or TaskName eq 'TXP Res' "
 		.	"or TaskName eq 'IW'"
 		. "&$orderby=Date,TaskName"
-		. "&email=restapiseattlechildrensHC@qgenda.com&password=abc123"
+		. q_eml
 	
 	qg_fc := {"CALL":"PM_We_A"
 			, "fCall":"PM_We_F"
