@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.1.6.1"
+vers := "2.1.7"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 WinClose, View Downloads -
