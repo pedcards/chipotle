@@ -676,21 +676,46 @@ readQgenda:
 		. "&$orderby=Date,TaskName"
 		. "&email=restapiseattlechildrensHC@qgenda.com&password=abc123"
 	
+	qg_fc := {"CALL":"PM_We_A"
+			, "fCall":"PM_We_F"
+			, "EP Call":"EP"
+			, "ICU":"ICU_A"
+			, "TXP Inpt":"Txp"
+			, "IW":"Ward_A"}
+	
+	Progress, , Reading, Qgenda
 	str := httpComm(url)
+	Progress, , Scanning, Qgenda
 	qOut := parseJSON(str)
 	
 	Loop, % qOut.MaxIndex()
 	{
 		i := A_Index
-		qDate := qOut[i,"Date"]
-		qTask := qOut[i,"TaskName"]
+		qDate := parseDate(qOut[i,"Date"])										; Date array
+		qTask := qg_fc[qOut[i,"TaskName"]]										; Call name
 		qNameF := qOut[i,"StaffFName"]
 		qNameL := qOut[i,"StaffLName"]
-		if (qNameL~="^[A-Z]{2}") {
+		if (qNameL~="^[A-Z]{2}[a-z]") {											; Remove first initial if present
 			qNameL := SubStr(qNameL,2)
 		}
+		
+		tmpDt := qDate.YYYY . qDate.MM . qDate.DD								; tmpDt in format YYYYMMDD
+		if !IsObject(y.selectSingleNode("/root/lists/forecast/call[@date='" tmpDt "']")) {
+			y.addElement("call","/root/lists/forecast", {date:tmpDt})			; create node if doesn't exist
+		}
+		
+		fcNode := "/root/lists/forecast/call[@date='" tmpDt "']"
+		if !IsObject(y.selectSingleNode(fcNode "/" qTask)) {					; create node for service person if not present
+			y.addElement(qTask,fcNode)
+		}
+		y.setText(fcNode "/" qTask, qNameF " " qNameL)							; setText changes text value for that node
+		y.selectSingleNode("/root/lists/forecast").setAttribute("mod",A_Now)	; change forecast[@mod] to now
 	}
-
+	
+	Progress, off
+	Writeout("/root/lists","forecast")
+	Eventlog("Qgenda " t0 "-" t1 " updated.")
+	
 return
 }
 
