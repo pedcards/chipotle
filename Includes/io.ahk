@@ -24,7 +24,7 @@ GetIt:
 	
 	Progress, 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	if !(isLocal) {																	; live run, download changes file from server
-		ckRes := httpComm("get")													; Check response from "get"
+		ckRes := httpComm("","get")													; Check response from "get"
 		
 		if (ckRes=="NONE") {														; no change.xml file present
 			eventlog("No change file.")
@@ -41,7 +41,7 @@ GetIt:
 			
 			if (WriteFile()) {														; Write updated Y to currlist
 				eventlog("Successful currlist update.")
-				ckRes := httpComm("unlink")											; Send command to delete update blob
+				ckRes := httpComm("","unlink")											; Send command to delete update blob
 				eventlog((ckRes="unlink") ? "Changefile unlinked." : "Not unlinked.")
 			} else {
 				eventlog("*** httpComm failed to write currlist.")
@@ -253,18 +253,40 @@ saveCensus:
 	return
 }
 
-httpComm(verb) {
+httpComm(url:="",verb:="") {
 	; consider two parameters?
 	global servFold
-	whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")							; initialize http request in object whr
-		whr.Open("GET"															; set the http verb to GET file "change"
-			, "https://depts.washington.edu/pedcards/change/direct.php?" 
+	if (url="") {
+		url := "https://depts.washington.edu/pedcards/change/direct.php?" 
 				. ((servFold="testlist") ? "test=true&" : "") 
 				. "do=" . verb
+	}
+	whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")							; initialize http request in object whr
+		whr.Open("GET"															; set the http verb to GET file "change"
+			, url
 			, true)
 		whr.Send()																; SEND the command to the address
-		whr.WaitForResponse()	
-	return whr.ResponseText													; the http response
+		whr.WaitForResponse()													; and wait for
+	return whr.ResponseText														; the http response
+}
+
+parseJSON(txt) {
+	out := {}
+	Loop																		; Go until we say STOP
+	{
+		ind := A_index															; INDex number for whole array
+		ele := strX(txt,"{",n,1, "}",1,1, n)									; Find next ELEment {"label":"value"}
+		if (n > strlen(txt)) {
+			break																; STOP when we reach the end
+		}
+		sub := StrSplit(ele,",")												; Array of SUBelements for this ELEment
+		Loop, % sub.MaxIndex()
+		{
+			StringSplit, key, % sub[A_Index] , : , `"							; Split each SUB into label (key1) and value (key2)
+			out[ind,key1] := key2												; Add to the array
+		}
+	}
+	return out
 }
 
 checkXML(xml) {
@@ -528,7 +550,7 @@ refreshCurr(lock:="") {
 	}
 	
 	eventlog("** Failed to restore backup. Attempting to download server backup.")
-	sz := httpComm("full")														; call download of FULL list from server, not just changes
+	sz := httpComm("","full")														; call download of FULL list from server, not just changes
 	FileDelete, templist.xml
 	FileAppend, %sz%, templist.xml												; write out as templist
 	if (z:=checkXML("templist.xml")) {
@@ -541,7 +563,7 @@ refreshCurr(lock:="") {
 	}
 	
 	eventlog("*** Failed to restore from server.")									; All attempts fail. Something bad has happened.
-	httpComm("err999")															; Pushover message of utter failure
+	httpComm("","err999")															; Pushover message of utter failure
 	FileDelete, .currlock
 	MsgBox, 16, CRITICAL ERROR, Unable to read currlist. `n`nExiting.
 	ExitApp
@@ -624,7 +646,7 @@ notify(verb) {
 /*	if ".notify" not set, notify Admin
 */
 	if !FileExist(".notify") {
-		httpComm("err200")
+		httpComm("","err200")
 	}
 	FileOpen(".notify","W")
 	return

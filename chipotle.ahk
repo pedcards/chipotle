@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.1.5"
+vers := "2.1.6"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 WinClose, View Downloads -
@@ -500,6 +500,9 @@ readForecast:
 	\\childrens\files\HCSchedules\Electronic Forecast\2016\11-7 thru 11-13_2016 Electronic Forecast.xlsx
 	Move into /lists/forecast/call {date=20150301}/<PM_We_F>Del Toro</PM_We_F>
 */
+	; Get Qgenda items
+	gosub readQgenda
+	
 	; Find the most recently modified "*Electronic Forecast.xls" file
 	fcFile := 
 	fcFileLong := 
@@ -643,6 +646,79 @@ parseForecast:
 Return
 }
 
+readQgenda:
+{
+/*	Fetch upcoming call schedule in Qgenda
+	Parse JSON into call elements
+	Move into /lists/forecast/call {date=20150301}/<PM_We_F>Del Toro</PM_We_F>
+*/
+	t0 := t1 := A_now
+	t1 += 14, Days
+	FormatTime,t0, %t0%, MM/dd/yyyy
+	FormatTime,t1, %t1%, MM/dd/yyyy
+	url := "https://api.qgenda.com/v1/schedule?companyKey=e46679cc-45ac-4e59-8112-61165267e827"
+		. "&startDate=" t0
+		. "&endDate=" t1
+		. "&$select=Date,TaskName,StaffLName,StaffFName"
+		. "&$filter="
+		.	"TaskName eq 'CALL' "
+		.	"or TaskName eq 'fCall' "
+	;	.	"or TaskName eq 'CATH LAB' "
+	;	.	"or TaskName eq 'CATH RES' "
+		.	"or TaskName eq 'EP Call' "
+	;	.	"or TaskName eq 'Fetal Call' "
+		.	"or TaskName eq 'ICU' "
+	;	.	"or TaskName eq 'TEE/ECHO' "
+	;	.	"or TaskName eq 'TEE Call' "
+		.	"or TaskName eq 'TXP Inpt' "
+	;	.	"or TaskName eq 'TXP Res' "
+		.	"or TaskName eq 'IW'"
+		. "&$orderby=Date,TaskName"
+		. "&email=restapiseattlechildrensHC@qgenda.com&password=abc123"
+	
+	qg_fc := {"CALL":"PM_We_A"
+			, "fCall":"PM_We_F"
+			, "EP Call":"EP"
+			, "ICU":"ICU_A"
+			, "TXP Inpt":"Txp"
+			, "IW":"Ward_A"}
+	
+	Progress, , Reading, Qgenda
+	str := httpComm(url)
+	Progress, , Scanning, Qgenda
+	qOut := parseJSON(str)
+	
+	Loop, % qOut.MaxIndex()
+	{
+		i := A_Index
+		qDate := parseDate(qOut[i,"Date"])										; Date array
+		qTask := qg_fc[qOut[i,"TaskName"]]										; Call name
+		qNameF := qOut[i,"StaffFName"]
+		qNameL := qOut[i,"StaffLName"]
+		if (qNameL~="^[A-Z]{2}[a-z]") {											; Remove first initial if present
+			qNameL := SubStr(qNameL,2)
+		}
+		
+		tmpDt := qDate.YYYY . qDate.MM . qDate.DD								; tmpDt in format YYYYMMDD
+		if !IsObject(y.selectSingleNode("/root/lists/forecast/call[@date='" tmpDt "']")) {
+			y.addElement("call","/root/lists/forecast", {date:tmpDt})			; create node if doesn't exist
+		}
+		
+		fcNode := "/root/lists/forecast/call[@date='" tmpDt "']"
+		if !IsObject(y.selectSingleNode(fcNode "/" qTask)) {					; create node for service person if not present
+			y.addElement(qTask,fcNode)
+		}
+		y.setText(fcNode "/" qTask, qNameF " " qNameL)							; setText changes text value for that node
+		y.selectSingleNode("/root/lists/forecast").setAttribute("mod",A_Now)	; change forecast[@mod] to now
+	}
+	
+	Progress, off
+	Writeout("/root/lists","forecast")
+	Eventlog("Qgenda " t0 "-" t1 " updated.")
+	
+return
+}
+
 getCall(dt) {
 	global y
 	callObj := {}
@@ -780,11 +856,38 @@ breakDate(x) {
 }
 
 parseDate(x) {
-; Disassembles "2/9/2015" or "2/9/2015 8:31" into Yr=2015 Mo=02 Da=09 Hr=08 Min=31
+; Disassembles dates into Yr=2015 Mo=02 Da=09 Hr=08 Min=31
+	; 03 Jan 2016
+	mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+	if (x~="i)(\d{1,2})[\-\s\.](Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\-\s\.](\d{2,4})") {
+		StringSplit, DT, x, %A_Space%-.
+		return {"DD":zDigit(DT1), "MM":zDigit(objHasValue(mo,DT2)), "MMM":DT2, "YYYY":year4dig(DT3)}
+	}
+	
+	; 03_06_17 or 03_06_2017
+	if (x~="\d{1,2}_\d{1,2}_\d{2,4}") {
+		StringSplit, DT, x, _
+		return {"MM":zDigit(DT1), "DD":zDigit(DT2), "MMM":mo[DT2], "YYYY":year4dig(DT3)}
+	}
+	
+	; 2017-02-11
+	if RegExMatch(x,"(\d{4})-(\d{2})-(\d{2})",DT) {
+		return {"YYYY":DT1, "MM":DT2, "DD":DT3}
+	}
+	
+	; Mar 9, 2015 (8:33 am)?
+	if (x~="i)^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{1,2}, \d{4}") {
+		StringSplit, DT, x, %A_Space%
+		StringSplit, DHM, DT4, :
+		return {"MM":zDigit(objHasValue(mo,DT1)),"DD":zDigit(trim(DT2,",")),"YYYY":DT3
+			,	hr:zDigit((DT5~="i)p")?(DHM1+12):DHM1),min:DHM2}
+	}
+	
+	; Remaining are "2/9/2015" or "2/9/2015 8:31" 
 	StringSplit, DT, x, %A_Space%
 	StringSplit, DY, DT1, /
 	StringSplit, DHM, DT2, :
-	return {"MM":zDigit(DY1), "DD":zDigit(DY2), "YYYY":DY3, "hr":zDigit(DHM1), "min":zDigit(DHM2), "Date":DT1, "Time":DT2}
+	return {"MM":zDigit(DY1), "DD":zDigit(DY2), "YYYY":year4dig(DY3), "hr":zDigit(DHM1), "min":zDigit(DHM2), "Date":DT1, "Time":DT2}
 }
 
 Rand( a=0.0, b=1 ) {
@@ -807,19 +910,42 @@ niceDate(x) {
 	return x
 }
 
+year4dig(x) {
+	if (StrLen(x)=4) {
+		return x
+	}
+	if (StrLen(x)=2) {
+		return (x<50)?("20" x):("19" x)
+	}
+	return error
+}
+
 zDigit(x) {
 ; Add leading zero to a number
 	return SubStr("0" . x, -1)
 }
 
 cleanString(x) {
-	replace := {"{":"[", "}":"]", "\":"/"
+	replace := {"{":"["															; substitutes for common error-causing chars
+				,"}":"]"
+				, "\":"/"
 				,"ñ":"n"}
-	for what, with in replace
+				
+	for what, with in replace													; convert each WHAT to WITH substitution
 	{
 		StringReplace, x, x, %what%, %with%, All
 	}
-	x := RegExReplace(x,"[^[:ascii:]]")									; filter unprintable (esc) chars
+	
+	x := RegExReplace(x,"[^[:ascii:]]")											; filter remaining unprintable (esc) chars
+	
+	StringReplace, x,x, `r`n,`n, All										; convert CRLF to just LF
+	loop																		; and remove completely null lines
+	{
+		StringReplace x,x,`n`n,`n, UseErrorLevel
+		if ErrorLevel = 0	
+			break
+	}
+	
 	return x
 }
 
