@@ -689,9 +689,7 @@ readQgenda:
 			, "TXP Inpt":"Txp"
 			, "IW":"Ward_A"}
 	
-	Progress, , Reading, Qgenda
 	str := httpComm(url)
-	Progress, , Scanning, Qgenda
 	qOut := parseJSON(str)
 	
 	Loop, % qOut.MaxIndex()
@@ -718,7 +716,6 @@ readQgenda:
 		y.selectSingleNode("/root/lists/forecast").setAttribute("mod",A_Now)	; change forecast[@mod] to now
 	}
 	
-	Progress, off
 	Writeout("/root/lists","forecast")
 	Eventlog("Qgenda " t0 "-" t1 " updated.")
 	
