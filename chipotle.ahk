@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.1.6.1"
+vers := "2.1.7"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 WinClose, View Downloads -
@@ -652,6 +652,10 @@ readQgenda:
 	Parse JSON into call elements
 	Move into /lists/forecast/call {date=20150301}/<PM_We_F>Del Toro</PM_We_F>
 */
+	fcMod := substr(y.selectSingleNode("/root/lists/forecast").getAttribute("mod"),1,8)
+	if (fcMod = substr(A_now,1,8)) {
+		return																			; Skip this if already done today
+	}
 	t0 := t1 := A_now
 	t1 += 14, Days
 	FormatTime,t0, %t0%, MM/dd/yyyy
@@ -685,9 +689,7 @@ readQgenda:
 			, "TXP Inpt":"Txp"
 			, "IW":"Ward_A"}
 	
-	Progress, , Reading, Qgenda
 	str := httpComm(url)
-	Progress, , Scanning, Qgenda
 	qOut := parseJSON(str)
 	
 	Loop, % qOut.MaxIndex()
@@ -714,7 +716,6 @@ readQgenda:
 		y.selectSingleNode("/root/lists/forecast").setAttribute("mod",A_Now)	; change forecast[@mod] to now
 	}
 	
-	Progress, off
 	Writeout("/root/lists","forecast")
 	Eventlog("Qgenda " t0 "-" t1 " updated.")
 	
