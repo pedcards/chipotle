@@ -500,6 +500,9 @@ readForecast:
 	\\childrens\files\HCSchedules\Electronic Forecast\2016\11-7 thru 11-13_2016 Electronic Forecast.xlsx
 	Move into /lists/forecast/call {date=20150301}/<PM_We_F>Del Toro</PM_We_F>
 */
+	; Get Qgenda items
+	gosub readQgenda
+	
 	; Find the most recently modified "*Electronic Forecast.xls" file
 	fcFile := 
 	fcFileLong := 
@@ -641,6 +644,54 @@ parseForecast:
 	Writeout("/root/lists","forecast")
 	Eventlog("Electronic Forecast " fcRecent " updated.")
 Return
+}
+
+readQgenda:
+{
+/*	Fetch upcoming call schedule in Qgenda
+	Parse JSON into call elements
+	Move into /lists/forecast/call {date=20150301}/<PM_We_F>Del Toro</PM_We_F>
+*/
+	t0 := t1 := A_now
+	t1 += 14, Days
+	FormatTime,t0, %t0%, MM/dd/yyyy
+	FormatTime,t1, %t1%, MM/dd/yyyy
+	url := "https://api.qgenda.com/v1/schedule?companyKey=e46679cc-45ac-4e59-8112-61165267e827"
+		. "&startDate=" t0
+		. "&endDate=" t1
+		. "&$select=Date,TaskName,StaffLName,StaffFName"
+		. "&$filter="
+		.	"TaskName eq 'CALL' "
+		.	"or TaskName eq 'fCall' "
+	;	.	"or TaskName eq 'CATH LAB' "
+	;	.	"or TaskName eq 'CATH RES' "
+		.	"or TaskName eq 'EP Call' "
+	;	.	"or TaskName eq 'Fetal Call' "
+		.	"or TaskName eq 'ICU' "
+	;	.	"or TaskName eq 'TEE/ECHO' "
+	;	.	"or TaskName eq 'TEE Call' "
+		.	"or TaskName eq 'TXP Inpt' "
+	;	.	"or TaskName eq 'TXP Res' "
+		.	"or TaskName eq 'IW'"
+		. "&$orderby=Date,TaskName"
+		. "&email=restapiseattlechildrensHC@qgenda.com&password=abc123"
+	
+	str := httpComm(url)
+	qOut := parseJSON(str)
+	
+	Loop, % qOut.MaxIndex()
+	{
+		i := A_Index
+		qDate := qOut[i,"Date"]
+		qTask := qOut[i,"TaskName"]
+		qNameF := qOut[i,"StaffFName"]
+		qNameL := qOut[i,"StaffLName"]
+		if (qNameL~="^[A-Z]{2}") {
+			qNameL := SubStr(qNameL,2)
+		}
+	}
+
+return
 }
 
 getCall(dt) {
@@ -853,7 +904,9 @@ cleanString(x) {
 	replace := {"{":"["															; substitutes for common error-causing chars
 				,"}":"]"
 				, "\":"/"
-				,"ï¿½":"n"	for what, with in replace													; convert each WHAT to WITH substitution
+				,"ñ":"n"}
+				
+	for what, with in replace													; convert each WHAT to WITH substitution
 	{
 		StringReplace, x, x, %what%, %with%, All
 	}
