@@ -241,22 +241,27 @@ saveCensus:
 		cens.selectSingleNode(c1 "/TXP/" loc_Surg).setAttribute("tot",totTxWard:=cens.selectNodes(c1 "/TXP/" loc_Surg "/mrn").length)
 	}
 	
+	; When run the Cards list, count CONSULT vs CRD patients in WARD
 	if (location="Cards") {
 		Loop % (c3:=y.selectNodes("/root/lists/Ward/mrn")).length {				; Scan all MRN in WARD
 			cMRN := c3.item(A_Index-1).text
 			cSvc := y.selectSingleNode("/root/id[@mrn='" cMRN "']/demog/data/service").text
-			if !(cSvc~="Cardi") {
-				cens.addElement("mrn", c1 "/Cons/Ward", cMRN)					; Non-cardiac go to Consult list
+			if (cSvc~="Cardi") {												; Service contains "Cardi" (e.g. "*ology", "*ac Surgery")
+				continue														; skip it
 			}
+			cens.addElement("mrn", c1 "/Cons/Ward", cMRN)						; Add remainder to Consult list
 		}
 		cens.selectSingleNode(c1 "/Cons/Ward").setAttribute("tot",cens.selectNodes(c1 "/Cons/Ward/mrn").length)
-		
+	}
+	; When run CSR list, count CONSULT vs (CSR|CRD|CICU) patients in ICUCons
+	if (location="CSR") {
 		Loop % (c3:=y.selectNodes("/root/lists/ICUCons/mrn")).length {			; Scan all MRN in ICUCons
 			cMRN := c3.item(A_Index-1).text
 			cSvc := y.selectSingleNode("/root/id[@mrn='" cMRN "']/demog/data/service").text
-			if !(cSvc~="Cardi") {
-				cens.addElement("mrn", c1 "/Cons/ICU", cMRN)					; Non-cardiac go to Consult list
+			if (cSvc~="Cardi") {												; Service contains "Cardi" (e.g. "*ology", "*ac Surgery")
+				continue														; skip it
 			}
+			cens.addElement("mrn", c1 "/Cons/ICU", cMRN)						; The remainder go to Consult list
 		}
 		cens.selectSingleNode(c1 "/Cons/ICU").setAttribute("tot",cens.selectNodes(c1 "/Cons/ICU/mrn").length)
 	}
