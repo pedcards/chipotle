@@ -293,11 +293,13 @@ saveCensus:
 	; When Cens tot exists for all (CRD,CSR,TXP)
 	; add tot numbers to census.csv
 	if ((totCRD:=censCrd.getAttribute("tot")) and (totCSR:=censCSR.getAttribute("tot")) and (totTXP:=censTxp.getAttribute("tot"))) {
-		totTxCICU := cens.selectSingleNode(c1 "/TXP/CICU-F6").getAttribute("tot")
-		totTxWard := cens.selectSingleNode(c1 "/TXP/" loc_Surg).getAttribute("tot")
+		totTxCICU := censTxp.selectSingleNode("CICU-F6").getAttribute("tot")
+		totTxWard := censTxp.selectSingleNode(loc_Surg).getAttribute("tot")
 		totConsWard := cens.selectSingleNode(c1 "/Cons/Ward").getAttribute("tot")
 		totConsICU  := cens.selectSingleNode(c1 "/Cons/ICU").getAttribute("tot")
-		FileAppend, % censM "/" censD "/" censY "," totCRD "," totCSR "," totTxCICU "," totTxWard "," totConsWard "," totConsICU "`n" , logs/census.csv
+		totCsrWard := censCSR.selectSingleNode(loc_Surg).getAttribute("tot")
+		totCsrICU  := censCSR.selectSingleNode("CICU-F6").getAttribute("tot")
+		FileAppend, % censM "/" censD "/" censY "," totCRD "," totCSR "," totTxCICU "," totTxWard "," totConsWard "," totConsICU "," totCsrWard "`n" , logs/census.csv
 		eventlog("Daily census updated.")
 	}
 	
