@@ -122,10 +122,15 @@ SaveIt:
 			Progress, % 80*(A_Index/yaNum), % dialogVals[Rand(dialogVals.MaxIndex())] "..." 
 		}
 		
-		errList:=false																		; for counting hits in lists
+		errList:=false																	; for counting hits in lists
 		
-		Loop, % (yaList := y.selectNodes("/root/lists/*/mrn")).length {					; Compare each MRN against the list of
-			yaMRN := yaList.item(A_Index-1).text									; MRNs in /root/lists
+		Loop, % (yaList := y.selectNodes("/root/lists/*/mrn")).length {					; Compare each MRN in active lists
+			yaItem := yaList.item(A_index-1)
+			yaName := yaItem.parentNode.nodeName
+			if (yaName~="cores") {														; Skip scanning CORES, so only counts MRN in actual lists
+				continue
+			}
+			yaMRN := yaItem.text														; MRNs in /root/lists
 			if (kMRN == yaMRN) {														; If MRN matches in any list, then move on
 				errList:=true
 				break																	; break out of list search loop
