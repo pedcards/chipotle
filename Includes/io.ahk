@@ -275,8 +275,11 @@ saveCensus:
 		Loop % (c3:=y.selectNodes("/root/lists/ICUCons/mrn")).length {			; Scan all MRN in ICUCons
 			cMRN := c3.item(A_Index-1).text
 			cSvc := y.selectSingleNode("/root/id[@mrn='" cMRN "']/demog/data/service").text
-			if (cSvc~="Cardi") {												; Service contains "Cardi" (e.g. "*ology", "*ac Surgery")
-				continue														; skip it
+			if (cSvc="") {
+				continue														; Skip if patient discharged (no service)
+			}
+			if (cSvc~="Cardi") {
+				continue														; Skip if Service contains "Cardi" (e.g. "*ology", "*ac Surgery")
 			}
 			cens.addElement("mrn", c1 "/Cons/ICU", cMRN)						; The remainder go to Consult list
 		}
