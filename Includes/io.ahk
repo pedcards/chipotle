@@ -122,10 +122,15 @@ SaveIt:
 			Progress, % 80*(A_Index/yaNum), % dialogVals[Rand(dialogVals.MaxIndex())] "..." 
 		}
 		
-		errList:=false																		; for counting hits in lists
+		errList:=false																	; for counting hits in lists
 		
-		Loop, % (yaList := y.selectNodes("/root/lists/*/mrn")).length {					; Compare each MRN against the list of
-			yaMRN := yaList.item(A_Index-1).text									; MRNs in /root/lists
+		Loop, % (yaList := y.selectNodes("/root/lists/*/mrn")).length {					; Compare each MRN in active lists
+			yaItem := yaList.item(A_index-1)
+			yaName := yaItem.parentNode.nodeName
+			if (yaName~="cores") {														; Skip scanning CORES, so only counts MRN in actual lists
+				continue
+			}
+			yaMRN := yaItem.text														; MRNs in /root/lists
 			if (kMRN == yaMRN) {														; If MRN matches in any list, then move on
 				errList:=true
 				break																	; break out of list search loop
@@ -231,6 +236,10 @@ saveCensus:
 		loop % (c2:=y.selectNodes("/root/id/status[@txp='on']")).length {		; find all patients with status TXP
 			cMRN := c2.item(i:=A_Index-1).parentNode.getAttribute("mrn")
 			cUnit := y.selectSingleNode("/root/id[@mrn='" cMRN "']/demog/data/unit").text
+			cSvc := y.selectSingleNode("/root/id[@mrn='" cMRN "']/demog/data/service").text
+			if !(cSvc~="Cardi") {
+				cUnit := "Cons"													; don't count HF consults toward
+			}
 			if !IsObject(cens.selectSingleNode(c1 "/TXP/" cUnit)) {				; create TXP/unit in Cens
 				cens.addElement(cUnit, c1 "/TXP")
 			}
@@ -275,8 +284,11 @@ saveCensus:
 		Loop % (c3:=y.selectNodes("/root/lists/ICUCons/mrn")).length {			; Scan all MRN in ICUCons
 			cMRN := c3.item(A_Index-1).text
 			cSvc := y.selectSingleNode("/root/id[@mrn='" cMRN "']/demog/data/service").text
-			if (cSvc~="Cardi") {												; Service contains "Cardi" (e.g. "*ology", "*ac Surgery")
-				continue														; skip it
+			if (cSvc="") {
+				continue														; Skip if patient discharged (no service)
+			}
+			if (cSvc~="Cardi") {
+				continue														; Skip if Service contains "Cardi" (e.g. "*ology", "*ac Surgery")
 			}
 			cens.addElement("mrn", c1 "/Cons/ICU", cMRN)						; The remainder go to Consult list
 		}
