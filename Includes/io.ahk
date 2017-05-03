@@ -224,7 +224,7 @@ saveCensus:
 	
 	; Clone service locations from Y to Cens
 	; and set attr tot for number of <mrn> elements contained
-	cens.selectSingleNode(c1).replaceChild(y.selectSingleNode("/root/lists/" location).cloneNode(location="TXP" ? false : true), cens.selectSingleNode(c1 "/" location))
+	cens.selectSingleNode(c1).replaceChild(y.selectSingleNode("/root/lists/" location).cloneNode(location="Cards" ? true : false), cens.selectSingleNode(c1 "/" location))
 	cens.selectSingleNode(c1 "/" location).setAttribute("tot",cens.selectNodes(c1 "/" location "/mrn").length)
 	
 	if (location="TXP") {
@@ -236,9 +236,9 @@ saveCensus:
 			}
 			cens.addElement("mrn", c1 "/TXP/" cUnit, cMRN)						; add MRN to TXP/unit
 		}
-		cens.selectSingleNode(c1 "/TXP").setAttribute("tot",totTXP:=cens.selectNodes(c1 "/TXP//mrn").length)
-		cens.selectSingleNode(c1 "/TXP/CICU-F6").setAttribute("tot",totTxCICU:=cens.selectNodes(c1 "/TXP/CICU-F6/mrn").length)
-		cens.selectSingleNode(c1 "/TXP/" loc_Surg).setAttribute("tot",totTxWard:=cens.selectNodes(c1 "/TXP/" loc_Surg "/mrn").length)
+		cens.selectSingleNode(c1 "/TXP").setAttribute("tot",cens.selectNodes(c1 "/TXP//mrn").length)
+		cens.selectSingleNode(c1 "/TXP/CICU-F6").setAttribute("tot",cens.selectNodes(c1 "/TXP/CICU-F6/mrn").length)
+		cens.selectSingleNode(c1 "/TXP/" loc_Surg).setAttribute("tot",cens.selectNodes(c1 "/TXP/" loc_Surg "/mrn").length)
 	}
 	
 	; When run the Cards list, count CONSULT vs CRD patients in WARD
@@ -253,8 +253,25 @@ saveCensus:
 		}
 		cens.selectSingleNode(c1 "/Cons/Ward").setAttribute("tot",cens.selectNodes(c1 "/Cons/Ward/mrn").length)
 	}
-	; When run CSR list, count CONSULT vs (CSR|CRD|CICU) patients in ICUCons
+	; When run CSR list, separate CICU vs ARNP, count CONSULT vs (CSR|CRD|CICU) patients in ICUCons
 	if (location="CSR") {
+		cNP := cCSR := 0
+		Loop % (c3:=y.selectNodes("/root/lists/CSR/mrn")).length {				; Scan all MRN in CSR
+			cMRN := c3.item(A_Index-1).text
+			cUnit := y.selectSingleNode("/root/id[@mrn='" cMRN "']/demog/data/unit").text
+			if !IsObject(cens.selectSingleNode(c1 "/CSR/" cUnit)) {				; create CSR/unit in Cens if doesn't exist
+				cens.addElement(cUnit, c1 "/CSR")
+			}
+			if (cUnit~=loc_Surg) {												; Unit contains "SUR-R4" (e.g. "SUR-R4", not "SURGCNTR")
+				cens.addElement("mrn", c1 "/CSR/" loc_surg, cMRN)				; Add to CSR/SUR-R4
+			} else {
+				cens.addElement("mrn", c1 "/CSR/CICU-F6", cMRN)				; Add all else (incl SURGCNTR) to CSR/CICU-F6
+			}
+		}
+		cens.selectSingleNode(c1 "/CSR").setAttribute("tot",cens.selectNodes(c1 "/CSR//mrn").length)
+		cens.selectSingleNode(c1 "/CSR/" loc_Surg).setAttribute("tot",cens.selectNodes(c1 "/CSR/" loc_Surg "/mrn").length)
+		cens.selectSingleNode(c1 "/CSR/CICU-F6" ).setAttribute("tot",cens.selectNodes(c1 "/CSR/CICU-F6/mrn").length)
+		
 		Loop % (c3:=y.selectNodes("/root/lists/ICUCons/mrn")).length {			; Scan all MRN in ICUCons
 			cMRN := c3.item(A_Index-1).text
 			cSvc := y.selectSingleNode("/root/id[@mrn='" cMRN "']/demog/data/service").text
@@ -276,11 +293,13 @@ saveCensus:
 	; When Cens tot exists for all (CRD,CSR,TXP)
 	; add tot numbers to census.csv
 	if ((totCRD:=censCrd.getAttribute("tot")) and (totCSR:=censCSR.getAttribute("tot")) and (totTXP:=censTxp.getAttribute("tot"))) {
-		totTxCICU := cens.selectSingleNode(c1 "/TXP/CICU-F6").getAttribute("tot")
-		totTxWard := cens.selectSingleNode(c1 "/TXP/" loc_Surg).getAttribute("tot")
+		totTxCICU := censTxp.selectSingleNode("CICU-F6").getAttribute("tot")
+		totTxWard := censTxp.selectSingleNode(loc_Surg).getAttribute("tot")
 		totConsWard := cens.selectSingleNode(c1 "/Cons/Ward").getAttribute("tot")
 		totConsICU  := cens.selectSingleNode(c1 "/Cons/ICU").getAttribute("tot")
-		FileAppend, % censM "/" censD "/" censY "," totCRD "," totCSR "," totTxCICU "," totTxWard "," totConsWard "," totConsICU "`n" , logs/census.csv
+		totCsrWard := censCSR.selectSingleNode(loc_Surg).getAttribute("tot")
+		totCsrICU  := censCSR.selectSingleNode("CICU-F6").getAttribute("tot")
+		FileAppend, % censM "/" censD "/" censY "," totCRD "," totCSR "," totTxCICU "," totTxWard "," totConsWard "," totConsICU "," totCsrWard "`n" , logs/census.csv
 		eventlog("Daily census updated.")
 	}
 	
