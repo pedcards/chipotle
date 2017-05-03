@@ -253,8 +253,25 @@ saveCensus:
 		}
 		cens.selectSingleNode(c1 "/Cons/Ward").setAttribute("tot",cens.selectNodes(c1 "/Cons/Ward/mrn").length)
 	}
-	; When run CSR list, count CONSULT vs (CSR|CRD|CICU) patients in ICUCons
+	; When run CSR list, separate CICU vs ARNP, count CONSULT vs (CSR|CRD|CICU) patients in ICUCons
 	if (location="CSR") {
+		cNP := cCSR := 0
+		Loop % (c3:=y.selectNodes("/root/lists/CSR/mrn")).length {				; Scan all MRN in CSR
+			cMRN := c3.item(A_Index-1).text
+			cUnit := y.selectSingleNode("/root/id[@mrn='" cMRN "']/demog/data/unit").text
+			if !IsObject(cens.selectSingleNode(c1 "/CSR/" cUnit)) {				; create CSR/unit in Cens if doesn't exist
+				cens.addElement(cUnit, c1 "/CSR")
+			}
+			if (cUnit~=loc_Surg) {												; Unit contains "SUR-R4" (e.g. "SUR-R4", not "SURGCNTR")
+				cens.addElement("mrn", c1 "/CSR/" loc_surg, cMRN)				; Add to CSR/SUR-R4
+			} else {
+				cens.addElement("mrn", c1 "/CSR/CICU-F6", cMRN)				; Add all else (incl SURGCNTR) to CSR/CICU-F6
+			}
+		}
+		cens.selectSingleNode(c1 "/CSR").setAttribute("tot",cens.selectNodes(c1 "/CSR//mrn").length)
+		cens.selectSingleNode(c1 "/CSR/" loc_Surg).setAttribute("tot",cens.selectNodes(c1 "/CSR/" loc_Surg "/mrn").length)
+		cens.selectSingleNode(c1 "/CSR/CICU-F6" ).setAttribute("tot",cens.selectNodes(c1 "/CSR/CICU-F6/mrn").length)
+		
 		Loop % (c3:=y.selectNodes("/root/lists/ICUCons/mrn")).length {			; Scan all MRN in ICUCons
 			cMRN := c3.item(A_Index-1).text
 			cSvc := y.selectSingleNode("/root/id[@mrn='" cMRN "']/demog/data/service").text
