@@ -231,6 +231,10 @@ saveCensus:
 		loop % (c2:=y.selectNodes("/root/id/status[@txp='on']")).length {		; find all patients with status TXP
 			cMRN := c2.item(i:=A_Index-1).parentNode.getAttribute("mrn")
 			cUnit := y.selectSingleNode("/root/id[@mrn='" cMRN "']/demog/data/unit").text
+			cSvc := y.selectSingleNode("/root/id[@mrn='" cMRN "']/demog/data/service").text
+			if !(cSvc~="Cardi") {
+				cUnit := "Cons"													; don't count HF consults toward
+			}
 			if !IsObject(cens.selectSingleNode(c1 "/TXP/" cUnit)) {				; create TXP/unit in Cens
 				cens.addElement(cUnit, c1 "/TXP")
 			}
