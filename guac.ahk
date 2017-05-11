@@ -11,7 +11,6 @@ WinClose, View Downloads - Windows Internet Explorer
 LV_Colors.OnMessage()
 
 user := A_UserName
-;~ if (user="TC") {
 IfInString, A_WorkingDir, AhkProjects
 {
 	netdir := A_WorkingDir "\files\Tuesday Conference"								; local files
@@ -392,7 +391,7 @@ PatDir:
 	Gui, Add, ListBox, % "r" filenum " section w" patLBw " vPatFile gPatFileGet", % filelist
 	Gui, Font, s12
 	Gui, Add, Button, wP Disabled vplMRNbut, No MRN found								; default MRN button to Disabled
-	Gui, Add, Button, wP gPatFileGet , Open all...
+	Gui, Add, Button, wP gPatFileGet , Open files...
 	Gui, Font, s8
 	if (patMRN) {																		; MRN found in gXML
 		pt := checkChip(patMRN)															; check Chipotle currlist (#1) and archlist (#2) for MRN, returns in obj pt
@@ -496,15 +495,15 @@ PatFileGet:
 	Gui, PatL:Submit, NoHide
 	if (A_GuiEvent = "DoubleClick") {													; double-click on line, just pass the line data
 		files := PatFile
-	} else if (A_GuiControl = "Open all...") {											; clicked "Open all..." button
+	} else if (A_GuiControl = "Open files...") {										; clicked "Open files..." button
 		files := trim(filelist,"|")														; trim "|" from end
-		If (filenum>4) {
-			MsgBox, 52, % "Lots of files (" filenum ")", Really open all of these files?
-			IfMsgBox, Yes
-				tmp = true
-			if !(tmp)																	; necessary as dialog can be Yes, No, or close
-				return
-		}
+		;~ If (filenum>4) {
+			;~ MsgBox, 52, % "Lots of files (" filenum ")", Really open all of these files?
+			;~ IfMsgBox, Yes
+				;~ tmp = true
+			;~ if !(tmp)																	; necessary as dialog can be Yes, No, or close
+				;~ return
+		;~ }
 	} else {
 		return
 	}
@@ -515,8 +514,10 @@ PatFileGet:
 	Loop, parse, files, |																; iterate through files in folder
 	{
 		patloopfile := A_LoopField														; file name
-		patdirfile := filepath "\" PatloopFile											; path + file name
-		Run, %patDirFile%																; open by Windows default method
+		if (patloopfile~="i)PCC|Cath|CXR|ECG|EKG") {										; auto open key files
+			patdirfile := filepath "\" PatloopFile										; path + file name
+			Run, %patDirFile%															; open by Windows default method
+		}
 	}
 Return
 }
