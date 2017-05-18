@@ -202,6 +202,11 @@ Return
 
 saveCensus:
 {
+/*	Called when grab Cards, CSR, or TXP
+	Skip this if census has already been created today.
+	Creates <census date='20160415'>, for each full list, and <census/cons> for the parsed consults.
+	TXP divided into Ward, ICU, and Cons
+*/
 	FormatTime, censDate, A_Now, yyyyMMdd
 	censDT := breakDate(censDate)
 	censY := censDT.YYYY
