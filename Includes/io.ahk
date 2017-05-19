@@ -202,6 +202,11 @@ Return
 
 saveCensus:
 {
+/*	Called when grab Cards, CSR, or TXP
+	Skip this if census has already been created today.
+	Creates <census date='20160415'>, for each full list, and <census/cons> for the parsed consults.
+	TXP divided into Ward, ICU, and Cons
+*/
 	FormatTime, censDate, A_Now, yyyyMMdd
 	censDT := breakDate(censDate)
 	censY := censDT.YYYY
@@ -255,6 +260,9 @@ saveCensus:
 		Loop % (c3:=y.selectNodes("/root/lists/Ward/mrn")).length {				; Scan all MRN in WARD
 			cMRN := c3.item(A_Index-1).text
 			cSvc := y.selectSingleNode("/root/id[@mrn='" cMRN "']/demog/data/service").text
+			if (cSvc="") {
+				continue														; Skip if patient discharged (no service)
+			}
 			if (cSvc~="Cardi") {												; Service contains "Cardi" (e.g. "*ology", "*ac Surgery")
 				continue														; skip it
 			}
@@ -315,8 +323,8 @@ saveCensus:
 		eventlog("Daily census updated.")
 	}
 	
-	; On Fri (or Sat) perform Forecast (and Qgenda) update
-	if (A_WDay > 5) {
+	; On Fri Sat or Mon perform Forecast (and Qgenda) update
+	if (A_WDay~="[267]") {
 		gosub readForecast
 	}
 	return

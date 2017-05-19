@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.1.8"
+vers := "2.1.8.1"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 WinClose, View Downloads -
@@ -743,24 +743,24 @@ IcuMerge:
 	tmpDT_cicu := substr(y.selectSingleNode("/root/lists/CICU").getAttribute("date"),1,8)
 
 	cicuSurPath := "/root/lists/CICUSur"
-	if IsObject(y.selectSingleNode(cicuSurPath)) {								; Clear the old list and refresh all
+	if IsObject(y.selectSingleNode(cicuSurPath)) {										; Clear the old list and refresh all
 		removeNode(cicuSurPath)
 	}
 	y.addElement("CICUSur","/root/lists", {date:timenow})
 	
-	loop, % (c1:=y.selectNodes("/root/lists/CICU/mrn")).length {					; Copy existing ICU bed list to CICUSur
+	loop, % (c1:=y.selectNodes("/root/lists/CICU/mrn")).length {						; Copy existing ICU bed list to CICUSur
 		y.addElement("mrn",cicuSurPath, c1.item(A_Index-1).text)
 	}
 	writeOut("/root/lists","CICUSur")
 	
-	SurUnitPath := "/root/lists/SurUnit"											; Clear old Sur-R6 list
+	SurUnitPath := "/root/lists/SurUnit"												; Clear old Sur-R6 list
 	if IsObject(y.selectSingleNode(SurUnitPath)) {
 		removeNode(SurUnitPath)
 	}
 	y.addElement("SurUnit","/root/lists", {date:timenow})
 	
-	Loop, % (c1:=y.selectNodes("/root/lists/CSR/mrn")).length {					; Select CSR patients on SUR-R6
-		c1mrn := c1.item(A_Index-1).text
+	Loop, % (c1:=y.selectNodes("/root/lists/CSR/mrn")).length {							; Copy CSR patients on SUR-R6
+		c1mrn := c1.item(A_Index-1).text												; to SurUnitPath
 		c1str := "/root/id[@mrn='" c1mrn "']"
 		c1loc := y.selectSingleNode(c1str "/demog/data/unit").text
 		if (c1loc=loc_Surg) {
@@ -769,14 +769,13 @@ IcuMerge:
 	}
 	WriteOut("/root/lists","SurUnit")
 	
-	if (tmpDT_csr=tmpDT_cicu) {													; Scan CSR list for SURGCNTR patients
-		Loop, % (c2:=y.selectNodes("/root/lists/CSR/mrn")).length {
+	if (tmpDT_csr=tmpDT_cicu) {															; When both CSR and CICU up to date
+		Loop, % (c2:=y.selectNodes("/root/lists/CSR/mrn")).length {						; Scan CSR list for SURGCNTR patients
 			c2mrn := c2.item(A_Index-1).text
 			c2str := "/root/id[@mrn='" c2mrn "']"
 			c2loc := y.selectSingleNode(c2str "/demog/data/unit").text
 			if (c2loc="SURGCNTR") {
-				y.addElement("mrn",cicuSurPath,c2mrn)
-				WriteOut("/root/lists","CICUSur")
+				y.addElement("mrn",cicuSurPath,c2mrn)									; and add to cicuSurPath
 				if !IsObject(y.selectSingleNode(c2str "/plan/call"))
 					y.addElement("call", c2str "/plan")
 				tmpN = 
@@ -787,16 +786,16 @@ IcuMerge:
 				eventlog(c2mrn " Call sequence auto-initiated.")
 			}
 		}
+		WriteOut("/root/lists","CICUSur")
 	}
-	if (tmpDT_crd=tmpDT_cicu) {													; Scan Cards list for SURGCNTR patients
-		Loop, % (c2:=y.selectNodes("/root/lists/Cards/mrn")).length {
+	if (tmpDT_crd=tmpDT_cicu) {															; When both CARDS and CICU are up to date
+		Loop, % (c2:=y.selectNodes("/root/lists/Cards/mrn")).length {					; Scan Cards list for SURGCNTR patients
 			c2mrn := c2.item(A_Index-1).text
 			c2str := "/root/id[@mrn='" c2mrn "']"
-			c2loc := y.selectSingleNode("/root/id[@mrn='" c2mrn "']/demog/data/unit").text
-			c2attg := y.selectSingleNode("/root/id[@mrn='" c2mrn "']/demog/data/attg").text
-			if (c2loc="SURGCNTR" and ObjHasValue(CSRdocs,c2attg)) {
-				y.addElement("mrn",cicuSurPath,c2mrn)
-				WriteOut("/root/lists","CICUSur")
+			c2loc := y.selectSingleNode(c2str "/demog/data/unit").text
+			c2attg := y.selectSingleNode(c2str "/demog/data/attg").text
+			if (c2loc="SURGCNTR" and ObjHasValue(CSRdocs,c2attg)) {						; Cards list, SurgCntr, and CSR attg
+				y.addElement("mrn",cicuSurPath,c2mrn)									; add to cicuSurPath					
 				if !IsObject(y.selectSingleNode(c2str "/plan/call"))
 					y.addElement("call", c2str "/plan")
 				tmpN = 
@@ -807,6 +806,7 @@ IcuMerge:
 				eventlog(c2mrn " Call sequence auto-initiated.")
 			}
 		}
+		WriteOut("/root/lists","CICUSur")
 	}
 return
 }
