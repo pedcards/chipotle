@@ -239,7 +239,13 @@ saveCensus:
 	
 	if (location="TXP") {
 		loop % (c2:=y.selectNodes("/root/id/status[@txp='on']")).length {		; find all patients with status TXP
-			cMRN := c2.item(i:=A_Index-1).parentNode.getAttribute("mrn")
+			cMRN := c2.item(A_Index-1).parentNode.getAttribute("mrn")
+			if !IsObject(cens.selectSingleNode(c1 "/TXP/mrn[text()='" cMRN "']")) {		; Does not exist in c1/TXP list
+				cens.addElement("mrn", c1 "/TXP", cMRN)									; add mrn to c1/TXP
+			}
+		}
+		Loop % (c2:=cens.selectNodes(c1 "/TXP/mrn")).length {								; Loop through all in top c1/TXP/mrn
+			cMRN := c2.item(A_Index-1).text
 			cUnit := y.selectSingleNode("/root/id[@mrn='" cMRN "']/demog/data/unit").text
 			cSvc := y.selectSingleNode("/root/id[@mrn='" cMRN "']/demog/data/service").text
 			if !(cSvc~="Cardi") {
@@ -250,9 +256,10 @@ saveCensus:
 			}
 			cens.addElement("mrn", c1 "/TXP/" cUnit, cMRN)						; add MRN to TXP/unit
 		}
-		cens.selectSingleNode(c1 "/TXP").setAttribute("tot",cens.selectNodes(c1 "/TXP//mrn").length)
+		;~ cens.selectSingleNode(c1 "/TXP").setAttribute("tot",cens.selectNodes(c1 "/TXP//mrn").length)
 		cens.selectSingleNode(c1 "/TXP/CICU-F6").setAttribute("tot",cens.selectNodes(c1 "/TXP/CICU-F6/mrn").length)
 		cens.selectSingleNode(c1 "/TXP/" loc_Surg).setAttribute("tot",cens.selectNodes(c1 "/TXP/" loc_Surg "/mrn").length)
+		cens.selectSingleNode(c1 "/TXP/Cons").setAttribute("tot",cens.selectNodes(c1 "/TXP/Cons/mrn").length)
 	}
 	
 	; When run the Cards list, count CONSULT vs CRD patients in WARD
