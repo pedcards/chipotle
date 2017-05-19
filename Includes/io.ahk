@@ -260,6 +260,9 @@ saveCensus:
 		Loop % (c3:=y.selectNodes("/root/lists/Ward/mrn")).length {				; Scan all MRN in WARD
 			cMRN := c3.item(A_Index-1).text
 			cSvc := y.selectSingleNode("/root/id[@mrn='" cMRN "']/demog/data/service").text
+			if (cSvc="") {
+				continue														; Skip if patient discharged (no service)
+			}
 			if (cSvc~="Cardi") {												; Service contains "Cardi" (e.g. "*ology", "*ac Surgery")
 				continue														; skip it
 			}
