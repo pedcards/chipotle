@@ -256,7 +256,7 @@ saveCensus:
 			}
 			cens.addElement("mrn", c1 "/TXP/" cUnit, cMRN)						; add MRN to TXP/unit
 		}
-		;~ cens.selectSingleNode(c1 "/TXP").setAttribute("tot",cens.selectNodes(c1 "/TXP//mrn").length)
+		cens.selectSingleNode(c1 "/TXP").setAttribute("tot",cens.selectNodes(c1 "/TXP/mrn").length)
 		cens.selectSingleNode(c1 "/TXP/CICU-F6").setAttribute("tot",cens.selectNodes(c1 "/TXP/CICU-F6/mrn").length)
 		cens.selectSingleNode(c1 "/TXP/" loc_Surg).setAttribute("tot",cens.selectNodes(c1 "/TXP/" loc_Surg "/mrn").length)
 		cens.selectSingleNode(c1 "/TXP/Cons").setAttribute("tot",cens.selectNodes(c1 "/TXP/Cons/mrn").length)
