@@ -323,8 +323,8 @@ saveCensus:
 		eventlog("Daily census updated.")
 	}
 	
-	; On Fri (or Sat) perform Forecast (and Qgenda) update
-	if (A_WDay > 5) {
+	; On Fri Sat or Mon perform Forecast (and Qgenda) update
+	if (A_WDay~="[267]") {
 		gosub readForecast
 	}
 	return
