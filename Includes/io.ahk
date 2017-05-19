@@ -234,7 +234,7 @@ saveCensus:
 	
 	; Clone service locations from Y to Cens. Cards and CSR will clone, TXP is handled manually
 	; and set attr tot for number of <mrn> elements contained
-	cens.selectSingleNode(c1).replaceChild(y.selectSingleNode("/root/lists/" location).cloneNode(location="TXP" ? false : true), cens.selectSingleNode(c1 "/" location))
+	cens.selectSingleNode(c1).replaceChild(y.selectSingleNode("/root/lists/" location).cloneNode(true), cens.selectSingleNode(c1 "/" location))
 	cens.selectSingleNode(c1 "/" location).setAttribute("tot",cens.selectNodes(c1 "/" location "/mrn").length)
 	
 	if (location="TXP") {
