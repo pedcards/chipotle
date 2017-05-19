@@ -285,7 +285,7 @@ saveCensus:
 			if !IsObject(cens.selectSingleNode(c1 "/CSR/" cUnit)) {				; create CSR/unit in Cens if doesn't exist
 				cens.addElement(cUnit, c1 "/CSR")
 			}
-			if (cUnit~=loc_Surg) {												; Unit contains "SUR-R4" (e.g. "SUR-R4", not "SURGCNTR")
+			if (cUnit=loc_Surg) {												; Unit contains "SUR-R4" (e.g. "SUR-R4", not "SURGCNTR")
 				cens.addElement("mrn", c1 "/CSR/" loc_surg, cMRN)				; Add to CSR/SUR-R4
 			} else {
 				cens.addElement("mrn", c1 "/CSR/CICU-F6", cMRN)				; Add all else (incl SURGCNTR) to CSR/CICU-F6
