@@ -279,7 +279,6 @@ saveCensus:
 	}
 	; When run CSR list, separate CICU vs ARNP, count CONSULT vs (CSR|CRD|CICU) patients in ICUCons
 	if (location="CSR") {
-		cNP := cCSR := 0
 		Loop % (c3:=y.selectNodes("/root/lists/CSR/mrn")).length {				; Scan all MRN in CSR
 			cMRN := c3.item(A_Index-1).text
 			cUnit := y.selectSingleNode("/root/id[@mrn='" cMRN "']/demog/data/unit").text
