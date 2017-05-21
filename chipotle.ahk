@@ -509,35 +509,54 @@ readForecast:
 	gosub readQgenda
 	
 	; Find the most recently modified "*Electronic Forecast.xls" file
+	fcLast :=
+	fcNext :=
 	fcFile := 
 	fcFileLong := 
 	fcRecent :=
 	
-	dt:=A_Now
-	FormatTime, Wday,%dt%, Wday										; Today's day of the week (Sun=1)
-	dt += (9-Wday), days											; Get next Monday's date
-	conf := breakdate(dt)											; conf.yyyy conf.mm conf.dd
-	
 	dp:=A_Now
-	dp += (2-Wday), days
-	conp := breakdate(dp)
+	FormatTime, Wday,%dt%, Wday															; Today's day of the week (Sun=1)
+	dp += (2-Wday), days																; Get last Monday's date
+	tmp := breakdate(dp)
+	fcLast := tmp.mm tmp.dd																; date string "0602" from last week's fc
 	
-	Loop, Files, % forecastPath "\" conf.yyyy "\*Electronic Forecast*.xls*", F		; Scan through YYYY\Electronic Forecast.xlsx files
+	dt:=A_Now
+	dt += (9-Wday), days																; Get next Monday's date
+	tmp := breakdate(dt)
+	fcNext := tmp.mm tmp.dd																; date string "0609" for next week's fc
+	
+	Loop, Files, % forecastPath "\" tmp.yyyy "\*Electronic Forecast*.xls*", F			; Scan through YYYY\Electronic Forecast.xlsx files
 	{
-		if InStr(A_LoopFileName,"~") {
+		fcFile := A_LoopFileName														; filename, no path
+		fcFileLong := A_LoopFileLongPath												; long path
+		fcRecent := A_LoopFileTimeModified												; most recent file modified
+		if InStr(fcFile,"~") {
 			continue																	; skip ~tmp files
 		}
-		fcFile := A_LoopFileName														; filename, no path
-		d1 := zDigit(strX(fcFile,"",1,0,"-",1,1)) . zDigit(strX(fcFile,"-",1,1," ",1,1))
-		if ((d1 = conf.mm conf.dd) or (d1 = conp.mm conp.dd)) {
-			fcFileLong := A_LoopFileLongPath											; long path
-			fcRecent := A_LoopFileTimeModified											; update most recent modified datetime 
-			gosub parseForecast
+		d1 := zDigit(strX(fcFile,"",1,0,"-",1,1)) . zDigit(strX(fcFile,"-",1,1," ",1,1))	; zdigit numerals string from filename
+		fcNode := y.selectSingleNode("/root/lists/forecast")
+		
+		if (d1=fcNext) {
+			tmp := fcNode.getAttribute("next")
+			if ((strX(tmp,"",1,0,"-",1,1) = fcNext) && (strX(tmp,"-",1,1,"",0) = fcRecent)) {
+				continue																; skip to next if attr date and file unchanged
+			}
+			fcNode.setAttribute("next",fcNext "-" fcRecent)
+		} else if (d1=fcLast) {
+			tmp := fcNode.getAttribute("last")
+			if ((strX(tmp,"",1,0,"-",1,1) = fcLast) && (strX(tmp,"-",1,1,"",0) = fcRecent)) {
+				continue																; skip to next if attr date and file unchanged
+			}
+			fcNode.setAttribute("last",fcLast "-" fcRecent)
+		} else {																		; does not match either fcNext or fcLast
+			continue																	; skip to next file
 		}
+		
+		gosub parseForecast																; parseForecast on this file
 	}
 	if !FileExist(fcFileLong) {															; no file found
-		MsgBox,48,, % "Electronic Forecast.xlsx`nfile not found!"
-		return
+		EventLog("Electronic Forecast.xlsx file not found!")
 	}
 return
 }
