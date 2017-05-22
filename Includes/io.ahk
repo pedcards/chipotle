@@ -328,6 +328,13 @@ saveCensus:
 		totCsrICU  := censCSR.selectSingleNode("CICU-F6").getAttribute("tot")
 		FileAppend, % censM "/" censD "/" censY "," totCRD "," totCSR "," totTxCICU "," totTxWard "," totConsWard "," totConsICU "," totCsrWard "`n" , logs/census.csv
 		eventlog("Daily census updated.")
+		
+		if (A_WDay="6") {
+			fcTxt := trim(y.selectSingleNode("/root/lists/forecast/call[@date='" censdate "']/CICU").text)
+			fcTxt := RegExReplace(fcTxt," ",".")
+			httpComm("","remind&to=" fcTxt)
+			eventlog("Call reminder sent to " fcTxt)
+		}
 	}
 	
 	return
