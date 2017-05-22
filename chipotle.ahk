@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.1.8.2"
+vers := "2.1.8.3"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 WinClose, View Downloads -
@@ -500,8 +500,10 @@ readForecast:
 	\\childrens\files\HCSchedules\Electronic Forecast\2016\11-7 thru 11-13_2016 Electronic Forecast.xlsx
 	Move into /lists/forecast/call {date=20150301}/<PM_We_F>Del Toro</PM_We_F>
 */
+	eventlog("Check electronic forecast.")
 	fcMod := substr(y.selectSingleNode("/root/lists/forecast").getAttribute("mod"),1,8)
 	if (fcMod = substr(A_now,1,8)) {
+		eventlog("Already done.")
 		return																			; Skip this if already done today
 	}
 	
@@ -509,35 +511,56 @@ readForecast:
 	gosub readQgenda
 	
 	; Find the most recently modified "*Electronic Forecast.xls" file
+	fcLast :=
+	fcNext :=
 	fcFile := 
 	fcFileLong := 
 	fcRecent :=
 	
-	dt:=A_Now
-	FormatTime, Wday,%dt%, Wday										; Today's day of the week (Sun=1)
-	dt += (9-Wday), days											; Get next Monday's date
-	conf := breakdate(dt)											; conf.yyyy conf.mm conf.dd
-	
 	dp:=A_Now
-	dp += (2-Wday), days
-	conp := breakdate(dp)
+	FormatTime, Wday,%dt%, Wday															; Today's day of the week (Sun=1)
+	dp += (2-Wday), days																; Get last Monday's date
+	tmp := breakdate(dp)
+	fcLast := tmp.mm tmp.dd																; date string "0602" from last week's fc
 	
-	Loop, Files, % forecastPath "\" conf.yyyy "\*Electronic Forecast*.xls*", F		; Scan through YYYY\Electronic Forecast.xlsx files
+	dt:=A_Now
+	dt += (9-Wday), days																; Get next Monday's date
+	tmp := breakdate(dt)
+	fcNext := tmp.mm tmp.dd																; date string "0609" for next week's fc
+	
+	Loop, Files, % forecastPath "\" tmp.yyyy "\*Electronic Forecast*.xls*", F			; Scan through YYYY\Electronic Forecast.xlsx files
 	{
-		if InStr(A_LoopFileName,"~") {
+		fcFile := A_LoopFileName														; filename, no path
+		fcFileLong := A_LoopFileLongPath												; long path
+		fcRecent := A_LoopFileTimeModified												; most recent file modified
+		if InStr(fcFile,"~") {
 			continue																	; skip ~tmp files
 		}
-		fcFile := A_LoopFileName														; filename, no path
-		d1 := zDigit(strX(fcFile,"",1,0,"-",1,1)) . zDigit(strX(fcFile,"-",1,1," ",1,1))
-		if ((d1 = conf.mm conf.dd) or (d1 = conp.mm conp.dd)) {
-			fcFileLong := A_LoopFileLongPath											; long path
-			fcRecent := A_LoopFileTimeModified											; update most recent modified datetime 
-			gosub parseForecast
+		d1 := zDigit(strX(fcFile,"",1,0,"-",1,1)) . zDigit(strX(fcFile,"-",1,1," ",1,1))	; zdigit numerals string from filename
+		fcNode := y.selectSingleNode("/root/lists/forecast")
+		
+		if (d1=fcNext) {
+			tmp := fcNode.getAttribute("next")
+			if ((strX(tmp,"",1,0,"-",1,1) = fcNext) && (strX(tmp,"-",1,1,"",0) = fcRecent)) {
+				continue																; skip to next if attr date and file unchanged
+			}
+			eventlog("fcNext " fcNext "-" fcRecent)
+			fcNode.setAttribute("next",fcNext "-" fcRecent)
+		} else if (d1=fcLast) {
+			tmp := fcNode.getAttribute("last")
+			if ((strX(tmp,"",1,0,"-",1,1) = fcLast) && (strX(tmp,"-",1,1,"",0) = fcRecent)) {
+				continue																; skip to next if attr date and file unchanged
+			}
+			eventlog("fcLast " fcLast "-" fcRecent)
+			fcNode.setAttribute("last",fcLast "-" fcRecent)
+		} else {																		; does not match either fcNext or fcLast
+			continue																	; skip to next file
 		}
+		
+		gosub parseForecast																; parseForecast on this file
 	}
 	if !FileExist(fcFileLong) {															; no file found
-		MsgBox,48,, % "Electronic Forecast.xlsx`nfile not found!"
-		return
+		EventLog("Electronic Forecast.xlsx file not found!")
 	}
 return
 }
@@ -545,19 +568,15 @@ return
 parseForecast:
 {
 	; Initialize some stuff
-	Progress, , % fcFile, Opening...
-	if !IsObject(y.selectSingleNode("/root/lists/forecast")) {					; create if for some reason doesn't exist
+	Progress, 100, % dialogVals[Rand(dialogVals.MaxIndex())] "...", % fcFile
+	if !IsObject(y.selectSingleNode("/root/lists/forecast")) {							; create if for some reason doesn't exist
 		y.addElement("forecast","/root/lists")
 	} 
-	;~ if (fcRecent = y.selectSingleNode("/root/lists/forecast").getAttribute("xlsdate")) { 
-		;~ Progress, off 
-		;~ MsgBox,64,, Electronic Forecast is up to date.
-		;~ return                                      ; no edits to XLS have been made 
-	;~ } 
 	
 	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] 	; array of column letters
 	fcDate:=[]																			; array of dates
 	
+	eventlog("Parsing " fcFileLong)
 	FileCopy, %fcFileLong%, fcTemp.xlsx, 1												; create local copy to avoid conflict if open
 	oWorkbook := ComObjGet(A_WorkingDir "\fcTemp.xlsx")
 	getVals := false																	; flag when have hit the Date vals row
@@ -585,7 +604,7 @@ parseForecast:
 			}
 			
 			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value				; Scan Sheet1 A2.. etc
-			Progress, % 100*rowNum/36, % cel, % row_nm
+			;~ Progress, % 100*rowNum/36, % cel, % row_nm
 			if ((cel="") && (colnum=maxcol)) {											; at maxCol and empty, break this cols loop
 				break
 			}
@@ -629,10 +648,12 @@ parseForecast:
 			y.setText(fcNode "/" row_nm, cleanString(cel))								; setText changes text value for that node
 		}
 	}
-	Progress, off
 	
 	oExcel := oWorkbook.Application
+	oExcel.DisplayAlerts := false
 	oExcel.quit
+	
+	Progress, off
 	
 	y.selectSingleNode("/root/lists/forecast").setAttribute("xlsdate",fcRecent)			; change forecast[@xlsdate] to the XLS mod date
 	y.selectSingleNode("/root/lists/forecast").setAttribute("mod",A_Now)				; change forecast[@mod] to now

@@ -48,11 +48,12 @@ GetIt:
 			}
 		}
 	}
-
-	Progress 100, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	Sleep 500
-	Progress, off
 	FileDelete, .currlock
+	
+	Progress 100, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+	gosub readForecast
+	
+	Progress, off
 Return
 }
 
@@ -329,10 +330,6 @@ saveCensus:
 		eventlog("Daily census updated.")
 	}
 	
-	; On Fri Sat or Mon perform Forecast (and Qgenda) update
-	if (A_WDay~="[267]") {
-		gosub readForecast
-	}
 	return
 }
 
