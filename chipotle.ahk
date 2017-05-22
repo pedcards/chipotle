@@ -568,19 +568,15 @@ return
 parseForecast:
 {
 	; Initialize some stuff
-	Progress, , % fcFile, Opening...
-	if !IsObject(y.selectSingleNode("/root/lists/forecast")) {					; create if for some reason doesn't exist
+	;~ Progress, , % fcFile, Opening...
+	if !IsObject(y.selectSingleNode("/root/lists/forecast")) {							; create if for some reason doesn't exist
 		y.addElement("forecast","/root/lists")
 	} 
-	;~ if (fcRecent = y.selectSingleNode("/root/lists/forecast").getAttribute("xlsdate")) { 
-		;~ Progress, off 
-		;~ MsgBox,64,, Electronic Forecast is up to date.
-		;~ return                                      ; no edits to XLS have been made 
-	;~ } 
 	
 	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] 	; array of column letters
 	fcDate:=[]																			; array of dates
 	
+	eventlog("Parsing " fcFileLong)
 	FileCopy, %fcFileLong%, fcTemp.xlsx, 1												; create local copy to avoid conflict if open
 	oWorkbook := ComObjGet(A_WorkingDir "\fcTemp.xlsx")
 	getVals := false																	; flag when have hit the Date vals row
@@ -608,7 +604,7 @@ parseForecast:
 			}
 			
 			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value				; Scan Sheet1 A2.. etc
-			Progress, % 100*rowNum/36, % cel, % row_nm
+			;~ Progress, % 100*rowNum/36, % cel, % row_nm
 			if ((cel="") && (colnum=maxcol)) {											; at maxCol and empty, break this cols loop
 				break
 			}
@@ -651,8 +647,9 @@ parseForecast:
 			}
 			y.setText(fcNode "/" row_nm, cleanString(cel))								; setText changes text value for that node
 		}
+		Progress, , % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	}
-	Progress, off
+	;~ Progress, off
 	
 	oExcel := oWorkbook.Application
 	oExcel.quit
