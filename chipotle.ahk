@@ -568,7 +568,7 @@ return
 parseForecast:
 {
 	; Initialize some stuff
-	;~ Progress, , % fcFile, Opening...
+	Progress, 100, % dialogVals[Rand(dialogVals.MaxIndex())] "...", % fcFile
 	if !IsObject(y.selectSingleNode("/root/lists/forecast")) {							; create if for some reason doesn't exist
 		y.addElement("forecast","/root/lists")
 	} 
@@ -647,12 +647,13 @@ parseForecast:
 			}
 			y.setText(fcNode "/" row_nm, cleanString(cel))								; setText changes text value for that node
 		}
-		Progress, , % dialogVals[Rand(dialogVals.MaxIndex())] "..."
 	}
-	;~ Progress, off
 	
 	oExcel := oWorkbook.Application
+	oExcel.DisplayAlerts := false
 	oExcel.quit
+	
+	Progress, off
 	
 	y.selectSingleNode("/root/lists/forecast").setAttribute("xlsdate",fcRecent)			; change forecast[@xlsdate] to the XLS mod date
 	y.selectSingleNode("/root/lists/forecast").setAttribute("mod",A_Now)				; change forecast[@mod] to now
