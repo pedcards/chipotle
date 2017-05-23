@@ -292,7 +292,7 @@ saveCensus:
 				cens.addElement("mrn", c1 "/CSR/CICU-F6", cMRN)				; Add all else (incl SURGCNTR) to CSR/CICU-F6
 			}
 		}
-		cens.selectSingleNode(c1 "/CSR").setAttribute("tot",cens.selectNodes(c1 "/CSR//mrn").length)
+		cens.selectSingleNode(c1 "/CSR").setAttribute("tot",cens.selectNodes(c1 "/CSR/mrn").length)
 		cens.selectSingleNode(c1 "/CSR/" loc_Surg).setAttribute("tot",cens.selectNodes(c1 "/CSR/" loc_Surg "/mrn").length)
 		cens.selectSingleNode(c1 "/CSR/CICU-F6" ).setAttribute("tot",cens.selectNodes(c1 "/CSR/CICU-F6/mrn").length)
 		
