@@ -202,21 +202,6 @@ plCardCon:
 			. " Diagnosis: " RegExReplace(pl.dxCard,"[\r\n]"," * ")
 			. plEml.HTMLBody															; Prepend to existing default message
 		
-		;~ emlSubj := "Patient update " substr(pl.nameF,1,1) " " substr(pl.nameL,1,1)
-		;~ tmpmsg:= pl.nameF " " substr(pl.nameL,1,1) " (Admitted " strX(pl.admit,,0,0," ",1,1) ")`r`nDiagnosis:`r`n" RegExReplace(pl.dxCard,"[\r\n]"," * ") 
-		;~ Clipboard := tmpmsg
-		;~ Run , mailto:%plProvEml%?Subject=%emlSubj%&Body=
-		;~ Loop, 30
-		;~ {
-			;~ if (emlWin := WinExist(emlSubj)) {
-				;~ Break
-			;~ }
-			;~ sleep, 200
-		;~ }
-		;~ WinActivate, % emlSubj
-		;~ sleep 250
-		;~ ControlSend, Message, ^v, %emlSubj%
-		;MsgBox pause
 		gosub plCallMade
 	}
 	gosub plCallCard
