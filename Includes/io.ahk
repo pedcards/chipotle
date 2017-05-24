@@ -292,7 +292,7 @@ saveCensus:
 				cens.addElement("mrn", c1 "/CSR/CICU-F6", cMRN)				; Add all else (incl SURGCNTR) to CSR/CICU-F6
 			}
 		}
-		cens.selectSingleNode(c1 "/CSR").setAttribute("tot",cens.selectNodes(c1 "/CSR//mrn").length)
+		cens.selectSingleNode(c1 "/CSR").setAttribute("tot",cens.selectNodes(c1 "/CSR/mrn").length)
 		cens.selectSingleNode(c1 "/CSR/" loc_Surg).setAttribute("tot",cens.selectNodes(c1 "/CSR/" loc_Surg "/mrn").length)
 		cens.selectSingleNode(c1 "/CSR/CICU-F6" ).setAttribute("tot",cens.selectNodes(c1 "/CSR/CICU-F6/mrn").length)
 		
@@ -328,6 +328,13 @@ saveCensus:
 		totCsrICU  := censCSR.selectSingleNode("CICU-F6").getAttribute("tot")
 		FileAppend, % censM "/" censD "/" censY "," totCRD "," totCSR "," totTxCICU "," totTxWard "," totConsWard "," totConsICU "," totCsrWard "`n" , logs/census.csv
 		eventlog("Daily census updated.")
+		
+		if (A_WDay="6") {
+			fcTxt := trim(y.selectSingleNode("/root/lists/forecast/call[@date='" censdate "']/CICU").text)
+			fcTxt := RegExReplace(fcTxt," ",".")
+			httpComm("","remind&to=" fcTxt)
+			eventlog("Call reminder sent to " fcTxt)
+		}
 	}
 	
 	return

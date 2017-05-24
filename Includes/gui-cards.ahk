@@ -191,29 +191,17 @@ plCardCon:
 		gosub plCallMade
 	}
 	if (instr(provCall,"email")) {
-		;~ ol := ComObjCreate("Outlook.Application")
+		plEml := ComObjCreate("Outlook.Application").CreateItem(0)						; Create item [0]
+		plEml.BodyFormat := 2															; HTML format
 		
-		;~ plEml := ol.CreateItem[0]
-		;~ plEml.Subject := "Patient update " substr(pl.nameF,1,1) " " substr(pl.nameL,1,1)
-		;~ plEml.Body := pl.nameF " " substr(pl.nameL,1,1) " (Admitted " strX(pl.admit,,0,0," ",1,1) ") Diagnosis: " emlDx
-		;~ plEml.To := plProvEml
-		;~ MsgBox pause
+		plEml.To := plProvEml
+		plEml.Subject := "SCH Heart Center patient update - " substr(pl.nameF,1,1) " " substr(pl.nameL,1,1)
+		plEml.Display																	; Must display first to get default signature
+		plEml.HTMLBody := pl.nameF " " substr(pl.nameL,1,1) 
+			. " (Admitted " strX(pl.admit,,0,0," ",1,1) ")"
+			. " Diagnosis: " RegExReplace(pl.dxCard,"[\r\n]"," * ")
+			. plEml.HTMLBody															; Prepend to existing default message
 		
-		emlSubj := "Patient update " substr(pl.nameF,1,1) " " substr(pl.nameL,1,1)
-		tmpmsg:= pl.nameF " " substr(pl.nameL,1,1) " (Admitted " strX(pl.admit,,0,0," ",1,1) ")`r`nDiagnosis:`r`n" RegExReplace(pl.dxCard,"[\r\n]"," * ") 
-		Clipboard := tmpmsg
-		Run , mailto:%plProvEml%?Subject=%emlSubj%&Body=
-		Loop, 30
-		{
-			if (emlWin := WinExist(emlSubj)) {
-				Break
-			}
-			sleep, 200
-		}
-		WinActivate, % emlSubj
-		sleep 250
-		ControlSend, Message, ^v, %emlSubj%
-		;MsgBox pause
 		gosub plCallMade
 	}
 	gosub plCallCard

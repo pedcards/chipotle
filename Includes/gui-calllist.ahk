@@ -19,6 +19,8 @@ CallList:
 		plFuzz := 100*tmpCrd.fuzz												; fuzz score for tmpCrd
 		if (clProv="") {														; no cardiologist
 			tmpCrd.group := "Other"												; group is "Other"
+		} else if (clProv~="SCH|Transplant|Heart Failure|Tx") {					; unclaimed Tx and Cards patients
+			tmpCrd.group := "SCH"												; place in SCH group
 		} else if (plFuzz < 5) {												; Near perfect match found (< 0.05)
 			clProv := tmpCrd.best												; take the close match
 		} else if (plFuzz < 20) {												; less than perfect match (0.05-0.20)
@@ -121,9 +123,9 @@ CallList:
 			LV_ModifyCol(3, "Sort")
 			LV_ModifyCol(4, "Autohdr")
 			LV_ModifyCol(5, "Autohdr")
-			if ((plG.next) and (plCall<2)) {									; due in 1 day
+			if ((plG.next) and (plCall<2) and !(tmpG="SCH")) {					; due in 1 day
 				Gui, cList:Listview, % outGrpV["TO CALL"]						; select "TO CALL" LV
-				LV_Add(""														; add to the LV
+				LV_Add(""														; add to the LV (except for any SCH patients)
 				, kMRN
 				, plG.name
 				, plG.prov
