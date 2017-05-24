@@ -191,18 +191,22 @@ plCardCon:
 		gosub plCallMade
 	}
 	if (instr(provCall,"email")) {
-		;~ ol := ComObjCreate("Outlook.Application")
+		olItem := 0
+		olFormatHTML := 2
+		plEml := ComObjCreate("Outlook.Application").CreateItem(olItem)
+		plEml.BodyFormat := olFormatHTML
+		;~ plEml.Body := pl.nameF " " substr(pl.nameL,1,1) " (Admitted " strX(pl.admit,,0,0," ",1,1) ") Diagnosis: " RegExReplace(pl.dxCard,"[\r\n]"," * ")
 		
-		;~ plEml := ol.CreateItem[0]
-		;~ plEml.Subject := "Patient update " substr(pl.nameF,1,1) " " substr(pl.nameL,1,1)
-		;~ plEml.Body := pl.nameF " " substr(pl.nameL,1,1) " (Admitted " strX(pl.admit,,0,0," ",1,1) ") Diagnosis: " emlDx
-		;~ plEml.To := plProvEml
-		;~ MsgBox pause
+		plEml.Subject := "Patient update " substr(pl.nameF,1,1) " " substr(pl.nameL,1,1)
+		plEml.To := plProvEml
+		plEml.Display
+		plEml.HTMLBody := pl.nameF " " substr(pl.nameL,1,1) " (Admitted " strX(pl.admit,,0,0," ",1,1) ") Diagnosis: " RegExReplace(pl.dxCard,"[\r\n]"," * ") + plEml.HTMLBody
+		MsgBox pause
 		
-		emlSubj := "Patient update " substr(pl.nameF,1,1) " " substr(pl.nameL,1,1)
-		tmpmsg:= pl.nameF " " substr(pl.nameL,1,1) " (Admitted " strX(pl.admit,,0,0," ",1,1) ")`r`nDiagnosis:`r`n" RegExReplace(pl.dxCard,"[\r\n]"," * ") 
-		Clipboard := tmpmsg
-		Run , mailto:%plProvEml%?Subject=%emlSubj%&Body=
+		;~ emlSubj := "Patient update " substr(pl.nameF,1,1) " " substr(pl.nameL,1,1)
+		;~ tmpmsg:= pl.nameF " " substr(pl.nameL,1,1) " (Admitted " strX(pl.admit,,0,0," ",1,1) ")`r`nDiagnosis:`r`n" RegExReplace(pl.dxCard,"[\r\n]"," * ") 
+		;~ Clipboard := tmpmsg
+		;~ Run , mailto:%plProvEml%?Subject=%emlSubj%&Body=
 		Loop, 30
 		{
 			if (emlWin := WinExist(emlSubj)) {
