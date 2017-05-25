@@ -6,7 +6,7 @@ processCIS:										;*** Parse CIS patient list
 	RemoveNode("/root/lists/" . location)										; Clear existing /root/lists for this location
 	y.addElement(location, "/root/lists", {date: timenow})						; Refresh this list
 	rtfList :=
-	colTmp := {"FIN":0, "MRN":0, "Sex":0, "Age":0, "Adm":0, "DOB":0, "Days":0, "Room":0, "Svc":0, "Attg":0, "Name":0}
+	colTmp := {"FIN":0, "MRN":0, "Sex":0, "Age":0, "Adm":0, "DOB":0, "Days":0, "Locn":0, "Room":0, "Unit":0, "Attg":0, "Name":0, "Svc":0}
 
 ; First pass: parse fields into arrays and field types
 	colIdx := colTmp.Clone()
