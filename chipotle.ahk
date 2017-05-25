@@ -37,6 +37,7 @@ Sleep 500
 gosub ReadIni
 scr:=screenDims()
 win:=winDim(scr)
+CisEnvt := WinExist("ahk_exe powerchart.exe") ? true : false
 
 servfold := "patlist"
 storkPath := "\\childrens\files\HCCardiologyFiles\Fetal"
