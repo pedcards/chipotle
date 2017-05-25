@@ -258,7 +258,7 @@ saveCensus:
 			cens.addElement("mrn", c1 "/TXP/" cUnit, cMRN)						; add MRN to TXP/unit
 		}
 		cens.selectSingleNode(c1 "/TXP").setAttribute("tot",cens.selectNodes(c1 "/TXP/mrn").length)
-		cens.selectSingleNode(c1 "/TXP/CICU-F6").setAttribute("tot",cens.selectNodes(c1 "/TXP/CICU-F6/mrn").length)
+		cens.selectSingleNode(c1 "/TXP/" loc_CICU).setAttribute("tot",cens.selectNodes(c1 "/TXP/" loc_CICU "/mrn").length)
 		cens.selectSingleNode(c1 "/TXP/" loc_Surg).setAttribute("tot",cens.selectNodes(c1 "/TXP/" loc_Surg "/mrn").length)
 		cens.selectSingleNode(c1 "/TXP/Cons").setAttribute("tot",cens.selectNodes(c1 "/TXP/Cons/mrn").length)
 	}
@@ -289,12 +289,12 @@ saveCensus:
 			if (cUnit=loc_Surg) {												; Unit contains "SUR-R4" (e.g. "SUR-R4", not "SURGCNTR")
 				cens.addElement("mrn", c1 "/CSR/" loc_surg, cMRN)				; Add to CSR/SUR-R4
 			} else {
-				cens.addElement("mrn", c1 "/CSR/CICU-F6", cMRN)				; Add all else (incl SURGCNTR) to CSR/CICU-F6
+				cens.addElement("mrn", c1 "/CSR/" loc_CICU, cMRN)				; Add all else (incl SURGCNTR) to CSR/CICU-F6
 			}
 		}
 		cens.selectSingleNode(c1 "/CSR").setAttribute("tot",cens.selectNodes(c1 "/CSR/mrn").length)
 		cens.selectSingleNode(c1 "/CSR/" loc_Surg).setAttribute("tot",cens.selectNodes(c1 "/CSR/" loc_Surg "/mrn").length)
-		cens.selectSingleNode(c1 "/CSR/CICU-F6" ).setAttribute("tot",cens.selectNodes(c1 "/CSR/CICU-F6/mrn").length)
+		cens.selectSingleNode(c1 "/CSR/" loc_CICU).setAttribute("tot",cens.selectNodes(c1 "/CSR/" loc_CICU "/mrn").length)
 		
 		Loop % (c3:=y.selectNodes("/root/lists/ICUCons/mrn")).length {			; Scan all MRN in ICUCons
 			cMRN := c3.item(A_Index-1).text
@@ -320,12 +320,12 @@ saveCensus:
 	; When Cens tot exists for all (CRD,CSR,TXP)
 	; add tot numbers to census.csv
 	if ((totCRD:=censCrd.getAttribute("tot")) and (totCSR:=censCSR.getAttribute("tot")) and (totTXP:=censTxp.getAttribute("tot"))) {
-		totTxCICU := censTxp.selectSingleNode("CICU-F6").getAttribute("tot")
+		totTxCICU := censTxp.selectSingleNode(loc_CICU).getAttribute("tot")
 		totTxWard := censTxp.selectSingleNode(loc_Surg).getAttribute("tot")
 		totConsWard := cens.selectSingleNode(c1 "/Cons/Ward").getAttribute("tot")
 		totConsICU  := cens.selectSingleNode(c1 "/Cons/ICU").getAttribute("tot")
 		totCsrWard := censCSR.selectSingleNode(loc_Surg).getAttribute("tot")
-		totCsrICU  := censCSR.selectSingleNode("CICU-F6").getAttribute("tot")
+		totCsrICU  := censCSR.selectSingleNode(loc_CICU).getAttribute("tot")
 		FileAppend, % censM "/" censD "/" censY "," totCRD "," totCSR "," totTxCICU "," totTxWard "," totConsWard "," totConsICU "," totCsrWard "`n" , logs/census.csv
 		eventlog("Daily census updated.")
 		
