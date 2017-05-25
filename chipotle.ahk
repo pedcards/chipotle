@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.2.0"
+vers := "2.2.1"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 WinClose, View Downloads -
@@ -37,6 +37,7 @@ Sleep 500
 gosub ReadIni
 scr:=screenDims()
 win:=winDim(scr)
+CisEnvt := WinExist("ahk_exe powerchart.exe") ? true : false
 
 servfold := "patlist"
 storkPath := "\\childrens\files\HCCardiologyFiles\Fetal"
