@@ -186,7 +186,9 @@ plCardCon:
 			break
 		}
 	}
-	provCall:=CMsgBox(plProvName " " plProvGroup, "Office: `t" plProvPh1 "`n`nCell: `t" plProvPh2 "`n`nEmail: `t" plProvEml, "call made|send email")
+	provCall:=CMsgBox(plProvName " " plProvGroup
+		, "Office: `t" plProvPh1 "`n`nCell: `t" plProvPh2 "`n`nEmail: `t" plProvEml
+		, "call made" ((CisEnvt) ? "" : "|send email"))									; Don't include email button in CIS envt
 	if (instr(provCall,"call")) {
 		gosub plCallMade
 	}
