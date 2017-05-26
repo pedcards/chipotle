@@ -57,17 +57,14 @@ processCIS:										;*** Parse CIS patient list
 		CIS_name := clip_elem[clip_num,colIdx["Name"]]
 			CIS_name_last := Trim(StrX(CIS_name, ,0,0, ", ",1,2))		; Last name
 			CIS_name_first := Trim(StrX(CIS_name, ", ",0,2, " ",1,0))	; First name
-		CIS_loc := clip_elem[clip_num,colIdx["Locn"]]
-			CIS_loc_unit := StrX(CIS_loc, ,0,0, " ",1,1)				; Unit
-			CIS_loc_room := StrX(CIS_loc, " ",1,1, " ",1,0)				; Room number
-			if (CIS_loc_room="") {
-				CIS_loc_room := CIS_loc_unit
-				CIS_loc_unit := ((CIS_loc_unit ~= "FA\.6\.2\d{2}\b") 
-					? "CICU-F6"
-					: ((CIS_loc_unit ~= "RC\.6\.\d{3}\b")
-						? "SUR-R6" 
-						: ""))
-			}
+		if (colIdx["Locn"]) {
+			CIS_loc := clip_elem[clip_num,colIdx["Locn"]]
+			CIS_loc_unit := StrX(CIS_loc, ,0,0, " ",1,1)			; Unit
+			CIS_loc_room := StrX(CIS_loc, " ",1,1, " ",1,0)			; Room number
+		} else {
+			CIS_loc_room := clip_elem[clip_num,colIdx["Room"]]
+			CIS_loc_unit := clip_elem[clip_num,colIdx["Unit"]]
+		}
 		CIS_attg := clip_elem[clip_num,colIdx["Attg"]]					; Attending
 			StrX(CIS_attg,",",1,2," ",1,2,n )							; Get ATTG last,first name
 			CIS_attg := substr(CIS_attg,1,n)
