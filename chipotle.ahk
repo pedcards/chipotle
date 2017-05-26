@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.2.1"
+vers := "2.2.2"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 WinClose, View Downloads -
@@ -187,7 +187,7 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 		WinClose, % CORES_window
 	}
 } else if ((clipCk ~= CIS_colRx["Name"]) 
-		&& (clipCk ~= CIS_colRx["Room"])
+		&& ((clipCk ~= CIS_colRx["Room"]) or (clipCk ~= CIS_colRx["Locn"]))
 		&& (clipCk ~= CIS_colRx["MRN"])) {												; Check for features of CIS patient list
 	Gosub initClipSub
 	Gosub QueryList

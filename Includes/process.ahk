@@ -6,20 +6,20 @@ processCIS:										;*** Parse CIS patient list
 	RemoveNode("/root/lists/" . location)										; Clear existing /root/lists for this location
 	y.addElement(location, "/root/lists", {date: timenow})						; Refresh this list
 	rtfList :=
-	colTmp := {"FIN":0, "MRN":0, "Sex":0, "Age":0, "Adm":0, "DOB":0, "Days":0, "Room":0, "Svc":0, "Attg":0, "Name":0}
+	colTmp := {"FIN":0, "MRN":0, "Sex":0, "Age":0, "Adm":0, "DOB":0, "Days":0, "Room":0, "Unit":0, "Locn":0, "Attg":0, "Name":0, "Svc":0}
 
 ; First pass: parse fields into arrays and field types
 	colIdx := colTmp.Clone()
-	Loop, parse, clip, `n, `r%A_Tab%%A_Space%
+	Loop, parse, clip, `n, `r%A_Tab%%A_Space%									; Scan entire clip
 	{
-		clip_num := A_Index
-		clip_full := A_LoopField
+		clip_num := A_Index														; "Row" number
+		clip_full := A_LoopField												; Entire row
 		If (clip_full) break
-		Loop, parse, clip_full, %A_Tab%
+		Loop, parse, clip_full, %A_Tab%											; Scan tab-delimited columns
 		{
-			i:=A_LoopField
-			j:=fieldType(i)
-			clip_elem[clip_num,A_Index] := i									; Place each element into an array, 
+			i:=A_LoopField														; Get each cell val
+			j:=fieldType(i)														; Returns key index if matches key regex
+			clip_elem[clip_num,A_Index] := i									; Place each element into an array
 			scan_elem[clip_num,A_Index] := j									; parallel array with best guess field type
 		}
 	}
@@ -57,17 +57,14 @@ processCIS:										;*** Parse CIS patient list
 		CIS_name := clip_elem[clip_num,colIdx["Name"]]
 			CIS_name_last := Trim(StrX(CIS_name, ,0,0, ", ",1,2))		; Last name
 			CIS_name_first := Trim(StrX(CIS_name, ", ",0,2, " ",1,0))	; First name
-		CIS_loc := clip_elem[clip_num,colIdx["Room"]]
-			CIS_loc_unit := StrX(CIS_loc, ,0,0, " ",1,1)				; Unit
-			CIS_loc_room := StrX(CIS_loc, " ",1,1, " ",1,0)				; Room number
-			if (CIS_loc_room="") {
-				CIS_loc_room := CIS_loc_unit
-				CIS_loc_unit := ((CIS_loc_unit ~= "FA\.6\.2\d{2}\b") 
-					? "CICU-F6"
-					: ((CIS_loc_unit ~= "RC\.6\.\d{3}\b")
-						? "SUR-R6" 
-						: ""))
-			}
+		if (colIdx["Locn"]) {
+			CIS_loc := clip_elem[clip_num,colIdx["Locn"]]
+			CIS_loc_unit := StrX(CIS_loc, ,0,0, " ",1,1)			; Unit
+			CIS_loc_room := StrX(CIS_loc, " ",1,1, " ",1,0)			; Room number
+		} else {
+			CIS_loc_room := clip_elem[clip_num,colIdx["Room"]]
+			CIS_loc_unit := clip_elem[clip_num,colIdx["Unit"]]
+		}
 		CIS_attg := clip_elem[clip_num,colIdx["Attg"]]					; Attending
 			StrX(CIS_attg,",",1,2," ",1,2,n )							; Get ATTG last,first name
 			CIS_attg := substr(CIS_attg,1,n)
