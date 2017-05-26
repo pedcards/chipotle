@@ -187,7 +187,7 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 		WinClose, % CORES_window
 	}
 } else if ((clipCk ~= CIS_colRx["Name"]) 
-		&& (clipCk ~= CIS_colRx["Room"])
+		&& ((clipCk ~= CIS_colRx["Room"]) or (clipCk ~= CIS_colRx["Locn"]))
 		&& (clipCk ~= CIS_colRx["MRN"])) {												; Check for features of CIS patient list
 	Gosub initClipSub
 	Gosub QueryList
