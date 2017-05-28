@@ -59,6 +59,7 @@ PatListGet:
 PatListGUI:
 {
 	refreshCurr(1)														; refresh Y with currlock
+	holdlist(mrn)
 	pl_demo := ""
 		. "DOB: " pl_DOB 
 		. "   Age: " (instr(pl_Age,"month")?RegExReplace(pl_Age,"i)month","mo"):instr(pl_Age,"year")?RegExReplace(pl_Age,"i)year","yr"):pl_Age) 
@@ -173,6 +174,7 @@ plSave:
 		y.setAtt(pl_mrnstring "/status", {au: user})
 		plEditStat = 
 	}
+	holdlist(mrn,1)
 	WriteOut("/root","id[@mrn='" mrn "']")
 	eventlog(mrn " saved.")
 	;Gui, teamL:Show
@@ -185,14 +187,17 @@ Return
 }
 
 pListGGuiClose:
+{
 	if ((plEditNote) or (plEditSys) or (plEditStat)) {
 		MsgBox, 308, Changes not saved!, % "Are you sure?`n`nYes = Close without saving.`nNo = Try again."
 		IfMsgBox No
 			return
 	}
+	holdlist(mrn,1)
 	Gui, plistG:Destroy
 	Gui, teamL:Show, Restore
 return
+}
 
 plCORES:
 {
