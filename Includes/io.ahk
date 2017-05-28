@@ -595,6 +595,26 @@ FilePrepend( Text, Filename ) {
     File.Close()
 }
 
+holdlist(mrn,done=0) {
+/*	Create <list/mrn> to prevent removal of this record until done
+	to prevent removal of this record by somebody else.
+	If done=1, clear this lock
+*/
+	global y, user
+	if !IsObject(y.selectSingleNode("/root/lists/hold")) {								; if no node exists,
+		y.addElement("hold","/root/lists")												; create it.
+	}
+	if (done) {
+		removeNode("/root/lists/hold/mrn[@au='" user "'][text()='" mrn "']")
+		writeOut("/root/lists","hold")
+	} else {
+		y.addElement("mrn","/root/lists/hold",{date:A_now, au:user},mrn)
+		writeOut("/root/lists","hold")
+	}
+	
+return	
+}
+
 refreshCurr(lock:="") {
 /*	Refresh Y in memory with currlist.xml to reflect changes from other users.
 	If invalid XML, try to read the most recent .bak file in reverse chron order.
