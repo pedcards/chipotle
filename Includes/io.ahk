@@ -101,6 +101,18 @@ SaveIt:
 
 	Progress, b w300, Processing...
 	
+	; Purge leftover hold records
+	Loop, % (yHold := y.selectNodes("/root/lists/hold/mrn")).length {
+		k := yHold.item(A_index-1)
+		kMRN := k.text
+		tmpDt := k.getAttribute("date")
+		tmpDt -= A_Now, Days															; diff dates
+		if (tmpDt < -30) {
+			k.parentNode.removeChild(k)
+			eventlog("Remove hold on " kMRN ".")
+		}
+	}
+	
 	; Save all MRN, Dx, Notes, ToDo, etc in arch.xml
 	yaNum := y.selectNodes("/root/id").length
 	Loop, % (yaN := y.selectNodes("/root/id")).length {									; Loop through each ID/MRN in Currlist
