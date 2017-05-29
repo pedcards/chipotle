@@ -48,9 +48,11 @@ PatListGet:
 	pl_ProvPCP := pl.provPCP
 	pl_Call_L := pl.callL
 	pl_Call_N := pl.callN
-	if (isARNP) {
+	if (isCoord) {														; Coordinator GUI
+		gosub PatListCoGUI
+	} else if (isARNP) {												; ConCarne GUI
 		gosub PatListGUIcc
-	} else {
+	} else {															; Generic provider GUI (everyone else)
 		gosub PatListGUI
 	}
 	return
