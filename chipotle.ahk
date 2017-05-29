@@ -68,6 +68,8 @@ if (ObjHasValue(admins,user)) {
 	if (tmp~="ARNP")
 		isARNP := true
 }
+if (ObjHasValue(coordusers,user))
+	isCoord := true
 if (ObjHasValue(cicuUsers,user))
 	isCICU = true
 if (ObjHasValue(ArnpUsers,user))

@@ -14,6 +14,7 @@
 ReadIni:
 {
 admins:=[]
+coordUsers:=[]
 cicuUsers:=[]
 arnpUsers:=[]
 txpDocs:=[]
@@ -45,6 +46,9 @@ Forecast_val:=[]
 		}
 		if (sec="ADMINS") {
 			admins.Insert(i)
+		}
+		if (sec="COORD") {
+			coordUsers.Insert(i)
 		}
 		if (sec="CICU") {
 			cicuUsers.Insert(i)
