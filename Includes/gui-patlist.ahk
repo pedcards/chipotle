@@ -48,6 +48,9 @@ PatListGet:
 	pl_ProvPCP := pl.provPCP
 	pl_Call_L := pl.callL
 	pl_Call_N := pl.callN
+	pl_statCoBag := pl.statCoBag
+	pl_statCoPillow := pl.statCoPillow
+	pl_statCoTour := pl.statCoTour
 	if (isCoord) {														; Coordinator GUI
 		gosub PatListCoGUI
 	} else if (isARNP) {												; ConCarne GUI
@@ -334,7 +337,10 @@ PtParse(mrn) {
 		, "ProvPCP":y.getAtt(mrnstring "/prov","provPCP")
 		, "statPM":(pl.selectSingleNode("prov").getAttribute("pm") == "on")
 		, "statMil":(pl.selectSingleNode("prov").getAttribute("mil") == "on")
-		, "statTxp":(pl.selectSingleNode("prov").getAttribute("txp") == "on")}
+		, "statTxp":(pl.selectSingleNode("prov").getAttribute("txp") == "on")
+		, "statCoBag":(pl.selectSingleNode("coord/stat").getAttribute("bag") == "on")
+		, "statCoPillow":(pl.selectSingleNode("coord/stat").getAttribute("pillow") == "on")
+		, "statCoTour":(pl.selectSingleNode("coord/stat").getAttribute("tour") == "on") }
 }
 
 SetStatus(mrn,node,att,value) {
