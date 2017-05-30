@@ -138,6 +138,62 @@ PatListGUI:
 Return
 }
 
+PatListCoGUI:
+{
+	refreshCurr(1)														; refresh Y with currlock
+	holdlist(mrn)
+	pl_demo := ""
+		. "DOB: " pl_DOB 
+		. "   Age: " (instr(pl_Age,"month")?RegExReplace(pl_Age,"i)month","mo"):instr(pl_Age,"year")?RegExReplace(pl_Age,"i)year","yr"):pl_Age) 
+		. "   Sex: " substr(pl_Sex,1,1) "`n`n"
+		. pl_Unit " :: " pl_Room "`n"
+		. pl_Svc "`n`n"
+		. "Admitted: " pl_Admit "`n"
+	if !(pl_Unit) {																				; no unit means is an ad hoc entry
+		pl_demo := "`nDemographics will be added`nwhen patient is admitted"
+	}
+	Gui, plistG:Destroy
+	Gui, plistG:Default
+	Gui, Add, Text, x26 y38 w200 h80 , % pl_demo
+	Gui, Add, Text, x266 y24 w150 h30 gplInputCard, Primary Cardiologist:
+	Gui, Add, Text, xp yp+14 cBlue w140 vpl_card, % pl_ProvCard
+	Gui, Add, Text, xp yp+20 w150 h30 gplInputCard, Continuity Cardiologist:
+	Gui, Add, Text, xp yp+14 cBlue w140 vpl_SCHcard, % pl_ProvSchCard
+	Gui, Add, Text, xp yp+20 w150 h30 gplInputCard, Cardiac Surgeon:
+	Gui, Add, Text, xp yp+14 cBlue w140 vpl_CSR, % pl_ProvCSR
+	Gui, Add, Text, xp y140 w150 h28 , Last call:
+	Gui, Add, Text, xp+50 yp w80 vCrdCall_L , % ((pl_Call_L) ? niceDate(pl_Call_L) : "---")		;substr(pl_Call_L,1,8)
+	Gui, Add, Text, xp-50 yp+14 , Next call:
+	Gui, Add, Text, xp+50 yp w80 vCrdCall_N, % ((pl_Call_N) ? niceDate(pl_Call_N) : "---")
+
+	Gui, Add, CheckBox, x446 y34 w120 h20 Checked%pl_statCoBag% vpl_statCoBag gplInputNote, Bag given
+	Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statCoPillow% vpl_statCoPillow gplInputNote, Heart pillow
+	Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statCoTour% vpl_statCoTour gplInputNote, Tour given
+	;~ Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statScamp% vpl_statScamp gplInputNote, SCAMP
+	;~ Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statMil% vpl_statMil gplInputNote, Military
+	;~ Gui, Add, CheckBox, xp yp+20 h20 Checked%pl_statPM% vpl_statPM gplInputNote, Pacemaker
+	
+	Gui, Add, Edit, x16 y132 w240 h40 gplInputNote vpl_misc, %pl_misc%
+	Gui, Add, Edit, x26 y196 w540 h60 vpl_coNotes gplInputNote, % pl_coNotes
+
+	Gui, Add, Button, x176 yp+80 w240 h40 gplSave, SAVE
+	
+	Gui, Font, Bold
+	Gui, Add, GroupBox, x16 y14 w240 h160 , % pl_NameL . ", " . pl_NameF
+	;Gui, Add, GroupBox, xp yp+110 w240 h50
+	Gui, Add, GroupBox, x256 y14 w160 h118
+	Gui, Add, GroupBox, xp yp+110 w160 h50 
+
+	Gui, Add, GroupBox, x436 y14 w140 h160 , Status Flags
+	Gui, Add, GroupBox, x16 y180 w560 h82 , Coordination Notes
+	
+	Gui, Show, w600 AutoSize, % "Patient Information - " pl_NameL
+	plEditNote = 
+	plEditStat =
+	
+Return	
+}
+
 plSave:
 {
 	Gui, plistG:Submit
