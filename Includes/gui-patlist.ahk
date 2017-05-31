@@ -152,6 +152,11 @@ PatListCoGUI:
 	if !(pl_Unit) {																				; no unit means is an ad hoc entry
 		pl_demo := "`nDemographics will be added`nwhen patient is admitted"
 	}
+	if !IsObject(y.selectSingleNode(pl_mrnstring "/diagnoses/coord")) {
+		y.addElement("coord",pl_mrnstring "/diagnoses")
+		y.addElement("stat", pl_mrnstring "/diagnoses/coord")
+		y.addElement("note", pl_mrnstring "/diagnoses/coord")
+	}
 	Gui, plistG:Destroy
 	Gui, plistG:Default
 	Gui, Add, Text, x26 y38 w200 h80 , % pl_demo
@@ -395,10 +400,10 @@ PtParse(mrn) {
 	ob.statPM := (pl.selectSingleNode("prov").getAttribute("pm") == "on")
 	ob.statMil := (pl.selectSingleNode("prov").getAttribute("mil") == "on")
 	ob.statTxp := (pl.selectSingleNode("prov").getAttribute("txp") == "on")
-	ob.statCoBag := (pl.selectSingleNode("coord/stat").getAttribute("bag") == "on")
-	ob.statCoPillow := (pl.selectSingleNode("coord/stat").getAttribute("pillow") == "on")
-	ob.statCoTour := (pl.selectSingleNode("coord/stat").getAttribute("tour") == "on") 
-	ob.noteCoord := pl.selectSingleNode("coord/note").text
+	ob.statCoBag := (pl.selectSingleNode("diagnoses/coord/stat").getAttribute("bag") == "on")
+	ob.statCoPillow := (pl.selectSingleNode("diagnoses/coord/stat").getAttribute("pillow") == "on")
+	ob.statCoTour := (pl.selectSingleNode("diagnoses/coord/stat").getAttribute("tour") == "on") 
+	ob.noteCoord := pl.selectSingleNode("diagnoses/coord/note").text
 	
 	return ob
 }
