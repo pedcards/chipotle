@@ -356,48 +356,51 @@ plDiet(txt:="") {
 
 PtParse(mrn) {
 	global y
+	ob := Object()
 	mrnstring := "/root/id[@mrn='" mrn "']"
 	pl := y.selectSingleNode(mrnstring)
-	return {"NameL":pl.selectSingleNode("demog/name_last").text
-		, "NameF":pl.selectSingleNode("demog/name_first").text
-		, "Sex":pl.selectSingleNode("demog/data/sex").text
-		, "DOB":pl.selectSingleNode("demog/data/dob").text
-		, "Age":pl.selectSingleNode("demog/data/age").text
-		, "Svc":pl.selectSingleNode("demog/data/service").text
-		, "Unit":pl.selectSingleNode("demog/data/unit").text
-		, "Room":pl.selectSingleNode("demog/data/room").text
-		, "Admit":pl.selectSingleNode("demog/data/admit").text
-		, "Attg":pl.selectSingleNode("demog/data/attg").text
-		, "dxEP":pl.selectSingleNode("diagnoses/ep").text
-		, "dxCard":pl.selectSingleNode("diagnoses/card").text
-		, "dxSurg":pl.selectSingleNode("diagnoses/surg").text
-		, "dxNotes":pl.selectSingleNode("diagnoses/notes").text
-		, "dxProb":pl.selectSingleNode("diagnoses/prob").text
-		, "misc":pl.selectSingleNode("diagnoses/misc").text
-		, "statCons":(pl.selectSingleNode("status").getAttribute("cons") == "on")
-		, "statRes":(pl.selectSingleNode("status").getAttribute("res") == "on")
-		, "statScamp":(pl.selectSingleNode("status").getAttribute("scamp") == "on")
-		, "callN":pl.selectSingleNode("plan/call").getAttribute("next")
-		, "callL":pl.selectSingleNode("plan/call").getAttribute("last")
-		, "callBy":pl.selectSingleNode("plan/call").getAttribute("by")
-		, "PM":pl.selectSingleNode("diagnoses/ep")
-		, "CORES":pl.selectSingleNode("info/hx").text
-		, "info":pl.selectSingleNode("info")
-		, "MAR":pl.selectSingleNode("MAR")
-		, "daily":pl.selectSingleNode("notes/daily")
-		, "ccSys":pl.selectSingleNode("ccSys")
-		, "ProvCard":y.getAtt(mrnstring "/prov","provCard")
-		, "ProvSchCard":y.getAtt(mrnstring "/prov","SchCard")
-		, "ProvCSR":y.getAtt(mrnstring "/prov","CSR")
-		, "ProvEP":y.getAtt(mrnstring "/prov","provEP")
-		, "ProvPCP":y.getAtt(mrnstring "/prov","provPCP")
-		, "statPM":(pl.selectSingleNode("prov").getAttribute("pm") == "on")
-		, "statMil":(pl.selectSingleNode("prov").getAttribute("mil") == "on")
-		, "statTxp":(pl.selectSingleNode("prov").getAttribute("txp") == "on")
-		, "statCoBag":(pl.selectSingleNode("coord/stat").getAttribute("bag") == "on")
-		, "statCoPillow":(pl.selectSingleNode("coord/stat").getAttribute("pillow") == "on")
-		, "statCoTour":(pl.selectSingleNode("coord/stat").getAttribute("tour") == "on") 
-		, "noteCoord":pl.selectSingleNode("coord/note").text}
+	ob.NameL := pl.selectSingleNode("demog/name_last").text
+	ob.NameF := pl.selectSingleNode("demog/name_first").text
+	ob.Sex := pl.selectSingleNode("demog/data/sex").text
+	ob.DOB := pl.selectSingleNode("demog/data/dob").text
+	ob.Age := pl.selectSingleNode("demog/data/age").text
+	ob.Svc := pl.selectSingleNode("demog/data/service").text
+	ob.Unit := pl.selectSingleNode("demog/data/unit").text
+	ob.Room := pl.selectSingleNode("demog/data/room").text
+	ob.Admit := pl.selectSingleNode("demog/data/admit").text
+	ob.Attg := pl.selectSingleNode("demog/data/attg").text
+	ob.dxEP := pl.selectSingleNode("diagnoses/ep").text
+	ob.dxCard := pl.selectSingleNode("diagnoses/card").text
+	ob.dxSurg := pl.selectSingleNode("diagnoses/surg").text
+	ob.dxNotes := pl.selectSingleNode("diagnoses/notes").text
+	ob.dxProb := pl.selectSingleNode("diagnoses/prob").text
+	ob.misc := pl.selectSingleNode("diagnoses/misc").text
+	ob.statCons := (pl.selectSingleNode("status").getAttribute("cons") == "on")
+	ob.statRes := (pl.selectSingleNode("status").getAttribute("res") == "on")
+	ob.statScamp := (pl.selectSingleNode("status").getAttribute("scamp") == "on")
+	ob.callN := pl.selectSingleNode("plan/call").getAttribute("next")
+	ob.callL := pl.selectSingleNode("plan/call").getAttribute("last")
+	ob.callBy := pl.selectSingleNode("plan/call").getAttribute("by")
+	ob.PM := pl.selectSingleNode("diagnoses/ep")
+	ob.CORES := pl.selectSingleNode("info/hx").text
+	ob.info := pl.selectSingleNode("info")
+	ob.MAR := pl.selectSingleNode("MAR")
+	ob.daily := pl.selectSingleNode("notes/daily")
+	ob.ccSys := pl.selectSingleNode("ccSys")
+	ob.ProvCard := y.getAtt(mrnstring "/prov","provCard")
+	ob.ProvSchCard := y.getAtt(mrnstring "/prov","SchCard")
+	ob.ProvCSR := y.getAtt(mrnstring "/prov","CSR")
+	ob.ProvEP := y.getAtt(mrnstring "/prov","provEP")
+	ob.ProvPCP := y.getAtt(mrnstring "/prov","provPCP")
+	ob.statPM := (pl.selectSingleNode("prov").getAttribute("pm") == "on")
+	ob.statMil := (pl.selectSingleNode("prov").getAttribute("mil") == "on")
+	ob.statTxp := (pl.selectSingleNode("prov").getAttribute("txp") == "on")
+	ob.statCoBag := (pl.selectSingleNode("coord/stat").getAttribute("bag") == "on")
+	ob.statCoPillow := (pl.selectSingleNode("coord/stat").getAttribute("pillow") == "on")
+	ob.statCoTour := (pl.selectSingleNode("coord/stat").getAttribute("tour") == "on") 
+	ob.noteCoord := pl.selectSingleNode("coord/note").text
+	
+	return ob
 }
 
 SetStatus(mrn,node,att,value) {
