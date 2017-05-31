@@ -396,7 +396,8 @@ PtParse(mrn) {
 		, "statTxp":(pl.selectSingleNode("prov").getAttribute("txp") == "on")
 		, "statCoBag":(pl.selectSingleNode("coord/stat").getAttribute("bag") == "on")
 		, "statCoPillow":(pl.selectSingleNode("coord/stat").getAttribute("pillow") == "on")
-		, "statCoTour":(pl.selectSingleNode("coord/stat").getAttribute("tour") == "on") }
+		, "statCoTour":(pl.selectSingleNode("coord/stat").getAttribute("tour") == "on") 
+		, "noteCoord":pl.selectSingleNode("coord/note").text}
 }
 
 SetStatus(mrn,node,att,value) {
