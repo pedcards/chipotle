@@ -342,14 +342,18 @@ saveCensus:
 		eventlog("Daily census updated.")
 		
 		if (A_WDay="6") {
-			fcTxt := trim(y.selectSingleNode("/root/lists/forecast/call[@date='" censdate "']/CICU").text)
-			fcTxt := RegExReplace(fcTxt," ",".")
-			httpComm("","remind&to=" fcTxt)
-			eventlog("Call reminder sent to " fcTxt)
+			sendCallReminder("CICU")
+			sendCallReminder("Ward_A")
 		}
 	}
 	
 	return
+}
+
+sendCallReminder(who) {
+/*	Send email reminder to on-service CICU and Ward attgs
+*/	
+	global y, censdate
 }
 
 httpComm(url:="",verb:="") {
