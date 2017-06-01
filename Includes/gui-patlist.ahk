@@ -153,11 +153,6 @@ PatListCoGUI:
 	if !(pl_Unit) {																				; no unit means is an ad hoc entry
 		pl_demo := "`nDemographics will be added`nwhen patient is admitted"
 	}
-	if !IsObject(y.selectSingleNode(pl_mrnstring "/diagnoses/coord")) {
-		y.addElement("coord",pl_mrnstring "/diagnoses")
-		y.addElement("stat", pl_mrnstring "/diagnoses/coord")
-		y.addElement("note", pl_mrnstring "/diagnoses/coord")
-	}
 	Gui, plistG:Destroy
 	Gui, plistG:Default
 	Gui, Add, Text, x26 y38 w200 h80 , % pl_demo
@@ -243,6 +238,11 @@ plSave:
 		plEditStat = 
 	}
 	if (plEditCoord) {
+		if !IsObject(y.selectSingleNode(pl_mrnstring "/diagnoses/coord")) {
+			y.addElement("coord",pl_mrnstring "/diagnoses")
+			y.addElement("status", pl_mrnstring "/diagnoses/coord")
+			y.addElement("note", pl_mrnstring "/diagnoses/coord")
+		}
 		ReplacePatNode(pl_mrnstring "/diagnoses/coord","note",cleanString(pl_noteCo))
 		SetStatus(mrn,"diagnoses/coord/status","bag",pl_statCoBag)
 		SetStatus(mrn,"diagnoses/coord/status","pillow",pl_statCoPillow)
