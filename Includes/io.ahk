@@ -354,6 +354,38 @@ sendCallReminder(who) {
 /*	Send email reminder to on-service CICU and Ward attgs
 */	
 	global y, censdate
+	idx := []
+	fuzz := best := 100
+	crd := y.selectSingleNode("/root/lists/forecast/call[@date='" censdate "']/" who).text	; Get that call person
+	
+	;~ if !instr(fcTxt,",") {
+		;~ crd := RegExReplace(fcTxt,"(\w.*\w) (\w.*)","$2, $1")
+	;~ }
+	Loop, Read, outdocs.csv																; Scan outdocs file
+	{
+		Loop, parse, A_LoopReadLine, CSV												; Read CSV line into array idx
+		{
+			idx[A_Index] := A_LoopField
+		}
+		if !instr(name:=idx[4],"@") {													; No associated email, move on
+			continue
+		}
+		fuzz := fuzzysearch(x,name)*100
+		if (fuzz=0) {																	; 0% fuzz = perfect match
+			match := name																; set match
+			eml := idx[4]																; and email
+			break																		; exit outdocs loop
+		}
+		if (fuzz<best) {																; less fuzz than last best
+			best := fuzz																; this is new best
+			match := name																; set match
+			eml := idx[4]																; and email
+		}
+	}
+
+	httpComm("","remind&to=" eml)														; Activate the notification
+	eventlog("Call reminder sent to " match " <" eml ">.")
+	return
 }
 
 httpComm(url:="",verb:="") {
