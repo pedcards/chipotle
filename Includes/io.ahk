@@ -627,7 +627,7 @@ RemoveNode(node) {
 eventlog(event) {
 	global user, sessdate
 	comp := A_ComputerName
-	FormatTime, now, A_Now, yyyy.MM.dd.HH:mm:ss
+	FormatTime, now, A_Now, yyyy.MM.dd||HH:mm:ss
 	name := "logs/" . sessdate . ".log"
 	txt := now " [" user "/" comp "] " event "`n"
 	filePrepend(txt,name)
