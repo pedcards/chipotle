@@ -357,6 +357,10 @@ sendCallReminder(who) {
 	idx := []
 	fuzz := best := 100
 	crd := y.selectSingleNode("/root/lists/forecast/call[@date='" censdate "']/" who).text	; Get that call person
+	if (crd="") {
+		eventlog("No call match for " who ".")
+		return error
+	}
 	
 	;~ if !instr(fcTxt,",") {
 		;~ crd := RegExReplace(fcTxt,"(\w.*\w) (\w.*)","$2, $1")
