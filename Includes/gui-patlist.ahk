@@ -242,9 +242,16 @@ plSave:
 		y.setAtt(pl_mrnstring "/status", {au: user})
 		plEditStat = 
 	}
-	holdlist(mrn,1)
+	if (plEditCoord) {
+		ReplacePatNode(pl_mrnstring "/diagnoses/coord","note",cleanString(pl_noteCo))
+		SetStatus(mrn,"diagnoses/coord/status","bag",pl_statCoBag)
+		SetStatus(mrn,"diagnoses/coord/status","pillow",pl_statCoPillow)
+		SetStatus(mrn,"diagnoses/coord/status","tour",pl_statCoTour)
+		plEditCoord =
+	}
 	WriteOut("/root","id[@mrn='" mrn "']")
 	eventlog(mrn " saved.")
+	holdlist(mrn,1)
 	;Gui, teamL:Show
 	if (adhoc) {
 		adhoc = false
