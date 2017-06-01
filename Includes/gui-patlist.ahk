@@ -180,7 +180,7 @@ PatListCoGUI:
 	;~ Gui, Add, CheckBox, xp yp+20 h20 Checked%pl_statPM% vpl_statPM gplInputNote, Pacemaker
 	
 	Gui, Add, Edit, x16 y132 w240 h40 gplInputNote vpl_misc, %pl_misc%
-	Gui, Add, Edit, x26 y196 w540 h60 vpl_coNotes gplInputNote, % pl_coNotes
+	Gui, Add, Edit, x26 y196 w540 h60 vpl_noteCo gplInputNote, % pl_noteCo
 
 	Gui, Add, Button, x176 yp+80 w240 h40 gplSave, SAVE
 	
@@ -196,6 +196,7 @@ PatListCoGUI:
 	Gui, Show, w600 AutoSize, % "Patient Information - " pl_NameL
 	plEditNote = 
 	plEditStat =
+	plEditCoord =
 	
 Return	
 }
