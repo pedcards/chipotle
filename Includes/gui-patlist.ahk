@@ -51,6 +51,7 @@ PatListGet:
 	pl_statCoBag := pl.statCoBag
 	pl_statCoPillow := pl.statCoPillow
 	pl_statCoTour := pl.statCoTour
+	pl_statCoMFM := pl.statCoMFM
 	pl_noteCo := pl.coordNote
 	if (isCoord) {														; Coordinator GUI
 		gosub PatListCoGUI
@@ -170,6 +171,7 @@ PatListCoGUI:
 	Gui, Add, CheckBox, x446 y34 w120 h20 Checked%pl_statCoBag% vpl_statCoBag gplInputNote, Bag given
 	Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statCoPillow% vpl_statCoPillow gplInputNote, Heart pillow
 	Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statCoTour% vpl_statCoTour gplInputNote, Tour given
+	Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statCoMFM% vpl_statCoMFM gplInputNote, OB/MFM note sent
 	;~ Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statScamp% vpl_statScamp gplInputNote, SCAMP
 	;~ Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statMil% vpl_statMil gplInputNote, Military
 	;~ Gui, Add, CheckBox, xp yp+20 h20 Checked%pl_statPM% vpl_statPM gplInputNote, Pacemaker
@@ -247,6 +249,7 @@ plSave:
 		SetStatus(mrn,"diagnoses/coord/status","bag",pl_statCoBag)
 		SetStatus(mrn,"diagnoses/coord/status","pillow",pl_statCoPillow)
 		SetStatus(mrn,"diagnoses/coord/status","tour",pl_statCoTour)
+		SetStatus(mrn,"diagnoses/coord/status","mfm",pl_statCoMFM)
 		plEditCoord =
 	}
 	WriteOut("/root","id[@mrn='" mrn "']")
@@ -412,6 +415,7 @@ PtParse(mrn) {
 	ob.statCoBag := (pl.selectSingleNode("diagnoses/coord/status").getAttribute("bag") == "on")
 	ob.statCoPillow := (pl.selectSingleNode("diagnoses/coord/status").getAttribute("pillow") == "on")
 	ob.statCoTour := (pl.selectSingleNode("diagnoses/coord/status").getAttribute("tour") == "on") 
+	ob.statCoMFM := (pl.selectSingleNode("diagnoses/coord/status").getAttribute("mfm") == "on") 
 	ob.coordNote := pl.selectSingleNode("diagnoses/coord/note").text
 	
 	return ob
