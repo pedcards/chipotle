@@ -338,6 +338,7 @@ ReadXls:
 		gXml.setText("/root/done",A_now)												; Set <done> value to now
 	}
 	oExcel := oWorkbook.Application														; close workbook
+	oExcel.DisplayAlerts := false
 	oExcel.quit
 	Return
 }
@@ -443,7 +444,7 @@ PatLGuiClose:
 		tmpNm := A_LoopFileName
 		tmpExt := A_LoopFileExt
 		StringReplace , tmpNm, tmpNm, .%tmpExt%											; convert tmpNm without ext
-		WinClose, %tmpNm%																; close it
+		WinKill, %tmpNm%																; close it
 	}
 	Gui, PatL:Destroy																	; destroy PatList GUI
 	if (Presenter) {																	; update Takt time for Presenter only

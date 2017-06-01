@@ -48,9 +48,15 @@ PatListGet:
 	pl_ProvPCP := pl.provPCP
 	pl_Call_L := pl.callL
 	pl_Call_N := pl.callN
-	if (isARNP) {
+	pl_statCoBag := pl.statCoBag
+	pl_statCoPillow := pl.statCoPillow
+	pl_statCoTour := pl.statCoTour
+	pl_noteCo := pl.coordNote
+	if (isCoord) {														; Coordinator GUI
+		gosub PatListCoGUI
+	} else if (isARNP) {												; ConCarne GUI
 		gosub PatListGUIcc
-	} else {
+	} else {															; Generic provider GUI (everyone else)
 		gosub PatListGUI
 	}
 	return
@@ -59,6 +65,7 @@ PatListGet:
 PatListGUI:
 {
 	refreshCurr(1)														; refresh Y with currlock
+	holdlist(mrn)
 	pl_demo := ""
 		. "DOB: " pl_DOB 
 		. "   Age: " (instr(pl_Age,"month")?RegExReplace(pl_Age,"i)month","mo"):instr(pl_Age,"year")?RegExReplace(pl_Age,"i)year","yr"):pl_Age) 
@@ -132,6 +139,63 @@ PatListGUI:
 Return
 }
 
+PatListCoGUI:
+{
+	refreshCurr(1)														; refresh Y with currlock
+	holdlist(mrn)
+	pl_demo := ""
+		. "DOB: " pl_DOB 
+		. "   Age: " (instr(pl_Age,"month")?RegExReplace(pl_Age,"i)month","mo"):instr(pl_Age,"year")?RegExReplace(pl_Age,"i)year","yr"):pl_Age) 
+		. "   Sex: " substr(pl_Sex,1,1) "`n`n"
+		. pl_Unit " :: " pl_Room "`n"
+		. pl_Svc "`n`n"
+		. "Admitted: " pl_Admit "`n"
+	if !(pl_Unit) {																				; no unit means is an ad hoc entry
+		pl_demo := "`nDemographics will be added`nwhen patient is admitted"
+	}
+	Gui, plistG:Destroy
+	Gui, plistG:Default
+	Gui, Add, Text, x26 y38 w200 h80 , % pl_demo
+	Gui, Add, Text, x266 y24 w150 h30 gplInputCard, Primary Cardiologist:
+	Gui, Add, Text, xp yp+14 cBlue w140 vpl_card, % pl_ProvCard
+	Gui, Add, Text, xp yp+20 w150 h30 gplInputCard, Continuity Cardiologist:
+	Gui, Add, Text, xp yp+14 cBlue w140 vpl_SCHcard, % pl_ProvSchCard
+	Gui, Add, Text, xp yp+20 w150 h30 gplInputCard, Cardiac Surgeon:
+	Gui, Add, Text, xp yp+14 cBlue w140 vpl_CSR, % pl_ProvCSR
+	Gui, Add, Text, xp y140 w150 h28 , Last call:
+	Gui, Add, Text, xp+50 yp w80 vCrdCall_L , % ((pl_Call_L) ? niceDate(pl_Call_L) : "---")		;substr(pl_Call_L,1,8)
+	Gui, Add, Text, xp-50 yp+14 , Next call:
+	Gui, Add, Text, xp+50 yp w80 vCrdCall_N, % ((pl_Call_N) ? niceDate(pl_Call_N) : "---")
+
+	Gui, Add, CheckBox, x446 y34 w120 h20 Checked%pl_statCoBag% vpl_statCoBag gplInputNote, Bag given
+	Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statCoPillow% vpl_statCoPillow gplInputNote, Heart pillow
+	Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statCoTour% vpl_statCoTour gplInputNote, Tour given
+	;~ Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statScamp% vpl_statScamp gplInputNote, SCAMP
+	;~ Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statMil% vpl_statMil gplInputNote, Military
+	;~ Gui, Add, CheckBox, xp yp+20 h20 Checked%pl_statPM% vpl_statPM gplInputNote, Pacemaker
+	
+	Gui, Add, Edit, x16 y132 w240 h40 gplInputNote vpl_misc, %pl_misc%
+	Gui, Add, Edit, x26 y196 w540 h60 vpl_noteCo gplInputNote, % pl_noteCo
+
+	Gui, Add, Button, x176 yp+80 w240 h40 gplSave, SAVE
+	
+	Gui, Font, Bold
+	Gui, Add, GroupBox, x16 y14 w240 h160 , % pl_NameL . ", " . pl_NameF
+	;Gui, Add, GroupBox, xp yp+110 w240 h50
+	Gui, Add, GroupBox, x256 y14 w160 h118
+	Gui, Add, GroupBox, xp yp+110 w160 h50 
+
+	Gui, Add, GroupBox, x436 y14 w140 h160 , Status Flags
+	Gui, Add, GroupBox, x16 y180 w560 h82 , Coordination Notes
+	
+	Gui, Show, w600 AutoSize, % "Patient Information - " pl_NameL
+	plEditNote = 
+	plEditStat =
+	plEditCoord =
+	
+Return	
+}
+
 plSave:
 {
 	Gui, plistG:Submit
@@ -173,8 +237,21 @@ plSave:
 		y.setAtt(pl_mrnstring "/status", {au: user})
 		plEditStat = 
 	}
+	if (plEditCoord) {
+		if !IsObject(y.selectSingleNode(pl_mrnstring "/diagnoses/coord")) {
+			y.addElement("coord",pl_mrnstring "/diagnoses")
+			y.addElement("status", pl_mrnstring "/diagnoses/coord")
+			y.addElement("note", pl_mrnstring "/diagnoses/coord")
+		}
+		ReplacePatNode(pl_mrnstring "/diagnoses/coord","note",cleanString(pl_noteCo))
+		SetStatus(mrn,"diagnoses/coord/status","bag",pl_statCoBag)
+		SetStatus(mrn,"diagnoses/coord/status","pillow",pl_statCoPillow)
+		SetStatus(mrn,"diagnoses/coord/status","tour",pl_statCoTour)
+		plEditCoord =
+	}
 	WriteOut("/root","id[@mrn='" mrn "']")
 	eventlog(mrn " saved.")
+	holdlist(mrn,1)
 	;Gui, teamL:Show
 	if (adhoc) {
 		adhoc = false
@@ -185,14 +262,17 @@ Return
 }
 
 pListGGuiClose:
+{
 	if ((plEditNote) or (plEditSys) or (plEditStat)) {
 		MsgBox, 308, Changes not saved!, % "Are you sure?`n`nYes = Close without saving.`nNo = Try again."
 		IfMsgBox No
 			return
 	}
+	holdlist(mrn,1)
 	Gui, plistG:Destroy
 	Gui, teamL:Show, Restore
 return
+}
 
 plCORES:
 {
@@ -290,44 +370,51 @@ plDiet(txt:="") {
 
 PtParse(mrn) {
 	global y
+	ob := Object()
 	mrnstring := "/root/id[@mrn='" mrn "']"
 	pl := y.selectSingleNode(mrnstring)
-	return {"NameL":pl.selectSingleNode("demog/name_last").text
-		, "NameF":pl.selectSingleNode("demog/name_first").text
-		, "Sex":pl.selectSingleNode("demog/data/sex").text
-		, "DOB":pl.selectSingleNode("demog/data/dob").text
-		, "Age":pl.selectSingleNode("demog/data/age").text
-		, "Svc":pl.selectSingleNode("demog/data/service").text
-		, "Unit":pl.selectSingleNode("demog/data/unit").text
-		, "Room":pl.selectSingleNode("demog/data/room").text
-		, "Admit":pl.selectSingleNode("demog/data/admit").text
-		, "Attg":pl.selectSingleNode("demog/data/attg").text
-		, "dxEP":pl.selectSingleNode("diagnoses/ep").text
-		, "dxCard":pl.selectSingleNode("diagnoses/card").text
-		, "dxSurg":pl.selectSingleNode("diagnoses/surg").text
-		, "dxNotes":pl.selectSingleNode("diagnoses/notes").text
-		, "dxProb":pl.selectSingleNode("diagnoses/prob").text
-		, "misc":pl.selectSingleNode("diagnoses/misc").text
-		, "statCons":(pl.selectSingleNode("status").getAttribute("cons") == "on")
-		, "statRes":(pl.selectSingleNode("status").getAttribute("res") == "on")
-		, "statScamp":(pl.selectSingleNode("status").getAttribute("scamp") == "on")
-		, "callN":pl.selectSingleNode("plan/call").getAttribute("next")
-		, "callL":pl.selectSingleNode("plan/call").getAttribute("last")
-		, "callBy":pl.selectSingleNode("plan/call").getAttribute("by")
-		, "PM":pl.selectSingleNode("diagnoses/ep")
-		, "CORES":pl.selectSingleNode("info/hx").text
-		, "info":pl.selectSingleNode("info")
-		, "MAR":pl.selectSingleNode("MAR")
-		, "daily":pl.selectSingleNode("notes/daily")
-		, "ccSys":pl.selectSingleNode("ccSys")
-		, "ProvCard":y.getAtt(mrnstring "/prov","provCard")
-		, "ProvSchCard":y.getAtt(mrnstring "/prov","SchCard")
-		, "ProvCSR":y.getAtt(mrnstring "/prov","CSR")
-		, "ProvEP":y.getAtt(mrnstring "/prov","provEP")
-		, "ProvPCP":y.getAtt(mrnstring "/prov","provPCP")
-		, "statPM":(pl.selectSingleNode("prov").getAttribute("pm") == "on")
-		, "statMil":(pl.selectSingleNode("prov").getAttribute("mil") == "on")
-		, "statTxp":(pl.selectSingleNode("prov").getAttribute("txp") == "on")}
+	ob.NameL := pl.selectSingleNode("demog/name_last").text
+	ob.NameF := pl.selectSingleNode("demog/name_first").text
+	ob.Sex := pl.selectSingleNode("demog/data/sex").text
+	ob.DOB := pl.selectSingleNode("demog/data/dob").text
+	ob.Age := pl.selectSingleNode("demog/data/age").text
+	ob.Svc := pl.selectSingleNode("demog/data/service").text
+	ob.Unit := pl.selectSingleNode("demog/data/unit").text
+	ob.Room := pl.selectSingleNode("demog/data/room").text
+	ob.Admit := pl.selectSingleNode("demog/data/admit").text
+	ob.Attg := pl.selectSingleNode("demog/data/attg").text
+	ob.dxEP := pl.selectSingleNode("diagnoses/ep").text
+	ob.dxCard := pl.selectSingleNode("diagnoses/card").text
+	ob.dxSurg := pl.selectSingleNode("diagnoses/surg").text
+	ob.dxNotes := pl.selectSingleNode("diagnoses/notes").text
+	ob.dxProb := pl.selectSingleNode("diagnoses/prob").text
+	ob.misc := pl.selectSingleNode("diagnoses/misc").text
+	ob.statCons := (pl.selectSingleNode("status").getAttribute("cons") == "on")
+	ob.statRes := (pl.selectSingleNode("status").getAttribute("res") == "on")
+	ob.statScamp := (pl.selectSingleNode("status").getAttribute("scamp") == "on")
+	ob.callN := pl.selectSingleNode("plan/call").getAttribute("next")
+	ob.callL := pl.selectSingleNode("plan/call").getAttribute("last")
+	ob.callBy := pl.selectSingleNode("plan/call").getAttribute("by")
+	ob.PM := pl.selectSingleNode("diagnoses/ep")
+	ob.CORES := pl.selectSingleNode("info/hx").text
+	ob.info := pl.selectSingleNode("info")
+	ob.MAR := pl.selectSingleNode("MAR")
+	ob.daily := pl.selectSingleNode("notes/daily")
+	ob.ccSys := pl.selectSingleNode("ccSys")
+	ob.ProvCard := y.getAtt(mrnstring "/prov","provCard")
+	ob.ProvSchCard := y.getAtt(mrnstring "/prov","SchCard")
+	ob.ProvCSR := y.getAtt(mrnstring "/prov","CSR")
+	ob.ProvEP := y.getAtt(mrnstring "/prov","provEP")
+	ob.ProvPCP := y.getAtt(mrnstring "/prov","provPCP")
+	ob.statPM := (pl.selectSingleNode("prov").getAttribute("pm") == "on")
+	ob.statMil := (pl.selectSingleNode("prov").getAttribute("mil") == "on")
+	ob.statTxp := (pl.selectSingleNode("prov").getAttribute("txp") == "on")
+	ob.statCoBag := (pl.selectSingleNode("diagnoses/coord/status").getAttribute("bag") == "on")
+	ob.statCoPillow := (pl.selectSingleNode("diagnoses/coord/status").getAttribute("pillow") == "on")
+	ob.statCoTour := (pl.selectSingleNode("diagnoses/coord/status").getAttribute("tour") == "on") 
+	ob.coordNote := pl.selectSingleNode("diagnoses/coord/note").text
+	
+	return ob
 }
 
 SetStatus(mrn,node,att,value) {

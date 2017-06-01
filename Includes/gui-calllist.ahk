@@ -19,7 +19,7 @@ CallList:
 		plFuzz := 100*tmpCrd.fuzz												; fuzz score for tmpCrd
 		if (clProv="") {														; no cardiologist
 			tmpCrd.group := "Other"												; group is "Other"
-		} else if (clProv~="SCH|Transplant|Heart Failure|Tx") {					; unclaimed Tx and Cards patients
+		} else if (clProv~="SCH|Transplant|Heart Failure|Tx|SV team") {			; unclaimed Tx and Cards patients
 			tmpCrd.group := "SCH"												; place in SCH group
 		} else if (plFuzz < 5) {												; Near perfect match found (< 0.05)
 			clProv := tmpCrd.best												; take the close match

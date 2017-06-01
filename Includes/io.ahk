@@ -101,6 +101,18 @@ SaveIt:
 
 	Progress, b w300, Processing...
 	
+	; Purge leftover hold records
+	Loop, % (yHold := y.selectNodes("/root/lists/hold/mrn")).length {
+		k := yHold.item(A_index-1)
+		kMRN := k.text
+		tmpDt := k.getAttribute("date")
+		tmpDt -= A_Now, Days															; diff dates
+		if (tmpDt < -30) {
+			k.parentNode.removeChild(k)
+			eventlog("Remove hold on " kMRN ".")
+		}
+	}
+	
 	; Save all MRN, Dx, Notes, ToDo, etc in arch.xml
 	yaNum := y.selectNodes("/root/id").length
 	Loop, % (yaN := y.selectNodes("/root/id")).length {									; Loop through each ID/MRN in Currlist
@@ -593,6 +605,26 @@ FilePrepend( Text, Filename ) {
     file.pos:=0
     File.Write(text)
     File.Close()
+}
+
+holdlist(mrn,done=0) {
+/*	Create <list/mrn> to prevent removal of this record until done
+	to prevent removal of this record by somebody else.
+	If done=1, clear this lock
+*/
+	global y, user
+	if !IsObject(y.selectSingleNode("/root/lists/hold")) {								; if no node exists,
+		y.addElement("hold","/root/lists")												; create it.
+	}
+	if (done) {
+		removeNode("/root/lists/hold/mrn[@au='" user "'][text()='" mrn "']")
+		writeOut("/root/lists","hold")
+	} else {
+		y.addElement("mrn","/root/lists/hold",{date:A_now, au:user},mrn)
+		writeOut("/root/lists","hold")
+	}
+	
+return	
 }
 
 refreshCurr(lock:="") {
