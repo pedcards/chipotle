@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.2.3"
+vers := "2.2.3.1"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 WinClose, View Downloads -
@@ -62,11 +62,13 @@ if (InStr(A_WorkingDir,"Ahk")) {
 }
 if (ObjHasValue(admins,user)) {
 	isAdmin := true
-	tmp:=CMsgBox("Administrator","Which user role?","*&Normal CHIPOTLE|&CICU CHILI|&ARNP Con Carne","Q","V")
+	tmp:=CMsgBox("Administrator","Which user role?","*&Normal CHIPOTLE|&CICU CHILI|&ARNP Con Carne|Coordinator","Q","V")
 	if (tmp~="CHILI")
 		isCICU := true
 	if (tmp~="ARNP")
 		isARNP := true
+	if (tmp~="Coord")
+		isCoord := true
 }
 if (ObjHasValue(coordusers,user))
 	isCoord := true
