@@ -12,8 +12,10 @@ plInputNote:
 	;~ }
 	i:=A_GuiControl
 	if (i~="pl_statCo|pl_noteCo") {
+		if !(plEditCoord) {
+			eventlog(mrn " edit coordination " i ".")
+		}
 		plEditCoord = true
-		eventlog(mrn " edit coordination " i ".")
 		return
 	}
 	if (substr(i,4,4)="stat") {							; var name "pl_statCons"
