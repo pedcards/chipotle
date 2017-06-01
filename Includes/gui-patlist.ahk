@@ -51,7 +51,7 @@ PatListGet:
 	pl_statCoBag := pl.statCoBag
 	pl_statCoPillow := pl.statCoPillow
 	pl_statCoTour := pl.statCoTour
-	pl_coordNote := pl.coordNote
+	pl_noteCo := pl.coordNote
 	if (isCoord) {														; Coordinator GUI
 		gosub PatListCoGUI
 	} else if (isARNP) {												; ConCarne GUI
