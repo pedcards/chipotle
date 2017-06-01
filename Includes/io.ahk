@@ -362,9 +362,6 @@ sendCallReminder(who) {
 		return error
 	}
 	
-	;~ if !instr(fcTxt,",") {
-		;~ crd := RegExReplace(fcTxt,"(\w.*\w) (\w.*)","$2, $1")
-	;~ }
 	Loop, Read, outdocs.csv																; Scan outdocs file
 	{
 		Loop, parse, A_LoopReadLine, CSV												; Read CSV line into array idx
