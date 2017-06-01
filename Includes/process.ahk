@@ -44,6 +44,14 @@ processCIS:										;*** Parse CIS patient list
 		if !(colIdx[bestk]) and ((bestCol/scan_elem.MaxIndex()) > 0.6) {		; store best column for each type
 			colIdx[bestK] := scan_col
 		}
+		if !(colIdx["Locn"]) {													; No Location column
+			if !(colIdx["Unit"]) {												; Check for Unit
+				eventlog("*** " location ": Missing 'Nurse Unit' column.")
+			}
+			if !(colIdx["Room"]) {												; and Room columns
+				eventlog("*** " location ": Missing 'Room' column.")
+			}
+		}
 	}
 ; Third pass: parse array elements according to identified field types
 	Loop, % clip_elem.MaxIndex()
@@ -62,8 +70,8 @@ processCIS:										;*** Parse CIS patient list
 			CIS_loc_unit := StrX(CIS_loc, ,0,0, " ",1,1)			; Unit
 			CIS_loc_room := StrX(CIS_loc, " ",1,1, " ",1,0)			; Room number
 		} else {
-			CIS_loc_room := clip_elem[clip_num,colIdx["Room"]]
-			CIS_loc_unit := clip_elem[clip_num,colIdx["Unit"]]
+			CIS_loc_room := clip_elem[clip_num,colIdx["Room"]]		; No Location column
+			CIS_loc_unit := clip_elem[clip_num,colIdx["Unit"]]		; Get Room and Unit separately
 		}
 		CIS_attg := clip_elem[clip_num,colIdx["Attg"]]					; Attending
 			StrX(CIS_attg,",",1,2," ",1,2,n )							; Get ATTG last,first name
