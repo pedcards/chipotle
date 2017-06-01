@@ -409,10 +409,10 @@ PtParse(mrn) {
 	ob.statPM := (pl.selectSingleNode("prov").getAttribute("pm") == "on")
 	ob.statMil := (pl.selectSingleNode("prov").getAttribute("mil") == "on")
 	ob.statTxp := (pl.selectSingleNode("prov").getAttribute("txp") == "on")
-	ob.statCoBag := (pl.selectSingleNode("diagnoses/coord/stat").getAttribute("bag") == "on")
-	ob.statCoPillow := (pl.selectSingleNode("diagnoses/coord/stat").getAttribute("pillow") == "on")
-	ob.statCoTour := (pl.selectSingleNode("diagnoses/coord/stat").getAttribute("tour") == "on") 
-	ob.noteCoord := pl.selectSingleNode("diagnoses/coord/note").text
+	ob.statCoBag := (pl.selectSingleNode("diagnoses/coord/status").getAttribute("bag") == "on")
+	ob.statCoPillow := (pl.selectSingleNode("diagnoses/coord/status").getAttribute("pillow") == "on")
+	ob.statCoTour := (pl.selectSingleNode("diagnoses/coord/status").getAttribute("tour") == "on") 
+	ob.coordNote := pl.selectSingleNode("diagnoses/coord/note").text
 	
 	return ob
 }
