@@ -62,11 +62,13 @@ if (InStr(A_WorkingDir,"Ahk")) {
 }
 if (ObjHasValue(admins,user)) {
 	isAdmin := true
-	tmp:=CMsgBox("Administrator","Which user role?","*&Normal CHIPOTLE|&CICU CHILI|&ARNP Con Carne","Q","V")
+	tmp:=CMsgBox("Administrator","Which user role?","*&Normal CHIPOTLE|&CICU CHILI|&ARNP Con Carne|Coordinator","Q","V")
 	if (tmp~="CHILI")
 		isCICU := true
 	if (tmp~="ARNP")
 		isARNP := true
+	if (tmp~="Coord")
+		isCoord := true
 }
 if (ObjHasValue(coordusers,user))
 	isCoord := true
