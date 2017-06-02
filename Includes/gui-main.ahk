@@ -190,6 +190,20 @@ MakeCoordList:
 	tmpCk := false
 	Loop, % (plist := y.selectNodes("/root/id/diagnoses/coord")).length {
 		kMRN := plist.item(A_Index-1).parentNode.parentNode.getAttribute("mrn")
+		loopCk :=
+		Loop, % (plist0 := y.selectNodes("/root/lists/*/mrn[text()='" kMRN "']")).length {
+			yaItem := plist0.item(A_index-1)
+			yaName := yaItem.parentNode.nodeName
+			if (yaName~="cores|Coord") {
+				continue
+			}
+			loopCk := yaName
+		}
+		if !(loopCk) {
+			removeNode("/root/lists/Coord/mrn[text()='" kMRN "']")
+			eventlog(kMRN " no longer on any active lists. Removed.")
+			continue
+		}
 		if !IsObject(y.selectSingleNode("/root/lists/Coord/mrn[text()='" kMRN "']")) {
 			y.addElement("mrn","/root/lists/Coord",kMRN)
 			eventlog(kMRN " added to Coord list.")
