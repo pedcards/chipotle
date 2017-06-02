@@ -39,6 +39,10 @@ if (isCICU or isARNP) {																				; CICU interface
 	Gui, Main:Add, Button, % "x20 y" (posy+=35) " w110 h20 gCallList vC" callLoc, Call list
 	Gui, Main:Add, Text, % "x170 y" (posy+4) " w70 h20", % callCt
 }
+if (isCoord) {
+	gosub MakeCoordList
+	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gTeamList vECoord", Coordination
+}
 
 strCO := breakDate(DateCORES := y.getAtt("/root/lists/cores", "date"))
 posy += 35
