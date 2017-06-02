@@ -182,6 +182,28 @@ MainGuiDone:
 	Gui, Main:Hide
 Return
 
+MakeCoordList:
+{
+	if !IsObject(y.selectSingleNode("/root/lists/Coord")) {
+		y.addElement("Coord","/root/lists")
+	}
+	tmpCk := false
+	Loop, % (plist := y.selectNodes("/root/id/diagnoses/coord")).length {
+		kMRN := plist.item(A_Index-1).parentNode.parentNode.getAttribute("mrn")
+		if !IsObject(y.selectSingleNode("/root/lists/Coord/mrn[text()='" kMRN "']")) {
+			y.addElement("mrn","/root/lists/Coord",kMRN)
+			eventlog(kMRN " added to Coord list.")
+			tmpCk := true
+		}
+	}
+	if (tmpCk) {
+		y.selectSingleNode("root/lists/Coord").setAttribute("date",A_now)
+		writeout("/root/lists","Coord")
+		eventlog("Updated Coord list.")
+	}
+Return
+}
+
 QueryList:
 {
 locString := ""
