@@ -44,13 +44,13 @@ processCIS:										;*** Parse CIS patient list
 		if !(colIdx[bestk]) and ((bestCol/scan_elem.MaxIndex()) > 0.6) {		; store best column for each type
 			colIdx[bestK] := scan_col
 		}
-		if !(colIdx["Locn"]) {													; No Location column
-			if !(colIdx["Unit"]) {												; Check for Unit
-				eventlog("*** " location ": Missing 'Nurse Unit' column.")
-			}
-			if !(colIdx["Room"]) {												; and Room columns
-				eventlog("*** " location ": Missing 'Room' column.")
-			}
+	}
+	if !(colIdx["Locn"]) {													; No Location column
+		if !(colIdx["Unit"]) {												; Check for Unit
+			eventlog("*** " location ": Missing 'Nurse Unit' column.")
+		}
+		if !(colIdx["Room"]) {												; and Room columns
+			eventlog("*** " location ": Missing 'Room' column.")
 		}
 	}
 ; Third pass: parse array elements according to identified field types
