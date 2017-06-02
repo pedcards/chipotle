@@ -93,6 +93,15 @@ if (isCICU) {
 	mainTitle1 := "CON CARNE"
 	mainTitle2 := "Collective Organized Notebook"
 	mainTitle3 := "for Cardiac ARNP Efficiency"
+} else if (isCoord) {
+	loc := ["CSR","CICU","Cards"]
+	loc["CSR"] := {"name":"Cardiac Surgery", "datevar":"GUIcsrTXT"}
+	loc["CICU"] := {"name":"Cardiac ICU", "datevar":"GUIicuTXT"}
+	loc["Cards"] := {"name":"Cardiology", "datevar":"GUIcrdTXT"}
+	
+	mainTitle1 := "CHIPOTLE"
+	mainTitle2 := "Children's Heart Center InPatient"
+	mainTitle3 := "Organized Task List Environment"
 } else {
 	mainTitle1 := "CHIPOTLE"
 	mainTitle2 := "Children's Heart Center InPatient"
