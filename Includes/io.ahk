@@ -191,24 +191,14 @@ SaveIt:
 		eventlog("CHIPS server updated.")
 	}
 	
-	;~ bdir :=
 	Loop, files, bak/*.bak
 	{
-		;~ bdir .= A_LoopFileTimeCreated "`t" A_LoopFileName "`n"
 		tmpDt := A_LoopFileTimeCreated													; File creation date
 		tmpDt -= A_Now, Hours															; diff dates
 		if (tmpDt < -24) {																; older than 24 hrs,
-			FileDelete, %A_LoopFileName%												; delete it.
+			FileDelete, % "bak/" A_LoopFileName											; delete it.
 		}
 	}
-	;~ Sort, bdir, R
-	;~ Loop, parse, bdir, `n
-	;~ {
-		;~ if (A_index < 11)																; skip the 10 most recent .bak files
-			;~ continue
-		;~ k := "bak/" strX(A_LoopField,"`t",1,1,"",0)										; Get filename between TAB and NL
-		;~ FileDelete, %k%																	; Delete
-	;~ }
 	
 	FileDelete, .currlock
 	eventlog("Save successful.")
@@ -359,7 +349,6 @@ sendCallReminder(who) {
 /*	Send email reminder to on-service CICU and Ward attgs
 */	
 	global y, censdate
-	idx := []
 	fuzz := best := 100
 	crd := y.selectSingleNode("/root/lists/forecast/call[@date='" censdate "']/" who).text	; Get that call person
 	if (crd="") {
@@ -369,14 +358,16 @@ sendCallReminder(who) {
 	
 	Loop, Read, outdocs.csv																; Scan outdocs file
 	{
+		idx := []																		; Clear the array
 		Loop, parse, A_LoopReadLine, CSV												; Read CSV line into array idx
 		{
 			idx[A_Index] := A_LoopField
 		}
-		if !instr(name:=idx[4],"@") {													; No associated email, move on
+		if !instr(idx[4],"@") {															; No associated email, move on
 			continue
 		}
-		fuzz := fuzzysearch(x,name)*100
+		name := idx[1]																	; Name for this line
+		fuzz := fuzzysearch(crd,name)*100
 		if (fuzz=0) {																	; 0% fuzz = perfect match
 			match := name																; set match
 			eml := idx[4]																; and email
