@@ -191,24 +191,14 @@ SaveIt:
 		eventlog("CHIPS server updated.")
 	}
 	
-	;~ bdir :=
 	Loop, files, bak/*.bak
 	{
-		;~ bdir .= A_LoopFileTimeCreated "`t" A_LoopFileName "`n"
 		tmpDt := A_LoopFileTimeCreated													; File creation date
 		tmpDt -= A_Now, Hours															; diff dates
 		if (tmpDt < -24) {																; older than 24 hrs,
 			FileDelete, % "bak/" A_LoopFileName											; delete it.
 		}
 	}
-	;~ Sort, bdir, R
-	;~ Loop, parse, bdir, `n
-	;~ {
-		;~ if (A_index < 11)																; skip the 10 most recent .bak files
-			;~ continue
-		;~ k := "bak/" strX(A_LoopField,"`t",1,1,"",0)										; Get filename between TAB and NL
-		;~ FileDelete, %k%																	; Delete
-	;~ }
 	
 	FileDelete, .currlock
 	eventlog("Save successful.")
