@@ -474,6 +474,9 @@ compareDates(zMRN, zType, zChange:="") {
 				,"summary":"notes/weekly"
 				,"stat":"status"
 				,"dx":"diagnoses"
+				,"dxmisc":"diagnoses/misc"
+				,"dxnote":"diagnoses/coord/note"
+				,"statCo":"diagnoses/coord/status"
 				,"prov":"prov"
 				,"pmtemp":"pacing"
 				,"pmperm":"diagnoses/device"}
