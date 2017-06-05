@@ -188,31 +188,31 @@ MakeCoordList:
 		y.addElement("Coord","/root/lists")
 	}
 	tmpCk := false
-	Loop, % (plist := y.selectNodes("/root/id/diagnoses/coord")).length {
-		kMRN := plist.item(A_Index-1).parentNode.parentNode.getAttribute("mrn")
 		loopCk :=
+	Loop, % (plist := y.selectNodes("/root/id/diagnoses/coord")).length {				; Read any "coord" elements into plist
+		kMRN := plist.item(A_Index-1).parentNode.parentNode.getAttribute("mrn")			; read <mrn>/<diagnosis>/<coord>
 		Loop, % (plist0 := y.selectNodes("/root/lists/*/mrn[text()='" kMRN "']")).length {
-			yaItem := plist0.item(A_index-1)
-			yaName := yaItem.parentNode.nodeName
-			if (yaName~="cores|Coord") {
+			yaItem := plist0.item(A_index-1)											; Any node <mrn>1234568</mrn>
+			yaName := yaItem.parentNode.nodeName										; Get List name
+			if (yaName~="cores|Coord") {												; Skip if either CORES or Coord
 				continue
 			}
-			loopCk := yaName
+			loopCk := yaName															; assign lookCk if in a list that is not CORES or Coord
 		}
-		if !(loopCk) {
-			removeNode("/root/lists/Coord/mrn[text()='" kMRN "']")
-			eventlog(kMRN " no longer on any active lists. Removed.")
+		if !(loopCk) {																	; Not present in any list? i.e. discharged
+			removeNode("/root/lists/Coord/mrn[text()='" kMRN "']")						; Remove from Coord list
+			eventlog(kMRN " no longer on any active lists. Removed.")					; Move along to next Coord element
 			continue
 		}
-		if !IsObject(y.selectSingleNode("/root/lists/Coord/mrn[text()='" kMRN "']")) {
-			y.addElement("mrn","/root/lists/Coord",kMRN)
+		if !IsObject(y.selectSingleNode("/root/lists/Coord/mrn[text()='" kMRN "']")) {	; Present on a list but doesn't exist in Coord
+			y.addElement("mrn","/root/lists/Coord",kMRN)								; Add to Coord
 			eventlog(kMRN " added to Coord list.")
-			tmpCk := true
+			tmpCk := true																; I have added something to Coord
 		}
 	}
-	if (tmpCk) {
-		y.selectSingleNode("root/lists/Coord").setAttribute("date",A_now)
-		writeout("/root/lists","Coord")
+	if (tmpCk) {																		; Change made to Coord
+		y.selectSingleNode("root/lists/Coord").setAttribute("date",A_now)				; Change edit attr
+		writeout("/root/lists","Coord")													; Save Coord to currlist
 		eventlog("Updated Coord list.")
 	}
 Return
