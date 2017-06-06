@@ -542,7 +542,7 @@ compareDates(zMRN, zType, zChange:="") {
 	ynEd := yNode.getAttribute("ed")													; last edit time
 	
 	if (znEd>ynEd) {																	; as long as remote node ed is more recent
-		yPath.replaceChild(zClone,yNode)												; make the clone
+		y.selectSingleNode("//id[@mrn='" zMRN "']/" nodePath[zType]).parentNode.replaceChild(zClone,yNode)												; make the clone
 		eventlog(zMRN " <--CHG::" zType "::" znAu "::" znEd )
 	} else {
 		eventlog(zMRN " X--BLK::" zType ((znCreated) ? "::" znCreated : "") "::" znAu "::" znEd " not newer.")
