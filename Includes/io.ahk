@@ -101,17 +101,18 @@ SaveIt:
 
 	Progress, b w300, Processing...
 	
-	; Purge leftover hold records
+	; Purge leftover hold records, and refresh Coord list
 	Loop, % (yHold := y.selectNodes("/root/lists/hold/mrn")).length {
 		k := yHold.item(A_index-1)
 		kMRN := k.text
 		tmpDt := k.getAttribute("date")
 		tmpDt -= A_Now, Days															; diff dates
-		if (tmpDt < -30) {
+		if (tmpDt < -7) {
 			k.parentNode.removeChild(k)
 			eventlog("Remove hold on " kMRN ".")
 		}
 	}
+	gosub MakeCoordList
 	
 	; Save all MRN, Dx, Notes, ToDo, etc in arch.xml
 	yaNum := y.selectNodes("/root/id").length
@@ -474,6 +475,9 @@ compareDates(zMRN, zType, zChange:="") {
 				,"summary":"notes/weekly"
 				,"stat":"status"
 				,"dx":"diagnoses"
+				,"dxmisc":"diagnoses/misc"
+				,"dxnote":"diagnoses/coord/note"
+				,"statCo":"diagnoses/coord/status"
 				,"prov":"prov"
 				,"pmtemp":"pacing"
 				,"pmperm":"diagnoses/device"}
@@ -539,7 +543,7 @@ compareDates(zMRN, zType, zChange:="") {
 	ynEd := yNode.getAttribute("ed")													; last edit time
 	
 	if (znEd>ynEd) {																	; as long as remote node ed is more recent
-		yPath.replaceChild(zClone,yNode)												; make the clone
+		y.selectSingleNode("//id[@mrn='" zMRN "']/" nodePath[zType]).parentNode.replaceChild(zClone,yNode)												; make the clone
 		eventlog(zMRN " <--CHG::" zType "::" znAu "::" znEd )
 	} else {
 		eventlog(zMRN " X--BLK::" zType ((znCreated) ? "::" znCreated : "") "::" znAu "::" znEd " not newer.")
