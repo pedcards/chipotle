@@ -101,17 +101,18 @@ SaveIt:
 
 	Progress, b w300, Processing...
 	
-	; Purge leftover hold records
+	; Purge leftover hold records, and refresh Coord list
 	Loop, % (yHold := y.selectNodes("/root/lists/hold/mrn")).length {
 		k := yHold.item(A_index-1)
 		kMRN := k.text
 		tmpDt := k.getAttribute("date")
 		tmpDt -= A_Now, Days															; diff dates
-		if (tmpDt < -30) {
+		if (tmpDt < -7) {
 			k.parentNode.removeChild(k)
 			eventlog("Remove hold on " kMRN ".")
 		}
 	}
+	gosub MakeCoordList
 	
 	; Save all MRN, Dx, Notes, ToDo, etc in arch.xml
 	yaNum := y.selectNodes("/root/id").length
