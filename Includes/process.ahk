@@ -6,13 +6,14 @@ processCIS:										;*** Parse CIS patient list
 	cis_list := readCisCol()															; Parse clip into cols
 	tmp:=matchCisList()																	; Score cis_list vs all available lists
 	MsgBox, 4, % round(tmp.score,2) "% match"
-	 , % "Detected`n" tmp.list " list?`n`n"
-	 . "Yes = proceed`n"
-	 . "No = select list`n"
+	 , % "Confirm list:  " loc[tmp.list,"name"] "`n`n"
+	 . "Yes = Update this list`n"
+	 . "No = Select different list`n"
 	IfMsgBox, Yes
 	{
 		location:=tmp.list																; Set location= best match list
 		locString := loc[location,"name"]												; Set locString for display
+		Gosub UpdateMainGui
 	} else {
 		Gosub QueryList																	; Better ask
 		WinWaitClose, CIS List
@@ -55,7 +56,7 @@ Return
 }
 
 readCISCol(location:="") {
-	global y, mrnstr, clip, cicudocs
+	global y, mrnstr, clip, timenow, cicudocs, txpdocs
 	clip_elem := Object()						; initialize the arrays
 	scan_elem := Object()
 	clip_array := Object()
@@ -186,12 +187,9 @@ readCISCol(location:="") {
 		if (ObjHasValue(txpDocs,CIS_attg)) {											; If matches TxpDocs list
 			y.selectSingleNode(MRNstring "/status").setAttribute("txp", "on")			; Set status flag.
 		}
-		if (location="TXP" and ((CIS_svc="Cardiology") or (CIS_svc="Cardiac Surgery"))) {	; If on TXP list AND on CRD or CSR
-			y.selectSingleNode(MRNstring "/status").setAttribute("txp", "on")				; Set status flag.
-		}
 		
 		; Add Cardiology/SURGCNTR patients to SURGCNTR list, these are cath patients, will fall off when discharged?
-		if (location="Cards" and CIS_loc_unit="SURGCNTR") {
+		if (CIS_svc="Cardiology" and CIS_loc_unit="SURGCNTR") {
 			SurgCntrPath := "/root/lists/SURGCNTR"
 			if !IsObject(y.selectSingleNode(SurgCntrPath)) {
 				y.addElement("SURGCNTR","/root/lists", {date:timenow})
