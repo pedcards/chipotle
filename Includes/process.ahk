@@ -6,7 +6,22 @@ processCIS:										;*** Parse CIS patient list
 	
 	cis_list := readCisCol()
 	tmp:=matchCisList()
-	MsgBox % "Best match is " tmp.list "`nwith score = " tmp.score
+	MsgBox, 4, % round(tmp.score,2) "% match"
+	 , % "Detected`n" tmp.list " list?`n`n"
+	 . "Yes = proceed`n"
+	 . "No = select list`n"
+	IfMsgBox, Yes
+	{
+		location:=tmp.list
+		locString := loc[location,"name"]
+	} else {
+		Gosub QueryList
+		WinWaitClose, CIS List
+		if !(locString) {						; Avoids error if exit QueryList
+			return								; without choice.
+		}
+	}
+	MsgBox % location
 	
 	filedelete, .currlock
 	ExitApp
