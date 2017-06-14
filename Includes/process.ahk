@@ -3,6 +3,10 @@ processCIS:										;*** Parse CIS patient list
 	filecheck()
 	FileOpen(".currlock", "W")													; Create lock file.
 	refreshCurr()																; Get latest local currlist into memory
+	
+	cis_list := readCisCol()
+	matchCisList()
+	
 	RemoveNode("/root/lists/" . location)										; Clear existing /root/lists for this location
 	y.addElement(location, "/root/lists", {date: timenow})						; Refresh this list
 	rtfList :=
@@ -21,7 +25,11 @@ Return
 }
 
 readCISCol(location:="") {
-	global y, mrnstr, clip
+	global y, mrnstr, clip, cicudocs
+	clip_elem := Object()						; initialize the arrays
+	scan_elem := Object()
+	clip_array := Object()
+	list := object()
 	colTmp := {"FIN":0, "MRN":0, "Sex":0, "Age":0, "Adm":0, "DOB":0, "Days":0, "Room":0, "Unit":0, "Locn":0, "Attg":0, "Name":0, "Svc":0}
 
 ; First pass: parse fields into arrays and field types
@@ -133,7 +141,8 @@ readCISCol(location:="") {
 		y.addElement("admit", MRNstring . "/demog/data", CIS_adm_full)
 		y.addElement("unit", MRNstring . "/demog/data", CIS_loc_unit)
 		y.addElement("room", MRNstring . "/demog/data", CIS_loc_room)
-		y.addElement("mrn", "/root/lists/" . location, CIS_mrn)
+		;y.addElement("mrn", "/root/lists/" . location, CIS_mrn)
+		list.push(CIS_mrn)
 		
 		; Capture each encounter
 		if !IsObject(y.selectSingleNode(MRNstring "/prov/enc[@adm='" CIS_admit "']")) {
@@ -162,7 +171,34 @@ readCISCol(location:="") {
 			}
 		}
 	}
-	return
+	return list
+}
+
+matchCisList() {
+	global y, cis_list, loc
+	for key,grp in loc																	; key=num, grp=listname
+	{
+		txt := "::: " grp " :::`n"
+		comp := object()																; clear comp(arison) array
+		loop % (cur := y.selectNodes("/root/lists/" grp "/mrn")).length
+		{
+			comp.push(cur.item(A_index-1).text)											; add all <val/mrn> to comp
+		}
+		
+		hit := miss := 0
+		for k,mrn in cis_list															; run through new cis_list
+		{
+			if !(i:=objHasValue(comp,mrn)) {											; if present in comp list,
+				;~ MsgBox % comp.RemoveAt(i)												; remove from comp
+				txt .= mrn " matches " comp[i] " (" i ").`n"
+				hit += 1
+			} else {
+				txt .= mrn " no match.`n"
+				miss += 1
+			}
+		}
+		MsgBox % txt
+	}
 }
 
 processCORES: 										;*** Parse CORES Rounding/Handoff Report
