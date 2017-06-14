@@ -151,6 +151,8 @@ SaveIt:
 			}
 		}
 		if !(errList) {																	; If did not match any list, archive the ID/MRN
+			;~ y.selectSingleNode(formMrnStr).childNodes[0].nodevalue := formTxt
+			yArch.setText("/root/id[@mrn='" kMRN "']/diagnoses/notes", "")				; Clear the notes field
 			ArchiveNode("notes",1)														; ArchiveNode(node,1) to archive this node by today's date
 			ArchiveNode("plan",1)
 			errtext .= "* " . k.selectSingleNode("demog/name_first").text . " " . k.selectSingleNode("demog/name_last").text . "`n"
