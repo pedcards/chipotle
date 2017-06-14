@@ -21,24 +21,24 @@ processCIS:										;*** Parse CIS patient list
 		}
 		tmp.score := (tmp[location] > 0) ? tmp[location] : 0							; Set score to score for selected list
 	}
-	if (tmp.score < 80) {
+	if (tmp.score < 80) {																; *** Match less than 80% 
 		MsgBox, 4, Low match score
 			, % "Significant list discrepancy, " tmp.score "% match.`n`n"
 			.	"Continue with replacing " locString " list?"
 		IfMsgBox, No
 		{
-			locString := ""
+			locString := ""																; Bail out of list update
 			return
 		}
 	}
-	MsgBox % location " = " locString "`n" tmp.score
-	
-	filedelete, .currlock
-	ExitApp
 	
 	FileOpen(".currlock", "W")															; Create lock file.
-	RemoveNode("/root/lists/" . location)										; Clear existing /root/lists for this location
-	y.addElement(location, "/root/lists", {date: timenow})						; Refresh this list
+	RemoveNode("/root/lists/" . location)												; Clear existing /root/lists for this location
+	y.addElement(location, "/root/lists", {date: timenow})								; Refresh this list
+	for k,v in cis_list
+	{
+		y.addElement("mrn", "/root/lists/" location, v)
+	}
 	rtfList :=
 	
 	listsort(location)
@@ -171,8 +171,8 @@ readCISCol(location:="") {
 		y.addElement("admit", MRNstring . "/demog/data", CIS_adm_full)
 		y.addElement("unit", MRNstring . "/demog/data", CIS_loc_unit)
 		y.addElement("room", MRNstring . "/demog/data", CIS_loc_room)
-		;y.addElement("mrn", "/root/lists/" . location, CIS_mrn)
-		list.push(CIS_mrn)
+		
+		list.push(CIS_mrn)											; add MRN to list
 		
 		; Capture each encounter
 		if !IsObject(y.selectSingleNode(MRNstring "/prov/enc[@adm='" CIS_admit "']")) {
