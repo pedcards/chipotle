@@ -5,7 +5,11 @@ processCIS:										;*** Parse CIS patient list
 	refreshCurr()																; Get latest local currlist into memory
 	
 	cis_list := readCisCol()
-	matchCisList()
+	tmp:=matchCisList()
+	MsgBox % "Best match is " tmp.list "`nwith score = " tmp.score
+	
+	filedelete, .currlock
+	ExitApp
 	
 	RemoveNode("/root/lists/" . location)										; Clear existing /root/lists for this location
 	y.addElement(location, "/root/lists", {date: timenow})						; Refresh this list
@@ -178,27 +182,35 @@ matchCisList() {
 	global y, cis_list, loc
 	for key,grp in loc																	; key=num, grp=listname
 	{
-		txt := "::: " grp " :::`n"
 		comp := object()																; clear comp(arison) array
 		loop % (cur := y.selectNodes("/root/lists/" grp "/mrn")).length
 		{
 			comp.push(cur.item(A_index-1).text)											; add all <val/mrn> to comp
 		}
+		totC := comp.Length()															; totC= total MRN in comp
+		totL := cis_list.Length()														; totL= total MRN in cis_list
 		
-		hit := miss := 0
+		hit := miss := left := perc := 0												; fresh scores for each list
 		for k,mrn in cis_list															; run through new cis_list
 		{
-			if !(i:=objHasValue(comp,mrn)) {											; if present in comp list,
-				;~ MsgBox % comp.RemoveAt(i)												; remove from comp
-				txt .= mrn " matches " comp[i] " (" i ").`n"
-				hit += 1
+			if (i:=objHasValue(comp,mrn)) {												; if present in comp list,
+				hit += 2																; score hit for both lists and
+				comp.RemoveAt(i)														; remove from comp
 			} else {
-				txt .= mrn " no match.`n"
-				miss += 1
+				miss += 1/totL															; debit relative fraction from this list
 			}
 		}
-		MsgBox % txt
+		
+		left := comp.Length()/totC														; debit relative fraction of unmatched in comp
+		
+		perc := 100*(hit-(miss+left))/(totC+totL)										; percent match
+		
+		if (perc>best) {																; remember best perc score and list group
+			best := perc
+			res := grp
+		}
 	}
+	return {list:res,score:best}
 }
 
 processCORES: 										;*** Parse CORES Rounding/Handoff Report
