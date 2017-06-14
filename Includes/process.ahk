@@ -1,27 +1,28 @@
 processCIS:										;*** Parse CIS patient list
 {
 	filecheck()
-	FileOpen(".currlock", "W")													; Create lock file.
-	refreshCurr()																; Get latest local currlist into memory
+	FileOpen(".currlock", "W")															; Create lock file.
+	refreshCurr()																		; Get latest local currlist into memory
 	
-	cis_list := readCisCol()
-	tmp:=matchCisList()
+	cis_list := readCisCol()															; Parse clip into cols
+	tmp:=matchCisList()																	; Score cis_list vs all available lists
 	MsgBox, 4, % round(tmp.score,2) "% match"
 	 , % "Detected`n" tmp.list " list?`n`n"
 	 . "Yes = proceed`n"
 	 . "No = select list`n"
 	IfMsgBox, Yes
 	{
-		location:=tmp.list
-		locString := loc[location,"name"]
+		location:=tmp.list																; Set location= best match list
+		locString := loc[location,"name"]												; Set locString for display
 	} else {
-		Gosub QueryList
+		Gosub QueryList																	; Better ask
 		WinWaitClose, CIS List
 		if !(locString) {						; Avoids error if exit QueryList
 			return								; without choice.
 		}
+		tmp.score := (tmp[location] > 0) ? tmp[location] : 0							; Set score to score for selected list
 	}
-	MsgBox % location
+	MsgBox % location " = " locString "`n" tmp.score
 	
 	filedelete, .currlock
 	ExitApp
@@ -195,6 +196,7 @@ readCISCol(location:="") {
 
 matchCisList() {
 	global y, cis_list, loc
+	arr := object()
 	for key,grp in loc																	; key=num, grp=listname
 	{
 		comp := object()																; clear comp(arison) array
@@ -218,14 +220,18 @@ matchCisList() {
 		
 		left := comp.Length()/totC														; debit relative fraction of unmatched in comp
 		
-		perc := 100*(hit-(miss+left))/(totC+totL)										; percent match
+		perc := round(100*(hit-(miss+left))/(totC+totL),2)								; percent match
+		arr[grp] := perc																; save score for each group
 		
 		if (perc>best) {																; remember best perc score and list group
 			best := perc
 			res := grp
 		}
 	}
-	return {list:res,score:best}
+	arr.list := res																		; add best group
+	arr.score := best																	; and best score to arr[]
+	
+	return arr
 }
 
 processCORES: 										;*** Parse CORES Rounding/Handoff Report
