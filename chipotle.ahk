@@ -203,12 +203,10 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 		&& ((clipCk ~= CIS_colRx["Room"]) or (clipCk ~= CIS_colRx["Locn"]))
 		&& (clipCk ~= CIS_colRx["MRN"])) {												; Check for features of CIS patient list
 	Gosub initClipSub
-	Gosub QueryList
-	WinWaitClose, CIS List
+	Gosub processCIS
 	if !(locString) {						; Avoids error if exit QueryList
 		return								; without choice.
 	}
-	Gosub processCIS
 	
 	if (location="Cards" or location="CSR" or location="TXP") {
 		gosub saveCensus
@@ -264,18 +262,9 @@ If (Word_win1 := WinExist("Microsoft Office Word", "The command cannot be perfor
 Return
 }
 
-initClipSub:									;*** Initialize XML files
+initClipSub:									;*** Initialize some stuff
 {
 	Clipboard =
-	if !IsObject(t:=y.selectSingleNode("//root")) {		; if Y is empty,
-		y.addElement("root")					; then create it.
-		y.addElement("lists", "root")			; space for some lists
-	}
-	clip_elem := Object()						; initialize the arrays
-	scan_elem := Object()
-	clip_array := Object()
-	clip_num = 									; clear some variables
-	clip_full =
 	FormatTime, timenow, A_Now, yyyyMMddHHmm
 
 	Return
@@ -299,6 +288,9 @@ listsort(list,parm="",ord:="") {
 	{
 		mrn := mrns.Item(A_index-1).text
 		pt := ptParse(mrn)
+		if (list="TXP" and ((pt.Svc="Cardiology") or (pt.Svc="Cardiac Surgery"))) {						; If on TXP list AND on CRD or CSR
+			y.selectSingleNode("/root/id[@mrn='" mrn "']/status").setAttribute("txp", "on")				; Set status flag.
+		}
 		ptSort := (inList:=ObjHasValue(teamSort,pt.svc,"RX"))*10 + (pt.statcons) + (!(inList))*100
 		var[A_Index] := {mrn:mrn,sort:ptSort,room:pt.Room,unit:pt.Unit,svc:pt.svc}
 	}

@@ -1,11 +1,66 @@
 processCIS:										;*** Parse CIS patient list
 {
 	filecheck()
-	FileOpen(".currlock", "W")													; Create lock file.
-	refreshCurr()																; Get latest local currlist into memory
-	RemoveNode("/root/lists/" . location)										; Clear existing /root/lists for this location
-	y.addElement(location, "/root/lists", {date: timenow})						; Refresh this list
+	refreshCurr()																		; Get latest local currlist into memory
+	
+	cis_list := readCisCol()															; Parse clip into cols
+	tmp:=matchCisList()																	; Score cis_list vs all available lists
+	MsgBox, 4, % round(tmp.score,2) "% match"
+	 , % "Confirm list:  " loc[tmp.list,"name"] "`n`n"
+	 . "Yes = Update this list`n"
+	 . "No = Select different list`n"
+	IfMsgBox, Yes
+	{
+		location:=tmp.list																; Set location= best match list
+		locString := loc[location,"name"]												; Set locString for display
+		Gosub UpdateMainGui
+	} else {
+		Gosub QueryList																	; Better ask
+		WinWaitClose, CIS List
+		if !(locString) {						; Avoids error if exit QueryList
+			return								; without choice.
+		}
+		tmp.score := (tmp[location] > 0) ? tmp[location] : 0							; Set score to score for selected list
+	}
+	if (tmp.score < 80) {																; *** Match less than 80% 
+		MsgBox, 4, Low match score
+			, % "Significant list discrepancy, " tmp.score "% match.`n`n"
+			.	"Continue with replacing " locString " list?"
+		IfMsgBox, No
+		{
+			locString := ""																; Bail out of list update
+			return
+		}
+	}
+	
+	FileOpen(".currlock", "W")															; Create lock file.
+	RemoveNode("/root/lists/" . location)												; Clear existing /root/lists for this location
+	y.addElement(location, "/root/lists", {date: timenow})								; Refresh this list
+	for k,v in cis_list
+	{
+		y.addElement("mrn", "/root/lists/" location, v)
+	}
 	rtfList :=
+	
+	listsort(location)
+	writefile()
+	eventlog(location " list updated.")
+	FileDelete, .currlock
+		
+	MsgBox, 4, Print now?, Print list: %locString%
+	IfMsgBox, Yes
+	{
+		gosub PrintIt
+	}
+Return
+}
+
+readCISCol(location:="") {
+	global y, mrnstr, clip, timenow, cicudocs, txpdocs
+	clip_elem := Object()						; initialize the arrays
+	scan_elem := Object()
+	clip_array := Object()
+	list := object()
 	colTmp := {"FIN":0, "MRN":0, "Sex":0, "Age":0, "Adm":0, "DOB":0, "Days":0, "Room":0, "Unit":0, "Locn":0, "Attg":0, "Name":0, "Svc":0}
 
 ; First pass: parse fields into arrays and field types
@@ -117,7 +172,8 @@ processCIS:										;*** Parse CIS patient list
 		y.addElement("admit", MRNstring . "/demog/data", CIS_adm_full)
 		y.addElement("unit", MRNstring . "/demog/data", CIS_loc_unit)
 		y.addElement("room", MRNstring . "/demog/data", CIS_loc_room)
-		y.addElement("mrn", "/root/lists/" . location, CIS_mrn)
+		
+		list.push(CIS_mrn)											; add MRN to list
 		
 		; Capture each encounter
 		if !IsObject(y.selectSingleNode(MRNstring "/prov/enc[@adm='" CIS_admit "']")) {
@@ -131,12 +187,9 @@ processCIS:										;*** Parse CIS patient list
 		if (ObjHasValue(txpDocs,CIS_attg)) {											; If matches TxpDocs list
 			y.selectSingleNode(MRNstring "/status").setAttribute("txp", "on")			; Set status flag.
 		}
-		if (location="TXP" and ((CIS_svc="Cardiology") or (CIS_svc="Cardiac Surgery"))) {	; If on TXP list AND on CRD or CSR
-			y.selectSingleNode(MRNstring "/status").setAttribute("txp", "on")				; Set status flag.
-		}
 		
 		; Add Cardiology/SURGCNTR patients to SURGCNTR list, these are cath patients, will fall off when discharged?
-		if (location="Cards" and CIS_loc_unit="SURGCNTR") {
+		if (CIS_svc="Cardiology" and CIS_loc_unit="SURGCNTR") {
 			SurgCntrPath := "/root/lists/SURGCNTR"
 			if !IsObject(y.selectSingleNode(SurgCntrPath)) {
 				y.addElement("SURGCNTR","/root/lists", {date:timenow})
@@ -146,17 +199,47 @@ processCIS:										;*** Parse CIS patient list
 			}
 		}
 	}
-	listsort(location)
-	writefile()
-	eventlog(location " list updated.")
-	FileDelete, .currlock
-		
-	MsgBox, 4, Print now?, Print list: %locString%
-	IfMsgBox, Yes
+	return list
+}
+
+matchCisList() {
+	global y, cis_list, loc
+	arr := object()
+	for key,grp in loc																	; key=num, grp=listname
 	{
-		gosub PrintIt
+		comp := object()																; clear comp(arison) array
+		loop % (cur := y.selectNodes("/root/lists/" grp "/mrn")).length
+		{
+			comp.push(cur.item(A_index-1).text)											; add all <val/mrn> to comp
+		}
+		totC := comp.Length()															; totC= total MRN in comp
+		totL := cis_list.Length()														; totL= total MRN in cis_list
+		
+		hit := miss := left := perc := 0												; fresh scores for each list
+		for k,mrn in cis_list															; run through new cis_list
+		{
+			if (i:=objHasValue(comp,mrn)) {												; if present in comp list,
+				hit += 2																; score hit for both lists and
+				comp.RemoveAt(i)														; remove from comp
+			} else {
+				miss += 1/totL															; debit relative fraction from this list
+			}
+		}
+		
+		left := comp.Length()/totC														; debit relative fraction of unmatched in comp
+		
+		perc := round(100*(hit-(miss+left))/(totC+totL),2)								; percent match
+		arr[grp] := perc																; save score for each group
+		
+		if (perc>best) {																; remember best perc score and list group
+			best := perc
+			res := grp
+		}
 	}
-Return
+	arr.list := res																		; add best group
+	arr.score := best																	; and best score to arr[]
+	
+	return arr
 }
 
 processCORES: 										;*** Parse CORES Rounding/Handoff Report
