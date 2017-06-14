@@ -204,6 +204,9 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 		&& (clipCk ~= CIS_colRx["MRN"])) {												; Check for features of CIS patient list
 	Gosub initClipSub
 	Gosub processCIS
+	if !(locString) {						; Avoids error if exit QueryList
+		return								; without choice.
+	}
 	
 	if (location="Cards" or location="CSR" or location="TXP") {
 		gosub saveCensus
