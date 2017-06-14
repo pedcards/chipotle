@@ -203,12 +203,12 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 		&& ((clipCk ~= CIS_colRx["Room"]) or (clipCk ~= CIS_colRx["Locn"]))
 		&& (clipCk ~= CIS_colRx["MRN"])) {												; Check for features of CIS patient list
 	Gosub initClipSub
+	Gosub processCIS
 	Gosub QueryList
 	WinWaitClose, CIS List
 	if !(locString) {						; Avoids error if exit QueryList
 		return								; without choice.
 	}
-	Gosub processCIS
 	
 	if (location="Cards" or location="CSR" or location="TXP") {
 		gosub saveCensus
@@ -271,11 +271,6 @@ initClipSub:									;*** Initialize XML files
 		y.addElement("root")					; then create it.
 		y.addElement("lists", "root")			; space for some lists
 	}
-	clip_elem := Object()						; initialize the arrays
-	scan_elem := Object()
-	clip_array := Object()
-	clip_num = 									; clear some variables
-	clip_full =
 	FormatTime, timenow, A_Now, yyyyMMddHHmm
 
 	Return
