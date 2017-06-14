@@ -6,6 +6,22 @@ processCIS:										;*** Parse CIS patient list
 	RemoveNode("/root/lists/" . location)										; Clear existing /root/lists for this location
 	y.addElement(location, "/root/lists", {date: timenow})						; Refresh this list
 	rtfList :=
+	
+	listsort(location)
+	writefile()
+	eventlog(location " list updated.")
+	FileDelete, .currlock
+		
+	MsgBox, 4, Print now?, Print list: %locString%
+	IfMsgBox, Yes
+	{
+		gosub PrintIt
+	}
+Return
+}
+
+readCISCol(location:="") {
+	global y, mrnstr, clip
 	colTmp := {"FIN":0, "MRN":0, "Sex":0, "Age":0, "Adm":0, "DOB":0, "Days":0, "Room":0, "Unit":0, "Locn":0, "Attg":0, "Name":0, "Svc":0}
 
 ; First pass: parse fields into arrays and field types
@@ -146,17 +162,7 @@ processCIS:										;*** Parse CIS patient list
 			}
 		}
 	}
-	listsort(location)
-	writefile()
-	eventlog(location " list updated.")
-	FileDelete, .currlock
-		
-	MsgBox, 4, Print now?, Print list: %locString%
-	IfMsgBox, Yes
-	{
-		gosub PrintIt
-	}
-Return
+	return
 }
 
 processCORES: 										;*** Parse CORES Rounding/Handoff Report
