@@ -204,11 +204,6 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 		&& (clipCk ~= CIS_colRx["MRN"])) {												; Check for features of CIS patient list
 	Gosub initClipSub
 	Gosub processCIS
-	Gosub QueryList
-	WinWaitClose, CIS List
-	if !(locString) {						; Avoids error if exit QueryList
-		return								; without choice.
-	}
 	
 	if (location="Cards" or location="CSR" or location="TXP") {
 		gosub saveCensus
@@ -264,13 +259,9 @@ If (Word_win1 := WinExist("Microsoft Office Word", "The command cannot be perfor
 Return
 }
 
-initClipSub:									;*** Initialize XML files
+initClipSub:									;*** Initialize some stuff
 {
 	Clipboard =
-	if !IsObject(t:=y.selectSingleNode("//root")) {		; if Y is empty,
-		y.addElement("root")					; then create it.
-		y.addElement("lists", "root")			; space for some lists
-	}
 	FormatTime, timenow, A_Now, yyyyMMddHHmm
 
 	Return
