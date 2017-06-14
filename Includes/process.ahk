@@ -1,7 +1,6 @@
 processCIS:										;*** Parse CIS patient list
 {
 	filecheck()
-	FileOpen(".currlock", "W")															; Create lock file.
 	refreshCurr()																		; Get latest local currlist into memory
 	
 	cis_list := readCisCol()															; Parse clip into cols
@@ -22,11 +21,22 @@ processCIS:										;*** Parse CIS patient list
 		}
 		tmp.score := (tmp[location] > 0) ? tmp[location] : 0							; Set score to score for selected list
 	}
+	if (tmp.score < 80) {
+		MsgBox, 4, Low match score
+			, % "Significant list discrepancy, " tmp.score "% match.`n`n"
+			.	"Continue with replacing " locString " list?"
+		IfMsgBox, No
+		{
+			locString := ""
+			return
+		}
+	}
 	MsgBox % location " = " locString "`n" tmp.score
 	
 	filedelete, .currlock
 	ExitApp
 	
+	FileOpen(".currlock", "W")															; Create lock file.
 	RemoveNode("/root/lists/" . location)										; Clear existing /root/lists for this location
 	y.addElement(location, "/root/lists", {date: timenow})						; Refresh this list
 	rtfList :=
