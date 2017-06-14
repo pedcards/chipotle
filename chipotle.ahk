@@ -288,6 +288,9 @@ listsort(list,parm="",ord:="") {
 	{
 		mrn := mrns.Item(A_index-1).text
 		pt := ptParse(mrn)
+		if (list="TXP" and ((pt.Svc="Cardiology") or (pt.Svc="Cardiac Surgery"))) {						; If on TXP list AND on CRD or CSR
+			y.selectSingleNode("/root/id[@mrn='" mrn "']/status").setAttribute("txp", "on")				; Set status flag.
+		}
 		ptSort := (inList:=ObjHasValue(teamSort,pt.svc,"RX"))*10 + (pt.statcons) + (!(inList))*100
 		var[A_Index] := {mrn:mrn,sort:ptSort,room:pt.Room,unit:pt.Unit,svc:pt.svc}
 	}
