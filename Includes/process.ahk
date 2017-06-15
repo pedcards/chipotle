@@ -102,10 +102,12 @@ readCISCol(location:="") {
 	}
 	if !(colIdx["Locn"]) {													; No Location column
 		if !(colIdx["Unit"]) {												; Check for Unit
-			eventlog("*** " location ": Missing 'Nurse Unit' column.")
+			eventlog("*** Missing 'Nurse Unit' column.")
+			colErr .= "Nurse Unit`n"
 		}
 		if !(colIdx["Room"]) {												; and Room columns
-			eventlog("*** " location ": Missing 'Room' column.")
+			eventlog("*** Missing 'Room' column.")
+			colErr .= "Room`n"
 		}
 	}
 ; Third pass: parse array elements according to identified field types
@@ -198,6 +200,9 @@ readCISCol(location:="") {
 				y.addElement("mrn", SurgCntrPath, CIS_mrn)
 			}
 		}
+	}
+	if (colErr) {
+		MsgBox,,Columns Error, % "This list is missing the following columns:`n`n" colErr "`nPlease repair CIS settings."
 	}
 	return list
 }
