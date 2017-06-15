@@ -151,7 +151,6 @@ SaveIt:
 			}
 		}
 		if !(errList) {																	; If did not match any list, archive the ID/MRN
-			;~ y.selectSingleNode(formMrnStr).childNodes[0].nodevalue := formTxt
 			yArch.setText("/root/id[@mrn='" kMRN "']/diagnoses/notes", "")				; Clear the notes field
 			ArchiveNode("notes",1)														; ArchiveNode(node,1) to archive this node by today's date
 			ArchiveNode("plan",1)
@@ -597,11 +596,13 @@ ArchiveNode(node,i:=0) {
 	}
 	
 	if (i=1)	{														; create <id/archive/discharge[date=now]>
+		FormatTime, dcdate, A_Now, yyyyMMdd
 		if !IsObject(yArch.selectSingleNode(MRN "/archive")) {
 			yArch.addElement("archive",MRN)
 		}
-		FormatTime, dcdate, A_Now, yyyyMMdd
-		yArch.addElement("dc",MRN "/archive", {date: dcdate})
+		if !IsObject(yArch.selectSingleNode(MRN "/archive/dc[@date='" dcdate "']")) {
+			yArch.addElement("dc",MRN "/archive", {date: dcdate})
+		}
 		yArch.selectSingleNode(MRN "/archive/dc[@date='" dcdate "']").appendChild(clone)
 	}																	; move element here
 	return
