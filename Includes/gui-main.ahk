@@ -237,17 +237,23 @@ if !(qldone) {
 Return
 }
 
-UpdateMainGUI:
+QLselect:
 {
 	location := A_GuiControl
 	locString := loc[location,"name"]
+	Gui, qList:Hide
+	
+	Return
+}
+
+UpdateMainGUI:
+{
 	str := loc[location,"datevar"]
 	strDT := breakDate(timenow)
 	posy := loc[location,"ypos"]
 	GuiControl, Main:Text, %str%, % strDT.MM "/" strDT.DD "  " strDT.HH ":" strDT.Min " *"
 	Gui, Main:Submit, NoHide
-	Gui, qList:Hide
-	loc[location,"print"] := true
+	;~ loc[location,"print"] := true
 Return
 }
 

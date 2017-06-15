@@ -151,6 +151,7 @@ SaveIt:
 			}
 		}
 		if !(errList) {																	; If did not match any list, archive the ID/MRN
+			yArch.setText("/root/id[@mrn='" kMRN "']/diagnoses/notes", "")				; Clear the notes field
 			ArchiveNode("notes",1)														; ArchiveNode(node,1) to archive this node by today's date
 			ArchiveNode("plan",1)
 			errtext .= "* " . k.selectSingleNode("demog/name_first").text . " " . k.selectSingleNode("demog/name_last").text . "`n"
@@ -337,6 +338,12 @@ saveCensus:
 		FileAppend, % censM "/" censD "/" censY "," totCRD "," totCSR "," totTxCICU "," totTxWard "," totConsWard "," totConsICU "," totCsrWard "`n" , logs/census.csv
 		eventlog("Daily census updated.")
 		
+		regionalCensus("Cards")
+		regionalCensus("CSR")
+		regionalCensus("TXP")
+		cens.save(censFile)
+		eventlog("Regional census updated.")
+		
 		if (A_WDay="6") {
 			sendCallReminder("CICU")
 			sendCallReminder("Ward_A")
@@ -344,6 +351,53 @@ saveCensus:
 	}
 	
 	return
+}
+
+regionalCensus(location) {
+/*	Generate counts for regional cardiologists in census XML
+*/
+	global y, cens, c1, censdate
+	tmpTG := tmpCrd := ""
+	cGrps := {}
+	if !IsObject(cens.selectSingleNode(c1 "/regional")) {
+		cens.addElement("regional", c1)
+	}
+	
+	Loop, % (plist := y.selectNodes("/root/lists/" . location . "/mrn")).length {		; loop through location MRN's into plist
+		kMRN := plist.item(i:=A_Index-1).text											; text item in lists/location/mrn
+		pl := ptParse(kMRN)																; fill pl with ptParse
+		clProv := pl.provCard															; get CRD provider into clProv
+		tmpCrd := checkCrd(clProv)														; tmpCrd gets provCard (spell checked)
+		plFuzz := 100*tmpCrd.fuzz														; fuzz score for tmpCrd
+		if (clProv="") {																; no cardiologist
+			tmpCrd.group := "Other"														; group is "Other"
+		} else if (clProv~="SCH|Transplant|Heart Failure|Tx|SV team") {					; unclaimed Tx and Cards patients
+			tmpCrd.group := "SCH"														; place in SCH group
+		} else if (plFuzz < 20) {														; Close match found (< 0.20)
+			clProv := tmpCrd.best														; take the close match
+		} else {																		; Screw it, no good match (> 0.20)
+			tmpCrd.group := "Other"
+		}
+		
+		tmpCrd.group := RegExReplace(tmpCrd.group," ","_")
+		c2 := c1 "/regional/" tmpCrd.group
+		if !IsObject(cens.selectSingleNode(c2)) {										; Make sure <day/regional/group> exists
+			cens.addElement(tmpCrd.group,c1 "/regional")
+		}
+		
+		if !IsObject(cens.selectSingleNode(c2 "/mrn[text()='" kMRN "']")) {				; Add unique MRN[@crd] to regional group
+			cens.addElement("mrn",c2, kMRN)
+			cens.selectSingleNode(c2 "/mrn[text()='" kMRN "']").setAttribute("crd",clProv)
+		}
+		;~ cens.viewXML()
+	}
+	
+	Loop, % (rlist := cens.selectNodes(c1 "/regional/*")).length {						; Loop through each regional group node
+		rnode := rlist.item(A_index-1)
+		rnode.setAttribute("tot",rnode.selectNodes("mrn").length)						; Set attr "tot"
+	}
+	
+	Return
 }
 
 sendCallReminder(who) {
@@ -595,11 +649,13 @@ ArchiveNode(node,i:=0) {
 	}
 	
 	if (i=1)	{														; create <id/archive/discharge[date=now]>
+		FormatTime, dcdate, A_Now, yyyyMMdd
 		if !IsObject(yArch.selectSingleNode(MRN "/archive")) {
 			yArch.addElement("archive",MRN)
 		}
-		FormatTime, dcdate, A_Now, yyyyMMdd
-		yArch.addElement("dc",MRN "/archive", {date: dcdate})
+		if !IsObject(yArch.selectSingleNode(MRN "/archive/dc[@date='" dcdate "']")) {
+			yArch.addElement("dc",MRN "/archive", {date: dcdate})
+		}
 		yArch.selectSingleNode(MRN "/archive/dc[@date='" dcdate "']").appendChild(clone)
 	}																	; move element here
 	return
