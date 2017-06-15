@@ -56,7 +56,7 @@ Return
 }
 
 readCISCol(location:="") {
-	global y, mrnstr, clip, timenow, cicudocs, txpdocs
+	global y, yArch, mrnstr, clip, timenow, cicudocs, txpdocs
 	clip_elem := Object()						; initialize the arrays
 	scan_elem := Object()
 	clip_array := Object()
