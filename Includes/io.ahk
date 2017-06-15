@@ -379,6 +379,7 @@ regionalCensus(location) {
 			tmpCrd.group := "Other"
 		}
 		
+		tmpCrd.group := RegExReplace(tmpCrd.group," ","_")
 		c2 := c1 "/regional/" tmpCrd.group
 		if !IsObject(cens.selectSingleNode(c2)) {										; Make sure <day/regional/group> exists
 			cens.addElement(tmpCrd.group,c1 "/regional")
@@ -388,6 +389,7 @@ regionalCensus(location) {
 			cens.addElement("mrn",c2, kMRN)
 			cens.selectSingleNode(c2 "/mrn[text()='" kMRN "']").setAttribute("crd",clProv)
 		}
+		;~ cens.viewXML()
 	}
 	
 	Loop, % (rlist := cens.selectNodes(c1 "/regional/*")).length {						; Loop through each regional group node
