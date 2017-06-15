@@ -12,6 +12,41 @@ z := new XML("currlist.xml")
 za := new XML("archlist.xml")
 l_users := Object()
 
+Docs := Object()
+outGrps := []
+outGrpV := {}
+tmpIdxG := 0
+Loop, Read, outdocs.csv
+{
+	tmp := tmp0 := tmp1 := tmp2 := tmp3 := tmp4 := ""
+	tmpline := A_LoopReadLine
+	StringSplit, tmp, tmpline, `, , `"
+	if ((tmp1="Name") or (tmp1="end")) {
+		continue
+	}
+	if (tmp1) {
+		if (tmp2="" and tmp3="" and tmp4="") {							; Fields 2,3,4 blank = new group
+			tmpGrp := tmp1
+			tmpIdx := 0
+			tmpIdxG += 1
+			outGrps.Insert(tmpGrp)
+			continue
+		} else if (tmp4="group") {										; Field4 "group" = synonym for group name
+			tmpIdx += 1													; if including names, place at END of group list to avoid premature match
+			Docs[tmpGrp,tmpIdx]:=tmp1
+			outGrpV[tmpGrp] := "callGrp" . tmpIdxG
+		} else {														; Otherwise format Crd name to first initial, last name
+			tmpIdx += 1
+			StringSplit, tmpPrv, tmp1, %A_Space%`"
+			tmpPrv := substr(tmpPrv1,1,1) . ". " . tmpPrv2
+			Docs[tmpGrp,tmpIdx]:=tmpPrv
+			outGrpV[tmpGrp] := "callGrp" . tmpIdxG
+		}
+	}
+}
+outGrpV["Other"] := "callGrp" . (tmpIdxG+1)
+outGrpV["TO CALL"] := "callGrp" . (tmpIdxG+2)
+
 Gosub MainGUI
 
 Exit
@@ -30,6 +65,7 @@ MainGUI:
 	Gui, main:Add, Button, wp gUnlock, Release lock
 	Gui, main:Add, Button, wp gQuery, Query archive
 	Gui, main:Add, Button, wp gCleanArch, Clean archive
+	Gui, main:Add, Button, wp gRegionalCensus, Regional Census
 	Gui, main:Add, Button, wp gEnvInfo, Env Info
 	Gui, main:Add, Button, wp gActiveWindow, ActiveWindowInfo
 	Gui, main:Show, AutoSize, QUESO Admin
@@ -289,6 +325,24 @@ CleanArch:
 	MsgBox % j " records removed."
 	za.save("archlist.xml")
 	Return
+}
+
+RegionalCensus:
+{
+	Loop, Files, logs\*.xml
+	{
+		fname := A_LoopFileFullPath
+		FileGetTime, fdate_m, %fname%, M
+		FileGetTime, fdate_c, %fname%, C
+		cens := new XML(fname)
+		loop, % (c0 := cens.selectNodes("/root/census")).Length
+		{
+			cNode := c0.item(A_index-1)
+			cDay := cNode.getAttribute("day")
+			MsgBox,,% fname, % cDay
+		}
+	}
+Return	
 }
 
 ObjHasValue(aObj, aValue) {
