@@ -5,8 +5,9 @@ processCIS:										;*** Parse CIS patient list
 	
 	cis_list := readCisCol()															; Parse clip into cols
 	tmp:=matchCisList()																	; Score cis_list vs all available lists
-	MsgBox, 4, % round(tmp.score,2) "% match"
-	 , % "Confirm list:  " loc[tmp.list,"name"] "`n`n"
+	MsgBox, 4, % "Confirm " loc[tmp.list,"name"] 
+	 , % """" loc[tmp.list,"name"] """ list detected`n"
+	 . ((tmp.score < 80) ? "but low match score (" round(tmp.score,2) "%)`n`n" : "`n")
 	 . "Yes = Update this list`n"
 	 . "No = Select different list`n"
 	IfMsgBox, Yes
@@ -22,16 +23,6 @@ processCIS:										;*** Parse CIS patient list
 		}
 		tmp.score := (tmp[location] > 0) ? tmp[location] : 0							; Set score to score for selected list
 	}
-	if (tmp.score < 80) {																; *** Match less than 80% 
-		MsgBox, 4, Low match score
-			, % "Significant list discrepancy, " tmp.score "% match.`n`n"
-			.	"Continue with replacing " locString " list?"
-		IfMsgBox, No
-		{
-			locString := ""																; Bail out of list update
-			return
-		}
-	}
 	
 	FileOpen(".currlock", "W")															; Create lock file.
 	RemoveNode("/root/lists/" . location)												; Clear existing /root/lists for this location
@@ -40,7 +31,6 @@ processCIS:										;*** Parse CIS patient list
 	{
 		y.addElement("mrn", "/root/lists/" location, v)
 	}
-	rtfList :=
 	
 	listsort(location)
 	writefile()
