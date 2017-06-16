@@ -329,21 +329,147 @@ CleanArch:
 
 RegionalCensus:
 {
-	Loop, Files, logs\*.xml
+	loc := ["Cards","CSR","TXP"]
+	Loop, Files, logs\*.xml																; Loop through each census.xml file
 	{
 		fname := A_LoopFileFullPath
-		FileGetTime, fdate_m, %fname%, M
-		FileGetTime, fdate_c, %fname%, C
+		FileGetTime, fdate_m, %fname%, M												; Get modified
+		FileGetTime, fdate_c, %fname%, C												; and created dates
 		cens := new XML(fname)
-		loop, % (c0 := cens.selectNodes("/root/census")).Length
+		loop, % (c0 := cens.selectNodes("/root/census")).Length							; Loop through each <census day> node
 		{
 			cNode := c0.item(A_index-1)
 			cDay := cNode.getAttribute("day")
-			MsgBox,,% fname, % cDay
+			
+			c_CRD := cNode.selectSingleNode("Cards")									; Check for presence of census data
+			c_CSR := cNode.selectSingleNode("CSR")
+			c_TXP := cNode.selectSingleNode("TXP")
+			if !(IsObject(c_CRD) && IsObject(c_CSR)) {									; Must have at least CRD and CSR
+				continue																; otherwise skip this node
+			}
+			progress, , % cDay, % fname
+			c1 := "/root/census[@day='" cDay "']"
+			if !IsObject(cNode.selectSingleNode("regional")) {
+				cens.addElement("regional",c1)
+			}
+				
+			for key,list in loc {														; Run through each list
+				clTot := (cList := cNode.selectNodes(list "/mrn")).length 
+				loop, % clTot {															; Gather MRN elements
+					progress, % 100*A_index/clTot
+					MRN := cList.item(A_Index-1).text									; Get MRN
+					MRNstring := "/root/id[@mrn='" MRN "']"
+					clProv := za.selectSingleNode(MRNstring "/prov").getAttribute("provCard")
+					tmpTG := tmpCrd := ""
+					
+					tmpCrd := checkCrd(clProv)											; tmpCrd gets provCard (spell checked)
+					plFuzz := 100*tmpCrd.fuzz											; fuzz score for tmpCrd
+					if (clProv="") {													; no cardiologist
+						tmpCrd.group := "Other"											; group is "Other"
+					} else if (clProv~="i)Central WA|Schmer|Sallaam|Salaam|Toews") {
+						tmpCrd.group := "Central WA"
+					} else if (clProv~="SCH|Transplant|Heart Failure|Tx|SV team") {		; unclaimed Tx and Cards patients
+						tmpCrd.group := "SCH"											; place in SCH group
+					} else if (plFuzz < 20) {											; Close match found (< 0.20)
+						clProv := tmpCrd.best											; take the close match
+					} else {															; Screw it, no good match (> 0.20)
+						tmpCrd.group := "Other"
+					}
+					
+					tmpCrd.group := RegExReplace(tmpCrd.group," ","_")
+					c2 := c1 "/regional/" tmpCrd.group
+					if !IsObject(cens.selectSingleNode(c2)) {							; Make sure <day/regional/group> exists
+						cens.addElement(tmpCrd.group,c1 "/regional")
+					}
+					
+					if !IsObject(cens.selectSingleNode(c2 "/mrn[text()='" MRN "']")) {		; Add unique MRN[@crd] to regional group
+						cens.addElement("mrn",c2, MRN)
+						cens.selectSingleNode(c2 "/mrn[text()='" MRN "']").setAttribute("crd",clProv)
+					}
+				}
+			}
+			Loop, % (rlist := cens.selectNodes(c1 "/regional/*")).length {				; Loop through each regional group node
+				rnode := rlist.item(A_index-1)
+				rnode.setAttribute("tot",rnode.selectNodes("mrn").length)				; Set attr "tot"
+			}
 		}
+		cens.save(fname)
+		FileSetTime, fDate_m, %fname%, M
 	}
+	progress, off
 Return	
 }
+
+regionalCensus(location) {
+/*	Generate counts for regional cardiologists in census XML
+*/
+	global y, cens, c1, censdate
+	tmpTG := tmpCrd := ""
+	cGrps := {}
+	if !IsObject(cens.selectSingleNode(c1 "/regional")) {
+		cens.addElement("regional", c1)
+	}
+	
+	Loop, % (plist := y.selectNodes("/root/lists/" . location . "/mrn")).length {		; loop through location MRN's into plist
+		kMRN := plist.item(i:=A_Index-1).text											; text item in lists/location/mrn
+		;~ pl := ptParse(kMRN)																; fill pl with ptParse
+		clProv := pl.provCard															; get CRD provider into clProv
+		tmpCrd := checkCrd(clProv)														; tmpCrd gets provCard (spell checked)
+		plFuzz := 100*tmpCrd.fuzz														; fuzz score for tmpCrd
+		if (clProv="") {																; no cardiologist
+			tmpCrd.group := "Other"														; group is "Other"
+		} else if (clProv~="SCH|Transplant|Heart Failure|Tx|SV team") {					; unclaimed Tx and Cards patients
+			tmpCrd.group := "SCH"														; place in SCH group
+		} else if (plFuzz < 20) {														; Close match found (< 0.20)
+			clProv := tmpCrd.best														; take the close match
+		} else {																		; Screw it, no good match (> 0.20)
+			tmpCrd.group := "Other"
+		}
+		
+		tmpCrd.group := RegExReplace(tmpCrd.group," ","_")
+		c2 := c1 "/regional/" tmpCrd.group
+		if !IsObject(cens.selectSingleNode(c2)) {										; Make sure <day/regional/group> exists
+			cens.addElement(tmpCrd.group,c1 "/regional")
+		}
+		
+		if !IsObject(cens.selectSingleNode(c2 "/mrn[text()='" kMRN "']")) {				; Add unique MRN[@crd] to regional group
+			cens.addElement("mrn",c2, kMRN)
+			cens.selectSingleNode(c2 "/mrn[text()='" kMRN "']").setAttribute("crd",clProv)
+		}
+		;~ cens.viewXML()
+	}
+	
+	Loop, % (rlist := cens.selectNodes(c1 "/regional/*")).length {						; Loop through each regional group node
+		rnode := rlist.item(A_index-1)
+		rnode.setAttribute("tot",rnode.selectNodes("mrn").length)						; Set attr "tot"
+	}
+	
+	Return
+}
+
+checkCrd(x) {
+/*	Compares pl_ProvCard vs array of cardiologists
+	x = name
+	returns array[match score, best match, best match group]
+*/
+	global Docs
+	fuzz := 1
+	for rowidx,row in Docs
+	{
+		for colidx,item in row
+		{
+			res := fuzzysearch(x,item)
+			if (res<fuzz) {
+				fuzz := res
+				best:=item
+				group:=rowidx
+			}
+		}
+	}
+	return {"fuzz":fuzz,"best":best,"group":group}
+}
+
+
 
 ObjHasValue(aObj, aValue) {
 ; From http://www.autohotkey.com/board/topic/84006-ahk-l-containshasvalue-method/	
@@ -401,3 +527,4 @@ RemoveNode(node,ByRef y) {
 #Include xml.ahk
 #Include StrX.ahk
 #Include Class_LV_Colors.ahk
+#Include sift3.ahk
