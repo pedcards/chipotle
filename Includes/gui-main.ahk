@@ -227,7 +227,7 @@ if !(qldone) {
 	while (str1 := loc[i:=A_Index]) {
 		str2 := loc[str1,"name"]
 		posy := 7+(i-1)*30
-		Gui, qList:Add, Button, x26 y%posy% w100 h30 gUpdateMainGUI v%str1% , %str2%
+		Gui, qList:Add, Button, x26 y%posy% w100 h30 gQLselect v%str1% , %str2%
 	}
 	posy += 60
 	Gui, qList:Add, Text, x26 y%posy% w100 h32 +Center, Which CIS list?
@@ -242,6 +242,7 @@ QLselect:
 	location := A_GuiControl
 	locString := loc[location,"name"]
 	Gui, qList:Hide
+	Gosub UpdateMainGUI
 	
 	Return
 }
