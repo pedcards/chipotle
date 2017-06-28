@@ -5,9 +5,9 @@ processCIS:										;*** Parse CIS patient list
 	
 	cis_list := readCisCol()															; Parse clip into cols
 	tmp:=matchCisList()																	; Score cis_list vs all available lists
-	MsgBox, 4, % "Confirm " loc[tmp.list,"name"] 
+	MsgBox, 4, % "Confirm " loc[tmp.list,"name"] ;" = " tmp.score
 	 , % """" loc[tmp.list,"name"] """ list detected`n"
-	 . ((tmp.score < 80) ? "but low match score (" round(tmp.score,2) "%)`n`n" : "`n")
+	 . ((tmp.score < 70) ? "but low match score (" round(tmp.score,2) "%)`n`n" : "`n")
 	 . "Yes = Update this list`n"
 	 . "No = Select different list`n"
 	IfMsgBox, Yes
@@ -202,6 +202,9 @@ matchCisList() {
 	arr := object()
 	for key,grp in loc																	; key=num, grp=listname
 	{
+		if !strlen(grp) {
+			continue
+		}
 		comp := object()																; clear comp(arison) array
 		loop % (cur := y.selectNodes("/root/lists/" grp "/mrn")).length
 		{
@@ -217,11 +220,11 @@ matchCisList() {
 				hit += 2																; score hit for both lists and
 				comp.RemoveAt(i)														; remove from comp
 			} else {
-				miss += 1/totL															; debit relative fraction from this list
+				miss += 10/totL															; debit relative fraction from this list
 			}
 		}
 		
-		left := comp.Length()/totC														; debit relative fraction of unmatched in comp
+		left := (totC-hit/2)/totC														; debit relative fraction of unmatched in comp
 		
 		perc := round(100*(hit-(miss+left))/(totC+totL),2)								; percent match
 		arr[grp] := perc																; save score for each group
@@ -230,9 +233,13 @@ matchCisList() {
 			best := perc
 			res := grp
 		}
+		;~ list .= totC "||" totL "|| " 
+			;~ . "H" hit " M" round(miss,2) " L" round(left,2) " || " round(perc,2) " - " grp "`n"		; ***
 	}
 	arr.list := res																		; add best group
 	arr.score := best																	; and best score to arr[]
+	
+	;~ MsgBox % list									; ***
 	
 	return arr
 }
