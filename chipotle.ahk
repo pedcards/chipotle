@@ -214,7 +214,10 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 	if (location="CSR" or location="CICU") {
 		gosub IcuMerge
 	}
-} 
+} else if ((clipCk ~= "MRN:\d{6,8}") || (clipCk ~= "[A-Z \-]+, [A-Z \-]+")) {
+	clk := parseClip(clipCk)
+	gosub findPt
+}
 
 Return
 }
