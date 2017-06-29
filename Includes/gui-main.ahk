@@ -332,41 +332,12 @@ FindPt:
 		return
 	}
 	
+	MRN := encMRN
+	tmpNameL := strX(encName,"",1,0,",",1,1)
+	tmpNameF := strX(encName,", ",1,2,"",0)
+	adhoc = true
+	gosub pullPtArch
 	
-
-	tmpMRN := tmpMRN.value()
-	tmpName := tmpName.value()
-	tmpNameL := strX(tmpName,,1,0,", ",1,2)
-	tmpNameF := strX(tmpName,", ",1,2,"")
-	MsgBox, 35, Select patient, % tmpMRN "`n" tmpNameF " " tmpNameL "`n`nIs this the correct patient to add/search?"
-	IfMsgBox Cancel
-		return
-	IfMsgBox No
-	{
-		MsgBox Open the proper patient in CIS, then try again.
-		return
-	}
-	IfMsgBox Yes
-	{
-		adhoc = true
-		MRN := tmpMRN
-		MRNstring := "/root/id[@mrn='" MRN "']"
-		if IsObject(y.selectSingleNode(MRNstring)) {				; exists in currlist, open PatList
-			gosub PatListGet
-			return
-		} 
-		y.addElement("id", "root", {mrn: MRN})									; No MRN node exists, create it.
-		y.addElement("demog", MRNstring)
-			y.addElement("name_last", MRNstring "/demog", tmpNameL)
-			y.addElement("name_first", MRNstring "/demog", tmpNameF)
-		FetchNode("diagnoses")													; Check for existing node in Archlist,
-		FetchNode("notes")														; retrieve old Dx, Notes, Plan. (Status is discarded)
-		FetchNode("plan")														; Otherwise, create placeholders.
-		FetchNode("prov")
-		WriteOut("/root","id[@mrn='" mrn "']")
-		eventlog(mrn " ad hoc created.")
-		gosub PatListGet
-	}
 	Return
 }
 
