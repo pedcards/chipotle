@@ -348,7 +348,7 @@ parseClip(clip) {
 	if (clip~="[A-Z \-]+, [A-Z \-]+") {													; matches name format "SMITH, WILLIAM JAMES"
 		nameL := trim(strX(clip,"",1,0,",",1,1))
 		nameF := trim(strX(clip,",",1,1," ",1,1))
-		return {field:"Name", value:nameL ", " nameF}
+		return {field:"Name", value:nameL ", " nameF, nameL:nameL, nameF:nameF}
 	}
 	
 	demVals := ["Account Number","MRN"]
