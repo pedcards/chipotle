@@ -301,6 +301,8 @@ FindPt:
 	}
 	getDem := true
 	fetchQuit := false
+	encMRN := tmpMRN
+	encName := tmpName
 	
 	gosub fetchGUI
 	
