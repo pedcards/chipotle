@@ -306,6 +306,34 @@ FindPt:
 	
 	gosub fetchGUI
 	
+	while (getDem) {									; Repeat until we get tired of this
+		clipboard :=
+		ClipWait, 2
+		if !ErrorLevel {								; clipboard has data
+			clk := parseClip(clipboard)
+			if !ErrorLevel {															; parseClip {field:value} matches valid data
+				if (clk.field = "Account Number") {
+					;~ fldval["dev-Enc"] := clk.value
+					eventlog("CLK: Account number " clk.value)
+				}
+				if (clk.field = "MRN") {
+					encMRN := clk.value
+					eventlog("CLK: MRN " clk.value)
+				}
+				if (clk.field = "Name") {
+					encName := clk.value
+					eventlog("CLK: Name " clk.value)
+				}
+			}
+			gosub fetchGUI							; Update GUI with new info
+		}
+	}
+	if (fetchQuit) {
+		return
+	}
+	
+	
+
 	tmpMRN := tmpMRN.value()
 	tmpName := tmpName.value()
 	tmpNameL := strX(tmpName,,1,0,", ",1,2)
