@@ -381,7 +381,7 @@ fetchGUI:
 		. " readonly c" ((encMRN~="\d{6,7}")?"Default":"Red"), % encMRN
 	
 	Gui, fetch:Add, Button, % "x" fX1 " yP+" fYD " h" fH+10 " w" fW1+fW2+10 " gfetchSubmit " ((demBits)?"":"Disabled"), Submit!
-	Gui, fetch:Show, AutoSize, % encName
+	Gui, fetch:Show, AutoSize, Add/Edit ad hoc patient
 	return
 }
 
