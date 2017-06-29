@@ -267,6 +267,40 @@ FindPt:
 	4. Search archlist for MRN.
 	5. If new record, create MRN, name, DOB, dx list, military, misc info. Save back to archlist with date created. Purge will clean out any records not validated within 2 months.
 */
+	if (clk.field="MRN") {
+		MRN := clk.value
+		if IsObject(y.selectSingleNode(MRNstring)) {				; exists in currlist, open PatList
+			adhoc := true
+			gosub PatListGet
+			return
+		} 
+		if IsObject(yArch.selectSingleNode(MRNstring)) {
+			adhoc := true
+			gosub pullPtArch
+			return
+		}
+	} else if (clk.field="Name") {
+		tmpNameL := clk.nameL
+		tmpNameF := clk.nameF
+		nameString := "/root/id/demog[./name_last[text()='" tmpNameL "'] and ./name_first[text()='" tmpNameF "']]"
+		if IsObject(tmpNode:=y.selectSingleNode(nameString)) {
+			MRN := tmpNode.parentNode.getAttribute("mrn")
+			adhoc := true
+			gosub PatListGet
+			return
+		}
+		if IsObject(tmpNode:=yArch.selectSingleNode(nameString)) {
+			MRN := tmpNode.parentNode.getAttribute("mrn")
+			adhoc := true
+			gosub pullPtArch
+			return
+		}
+	}
+	getDem := true
+	fetchQuit := false
+	
+	gosub fetchGUI
+	
 	tmpMRN := tmpMRN.value()
 	tmpName := tmpName.value()
 	tmpNameL := strX(tmpName,,1,0,", ",1,2)
@@ -300,6 +334,23 @@ FindPt:
 		eventlog(mrn " ad hoc created.")
 		gosub PatListGet
 	}
+	Return
+}
+
+pullPtArch:
+{
+	MRNstring := "/root/id[@mrn='" MRN "']"
+	y.addElement("id", "root", {mrn: MRN})									; No MRN node exists, create it.
+	y.addElement("demog", MRNstring)
+		y.addElement("name_last", MRNstring "/demog", tmpNameL)
+		y.addElement("name_first", MRNstring "/demog", tmpNameF)
+	FetchNode("diagnoses")													; Check for existing node in Archlist,
+	FetchNode("notes")														; retrieve old Dx, Notes, Plan. (Status is discarded)
+	FetchNode("plan")														; Otherwise, create placeholders.
+	FetchNode("prov")
+	WriteOut("/root","id[@mrn='" mrn "']")
+	eventlog(mrn " ad hoc created.")
+	gosub PatListGet
 	Return
 }
 
