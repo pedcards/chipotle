@@ -366,27 +366,23 @@ fetchGUI:
 	fW1 := 80,	fW2 := 190														; width for title and input fields
 	fH := 20																	; line heights
 	fY := 10																	; y pos to start
-	EncNum := fldval["dev-Enc"]													; we need these non-array variables for the Gui statements
-	EncMRN := fldval["dev-MRN"]
-	EncName := (fldval["dev-Name"]~="[A-Z \-]+, [A-Z\-](?!=\s)")
-	demBits := ((EncNum~="\d{8}") && (EncMRN~="\d{6,7}") && EncName)			; clear the error check
+	;~ EncNum := fldval["dev-Enc"]													; we need these non-array variables for the Gui statements
+	;~ EncMRN := tmpMRN
+	;~ EncName := tmpName
+	demBits := ((EncMRN~="\d{6,7}") && (encName~="[A-Z \-]+, [A-Z\-](?!=\s)"))			; clear the error check
 	Gui, fetch:Destroy
 	Gui, fetch:+AlwaysOnTop
 	
 	Gui, fetch:Add, Text, % "x" fX1 " w" fW1 " h" fH " c" ((encName)?"Default":"Red") , Name
 	Gui, fetch:Add, Edit, % "x" fX2 " yP-4" " w" fW2 " h" fH 
-		. " readonly c" ((encName)?"Default":"Red") , % fldval["dev-Name"]
+		. " readonly c" ((encName)?"Default":"Red") , % encName
 	
 	Gui, fetch:Add, Text, % "x" fX1 " w" fW1 " h" fH " c" ((encMRN~="\d{6,7}")?"Default":"Red") , MRN
 	Gui, fetch:Add, Edit, % "x" fX2 " yP-4" " w" fW2 " h" fH 
-		. " readonly c" ((encMRN~="\d{6,7}")?"Default":"Red"), % fldval["dev-MRN"]
-	
-	Gui, fetch:Add, Text, % "x" fX1 " w" fW1 " h" fH " c" ((encNum~="\d{8}")?"Default":"Red") , Encounter
-	Gui, fetch:Add, Edit, % "x" fX2 " yP-4" " w" fW2 " h" fH 
-		. " readonly c" ((encNum~="\d{8}")?"Default":"Red"), % fldval["dev-Enc"]
+		. " readonly c" ((encMRN~="\d{6,7}")?"Default":"Red"), % encMRN
 	
 	Gui, fetch:Add, Button, % "x" fX1 " yP+" fYD " h" fH+10 " w" fW1+fW2+10 " gfetchSubmit " ((demBits)?"":"Disabled"), Submit!
-	Gui, fetch:Show, AutoSize, % fldval["dev-Name"]
+	Gui, fetch:Show, AutoSize, % encName
 	return
 }
 
