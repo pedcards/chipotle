@@ -267,51 +267,162 @@ FindPt:
 	4. Search archlist for MRN.
 	5. If new record, create MRN, name, DOB, dx list, military, misc info. Save back to archlist with date created. Purge will clean out any records not validated within 2 months.
 */
-	SetTitleMatchMode RegEx
-	IfWinNotExist, i)-\s\d+\sOpened
-	{
-		SetTitleMatchMode 2
-		MsgBox Must open the proper patient in CIS first!
-		return
-	}
-	SetTitleMatchMode 2
-	WinGetTitle, tmp
-	;WinActivate
-	RegExMatch(tmp,"O)\d{6,8}",tmpMRN)
-	RegExMatch(tmp,"iO)[a-z\-]+,\s[a-z\-]+\s",tmpName)
-	tmpMRN := tmpMRN.value()
-	tmpName := tmpName.value()
-	tmpNameL := strX(tmpName,,1,0,", ",1,2)
-	tmpNameF := strX(tmpName,", ",1,2,"")
-	MsgBox, 35, Select patient, % tmpMRN "`n" tmpNameF " " tmpNameL "`n`nIs this the correct patient to add/search?"
-	IfMsgBox Cancel
-		return
-	IfMsgBox No
-	{
-		MsgBox Open the proper patient in CIS, then try again.
-		return
-	}
-	IfMsgBox Yes
-	{
-		adhoc = true
-		MRN := tmpMRN
-		MRNstring := "/root/id[@mrn='" MRN "']"
+	tmpName := tmpMRN := ""
+	if (clk.field="MRN") {
+		tmpMRN := clk.value
+		MRNstring := "/root/id[@mrn='" tmpMRN "']" 
 		if IsObject(y.selectSingleNode(MRNstring)) {				; exists in currlist, open PatList
+			adhoc := true
 			gosub PatListGet
 			return
 		} 
-		y.addElement("id", "root", {mrn: MRN})									; No MRN node exists, create it.
-		y.addElement("demog", MRNstring)
-			y.addElement("name_last", MRNstring "/demog", tmpNameL)
-			y.addElement("name_first", MRNstring "/demog", tmpNameF)
-		FetchNode("diagnoses")													; Check for existing node in Archlist,
-		FetchNode("notes")														; retrieve old Dx, Notes, Plan. (Status is discarded)
-		FetchNode("plan")														; Otherwise, create placeholders.
-		FetchNode("prov")
-		WriteOut("/root","id[@mrn='" mrn "']")
-		eventlog(mrn " ad hoc created.")
-		gosub PatListGet
+		if IsObject(yArch.selectSingleNode(MRNstring)) {
+			adhoc := true
+			gosub pullPtArch
+			return
+		}
+	} else if (clk.field="Name") {
+		tmpName := clk.value
+		tmpNameL := clk.nameL
+		tmpNameF := clk.nameF
+		nameString := "/root/id/demog[./name_last[text()='" tmpNameL "'] and ./name_first[text()='" tmpNameF "']]"
+		if IsObject(tmpNode:=y.selectSingleNode(nameString)) {
+			MRN := tmpNode.parentNode.getAttribute("mrn")
+			adhoc := true
+			gosub PatListGet
+			return
+		}
+		if IsObject(tmpNode:=yArch.selectSingleNode(nameString)) {
+			MRN := tmpNode.parentNode.getAttribute("mrn")
+			adhoc := true
+			gosub pullPtArch
+			return
+		}
 	}
+	getDem := true
+	fetchQuit := false
+	encMRN := tmpMRN
+	encName := tmpName
+	
+	gosub fetchGUI
+	
+	while (getDem) {									; Repeat until we get tired of this
+		clipboard :=
+		ClipWait, 2
+		if !ErrorLevel {								; clipboard has data
+			clk := parseClip(clipboard)
+			if !ErrorLevel {															; parseClip {field:value} matches valid data
+				if (clk.field = "Account Number") {
+					;~ fldval["dev-Enc"] := clk.value
+					eventlog("CLK: Account number " clk.value)
+				}
+				if (clk.field = "MRN") {
+					encMRN := clk.value
+					eventlog("CLK: MRN " clk.value)
+				}
+				if (clk.field = "Name") {
+					encName := clk.value
+					eventlog("CLK: Name " clk.value)
+				}
+			}
+			gosub fetchGUI							; Update GUI with new info
+		}
+	}
+	if (fetchQuit) {
+		return
+	}
+	
+	MRN := encMRN
+	tmpNameL := strX(encName,"",1,0,",",1,1)
+	tmpNameF := strX(encName,", ",1,2,"",0)
+	adhoc = true
+	gosub pullPtArch
+	
 	Return
+}
+
+pullPtArch:
+{
+	MRNstring := "/root/id[@mrn='" MRN "']"
+	y.addElement("id", "root", {mrn: MRN})									; No MRN node exists, create it.
+	y.addElement("demog", MRNstring)
+		y.addElement("name_last", MRNstring "/demog", tmpNameL)
+		y.addElement("name_first", MRNstring "/demog", tmpNameF)
+	FetchNode("diagnoses")													; Check for existing node in Archlist,
+	FetchNode("notes")														; retrieve old Dx, Notes, Plan. (Status is discarded)
+	FetchNode("plan")														; Otherwise, create placeholders.
+	FetchNode("prov")
+	WriteOut("/root","id[@mrn='" mrn "']")
+	eventlog(mrn " ad hoc created.")
+	gosub PatListGet
+	Return
+}
+
+fetchGUI:
+{
+	fYd := 30,	fXd := 90														; fetchGUI delta Y, X
+	fX1 := 12,	fX2 := fX1+fXd													; x pos for title and input fields
+	fW1 := 80,	fW2 := 190														; width for title and input fields
+	fH := 20																	; line heights
+	fY := 10																	; y pos to start
+	;~ EncNum := fldval["dev-Enc"]													; we need these non-array variables for the Gui statements
+	;~ EncMRN := tmpMRN
+	;~ EncName := tmpName
+	demBits := ((EncMRN~="\d{6,7}") && (encName~="[A-Z \-]+, [A-Z\-](?!=\s)"))			; clear the error check
+	Gui, fetch:Destroy
+	Gui, fetch:+AlwaysOnTop
+	
+	Gui, fetch:Add, Text, % "x" fX1 " w" fW1 " h" fH " c" ((encName)?"Default":"Red") , Name
+	Gui, fetch:Add, Edit, % "x" fX2 " yP-4" " w" fW2 " h" fH 
+		. " readonly c" ((encName)?"Default":"Red") , % encName
+	
+	Gui, fetch:Add, Text, % "x" fX1 " w" fW1 " h" fH " c" ((encMRN~="\d{6,7}")?"Default":"Red") , MRN
+	Gui, fetch:Add, Edit, % "x" fX2 " yP-4" " w" fW2 " h" fH 
+		. " readonly c" ((encMRN~="\d{6,7}")?"Default":"Red"), % encMRN
+	
+	Gui, fetch:Add, Button, % "x" fX1 " yP+" fYD " h" fH+10 " w" fW1+fW2+10 " gfetchSubmit " ((demBits)?"":"Disabled"), Submit!
+	Gui, fetch:Show, AutoSize, % encName
+	return
+}
+
+fetchGuiClose:
+	Gui, fetch:destroy
+	getDem := false																	; break out of fetchDem loop
+	fetchQuit := true
+	eventlog("Manual [x] out of fetchDem.")
+Return
+
+parseClip(clip) {
+/*	If clip matches "val1:val2" format, and val1 in demVals[], return field:val
+	If clip contains proper Encounter Type ("Outpatient", "Inpatient", "Observation", etc), return Type, Date, Time
+*/
+	if (clip~="[A-Z \-]+, [A-Z \-]+") {													; matches name format "SMITH, WILLIAM JAMES"
+		nameL := trim(strX(clip,"",1,0,",",1,1))
+		nameF := trim(strX(clip,",",1,1," ",1,1))
+		return {field:"Name", value:nameL ", " nameF, nameL:nameL, nameF:nameF}
+	}
+	
+	demVals := ["Account Number","MRN"]
+	
+	StringSplit, val, clip, :															; break field into val1:val2
+	if (ObjHasValue(demVals, val1)) {													; field name in demVals, e.g. "MRN","Account Number","DOB","Sex","Loc","Provider"
+		return {"field":trim(val1)
+				, "value":trim(val2)}
+	}
+	
+	return Error																		; Anything else returns Error
+}
+
+fetchSubmit:
+{
+/*	some error checking
+	Check for required elements
+demVals := ["MRN","Account Number","DOB","Sex","Loc","Provider"]
+*/
+	Gui, fetch:Submit
+	Gui, fetch:Destroy
+	
+	getDem := false
+	return
 }
 
