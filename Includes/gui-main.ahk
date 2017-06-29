@@ -267,18 +267,6 @@ FindPt:
 	4. Search archlist for MRN.
 	5. If new record, create MRN, name, DOB, dx list, military, misc info. Save back to archlist with date created. Purge will clean out any records not validated within 2 months.
 */
-	SetTitleMatchMode RegEx
-	IfWinNotExist, i)-\s\d+\sOpened
-	{
-		SetTitleMatchMode 2
-		MsgBox Must open the proper patient in CIS first!
-		return
-	}
-	SetTitleMatchMode 2
-	WinGetTitle, tmp
-	;WinActivate
-	RegExMatch(tmp,"O)\d{6,8}",tmpMRN)
-	RegExMatch(tmp,"iO)[a-z\-]+,\s[a-z\-]+\s",tmpName)
 	tmpMRN := tmpMRN.value()
 	tmpName := tmpName.value()
 	tmpNameL := strX(tmpName,,1,0,", ",1,2)
@@ -313,5 +301,77 @@ FindPt:
 		gosub PatListGet
 	}
 	Return
+}
+
+fetchGUI:
+{
+	fYd := 30,	fXd := 90														; fetchGUI delta Y, X
+	fX1 := 12,	fX2 := fX1+fXd													; x pos for title and input fields
+	fW1 := 80,	fW2 := 190														; width for title and input fields
+	fH := 20																	; line heights
+	fY := 10																	; y pos to start
+	EncNum := fldval["dev-Enc"]													; we need these non-array variables for the Gui statements
+	EncMRN := fldval["dev-MRN"]
+	EncName := (fldval["dev-Name"]~="[A-Z \-]+, [A-Z\-](?!=\s)")
+	demBits := ((EncNum~="\d{8}") && (EncMRN~="\d{6,7}") && EncName)			; clear the error check
+	Gui, fetch:Destroy
+	Gui, fetch:+AlwaysOnTop
+	
+	Gui, fetch:Add, Text, % "x" fX1 " w" fW1 " h" fH " c" ((encName)?"Default":"Red") , Name
+	Gui, fetch:Add, Edit, % "x" fX2 " yP-4" " w" fW2 " h" fH 
+		. " readonly c" ((encName)?"Default":"Red") , % fldval["dev-Name"]
+	
+	Gui, fetch:Add, Text, % "x" fX1 " w" fW1 " h" fH " c" ((encMRN~="\d{6,7}")?"Default":"Red") , MRN
+	Gui, fetch:Add, Edit, % "x" fX2 " yP-4" " w" fW2 " h" fH 
+		. " readonly c" ((encMRN~="\d{6,7}")?"Default":"Red"), % fldval["dev-MRN"]
+	
+	Gui, fetch:Add, Text, % "x" fX1 " w" fW1 " h" fH " c" ((encNum~="\d{8}")?"Default":"Red") , Encounter
+	Gui, fetch:Add, Edit, % "x" fX2 " yP-4" " w" fW2 " h" fH 
+		. " readonly c" ((encNum~="\d{8}")?"Default":"Red"), % fldval["dev-Enc"]
+	
+	Gui, fetch:Add, Button, % "x" fX1 " yP+" fYD " h" fH+10 " w" fW1+fW2+10 " gfetchSubmit " ((demBits)?"":"Disabled"), Submit!
+	Gui, fetch:Show, AutoSize, % fldval["dev-Name"]
+	return
+}
+
+fetchGuiClose:
+	Gui, fetch:destroy
+	getDem := false																	; break out of fetchDem loop
+	fetchQuit := true
+	eventlog("Manual [x] out of fetchDem.")
+Return
+
+parseClip(clip) {
+/*	If clip matches "val1:val2" format, and val1 in demVals[], return field:val
+	If clip contains proper Encounter Type ("Outpatient", "Inpatient", "Observation", etc), return Type, Date, Time
+*/
+	if (clip~="[A-Z \-]+, [A-Z \-]+") {													; matches name format "SMITH, WILLIAM JAMES"
+		nameL := trim(strX(clip,"",1,0,",",1,1))
+		nameF := trim(strX(clip,",",1,1," ",1,1))
+		return {field:"Name", value:nameL ", " nameF}
+	}
+	
+	demVals := ["Account Number","MRN"]
+	
+	StringSplit, val, clip, :															; break field into val1:val2
+	if (ObjHasValue(demVals, val1)) {													; field name in demVals, e.g. "MRN","Account Number","DOB","Sex","Loc","Provider"
+		return {"field":trim(val1)
+				, "value":trim(val2)}
+	}
+	
+	return Error																		; Anything else returns Error
+}
+
+fetchSubmit:
+{
+/*	some error checking
+	Check for required elements
+demVals := ["MRN","Account Number","DOB","Sex","Loc","Provider"]
+*/
+	Gui, fetch:Submit
+	Gui, fetch:Destroy
+	
+	getDem := false
+	return
 }
 
