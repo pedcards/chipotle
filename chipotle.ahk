@@ -16,7 +16,12 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 vers := "2.3.6"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
-WinClose, View Downloads -
+if WinExist("View Downloads -") {
+	WinClose, View Downloads -
+	eventlog("Launched from CIS")
+} else {
+	eventlog("Launched from Citrix")
+}
 LV_Colors.OnMessage()
 
 FileGetTime, iniDT, chipotle.ini
