@@ -267,16 +267,19 @@ FindPt:
 	4. Search archlist for MRN.
 	5. If new record, create MRN, name, DOB, dx list, military, misc info. Save back to archlist with date created. Purge will clean out any records not validated within 2 months.
 */
+	eventlog("CLK: " clk.field " " clk.value)
 	tmpName := tmpMRN := ""
 	if (clk.field="MRN") {
 		tmpMRN := clk.value
 		MRNstring := "/root/id[@mrn='" tmpMRN "']" 
 		if IsObject(y.selectSingleNode(MRNstring)) {				; exists in currlist, open PatList
+			eventlog("Found MRN in currlist.")
 			adhoc := true
 			gosub PatListGet
 			return
 		} 
 		if IsObject(yArch.selectSingleNode(MRNstring)) {
+			eventlog("Found MRN in archlist.")
 			adhoc := true
 			gosub pullPtArch
 			return
@@ -287,12 +290,14 @@ FindPt:
 		tmpNameF := clk.nameF
 		nameString := "/root/id/demog[./name_last[text()='" tmpNameL "'] and ./name_first[text()='" tmpNameF "']]"
 		if IsObject(tmpNode:=y.selectSingleNode(nameString)) {
+			eventlog("Found name in currlist.")
 			MRN := tmpNode.parentNode.getAttribute("mrn")
 			adhoc := true
 			gosub PatListGet
 			return
 		}
 		if IsObject(tmpNode:=yArch.selectSingleNode(nameString)) {
+			eventlog("Found name in archlist.")
 			MRN := tmpNode.parentNode.getAttribute("mrn")
 			adhoc := true
 			gosub pullPtArch
