@@ -7,7 +7,7 @@ processCIS:										;*** Parse CIS patient list
 	tmp:=matchCisList()																	; Score cis_list vs all available lists
 	MsgBox, 4, % "Confirm " loc[tmp.list,"name"] ;" = " tmp.score
 	 , % """" loc[tmp.list,"name"] """ list detected`n"
-	 . ((tmp.score < 50) ? "but low match score (" round(tmp.score,2) "%)`n`n" : "`n")
+	 . ((tmp.score < 50) ? "but low match score (" tmp.score "%)`n`n" : "`n")
 	 . "Yes = Update this list`n"
 	 . "No = Select different list`n"
 	IfMsgBox, Yes
