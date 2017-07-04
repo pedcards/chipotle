@@ -14,13 +14,16 @@ processCIS:										;*** Parse CIS patient list
 	{
 		location:=tmp.list																; Set location= best match list
 		locString := loc[location,"name"]												; Set locString for display
+		eventlog("Accepted " location)
 		Gosub UpdateMainGui
 	} else {
 		Gosub QueryList																	; Better ask
 		WinWaitClose, CIS List
 		if !(locString) {						; Avoids error if exit QueryList
+			eventlog("Exit QueryList.")
 			return								; without choice.
 		}
+		eventlog("Selected " location)
 		tmp.score := (tmp[location] > 0) ? tmp[location] : 0							; Set score to score for selected list
 	}
 	
