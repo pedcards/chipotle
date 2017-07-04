@@ -233,13 +233,14 @@ matchCisList() {
 			best := perc
 			res := grp
 		}
-;~ list .= totC "`t" totL "`t" 
-;~ . "H" hit " M" miss " L" round(left) "   `t||`t" perc " - " grp "`n"		; ***
+		list .= "L" totL " C" totC " || " 
+		. "H" hit " M" miss " L" round(left) " || " 
+		. perc " - " grp
+		eventlog(list)
 	}
 	arr.list := res																		; add best group
 	arr.score := best																	; and best score to arr[]
-	
-;~ MsgBox % list									; ***
+	eventlog("Predicts " res " (" best ").")
 	
 	return arr
 }
