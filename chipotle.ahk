@@ -43,6 +43,9 @@ gosub ReadIni
 scr:=screenDims()
 win:=winDim(scr)
 CisEnvt := WinExist("ahk_exe powerchart.exe") ? true : false
+if (CisEnvt) {
+	eventlog("CIS visible.")
+}
 
 servfold := "patlist"
 storkPath := "\\childrens\files\HCCardiologyFiles\Fetal"
