@@ -161,6 +161,7 @@ Gosub MainGUI
 WinWaitClose, CHIPOTLE main
 Gosub SaveIt
 eventlog("<<<<< Session completed.")
+sleep, 2000
 ExitApp
 
 
