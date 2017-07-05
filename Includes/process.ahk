@@ -18,7 +18,9 @@ processCIS:										;*** Parse CIS patient list
 		eventlog("Accepted " location)
 		Gosub UpdateMainGui
 	} 
-	IfMsgBox, No {
+	IfMsgBox, No 
+	{
+		eventlog("Clicked NO.")
 		Gosub QueryList																	; Better ask
 		WinWaitClose, CIS List
 		if !(locString) {						; Avoids error if exit QueryList
@@ -28,7 +30,8 @@ processCIS:										;*** Parse CIS patient list
 		eventlog("Selected " location)
 		tmp.score := (tmp[location] > 0) ? tmp[location] : 0							; Set score to score for selected list
 	}
-	IfMsgBox, Cancel {																	; Oops. Don't process!
+	IfMsgBox, Cancel 
+	{																	; Oops. Don't process!
 		locString := ""
 		eventlog("Cancelled selection.")
 		return
@@ -243,9 +246,9 @@ matchCisList() {
 			best := perc
 			res := grp
 		}
-		list .= "L" totL " C" totC " || " 
-		. "H" hit " M" miss " L" round(left) " || " 
-		. perc " - " grp
+		list := "L" totL " C" totC "  ||  " 
+		. "H" hit " M" miss " L" round(left) "  ||  " 
+		. perc "% " grp
 		eventlog(list)
 	}
 	arr.list := res																		; add best group
