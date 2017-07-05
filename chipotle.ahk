@@ -13,10 +13,15 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.3.6"
+vers := "2.3.7"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
-WinClose, View Downloads -
+if WinExist("View Downloads -") {
+	WinClose, View Downloads -
+	eventlog("Launched from CIS")
+} else {
+	eventlog("Launched from Citrix")
+}
 LV_Colors.OnMessage()
 
 FileGetTime, iniDT, chipotle.ini
@@ -38,6 +43,9 @@ gosub ReadIni
 scr:=screenDims()
 win:=winDim(scr)
 CisEnvt := WinExist("ahk_exe powerchart.exe") ? true : false
+if (CisEnvt) {
+	eventlog("CIS visible.")
+}
 
 servfold := "patlist"
 storkPath := "\\childrens\files\HCCardiologyFiles\Fetal"

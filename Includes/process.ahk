@@ -5,23 +5,36 @@ processCIS:										;*** Parse CIS patient list
 	
 	cis_list := readCisCol()															; Parse clip into cols
 	tmp:=matchCisList()																	; Score cis_list vs all available lists
-	MsgBox, 4, % "Confirm " loc[tmp.list,"name"] ;" = " tmp.score
+	MsgBox, 3, % "Confirm " loc[tmp.list,"name"] ;" = " tmp.score
 	 , % """" loc[tmp.list,"name"] """ list detected`n"
-	 . ((tmp.score < 50) ? "but low match score (" round(tmp.score,2) "%)`n`n" : "`n")
+	 . ((tmp.score < 50) ? "but low match score (" tmp.score "%)`n`n" : "`n")
 	 . "Yes = Update this list`n"
 	 . "No = Select different list`n"
+	 . "Cancel = Oops. Didn't mean to do that`n"
 	IfMsgBox, Yes
 	{
 		location:=tmp.list																; Set location= best match list
 		locString := loc[location,"name"]												; Set locString for display
+		eventlog("Accepted " location)
 		Gosub UpdateMainGui
-	} else {
+	} 
+	IfMsgBox, No 
+	{
+		eventlog("Clicked NO.")
 		Gosub QueryList																	; Better ask
 		WinWaitClose, CIS List
 		if !(locString) {						; Avoids error if exit QueryList
+			eventlog("Exit QueryList.")
 			return								; without choice.
 		}
+		eventlog("Selected " location)
 		tmp.score := (tmp[location] > 0) ? tmp[location] : 0							; Set score to score for selected list
+	}
+	IfMsgBox, Cancel 
+	{																	; Oops. Don't process!
+		locString := ""
+		eventlog("Cancelled selection.")
+		return
 	}
 	
 	FileOpen(".currlock", "W")															; Create lock file.
@@ -233,13 +246,14 @@ matchCisList() {
 			best := perc
 			res := grp
 		}
-;~ list .= totC "`t" totL "`t" 
-;~ . "H" hit " M" miss " L" round(left) "   `t||`t" perc " - " grp "`n"		; ***
+		list := "L" totL " C" totC "  ||  " 
+		. "H" hit " M" miss " L" round(left) "  ||  " 
+		. perc "% " grp
+		eventlog(list)
 	}
 	arr.list := res																		; add best group
 	arr.score := best																	; and best score to arr[]
-	
-;~ MsgBox % list									; ***
+	eventlog("Predicts " res " (" best ").")
 	
 	return arr
 }
