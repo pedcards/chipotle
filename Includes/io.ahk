@@ -96,9 +96,6 @@ SaveIt:
 	gosub GetIt																			; refresh latest y and yarch from local and server
 	vSaveIt:=																			; clear bit
 	
-	filecheck()																			; file in use, delay until .currlock cleared
-	FileOpen(".currlock", "W")															; Create lock file.
-
 	Progress, b w300, Processing...
 	
 	; Purge leftover hold records, and refresh Coord list
@@ -114,6 +111,9 @@ SaveIt:
 	}
 	gosub MakeCoordList
 	
+	filecheck()																			; file in use, delay until .currlock cleared
+	FileOpen(".currlock", "W")															; Create lock file.
+
 	; Save all MRN, Dx, Notes, ToDo, etc in arch.xml
 	yaNum := y.selectNodes("/root/id").length
 	Loop, % (yaN := y.selectNodes("/root/id")).length {									; Loop through each ID/MRN in Currlist
