@@ -7,7 +7,10 @@ SendMode Input ; Recommended for new scripts due to its superior speed and relia
 SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 SetTitleMatchMode, 2
 #Include includes
+user := A_UserName
+FormatTime, sessdate, A_Now, yyyyMM
 
+eventlog("Started QUESO.")
 z := new XML("currlist.xml")
 za := new XML("archlist.xml")
 l_users := Object()
@@ -73,13 +76,18 @@ Return
 }
 
 mainGuiClose:
-ExitApp
+{
+	eventlog("Exit QUESO.")
+	ExitApp
+}
 
 ActiveWindow:
+	eventlog("Show active window info.")
 	run, ActiveWindow.exe
 return
 
 EnvInfo:
+	eventlog("Show envt info.")
 	run, AHKenvinfo.exe
 return
 
@@ -155,7 +163,6 @@ StatsGUI:
 			j ++
 		}
 	}
-	FormatTime, sessdate, A_Now, yyyyMM
 	;sessdate := "201501"
 	FileRead, tlog, % "logs/" sessdate ".log"
 	Loop, parse, tlog, `n,`r
@@ -183,12 +190,21 @@ StatsGUI:
 		. "`nUsers this month:`t" l_users.MaxIndex()-1
 		. "`nEdits this month:`t" l_edits
 		. "`nLast edited record:`t" t_nam " (" t_mrn ")"
+	
+	eventlog("[Stats] Edits this month: " l_edits)
+	eventlog("[Stats] Users this month: " l_users.MaxIndex()-1)
+	eventlog("[Stats] Empty Arch records: " j)
+	eventlog("[Stats] Total Arch records: " totarch.length)
+	eventlog("[Stats] Active MRN records: " totrecs.length)
+	eventlog("[Stats] CORES data: " coresdate)
+	eventlog("[Stats] Archlist size: " archsize)
+	eventlog("[Stats] Currlist size: " currsize)
 Return
 }
 
 ViewLog:
 {
-	FormatTime, sessdate, A_Now, yyyyMM
+	eventlog("Log viewer.")
 	FileRead, tlog, % "logs/" sessdate ".log"
 	l_users := {}
 	l_numusers :=
@@ -229,11 +245,11 @@ ViewLog:
 				, l_time
 				, l_log)
 			Progress,, % l_date
+			LV_ModifyCol()
+			LV_ModifyCol(1, "Autohdr")
+			LV_ModifyCol(2, "Autohdr")
+			LV_ModifyCol(3, "Autohdr")
 		}
-		LV_ModifyCol()
-		LV_ModifyCol(1, "Autohdr")
-		LV_ModifyCol(2, "Autohdr")
-		LV_ModifyCol(3, "Autohdr")
 	}
 	Progress, off
 	gui, VL:show, AutoSize
@@ -242,6 +258,7 @@ Return
 
 Unlock:
 {
+	eventlog("Release .currlock")
 	If FileExist(".currlock") {
 		FileGetTime, x, .currlock
 		EnvSub, x, A_Now, s
@@ -260,8 +277,10 @@ Unlock:
 
 Query:
 {
+	eventlog("Query button")
 	Gui, main:Hide
 	InputBox, q, Search..., Enter provider search string
+	eventlog("Search term: '" q "'.")
 	;~ q := "rugge"
 	qres := 
 	
@@ -279,6 +298,7 @@ Query:
 		}
 	}
 	if (qres) {
+		eventlog(RegExReplace(qres,"`r`n"," || "))
 		qres .= "`r`nResults copied to CLIPBOARD, can be pasted into another program."
 		Clipboard := qres
 		MsgBox % qres
@@ -289,7 +309,7 @@ Query:
 
 CleanArch:
 {
-	
+	eventlog("Clean archives.")
 	j := 0
 	l_edits := 0
 	Loop, % (totarch := za.selectNodes("/root/id")).length
@@ -322,6 +342,7 @@ CleanArch:
 			}
 		}
 	}
+	eventlog(j " records removed from arch.")
 	MsgBox % j " records removed."
 	za.save("archlist.xml")
 	Return
@@ -522,6 +543,26 @@ PtParse(mrn,ByRef y) {
 RemoveNode(node,ByRef y) {
 	q := y.selectSingleNode(node)
 	q.parentNode.removeChild(q)
+}
+
+eventlog(event) {
+	global user, sessdate
+	comp := A_ComputerName
+	FormatTime, now, A_Now, yyyy.MM.dd||HH:mm:ss
+	name := "logs/" . sessdate . ".log"
+	txt := now " [" user "/" comp "] " event "`n"
+	filePrepend(txt,name)
+;	FileAppend, % timenow " ["  user "/" comp "] " event "`n", % "logs/" . sessdate . ".log"
+}
+
+FilePrepend( Text, Filename ) { 
+/*	from haichen http://www.autohotkey.com/board/topic/80342-fileprependa-insert-text-at-begin-of-file-ansi-text/?p=510640
+*/
+    file:= FileOpen(Filename, "rw")
+    text .= File.Read()
+    file.pos:=0
+    File.Write(text)
+    File.Close()
 }
 
 #Include xml.ahk
