@@ -16,6 +16,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 vers := "2.3.7"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
+eventlog(">>>>> Session started.")
 if WinExist("View Downloads -") {
 	WinClose, View Downloads -
 	eventlog("Launched from CIS")
@@ -155,7 +156,6 @@ SetTimer, SeekCores, 250
 SetTimer, SeekWordErr, 250
 
 initDone = true
-eventlog(">>>>> Session started.")
 Gosub GetIt
 Gosub MainGUI
 WinWaitClose, CHIPOTLE main
