@@ -65,7 +65,7 @@ MainGUI:
 	Gui, main:Add, Button, wp gUnlock, Release lock
 	Gui, main:Add, Button, wp gQuery, Query archive
 	Gui, main:Add, Button, wp gCleanArch, Clean archive
-	Gui, main:Add, Button, wp gRegionalCensus, Regional Census
+	;~ Gui, main:Add, Button, wp gRegionalCensus, Regional Census
 	Gui, main:Add, Button, wp gEnvInfo, Env Info
 	Gui, main:Add, Button, wp gActiveWindow, ActiveWindowInfo
 	Gui, main:Show, AutoSize, QUESO Admin
