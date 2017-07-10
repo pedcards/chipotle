@@ -114,7 +114,11 @@ PatListGUI:
 	Gui, Add, Button, xp+180 yp w160 h40 gplupd Disabledd, Update notes
 	Gui, Add, Button, xp+180 yp w160 h40 gplSumm, Summary Notes
 	Gui, Add, Button, x36 yp+44 w160 h40 v1 gplCORES, Patient History (CORES)
+<<<<<<< Updated upstream
 	Gui, Add, Button, xp+180 yp w160 h40 gplDataList , Data highlights			; was previously DISABLED
+=======
+	Gui, Add, Button, xp+180 yp w160 h40 gplDataList, Data highlights
+>>>>>>> Stashed changes
 	Gui, Add, Button, xp+180 yp w160 h40 v2 gplMAR, Meds/Diet (CORES)
 
 	Gui, Add, Button, x176 yp+44 w240 h40 gplSave, SAVE
