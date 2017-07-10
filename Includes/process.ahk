@@ -239,7 +239,8 @@ matchCisList() {
 		
 		left := totC-hit																; debit unmatched in comp
 		
-		perc := round((100+100*(2*hit-(miss+left))/(totC+totL))/2,2)					; percent match
+		;~ perc := round((100+100*(2*hit-(miss+left))/(totC+totL))/2,2)					; percent match
+		perc := round((200+100*((hit/totC)-(miss/totL)-(left/totC)))/3,2)				; new percent match score
 		arr[grp] := perc																; save score for each group
 		
 		if (perc>best) {																; remember best perc score and list group

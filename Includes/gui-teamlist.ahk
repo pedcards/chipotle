@@ -39,7 +39,7 @@ TeamList:
 	Gui, teamL:Font
 	Gui, teamL:Add, Button, % "w100 x10 y5 g" ((isARNP) ? "PrintARNP" : "PrintIt") " vP" location, Print list now
 	Gui, teamL:Add, Button, % "w100 x" ((j+20)*.30)-50 " yP+0 g" ((isARNP) ? "PrintARNP" : "PrintIt") " vO" location, Open in Word
-	Gui, teamL:Add, Button, % "w100 x" ((j+20)*.50)-50 " yP+0 gSignOut vS" location, Weekly Summary
+	Gui, teamL:Add, Button, % "w100 x" ((j+20)*.50)-50 " yP+0 gSignOut vS" location, Email Signout
 	Gui, teamL:Add, Button, % "w100 x" ((j+20)*.70)-50 " yP+0 gTeamTasks vT" location, Tasks
 	Gui, teamL:Add, Button, % "w100 x" (j-85) " yP+0 gCallList vC" location, Call List
 
@@ -110,25 +110,36 @@ Return
 
 SignOut:
 {
-	soText =
+	soText := soSumm := 
 	loop, % (soList := y.selectNodes("/root/lists/" . location . "/mrn")).length {		; loop through each MRN in loc list
 		soMRN := soList.item(A_Index-1).text
 		k := y.selectSingleNode("/root/id[@mrn='" soMRN "']")
 		so := ptParse(soMRN)
-		soSumm := so.NameL ", " so.NameF "`t" so.Unit " " so.Room "`t" so.MRN "`t" so.Sex "`t" so.Age "`t" so.Svc "`n"
-			. ((so.dxCard) ? "[DX] " so.dxCard "`n" : "")
-			. ((so.dxEP) ? "[EP] " so.dxEP "`n" : "")
-			. ((so.dxSurg) ? "[Surg] " so.dxSurg "`n" : "")
+		
+		soSumm := "<b><u><i>" so.NameL ", " so.NameF "&emsp;" 
+			. so.Unit " " so.Room "&emsp;" 
+			. so.MRN "&emsp;" so.Sex "&emsp;" so.Age "&emsp;" 
+			. so.Svc "</i></u></b><br>"
+			. ((so.dxCard) ? "[DX] " so.dxCard "<br>" : "")
+			. ((so.dxEP) ? "[EP] " so.dxEP "<br>" : "")
+			. ((so.dxSurg) ? "[Surg] " so.dxSurg "<br>" : "")
 		loop, % (soNotes := y.selectNodes("/root/id[@mrn='" soMRN "']/notes/weekly/summary")).length {	; loop through each Weekly Summary note.
 			soNote := soNotes.item(A_Index-1)
 			soDate := breakDate(soNote.getAttribute("date"))
-			soSumm .= "[" soDate.MM "/" soDate.DD "] "soNote.text . "`n"
+			soSumm .= "[" soDate.MM "/" soDate.DD "] "soNote.text . "<br>"
 		}
-		soText .= soSumm "`n"
+		soText .= soSumm "<br>"
 	}
-	Clipboard := soText
-	MsgBox Text has been copied to clipboard.
-	eventlog(location " weekly signout.")
+	plEml := ComObjCreate("Outlook.Application").CreateItem(0)						; Create item [0]
+	plEml.BodyFormat := 2															; HTML format
+	
+	plEml.To := 
+	plEml.Subject := location " sign-out " A_MM "-" A_DD "-" A_YYYY
+	plEml.Display																	; Must display first to get default signature
+	plEml.HTMLBody := soText "<br>"
+		. plEml.HTMLBody															; Prepend to existing default message
+	
+	eventlog(location " weekly signout generated.")
 	soText =
 Return
 }
