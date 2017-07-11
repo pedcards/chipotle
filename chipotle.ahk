@@ -158,6 +158,13 @@ SetTimer, SeekWordErr, 250
 initDone = true
 Gosub GetIt
 Gosub MainGUI
+if (CisEnvt) {
+	MsgBox, 262192
+	, Notification 7/10/2017
+	, "Due to instability from the CIS environment, launching CHIPOTLE from a "
+	. "shortcut button in CIS will no longer be supported.`n`n"
+	. "In the future, please launch CHIPOTLE from your Citrix Applications menu."
+}
 WinWaitClose, CHIPOTLE main
 Gosub SaveIt
 eventlog("<<<<< Session completed.")
