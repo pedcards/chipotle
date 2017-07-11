@@ -110,6 +110,11 @@ Return
 
 SignOut:
 {
+	if (CisEnvt) {
+		MsgBox, 262160, Wrong launch environment, Cannot email when launched from CIS!
+		eventlog("Cannot email when launched from CIS.")
+		return
+	}
 	soText := soSumm := 
 	loop, % (soList := y.selectNodes("/root/lists/" . location . "/mrn")).length {		; loop through each MRN in loc list
 		soMRN := soList.item(A_Index-1).text
