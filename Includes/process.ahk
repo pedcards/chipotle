@@ -123,6 +123,7 @@ readCISCol(location:="") {
 			continue
 		}
 		CIS_name := clip_elem[clip_num,colIdx["Name"]]
+			CIS_name := RegExReplace(CIS_name,"'","``")
 			CIS_name_last := Trim(StrX(CIS_name, ,0,0, ", ",1,2))		; Last name
 			CIS_name_first := Trim(StrX(CIS_name, ", ",0,2, " ",1,0))	; First name
 		if (colIdx["Locn"]) {
@@ -290,6 +291,7 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 		CORES_Loc := trim(StrX(Cores_Demo, "",1,0, "`r",1,1))
 		CORES_MRNx := trim(RegExMatch(Cores_Demo,"\d{6,7}",CORES_MRN))
 		CORES_Name := trim(StrX(Cores_Demo,CORES_Loc,1,StrLen(CORES_Loc),CORES_MRNx,1,8)," `t`r`n")
+			CORES_name := RegExReplace(CORES_name,"'","``")
 			CORES_name_last := Trim(StrX(CORES_name, ,0,0, ", ",1,2))			
 			CORES_name_first := Trim(StrX(CORES_name, ", ",0,2, " ",1,0))	
 		Progress,,, % CORES_name_last ", " CORES_name_first

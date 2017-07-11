@@ -402,6 +402,7 @@ parseClip(clip) {
 	If clip contains proper Encounter Type ("Outpatient", "Inpatient", "Observation", etc), return Type, Date, Time
 */
 	if (clip~="[A-Z \-]+, [A-Z \-]+") {													; matches name format "SMITH, WILLIAM JAMES"
+		clip := RegExReplace(clip,"'","``")
 		nameL := trim(strX(clip,"",1,0,",",1,1))
 		nameF := trim(strX(clip,",",1,1," ",1,1))
 		return {field:"Name", value:nameL ", " nameF, nameL:nameL, nameF:nameF}
