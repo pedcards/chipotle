@@ -2,6 +2,8 @@ FileRead, txt, .\files\data_in\sensis\SensisExportExample.HIS
 StringReplace, txt, txt, `r`n, `n, All
 n := 1
 pipe := chr(0xB3)
+y := new XML("test.xml")
+y.addElement("root")
 
 Loop, parse, txt, `n, `r
 {
@@ -9,6 +11,7 @@ Loop, parse, txt, `n, `r
 	if (i~="^Group:") {
 		grp := 
 		grp := strX(i,"Group:",1,6,"",0)
+		y.addElement("group","root",{name:grp})
 		continue
 	} else if (i~="^Fields:") {
 		fields := []
@@ -20,14 +23,17 @@ Loop, parse, txt, `n, `r
 		values := []
 		val := trim(i,pipe)
 		values := StrSplit(val,pipe)
+		y.addElement("result","/root/group[@name='" grp "']")
 		loop, % fields.length()
 		{
 			x := A_Index
-			str .= fields[x] ": " values[x] "`n"
+			yv := y.createElement(fields[x])
+			yt := y.createTextNode(values[x])
+			y.selectSingleNode("/root/group[@name='" grp "']").lastChild.appendChild(yv).appendChild(yt)
 		}
-		MsgBox,,% grp, % str
 	}
 }
+y.viewXML()
 ExitApp
 
 #Include Includes
