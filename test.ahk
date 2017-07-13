@@ -1,14 +1,12 @@
 Loop, files, .\files\data_in\sensis\*.HIS, F
 {
 	FileRead, txt, % A_LoopFileFullPath
-	StringReplace, txt, txt, `r`n, `n, All
 	
 	readHIS(txt)
 }
 ExitApp
 
 readHIS(txt) {
-	n := 1
 	pipe := chr(0xB3)
 	y := new XML("<root/>")
 
