@@ -13,28 +13,28 @@ readHIS(txt) {
 	Loop, parse, txt, `n, `r
 	{
 		i := A_LoopField
-		if (i~="^Group:") {
-			grp := 
-			grp := strX(i,"Group:",1,6,"",0)
-			y.addElement("group","root",{name:grp})
+		if (i~="^Group:") {																; Line starts with "Group:"
+			grp := 																		; Clear grp
+			grp := strX(i,"Group:",1,6,"",0)											; Get new grp
+			y.addElement("group","root",{name:grp})										; Create new <group> node
+			grpStr := "/root/group[@name='" grp "']"
 			continue
-		} else if (i~="^Fields:") {
-			fields := []
-			fld := trim(strX(i,"Fields:",1,7,"",0),pipe)
-			fields := StrSplit(fld,pipe)
+		} else if (i~="^Fields:") {														; Line starts with "Fields:"
+			fields := []																; Clear fields array
+			fld := trim(strX(i,"Fields:",1,7,"",0),pipe)								; Get new fld
+			fields := StrSplit(fld,pipe)												; Create fields array
 			continue
-		} else if (i~=pipe) {
-			str :=
-			values := []
-			val := trim(i,pipe)
-			values := StrSplit(val,pipe)
-			y.addElement("result","/root/group[@name='" grp "']")
-			loop, % fields.length()
+		} else if (i~=pipe) {															; Any other line containing pipe char is a result line
+			values := []																; Clear values array
+			val := trim(i,pipe)															; Get new val
+			values := StrSplit(val,pipe)												; Create values array
+			y.addElement("result",grpStr)												; Create new <result> node
+			loop, % fields.length()														; Scan through each fields[] element
 			{
 				x := A_Index
-				yv := y.createElement(fields[x])
-				yt := y.createTextNode(values[x])
-				y.selectSingleNode("/root/group[@name='" grp "']").lastChild.appendChild(yv).appendChild(yt)
+				yv := y.createElement(fields[x])										; Get each fields[x] name
+				yt := y.createTextNode(values[x])										; Get corresponding values[x] result
+				y.selectSingleNode(grpStr).lastChild.appendChild(yv).appendChild(yt)	; To last <result>, append <field>value</field>
 			}
 		}
 	}
