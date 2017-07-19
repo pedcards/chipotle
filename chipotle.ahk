@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.3.8"
+vers := "2.3.8.1"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
