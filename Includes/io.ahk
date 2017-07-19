@@ -109,6 +109,7 @@ SaveIt:
 			eventlog("Remove hold on " kMRN ".")
 		}
 	}
+	writeout("/root/lists","hold")
 	gosub MakeCoordList
 	
 	filecheck()																			; file in use, delay until .currlock cleared

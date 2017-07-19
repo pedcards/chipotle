@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.3.8"
+vers := "2.3.8.1"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
@@ -230,7 +230,7 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 	if (location="CSR" or location="CICU") {
 		gosub IcuMerge
 	}
-} else if ((clipCk ~= "MRN:\d{6,8}") || (clipCk ~= "[A-Z \-]+, [A-Z \-]+")) {
+} else if ((clipCk ~= "MRN:\d{6,8}") || (clipCk ~= "^[A-Z '\-]+, [A-Z '\-]+$")) {
 	clk := parseClip(clipCk)
 	gosub findPt
 }
