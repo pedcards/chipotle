@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.3.8.1"
+vers := "2.3.8.2"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
@@ -160,10 +160,10 @@ Gosub GetIt
 Gosub MainGUI
 if (CisEnvt) {
 	MsgBox, 262192
-	, Notification 7/10/2017
-	, % "Due to instability from the CIS environment, launching CHIPOTLE from a "
-	. "shortcut button in CIS will no longer be supported.`n`n"
-	. "In the future, please launch CHIPOTLE from your Citrix Applications menu."
+	, Notification 7/25/2017
+	, % "In the near future, CHIPOTLE will no longer support being launched "
+	. "from a shortcut button in CIS.`n`n"
+	. "Please launch CHIPOTLE from your Citrix Applications menu."
 }
 WinWaitClose, CHIPOTLE main
 Gosub SaveIt
@@ -230,7 +230,7 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 	if (location="CSR" or location="CICU") {
 		gosub IcuMerge
 	}
-} else if ((clipCk ~= "MRN:\d{6,8}") || (clipCk ~= "^[A-Z '\-]+, [A-Z '\-]+$")) {
+} else if ((clipCk ~= "MRN:\d{6,8}") || (clipCk ~= "^[A-Z '\-]+, [A-Z .'()\-]+$")) {
 	clk := parseClip(clipCk)
 	gosub findPt
 }
