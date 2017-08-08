@@ -389,7 +389,7 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			y.addElement("allergies", yInfoDt, CORES_Alls)
 			y.addElement("code", yInfoDt, CORES_Code)
 			if !(y.selectSingleNode(yInfoDt "/hx").text)
-				y.addElement("hx", yInfoDt, CORES_HX)
+				y.addElement("hx", yInfoDt, "CORES hx")				; CORES_HX
 			y.addElement("vs", yInfoDt)
 				y.addElement("wt", yInfoDt "/vs", StrX(CORES_vsWt,,1,1,"kg",1,2,NN))
 				if (tmp:=StrX(CORES_vsWt,"(",NN,2,")",1,1))
