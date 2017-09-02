@@ -188,6 +188,17 @@ MakeCoordList:
 		y.addElement("Coord","/root/lists")
 	}
 	tmpCk := false
+	Loop, % (plist := y.selectNodes("/root/lists/CSR/mrn")).length {					; Read all MRN in lists/CSR into plist
+		kMRN := plist.item(A_Index-1).text													; Get MRN
+		if !IsObject(y.selectSingleNode("/root/lists/Coord/mrn[text()='" kMRN "']")) {	; CSR patient doesn't exist in Coord
+			if (y.selectSingleNode("/root/id[@mrn='" kMRN "']/status").getAttribute("txp")="on") {		; TXP status is "on"
+				continue																; move along
+			} else {
+				y.addElement("mrn","/root/lists/Coord",kMRN)							; Add to Coord
+				tmpCk := true
+			}
+		}
+	}
 	Loop, % (plist := y.selectNodes("/root/id/diagnoses/coord")).length {				; Read any "coord" elements into plist
 		kMRN := plist.item(A_Index-1).parentNode.parentNode.getAttribute("mrn")			; read <mrn>/<diagnosis>/<coord>
 		loopCk := false																	; for when finds this MRN in any List
