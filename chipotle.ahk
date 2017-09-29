@@ -749,6 +749,9 @@ readQgenda:
 		if (qNameL~="^[A-Z]{2}[a-z]") {											; Remove first initial if present
 			qNameL := SubStr(qNameL,2)
 		}
+		if (qNameL~="Mallenahalli|Chikkabyrappa") 								; Special fix for Sathish and his extra long name
+			qNameL="Mallenahalli Chikkabyrappa"
+		}
 		
 		tmpDt := qDate.YYYY . qDate.MM . qDate.DD								; tmpDt in format YYYYMMDD
 		if !IsObject(y.selectSingleNode("/root/lists/forecast/call[@date='" tmpDt "']")) {
