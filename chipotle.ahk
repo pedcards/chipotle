@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.3.8.4"
+vers := "2.3.8.5"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
@@ -748,6 +748,9 @@ readQgenda:
 		qNameL := qOut[i,"StaffLName"]
 		if (qNameL~="^[A-Z]{2}[a-z]") {											; Remove first initial if present
 			qNameL := SubStr(qNameL,2)
+		}
+		if (qNameL~="Mallenahalli|Chikkabyrappa") {								; Special fix for Sathish and his extra long name
+			qNameL:="Mallenahalli Chikkabyrappa"
 		}
 		
 		tmpDt := qDate.YYYY . qDate.MM . qDate.DD								; tmpDt in format YYYYMMDD

@@ -190,18 +190,27 @@ MakeCoordList:
 	tmpCk := false
 	Loop, % (plist := y.selectNodes("/root/lists/CSR/mrn")).length {					; Read all MRN in lists/CSR into plist
 		kMRN := plist.item(A_Index-1).text													; Get MRN
+		if (y.selectSingleNode("/root/id[@mrn='" kMRN "']/status").getAttribute("txp")="on") {		; TXP status is "on"
+			continue																	; move along
+		}
 		if !IsObject(y.selectSingleNode("/root/lists/Coord/mrn[text()='" kMRN "']")) {	; CSR patient doesn't exist in Coord
-			if (y.selectSingleNode("/root/id[@mrn='" kMRN "']/status").getAttribute("txp")="on") {		; TXP status is "on"
-				continue																; move along
-			} else {
-				y.addElement("mrn","/root/lists/Coord",kMRN)							; Add to Coord
-				tmpCk := true
-			}
+			y.addElement("mrn","/root/lists/Coord",kMRN)								; Add to Coord
+			eventlog("CSR " kMRN " added to Coord.")
+			tmpCk := true																; Change made, so writeout
 		}
 	}
 	Loop, % (plist := y.selectNodes("/root/id/diagnoses/coord")).length {				; Read any "coord" elements into plist
 		kMRN := plist.item(A_Index-1).parentNode.parentNode.getAttribute("mrn")			; read <mrn>/<diagnosis>/<coord>
+		if !IsObject(y.selectSingleNode("/root/lists/Coord/mrn[text()='" kMRN "']")) {
+			y.addElement("mrn","/root/lists/Coord",kMRN)								; Add to Coord
+			eventlog(kMRN " added to Coord list.")
+			tmpCk := true																; Change made, so writeout
+		}
+	}
+	
+	Loop, % (plist := y.selectNodes("/root/lists/Coord/mrn")).length {					; Loop through all MRN in Coord
 		loopCk := false																	; for when finds this MRN in any List
+		kMRN := plist.item(A_Index-1).text
 		Loop, % (plist0 := y.selectNodes("/root/lists/*/mrn[text()='" kMRN "']")).length {
 			yaItem := plist0.item(A_index-1)											; Any node <mrn>1234568</mrn>
 			yaName := yaItem.parentNode.nodeName										; Get List name
@@ -215,11 +224,6 @@ MakeCoordList:
 			eventlog(kMRN " no longer on any active lists. Removed.")					; Move along to next Coord element
 			tmpCk := true																; I have removed something from Coord
 			continue
-		}
-		if !IsObject(y.selectSingleNode("/root/lists/Coord/mrn[text()='" kMRN "']")) {	; Present on a list but doesn't exist in Coord
-			y.addElement("mrn","/root/lists/Coord",kMRN)								; Add to Coord
-			eventlog(kMRN " added to Coord list.")
-			tmpCk := true																; I have added something to Coord
 		}
 	}
 	if (tmpCk) {																		; Change made to Coord
