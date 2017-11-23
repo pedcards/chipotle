@@ -752,6 +752,9 @@ readQgenda:
 		if (qNameL~="Mallenahalli|Chikkabyrappa") {								; Special fix for Sathish and his extra long name
 			qNameL:="Mallenahalli Chikkabyrappa"
 		}
+		if (qNameL qNameF = "NelsonJames") {									; Special fix to make Tony findable on paging call site
+			qNameF:="Tony"
+		}
 		
 		tmpDt := qDate.YYYY . qDate.MM . qDate.DD								; tmpDt in format YYYYMMDD
 		if !IsObject(y.selectSingleNode("/root/lists/forecast/call[@date='" tmpDt "']")) {
