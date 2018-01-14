@@ -163,7 +163,7 @@ SaveIt:
 		}
 		yaChk := yArch.selectSingleNode("/root/id[@mrn='" kMRN "']/diagnoses")
 		if ((yaChk.getAttribute("ed")) && !(yaChk.text)) {
-			eventlog(kMRN " blank DX")
+			eventlog(kMRN " blank DX in archlist.")
 		}
 	}
 
