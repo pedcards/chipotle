@@ -126,7 +126,7 @@ SaveIt:
 			yArch.addElement("diagnoses","/root/id[@mrn='" kMRN "']") 
 			yArch.addElement("notes","/root/id[@mrn='" kMRN "']") 
 			yArch.addElement("plan","/root/id[@mrn='" kMRN "']") 
-			eventlog(kMRN " added to archlist.") 
+			eventlog(kMRN " created in archlist.") 
 		}
 		ArchiveNode("demog")															; clone nodes to arch if not already done 
 		ArchiveNode("diagnoses") 
@@ -160,6 +160,10 @@ SaveIt:
 			errtext .= "* " . k.selectSingleNode("demog/name_first").text . " " . k.selectSingleNode("demog/name_last").text . "`n"
 			RemoveNode("/root/id[@mrn='" kMRN "']")										; ID node is archived, remove it from Y.
 			eventlog(kMRN " removed from active lists.")
+		}
+		yaChk := yArch.selectSingleNode("/root/id[@mrn='" kMRN "']/diagnoses")
+		if ((yaChk.getAttribute("ed")) && !(yaChk.text)) {
+			eventlog(kMRN " blank DX in archlist.")
 		}
 	}
 

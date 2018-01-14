@@ -189,14 +189,14 @@ GetConfDir:
 		}
 	}
 	if (confXls) {															; Read confXls if present
-		Progress,,,Reading XLS file
+		Progress, % (firstRun)?"off":"",,Reading XLS file
 		gosub readXls
 	}
 	gXml.save("guac.xml")													; Write Guac XML
 	
 	Gui, Font, s16
 	Gui, Add, ListView, % "r" confList.length() " x20 w720 Hdr AltSubmit Grid BackgroundSilver NoSortHdr NoSort gPatDir", Name|Done|Takt|Diagnosis|Note
-	Progress,,,Rendering conference list
+	Progress, % (firstRun)?"off":"",,Rendering conference list
 	for key,val in confList
 	{
 		if (key=A_index) {

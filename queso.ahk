@@ -68,6 +68,7 @@ MainGUI:
 	Gui, main:Add, Button, wp gUnlock, Release lock
 	Gui, main:Add, Button, wp gQuery, Query archive
 	Gui, main:Add, Button, wp gCleanArch, Clean archive
+	Gui, main:Add, Button, wp gBlankDX, Find Dx Blanks
 	;~ Gui, main:Add, Button, wp gRegionalCensus, Regional Census
 	Gui, main:Add, Button, wp gEnvInfo, Env Info
 	Gui, main:Add, Button, wp gActiveWindow, ActiveWindowInfo
@@ -490,7 +491,47 @@ checkCrd(x) {
 	return {"fuzz":fuzz,"best":best,"group":group}
 }
 
-
+BlankDx: 
+{
+/*	Scan through arch records for empty dx
+	Ignore records with no dx [@ed] attr (never had a dx)
+*/
+	rep := new XML("<root/>")
+	reptxt :=  ""
+	numnodes := (nodes := za.selectNodes("/root/id")).length
+	loop, % numnodes
+	{
+		idx := A_index
+		node := nodes.item(idx-1)
+		mrn := node.getattribute("mrn")
+		name := node.selectSingleNode("demog")
+			name_L := name.selectSingleNode("name_last").text
+			name_F := name.selectSingleNode("name_first").text
+		dx := node.selectSingleNode("diagnoses")
+			dxEd := dx.getAttribute("ed")
+			dxAu := dx.getAttribute("au")
+		dx_text := dx.text
+			;~ dx_notes := dx.selectSingleNode("notes").text
+			;~ dx_card := dx.selectSingleNode("card").text
+			;~ dx_ep := dx.selectSingleNode("ep").text
+			;~ dx_surg := dx.selectSingleNode("surg").text
+			;~ dx_prob := dx.selectSingleNode("prob").text
+			;~ dx_misc := dx.selectSingleNode("misc").text
+		Progress, % 100*(idx/numnodes)
+		if ((dxEd) && !(dx_text)) {
+			clone := node.cloneNode(true)
+			rep.selectSingleNode("/root").appendChild(clone)
+			reptxt .= substr(dxEd,5,2) "/" substr(dxEd,7,2) "/" substr(dxEd,1,4) "`n"
+		}
+	}
+	progress, ,, Saving...
+	rep.save("blanks.xml")
+	FileDelete, blanks.txt
+	FileAppend, % reptxt, blanks.txt
+	progress, off
+	
+	return
+}
 
 ObjHasValue(aObj, aValue) {
 ; From http://www.autohotkey.com/board/topic/84006-ahk-l-containshasvalue-method/	
