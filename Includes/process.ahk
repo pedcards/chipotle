@@ -160,8 +160,10 @@ readCISCol(location:="") {
 			if (archDxDate := y.selectSingleNode(MRNstring "/diagnoses").getattribute("date")) {				; Dx node fetched from archlist
 				if (archDxNotes := y.selectSingleNode(MRNstring "/diagnoses/notes").text) {						; DxNotes has text
 					y.setText(MRNstring "/diagnoses/notes", "[[" niceDate(archDxDate) ": " archDxNotes "]]")	; Denote with [[date]]
-				}
+				}																								; This may be obsolete since now delete notes on dc
 			}
+			WriteOut("/root","id[@mrn='" CIS_mrn "']")
+			eventlog(CIS_mrn " pulled from archive, added to active list.")
 		} else {													; Otherwise clear old demog & loc info.
 			RemoveNode(MRNstring . "/demog")
 			y.insertElement("demog", MRNstring . "/diagnoses")		; Insert before "diagnoses" node.
