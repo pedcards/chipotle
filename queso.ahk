@@ -673,6 +673,29 @@ FilePrepend( Text, Filename ) {
     File.Close()
 }
 
+filecheck() {
+	if FileExist(".currlock") {
+		err=0
+		Progress, , Waiting to clear lock, File write queued...
+		loop 50 {
+			if (FileExist(".currlock")) {
+				progress, %p%
+				Sleep 100
+				p += 2
+			} else {
+				err=1
+				break
+			}
+		}
+		if !(err) {
+			progress off
+			return error
+		}
+	} 
+	progress off
+	return
+}
+
 #Include xml.ahk
 #Include StrX.ahk
 #Include Class_LV_Colors.ahk
