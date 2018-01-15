@@ -546,12 +546,6 @@ DxRestore:
 	node := za.selectSingleNode("/root/id[@mrn='" mrn "']")
 	pt := ptParse(mrn,za)
 	
-	loop, % (nodes := node.selectNodes("archive/dc")).length
-	{
-		enc := nodes.item(A_index-1)
-		dc := enc.getAttribute("date")
-		;~ MsgBox % dc
-	}
 	loop, parse, dirlist, `n
 	{
 		fl := A_LoopField
