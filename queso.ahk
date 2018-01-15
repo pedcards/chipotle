@@ -560,12 +560,33 @@ DxRestore:
 		if !(t_dx.text) {
 			continue
 		}
-		t_dx_notes := t_dx.selectSingleNode("notes").text
-		t_dx_card := t_dx.selectSingleNode("card").text
-		t_dx_ep := t_dx.selectSingleNode("ep").text
-		t_dx_surg := t_dx.selectSingleNode("surg").text
-		t_dx_prob := t_dx.selectSingleNode("prob").text
-		t_dx_misc := t_dx.selectSingleNode("misc").text
+		t_dx_notes := 	t_dx.selectSingleNode("notes").text
+		t_dx_card := 	t_dx.selectSingleNode("card").text
+		t_dx_ep :=  	t_dx.selectSingleNode("ep").text
+		t_dx_surg := 	t_dx.selectSingleNode("surg").text
+		t_dx_prob := 	t_dx.selectSingleNode("prob").text
+		t_dx_misc := 	t_dx.selectSingleNode("misc").text
+		
+		z_dx_notes := 	z_dx.selectSingleNode("notes").text
+		z_dx_card := 	z_dx.selectSingleNode("card").text
+		z_dx_ep :=  	z_dx.selectSingleNode("ep").text
+		z_dx_surg := 	z_dx.selectSingleNode("surg").text
+		z_dx_prob := 	z_dx.selectSingleNode("prob").text
+		z_dx_misc := 	z_dx.selectSingleNode("misc").text
+		
+		t_txt := "===NOTES===" t_dx_notes . "`n"
+			. "===CARD===" t_dx_card . "`n"
+			. "===EP===" t_dx_ep . "`n"
+			. "===SURG===" t_dx_surg . "`n"
+			. "===PROB===" t_dx_prob . "`n"
+			. "===MISC===" t_dx_misc . "`n"
+		
+		z_txt := "===NOTES===" z_dx_notes . "`n"
+			. "===CARD===" z_dx_card . "`n"
+			. "===EP===" z_dx_ep . "`n"
+			. "===SURG===" z_dx_surg . "`n"
+			. "===PROB===" z_dx_prob . "`n"
+			. "===MISC===" z_dx_misc . "`n"
 		
 		progress, hide
 		MsgBox,, % t_dx_ed, % t_dx.text
