@@ -68,7 +68,8 @@ MainGUI:
 	Gui, main:Add, Button, wp gUnlock, Release lock
 	Gui, main:Add, Button, wp gQuery, Query archive
 	Gui, main:Add, Button, wp gCleanArch, Clean archive
-	Gui, main:Add, Button, wp gBlankDX, Find Dx Blanks
+	;~ Gui, main:Add, Button, wp gBlankDX, Find Dx Blanks
+	Gui, main:Add, Button, wp gDxRestore, Restore Dx
 	;~ Gui, main:Add, Button, wp gRegionalCensus, Regional Census
 	Gui, main:Add, Button, wp gEnvInfo, Env Info
 	Gui, main:Add, Button, wp gActiveWindow, ActiveWindowInfo
@@ -530,6 +531,53 @@ BlankDx:
 	FileAppend, % reptxt, blanks.txt
 	progress, off
 	
+	return
+}
+
+DxRestore:
+{
+	loop, files, archback/*
+	{
+		dirlist .= A_LoopFileName "`n"
+	}
+	Sort, dirlist, R
+	
+	InputBox, mrn, Search records, Enter MRN to search,,, 150
+	node := za.selectSingleNode("/root/id[@mrn='" mrn "']")
+	pt := ptParse(mrn,za)
+	
+	loop, % (nodes := node.selectNodes("archive/dc")).length
+	{
+		enc := nodes.item(A_index-1)
+		dc := enc.getAttribute("date")
+		;~ MsgBox % dc
+	}
+	loop, parse, dirlist, `n
+	{
+		fl := A_LoopField
+		if (fl="") {
+			break
+		}
+		progress, ,, % fl
+		ta := new XML("archback/" fl)
+		tnode := ta.selectSingleNode("/root/id[@mrn='" mrn "']")
+		t_dx := tnode.selectSingleNode("diagnoses")
+		t_dx_ed := t_dx.getAttribute("ed")
+		if !(t_dx.text) {
+			continue
+		}
+		t_dx_notes := t_dx.selectSingleNode("notes").text
+		t_dx_card := t_dx.selectSingleNode("card").text
+		t_dx_ep := t_dx.selectSingleNode("ep").text
+		t_dx_surg := t_dx.selectSingleNode("surg").text
+		t_dx_prob := t_dx.selectSingleNode("prob").text
+		t_dx_misc := t_dx.selectSingleNode("misc").text
+		
+		progress, hide
+		MsgBox,, % t_dx_ed, % t_dx.text
+	}
+	progress, hide
+	MsgBox % pt.NameL
 	return
 }
 
