@@ -536,6 +536,7 @@ BlankDx:
 
 DxRestore:
 {
+	line := "`n====================`n"
 	loop, files, archback/*
 	{
 		dirlist .= A_LoopFileName "`n"
@@ -544,6 +545,7 @@ DxRestore:
 	
 	InputBox, mrn, Search records, Enter MRN to search,,, 150
 	node := za.selectSingleNode("/root/id[@mrn='" mrn "']")
+	z_dx := node.selectSingleNode("diagnoses")
 	pt := ptParse(mrn,za)
 	
 	loop, parse, dirlist, `n
@@ -589,7 +591,9 @@ DxRestore:
 			. "===MISC===" z_dx_misc . "`n"
 		
 		progress, hide
-		MsgBox,, % t_dx_ed, % t_dx.text
+		MsgBox,262180, % t_dx_ed, % "OLD`n" z_txt . line . "NEW`n" t_txt "`nReplace these elements?"
+		
+		progress, show
 	}
 	progress, hide
 	MsgBox % pt.NameL
