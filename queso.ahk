@@ -554,6 +554,7 @@ DxRestore:
 		if (fl="") {
 			break
 		}
+		progress, show
 		progress, ,, % fl
 		ta := new XML("archback/" fl)
 		tnode := ta.selectSingleNode("/root/id[@mrn='" mrn "']")
@@ -593,7 +594,6 @@ DxRestore:
 		progress, hide
 		MsgBox,262180, % t_dx_ed, % "OLD`n" z_txt . line . "NEW`n" t_txt "`nReplace these elements?"
 		
-		progress, show
 	}
 	progress, hide
 	MsgBox % pt.NameL
