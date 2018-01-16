@@ -772,6 +772,9 @@ readQgenda:
 	Writeout("/root/lists","forecast")
 	Eventlog("Qgenda " t0 "-" t1 " updated.")
 	
+	FileCopy, archlist.xml, archback\%A_now%.xml
+	eventLog("archlist.xml backed up.")
+	
 return
 }
 
