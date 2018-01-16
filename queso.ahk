@@ -68,7 +68,7 @@ MainGUI:
 	Gui, main:Add, Button, wp gUnlock, Release lock
 	Gui, main:Add, Button, wp gQuery, Query archive
 	Gui, main:Add, Button, wp gCleanArch, Clean archive
-	;~ Gui, main:Add, Button, wp gBlankDX, Find Dx Blanks
+	Gui, main:Add, Button, wp gBlankDX, Find Dx Blanks
 	Gui, main:Add, Button, wp gDxRestore, Restore Dx
 	;~ Gui, main:Add, Button, wp gRegionalCensus, Regional Census
 	Gui, main:Add, Button, wp gEnvInfo, Env Info
@@ -522,7 +522,8 @@ BlankDx:
 		if ((dxEd) && !(dx_text)) {
 			clone := node.cloneNode(true)
 			rep.selectSingleNode("/root").appendChild(clone)
-			reptxt .= substr(dxEd,5,2) "/" substr(dxEd,7,2) "/" substr(dxEd,1,4) "`n"
+			;~ reptxt .= substr(dxEd,5,2) "/" substr(dxEd,7,2) "/" substr(dxEd,1,4) "`n"
+			reptxt .= mrn "`n"
 		}
 	}
 	progress, ,, Saving...
@@ -536,67 +537,108 @@ BlankDx:
 
 DxRestore:
 {
+	FileRead, bl, blanks.txt
 	line := "`n====================`n"
+	
 	loop, files, archback/*
 	{
 		dirlist .= A_LoopFileName "`n"
 	}
 	Sort, dirlist, R
 	
-	InputBox, mrn, Search records, Enter MRN to search,,, 150
-	node := za.selectSingleNode("/root/id[@mrn='" mrn "']")
-	z_dx := node.selectSingleNode("diagnoses")
-	pt := ptParse(mrn,za)
-	
-	loop, parse, dirlist, `n
+	loop, parse, bl, `n, `r
 	{
-		fl := A_LoopField
-		if (fl="") {
-			break
+		idx1 := A_Index
+		mrn := A_LoopField
+		node := za.selectSingleNode("/root/id[@mrn='" mrn "']")
+		if !IsObject(node) {
+			return
 		}
-		progress, show
-		progress, ,, % fl
-		ta := new XML("archback/" fl)
-		tnode := ta.selectSingleNode("/root/id[@mrn='" mrn "']")
-		t_dx := tnode.selectSingleNode("diagnoses")
-		t_dx_ed := t_dx.getAttribute("ed")
-		if !(t_dx.text) {
+		z_dx := node.selectSingleNode("diagnoses")
+		z_dx_ed := z_dx.getAttribute("ed")
+		if (z_dx_ed < 20170722000000) {
 			continue
 		}
-		t_dx_notes := 	t_dx.selectSingleNode("notes").text
-		t_dx_card := 	t_dx.selectSingleNode("card").text
-		t_dx_ep :=  	t_dx.selectSingleNode("ep").text
-		t_dx_surg := 	t_dx.selectSingleNode("surg").text
-		t_dx_prob := 	t_dx.selectSingleNode("prob").text
-		t_dx_misc := 	t_dx.selectSingleNode("misc").text
 		
-		z_dx_notes := 	z_dx.selectSingleNode("notes").text
-		z_dx_card := 	z_dx.selectSingleNode("card").text
-		z_dx_ep :=  	z_dx.selectSingleNode("ep").text
-		z_dx_surg := 	z_dx.selectSingleNode("surg").text
-		z_dx_prob := 	z_dx.selectSingleNode("prob").text
-		z_dx_misc := 	z_dx.selectSingleNode("misc").text
+		pt := ptParse(mrn,za)
+		progress, show
+		progress, ,, % pt.NameL
 		
-		t_txt := "===NOTES===" t_dx_notes . "`n"
-			. "===CARD===" t_dx_card . "`n"
-			. "===EP===" t_dx_ep . "`n"
-			. "===SURG===" t_dx_surg . "`n"
-			. "===PROB===" t_dx_prob . "`n"
-			. "===MISC===" t_dx_misc . "`n"
-		
-		z_txt := "===NOTES===" z_dx_notes . "`n"
-			. "===CARD===" z_dx_card . "`n"
-			. "===EP===" z_dx_ep . "`n"
-			. "===SURG===" z_dx_surg . "`n"
-			. "===PROB===" z_dx_prob . "`n"
-			. "===MISC===" z_dx_misc . "`n"
-		
-		progress, hide
-		MsgBox,262180, % t_dx_ed, % "OLD`n" z_txt . line . "NEW`n" t_txt "`nReplace these elements?"
-		
+		loop, parse, dirlist, `n
+		{
+			fl := A_LoopField
+			if (fl="") {
+				break
+			}
+			progress, show
+			progress , % 100*A_index/65 ,,% fl, % idx1 ") " pt.NameL " (ed=" z_dx_ed ")"
+			ta := new XML("archback/" fl)
+			tnode := ta.selectSingleNode("/root/id[@mrn='" mrn "']")
+			t_dx := tnode.selectSingleNode("diagnoses")
+			t_dx_ed := t_dx.getAttribute("ed")
+			t_dx_au := t_dx.getAttribute("au")
+			if !(t_dx.text) {
+				continue
+			}
+			t_dx_notes := 	t_dx.selectSingleNode("notes").text
+			t_dx_card := 	t_dx.selectSingleNode("card").text
+			t_dx_ep :=  	t_dx.selectSingleNode("ep").text
+			t_dx_surg := 	t_dx.selectSingleNode("surg").text
+			t_dx_prob := 	t_dx.selectSingleNode("prob").text
+			t_dx_misc := 	t_dx.selectSingleNode("misc").text
+			
+			z_dx_notes := 	z_dx.selectSingleNode("notes").text
+			z_dx_card := 	z_dx.selectSingleNode("card").text
+			z_dx_ep :=  	z_dx.selectSingleNode("ep").text
+			z_dx_surg := 	z_dx.selectSingleNode("surg").text
+			z_dx_prob := 	z_dx.selectSingleNode("prob").text
+			z_dx_misc := 	z_dx.selectSingleNode("misc").text
+			
+			t_txt := "===NOTES===" t_dx_notes . "`n"
+				. "===CARD===" t_dx_card . "`n"
+				. "===EP===" t_dx_ep . "`n"
+				. "===SURG===" t_dx_surg . "`n"
+				. "===PROB===" t_dx_prob . "`n"
+				. "===MISC===" t_dx_misc . "`n"
+			
+			z_txt := "===NOTES===" z_dx_notes . "`n"
+				. "===CARD===" z_dx_card . "`n"
+				. "===EP===" z_dx_ep . "`n"
+				. "===SURG===" z_dx_surg . "`n"
+				. "===PROB===" z_dx_prob . "`n"
+				. "===MISC===" z_dx_misc . "`n"
+			
+			progress, hide
+			MsgBox,262180, % idx1 ") " pt.NameL ", " pt.NameF " (arch=" fl ")", % "OLD (ed=" z_dx_ed ")`n" z_txt . line 
+			. "NEW (ed=" t_dx_ed ", au=" t_dx_au ")`n" t_txt "`nReplace these elements?"
+			IfMsgBox, Yes
+			{
+				filecheck()
+				changeDx(mrn,"notes", t_dx_notes)
+				changeDx(mrn,"card", t_dx_cards)
+				changeDx(mrn,"ep", t_dx_ep)
+				changeDx(mrn,"surg", t_dx_surg)
+				changeDx(mrn,"prob", t_dx_prob)
+				changeDx(mrn,"misc", t_dx_misc)
+				
+				za.save("archlist.xml")
+				break
+			}
+			
+		}
 	}
 	progress, hide
 	MsgBox % pt.NameL
+	return
+}
+
+ChangeDx(mrn,el,val) {
+	global za
+	if !IsObject(za.selectSingleNode("/root/id[@mrn='" mrn "']/diagnoses/" el)) {
+		za.addElement(el, "/root/id[@mrn='" mrn "']/diagnoses", val)
+	} else {
+		za.setText("/root/id[@mrn='" mrn "']/diagnoses/" el, val)
+	}
 	return
 }
 
