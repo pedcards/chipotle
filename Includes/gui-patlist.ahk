@@ -126,7 +126,7 @@ PatListGUI:
 	Gui, Add, GroupBox, xp yp+110 w160 h50 
 
 	Gui, Add, GroupBox, x436 y14 w140 h160 , Status Flags
-	Gui, Add, GroupBox, x16 y180 w560 h70 , Quick Notes
+	Gui, Add, GroupBox, x16 y180 w560 h70 , Temporary Notes (will be deleted)
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Diagnoses && Problems
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , EP diagnoses/problems
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Surgeries/Caths/Interventions
