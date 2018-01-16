@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.4.0.1"
+vers := "2.4.0.2"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
@@ -771,6 +771,9 @@ readQgenda:
 	
 	Writeout("/root/lists","forecast")
 	Eventlog("Qgenda " t0 "-" t1 " updated.")
+	
+	FileCopy, archlist.xml, archback\%A_now%.xml
+	eventLog("archlist.xml backed up.")
 	
 return
 }
