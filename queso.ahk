@@ -615,7 +615,7 @@ DxRestore:
 			{
 				filecheck()
 				changeDx(mrn,"notes", t_dx_notes)
-				changeDx(mrn,"card", t_dx_cards)
+				changeDx(mrn,"card", t_dx_card)
 				changeDx(mrn,"ep", t_dx_ep)
 				changeDx(mrn,"surg", t_dx_surg)
 				changeDx(mrn,"prob", t_dx_prob)
