@@ -537,7 +537,15 @@ BlankDx:
 
 DxRestore:
 {
-	FileRead, bl, blanks.txt
+	which := cmsgbox("RESTORE DIAGNOSES","","Enter MRN|Scan blanks.txt","Q")
+	If instr(which,"MRN") {
+		InputBox, bl, Search records, Enter MRN to search,,, 150 
+	} if instr(which,"Scan") {
+		FileRead, bl, blanks.txt
+	} if instr(which,"Close") {
+		return
+	}
+	
 	line := "`n====================`n"
 	
 	loop, files, archback/*
