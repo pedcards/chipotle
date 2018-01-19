@@ -502,6 +502,7 @@ BlankDx:
 	
 	rep := new XML("<root/>")
 	reptxt :=  ""
+	repct := 0
 	numnodes := (nodes := za.selectNodes("/root/id")).length
 	loop, % numnodes
 	{
@@ -525,6 +526,7 @@ BlankDx:
 			clone := node.cloneNode(true)
 			rep.selectSingleNode("/root").appendChild(clone)
 			reptxt .= mrn "`n"
+			repct ++
 		}
 	}
 	progress, ,, Saving...
@@ -532,6 +534,7 @@ BlankDx:
 	FileDelete, blanks.txt
 	FileAppend, % reptxt, blanks.txt
 	progress, off
+	MsgBox % "Found " repct " records"
 	
 	return
 }
