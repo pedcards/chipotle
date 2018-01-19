@@ -515,17 +515,10 @@ BlankDx:
 			dxEd := dx.getAttribute("ed")
 			dxAu := dx.getAttribute("au")
 		dx_text := dx.text
-			;~ dx_notes := dx.selectSingleNode("notes").text
-			;~ dx_card := dx.selectSingleNode("card").text
-			;~ dx_ep := dx.selectSingleNode("ep").text
-			;~ dx_surg := dx.selectSingleNode("surg").text
-			;~ dx_prob := dx.selectSingleNode("prob").text
-			;~ dx_misc := dx.selectSingleNode("misc").text
 		Progress, % 100*(idx/numnodes)
 		if ((dxEd) && !(dx_text)) {
 			clone := node.cloneNode(true)
 			rep.selectSingleNode("/root").appendChild(clone)
-			;~ reptxt .= substr(dxEd,5,2) "/" substr(dxEd,7,2) "/" substr(dxEd,1,4) "`n"
 			reptxt .= mrn "`n"
 		}
 	}
