@@ -515,8 +515,13 @@ BlankDx:
 			dxEd := dx.getAttribute("ed")
 			dxAu := dx.getAttribute("au")
 		dx_text := dx.text
+		
 		Progress, % 100*(idx/numnodes)
-		if ((dxEd) && !(dx_text)) {
+		
+		if (dx_text) {																	; Skip if DX exists
+			continue
+		}
+		if (%which%) {																	; ANY:(mrn) (always true), PREV:(dxEd) (only true if dxEd exists)
 			clone := node.cloneNode(true)
 			rep.selectSingleNode("/root").appendChild(clone)
 			reptxt .= mrn "`n"
