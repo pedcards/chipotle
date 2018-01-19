@@ -564,9 +564,9 @@ DxRestore:
 		}
 		z_dx := node.selectSingleNode("diagnoses")
 		z_dx_ed := z_dx.getAttribute("ed")
-		if (z_dx_ed < 20170722000000) {
-			continue
-		}
+		;~ if (z_dx_ed < 20170722000000) {
+			;~ continue
+		;~ }
 		
 		pt := ptParse(mrn,za)
 		progress, show
