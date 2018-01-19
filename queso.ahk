@@ -637,7 +637,9 @@ DxRestore:
 				za.save("archlist.xml")
 				break
 			}
-			
+			/*
+			Restore to currlist as well?
+			*/
 		}
 	}
 	progress, hide
