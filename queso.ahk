@@ -750,3 +750,4 @@ filecheck() {
 #Include StrX.ahk
 #Include Class_LV_Colors.ahk
 #Include sift3.ahk
+#Include CMsgBox.ahk
