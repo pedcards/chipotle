@@ -497,6 +497,9 @@ BlankDx:
 /*	Scan through arch records for empty dx
 	Ignore records with no dx [@ed] attr (never had a dx)
 */
+	which := cmsgbox("FIND BLANK DX","Scan for which`ntype of blanks?","Any blank dx|Prev ed","Q")
+	which := instr(which,"Any") ? "mrn":"dxEd"
+	
 	rep := new XML("<root/>")
 	reptxt :=  ""
 	numnodes := (nodes := za.selectNodes("/root/id")).length
