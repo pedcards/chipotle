@@ -608,6 +608,7 @@ DxRestore:
 				. "===SURG===" t_dx_surg . "`n"
 				. "===PROB===" t_dx_prob . "`n"
 				. "===MISC===" t_dx_misc . "`n"
+			Clipboard := t_txt
 			
 			z_txt := "===NOTES===" z_dx_notes . "`n"
 				. "===CARD===" z_dx_card . "`n"
