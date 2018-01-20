@@ -67,8 +67,8 @@ MainGUI:
 	Gui, main:Add, Button, wp gViewLog, View logs
 	Gui, main:Add, Button, wp gUnlock, Release lock
 	Gui, main:Add, Button, wp gQuery, Query archive
-	Gui, main:Add, Button, wp gBlankDX, Find Dx Blanks
 	;~ Gui, main:Add, Button, wp gCleanArch, Clean archive
+	;~ Gui, main:Add, Button, wp gBlankDX, Find Dx Blanks
 	Gui, main:Add, Button, wp gDxRestore, Restore Dx
 	;~ Gui, main:Add, Button, wp gRegionalCensus, Regional Census
 	Gui, main:Add, Button, wp gEnvInfo, Env Info
