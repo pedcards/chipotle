@@ -497,8 +497,11 @@ BlankDx:
 /*	Scan through arch records for empty dx
 	Ignore records with no dx [@ed] attr (never had a dx)
 */
-	which := cmsgbox("FIND BLANK DX","Scan for which`ntype of blanks?","Any blank dx|Prev ed","Q")
-	which := instr(which,"Any") ? "mrn":"dxEd"
+	za := new XML("archlist.xml")
+	
+	;~ which := cmsgbox("FIND BLANK DX","Scan for which`ntype of blanks?","Any blank dx|Prev ed","Q")
+	;~ which := instr(which,"Any") ? "mrn":"dxEd"
+	which := "mrn"
 	
 	rep := new XML("<root/>")
 	reptxt :=  ""
@@ -535,6 +538,7 @@ BlankDx:
 	FileAppend, % reptxt, blanks.txt
 	progress, off
 	MsgBox % "Found " repct " records"
+	eventlog("Found " repct " blank records")
 	
 	return
 }
