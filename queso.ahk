@@ -594,9 +594,9 @@ DxRestore:
 			. "===PROB===" zdx.prob . "`n"
 			. "===MISC===" zdx.misc . "`n"
 		
+		nomatch := true
 		loop, parse, dirlist, `n														; scan through dirlist filenames
 		{
-			nomatch := true
 			fl := A_LoopField
 			if (fl="") {
 				break																	; reach end of list, break out
