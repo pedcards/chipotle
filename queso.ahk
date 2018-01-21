@@ -682,24 +682,12 @@ DxRestore:
 			filecheck()
 			FileOpen(".currlock", "W")													; Create lock file
 			
-			changeDx(mrn,"notes", tdx.notes, za)
-			changeDx(mrn,"card", tdx.card, za)
-			changeDx(mrn,"ep", tdx.ep, za)
-			changeDx(mrn,"surg", tdx.surg, za)
-			changeDx(mrn,"prob", tdx.prob, za)
-			changeDx(mrn,"misc", tdx.misc, za)
-			za.setAtt("/root/id[@mrn='" mrn "']/diagnoses", {ed:tdx.ed , au:tdx.au})
+			cloneDx(mrn,za)
 			za.save("archlist.xml")														; writeout archlist
 			eventlog(mrn " DX (" tdx.ed ") replaced in archlist")
 			
 			if (zdx.lst="y") {
-				changeDx(mrn,"notes", tdx.notes, y)
-				changeDx(mrn,"card", tdx.card, y)
-				changeDx(mrn,"ep", tdx.ep, y)
-				changeDx(mrn,"surg", tdx.surg, y)
-				changeDx(mrn,"prob", tdx.prob, y)
-				changeDx(mrn,"misc", tdx.misc, y)
-				y.setAtt("/root/id[@mrn='" mrn "']/diagnoses", {ed:tdx.ed , au:tdx.au})
+				cloneDx(mrn,y)
 				y.save("currlist.xml")													; if in currlist, also update that
 				eventlog(mrn " DX (" tdx.ed ") replaced in currlist")
 			}
