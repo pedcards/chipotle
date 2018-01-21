@@ -734,13 +734,15 @@ refreshCurr(lock:="") {
 	If lock="", filecheck()/currlock is handled from outside this function.
 	If lock=1, will handle the filecheck()/currlock within this call.
 */
-	global y
+	global y, yArch
 	if (lock) {
 		filecheck()
 		FileOpen(".currlock", "W")												; Create lock file
 	}
 	if (z:=checkXML("currlist.xml")) {											; Valid XML
 		y := new XML(z)														; <== Is this valid?
+		yArch := new XML("archlist.xml")
+		
 		if (lock) 
 			FileDelete, .currlock													; Clear the file lock
 		return																	; Return with refreshed Y

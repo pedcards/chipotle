@@ -67,8 +67,8 @@ MainGUI:
 	Gui, main:Add, Button, wp gViewLog, View logs
 	Gui, main:Add, Button, wp gUnlock, Release lock
 	Gui, main:Add, Button, wp gQuery, Query archive
-	Gui, main:Add, Button, wp gCleanArch, Clean archive
-	Gui, main:Add, Button, wp gBlankDX, Find Dx Blanks
+	;~ Gui, main:Add, Button, wp gCleanArch, Clean archive
+	;~ Gui, main:Add, Button, wp gBlankDX, Find Dx Blanks
 	Gui, main:Add, Button, wp gDxRestore, Restore Dx
 	;~ Gui, main:Add, Button, wp gRegionalCensus, Regional Census
 	Gui, main:Add, Button, wp gEnvInfo, Env Info
@@ -497,8 +497,15 @@ BlankDx:
 /*	Scan through arch records for empty dx
 	Ignore records with no dx [@ed] attr (never had a dx)
 */
+	za := new XML("archlist.xml")
+	
+	;~ which := cmsgbox("FIND BLANK DX","Scan for which`ntype of blanks?","Any blank dx|Prev ed","Q")
+	;~ which := instr(which,"Any") ? "mrn":"dxEd"
+	which := "mrn"
+	
 	rep := new XML("<root/>")
 	reptxt :=  ""
+	repct := 0
 	numnodes := (nodes := za.selectNodes("/root/id")).length
 	loop, % numnodes
 	{
@@ -512,18 +519,17 @@ BlankDx:
 			dxEd := dx.getAttribute("ed")
 			dxAu := dx.getAttribute("au")
 		dx_text := dx.text
-			;~ dx_notes := dx.selectSingleNode("notes").text
-			;~ dx_card := dx.selectSingleNode("card").text
-			;~ dx_ep := dx.selectSingleNode("ep").text
-			;~ dx_surg := dx.selectSingleNode("surg").text
-			;~ dx_prob := dx.selectSingleNode("prob").text
-			;~ dx_misc := dx.selectSingleNode("misc").text
+		
 		Progress, % 100*(idx/numnodes)
-		if ((dxEd) && !(dx_text)) {
+		
+		if (dx_text) {																	; Skip if DX exists
+			continue
+		}
+		if (%which%) {																	; ANY:(mrn) (always true), PREV:(dxEd) (only true if dxEd exists)
 			clone := node.cloneNode(true)
 			rep.selectSingleNode("/root").appendChild(clone)
-			;~ reptxt .= substr(dxEd,5,2) "/" substr(dxEd,7,2) "/" substr(dxEd,1,4) "`n"
 			reptxt .= mrn "`n"
+			repct ++
 		}
 	}
 	progress, ,, Saving...
@@ -531,16 +537,29 @@ BlankDx:
 	FileDelete, blanks.txt
 	FileAppend, % reptxt, blanks.txt
 	progress, off
+	MsgBox % "Found " repct " records"
+	eventlog("Found " repct " blank records")
 	
 	return
 }
 
 DxRestore:
 {
-	FileRead, bl, blanks.txt
+	za := new XML("archlist.xml")														; get fresh copy of archlist into ZA
+	
+	which := cmsgbox("RESTORE DIAGNOSES","","Enter MRN|Scan all blanks","Q")
+	If instr(which,"MRN") {
+		InputBox, bl, Search records, Enter MRN to search,,, 150 						; set BL as a single MRN
+	} if instr(which,"Scan") {
+		gosub BlankDx
+		FileRead, bl, blanks.txt														; read blanks.txt into BL
+	} if instr(which,"Close") {
+		return
+	}
+	
 	line := "`n====================`n"
 	
-	loop, files, archback/*
+	loop, files, archback/*																; read and reverse sort archback/* filenames
 	{
 		dirlist .= A_LoopFileName "`n"
 	}
@@ -550,95 +569,150 @@ DxRestore:
 	{
 		idx1 := A_Index
 		mrn := A_LoopField
-		node := za.selectSingleNode("/root/id[@mrn='" mrn "']")
-		if !IsObject(node) {
-			return
+		znode := za.selectSingleNode("/root/id[@mrn='" mrn "']")						; ZNODE = <id[@mrn]>
+		if !IsObject(znode) {
+			continue																	; doesn't exist? move along
 		}
-		z_dx := node.selectSingleNode("diagnoses")
-		z_dx_ed := z_dx.getAttribute("ed")
-		if (z_dx_ed < 20170722000000) {
-			continue
-		}
+		zdx := []
+		zdx.dx := znode.selectSingleNode("diagnoses")									; get <diagnoses>
+		zdx.ed := zdx.dx.getAttribute("ed")												; get <diagnoses[@ed]>
 		
-		pt := ptParse(mrn,za)
+		z_pt := ptParse(mrn,za)															; get values for MRN in ZA
 		progress, show
-		progress, ,, % pt.NameL
+		progress, ,, % z_pt.NameL
 		
-		loop, parse, dirlist, `n
+		nomatch := true
+		loop, parse, dirlist, `n														; scan through dirlist filenames
 		{
 			fl := A_LoopField
 			if (fl="") {
-				break
+				break																	; reach end of list, break out
 			}
 			progress, show
-			progress , % 100*A_index/65 ,,% fl, % idx1 ") " pt.NameL " (ed=" z_dx_ed ")"
-			ta := new XML("archback/" fl)
-			tnode := ta.selectSingleNode("/root/id[@mrn='" mrn "']")
-			t_dx := tnode.selectSingleNode("diagnoses")
-			t_dx_ed := t_dx.getAttribute("ed")
-			t_dx_au := t_dx.getAttribute("au")
-			if !(t_dx.text) {
+			progress , % 100*A_index/65 ,,% fl, % idx1 ") " z_pt.NameL " (ed=" zdx.ed ")"
+			
+			tdx := []
+			ta := new XML("archback/" fl)												; TA = next archback xml (Temp Arch)
+			tnode := ta.selectSingleNode("/root/id[@mrn='" mrn "']")					; TNODE = <id[@mrn]>
+			tdx.dx := tnode.selectSingleNode("diagnoses")
+			tdx.ed := tdx.dx.getAttribute("ed")
+			tdx.au := tdx.dx.getAttribute("au")
+			if !(tdx.dx.text) {
+				continue																; <diagnosis> in TA empty, move on
+			}
+			eventlog(mrn " Found DX in " fl)
+			nomatch := false															; ELSE we have found at least one match 
+			
+			t_pt := ptParse(mrn,ta)
+			tdx.notes := 	t_pt.dxNotes												; TEMP: get each <diagnosis> text values
+			tdx.card := 	t_pt.dxCard
+			tdx.ep :=  		t_pt.dxEP
+			tdx.surg := 	t_pt.dxSurg
+			tdx.prob := 	t_pt.dxProb
+			tdx.misc := 	t_pt.misc
+			tdx.out := ((tdx.notes)?"===NOTES===" tdx.notes "`n":"")
+				. ((tdx.card)?"===CARD===" tdx.card "`n":"")
+				. ((tdx.ep)?"===EP===" tdx.ep "`n":"")
+				. ((tdx.surg)?"===SURG===" tdx.surg "`n":"")
+				. ((tdx.prob)?"===PROB===" tdx.prob "`n":"")
+				. ((tdx.misc)?"===MISC===" tdx.misc "`n":"")
+			
+			ydx := []
+			y := new XML("currlist.xml")												; refresh currlist
+			ynode := y.selectSingleNode("/root/id[@mrn='" mrn "']")						; YNODE = <id[@mrn]>
+			ydx.dx := ynode.selectSingleNode("diagnoses")
+			if (ydx.dx.text) {															; there is actually a DX in currlist
+				eventlog(mrn " DX exists in currlist")
+				ydx.ed := y_dx.getAttribute("ed")
+				ydx.au := y_dx.getAttribute("au")
+				y_pt := ptParse(mrn,y)
+				ydx.notes := 	y_pt.dxNotes											; TEMP: get each <diagnosis> text values
+				ydx.card := 	y_pt.dxCard
+				ydx.ep :=  		y_pt.dxEP
+				ydx.surg := 	y_pt.dxSurg
+				ydx.prob := 	y_pt.dxProb
+				ydx.misc := 	y_pt.misc
+				ydx.out := ((ydx.notes)?"===NOTES===" ydx.notes "`n":"")
+					. ((ydx.card)?"===CARD===" ydx.card "`n":"")
+					. ((ydx.ep)?"===EP===" ydx.ep "`n":"")
+					. ((ydx.surg)?"===SURG===" ydx.surg "`n":"")
+					. ((ydx.prob)?"===PROB===" ydx.prob "`n":"")
+					. ((ydx.misc)?"===MISC===" ydx.misc "`n":"")
+			}
+			progress, hide
+			which := cmsgbox(idx1 ") " z_pt.NameL ", " z_pt.NameF " (BACK=" fl ")"
+				, ((ydx.dx.text)
+					? ydx.out . line
+					: "")
+				;~ . "ARCH (ed=" zdx.ed ")`n" zdx.out . line
+				. tdx.out
+				, ((ydx.dx.text) ? "Replace currlist|":"") . "Replace archlist|Skip this backup|Next patient"
+				,"Q")
+			if instr(which,"Next") {
+				eventlog("Chose NEXT PATIENT")
+				break																	; BREAK to next MRN
+			}
+			if instr(which,"Skip") {
+				eventlog("Chose to SKIP this backup")
+				continue																; CONTINUE to next archback list
+			}
+			
+			; ELSE we are replacing something
+			if instr(which,"archlist") {
+				zdx.lst := "za"
+			} else if instr(which,"currlist") {
+				zdx.lst := "y"
+			} else {
 				continue
 			}
-			t_dx_notes := 	t_dx.selectSingleNode("notes").text
-			t_dx_card := 	t_dx.selectSingleNode("card").text
-			t_dx_ep :=  	t_dx.selectSingleNode("ep").text
-			t_dx_surg := 	t_dx.selectSingleNode("surg").text
-			t_dx_prob := 	t_dx.selectSingleNode("prob").text
-			t_dx_misc := 	t_dx.selectSingleNode("misc").text
 			
-			z_dx_notes := 	z_dx.selectSingleNode("notes").text
-			z_dx_card := 	z_dx.selectSingleNode("card").text
-			z_dx_ep :=  	z_dx.selectSingleNode("ep").text
-			z_dx_surg := 	z_dx.selectSingleNode("surg").text
-			z_dx_prob := 	z_dx.selectSingleNode("prob").text
-			z_dx_misc := 	z_dx.selectSingleNode("misc").text
+			filecheck()
+			FileOpen(".currlock", "W")													; Create lock file
 			
-			t_txt := "===NOTES===" t_dx_notes . "`n"
-				. "===CARD===" t_dx_card . "`n"
-				. "===EP===" t_dx_ep . "`n"
-				. "===SURG===" t_dx_surg . "`n"
-				. "===PROB===" t_dx_prob . "`n"
-				. "===MISC===" t_dx_misc . "`n"
+			cloneDx(mrn,za)
+			za.save("archlist.xml")														; writeout archlist
+			eventlog(mrn " DX (" tdx.ed ") replaced in archlist")
 			
-			z_txt := "===NOTES===" z_dx_notes . "`n"
-				. "===CARD===" z_dx_card . "`n"
-				. "===EP===" z_dx_ep . "`n"
-				. "===SURG===" z_dx_surg . "`n"
-				. "===PROB===" z_dx_prob . "`n"
-				. "===MISC===" z_dx_misc . "`n"
-			
-			progress, hide
-			MsgBox,262180, % idx1 ") " pt.NameL ", " pt.NameF " (arch=" fl ")", % "OLD (ed=" z_dx_ed ")`n" z_txt . line 
-			. "NEW (ed=" t_dx_ed ", au=" t_dx_au ")`n" t_txt "`nReplace these elements?"
-			IfMsgBox, Yes
-			{
-				filecheck()
-				changeDx(mrn,"notes", t_dx_notes)
-				changeDx(mrn,"card", t_dx_card)
-				changeDx(mrn,"ep", t_dx_ep)
-				changeDx(mrn,"surg", t_dx_surg)
-				changeDx(mrn,"prob", t_dx_prob)
-				changeDx(mrn,"misc", t_dx_misc)
-				
-				za.save("archlist.xml")
-				break
+			if (zdx.lst="y") {
+				cloneDx(mrn,y)
+				y.save("currlist.xml")													; if in currlist, also update that
+				eventlog(mrn " DX (" tdx.ed ") replaced in currlist")
 			}
 			
+			FileDelete, .currlock
+			break																		; replacing DONE, move on to next MRN
+		}
+		
+		if (nomatch) {																	; no DX in any archback loop, 
+			changeDx(mrn,"misc","this line left intentionally blank",za)					; leave marker to prevent matching this again
+			za.save("archlist.xml")
+			eventlog(mrn ": Left un-blank marker.")
 		}
 	}
 	progress, hide
-	MsgBox % pt.NameL
+	MsgBox DONE!
 	return
 }
 
-ChangeDx(mrn,el,val) {
-	global za
-	if !IsObject(za.selectSingleNode("/root/id[@mrn='" mrn "']/diagnoses/" el)) {
-		za.addElement(el, "/root/id[@mrn='" mrn "']/diagnoses", val)
+ChangeDx(mrn,el,val,ByRef xml) {
+	if !IsObject(xml.selectSingleNode("/root/id[@mrn='" mrn "']/diagnoses/" el)) {
+		xml.addElement(el, "/root/id[@mrn='" mrn "']/diagnoses", val)
 	} else {
-		za.setText("/root/id[@mrn='" mrn "']/diagnoses/" el, val)
+		xml.setText("/root/id[@mrn='" mrn "']/diagnoses/" el, val)
 	}
+	return
+}
+
+CloneDx(mrn,ByRef dest) {
+/*	Copy an entire <diagnosis> node from ta XML to the dest archlist
+*/
+	global ta
+	
+	x := ta.selectSingleNode("/root/id[@mrn='" mrn "']/diagnoses")
+	
+	y := dest.selectSingleNode("/root/id[@mrn='" mrn "']/diagnoses")
+	y.parentNode.replaceChild(x,y)
+	
 	return
 }
 
@@ -742,3 +816,4 @@ filecheck() {
 #Include StrX.ahk
 #Include Class_LV_Colors.ahk
 #Include sift3.ahk
+#Include CMsgBox.ahk
