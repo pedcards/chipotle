@@ -581,19 +581,6 @@ DxRestore:
 		progress, show
 		progress, ,, % z_pt.NameL
 		
-		zdx.notes := 	z_pt.dxNotes													; LIVE ARCHLIST: get each <diagnosis> text values
-		zdx.card := 	z_pt.dxCard
-		zdx.ep :=  		z_pt.dxEP
-		zdx.surg := 	z_pt.dxSurg
-		zdx.prob := 	z_pt.dxProb
-		zdx.misc := 	z_pt.misc
-		zdx.out := "===NOTES===" zdx.notes . "`n"
-			. "===CARD===" zdx.card . "`n"
-			. "===EP===" zdx.ep . "`n"
-			. "===SURG===" zdx.surg . "`n"
-			. "===PROB===" zdx.prob . "`n"
-			. "===MISC===" zdx.misc . "`n"
-		
 		nomatch := true
 		loop, parse, dirlist, `n														; scan through dirlist filenames
 		{
