@@ -728,6 +728,19 @@ ChangeDx(mrn,el,val,ByRef xml) {
 	return
 }
 
+CloneDx(mrn,ByRef dest) {
+/*	Copy an entire <diagnosis> node from ta XML to the dest archlist
+*/
+	global ta
+	
+	x := ta.selectSingleNode("/root/id[@mrn='" mrn "']/diagnoses")
+	
+	y := dest.selectSingleNode("/root/id[@mrn='" mrn "']/diagnoses")
+	y.parentNode.replaceChild(x,y)
+	
+	return
+}
+
 ObjHasValue(aObj, aValue) {
 ; From http://www.autohotkey.com/board/topic/84006-ahk-l-containshasvalue-method/	
     for key, val in aObj
