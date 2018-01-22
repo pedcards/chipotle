@@ -711,10 +711,11 @@ CloneDx(mrn,ByRef dest) {
 */
 	global ta
 	
-	x := ta.selectSingleNode("/root/id[@mrn='" mrn "']/diagnoses")
+	in := ta.selectSingleNode("/root/id[@mrn='" mrn "']/diagnoses")
+	clone := in.cloneNode(true)
 	
-	y := dest.selectSingleNode("/root/id[@mrn='" mrn "']/diagnoses")
-	y.parentNode.replaceChild(x,y)
+	out := dest.selectSingleNode("/root/id[@mrn='" mrn "']/diagnoses")
+	out.parentNode.replaceChild(clone,out)
 	
 	return
 }
