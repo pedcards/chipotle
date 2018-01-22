@@ -676,7 +676,7 @@ DxRestore:
 			za.save("archlist.xml")														; writeout archlist
 			eventlog(mrn " DX (" tdx.ed ") replaced in archlist")
 			
-			if (zdx.lst="y") {
+			if (!(ydx.dx.text)||(zdx.lst="y")) {
 				cloneDx(mrn,y)
 				y.save("currlist.xml")													; if in currlist, also update that
 				eventlog(mrn " DX (" tdx.ed ") replaced in currlist")
