@@ -565,13 +565,13 @@ DxRestore:
 	}
 	Sort, dirlist, R
 	
-	loop, parse, bl, `n, `r
+	loop, parse, bl, `n, `r																; BL loop through MRN
 	{
 		idx1 := A_Index
 		mrn := A_LoopField
 		znode := za.selectSingleNode("/root/id[@mrn='" mrn "']")						; ZNODE = <id[@mrn]>
 		if !IsObject(znode) {
-			continue																	; doesn't exist? move along
+			continue																	; MRN doesn't exist in archlist? move along
 		}
 		zdx := []
 		zdx.dx := znode.selectSingleNode("diagnoses")									; get <diagnoses>
@@ -581,15 +581,18 @@ DxRestore:
 		progress, show
 		progress, ,, % z_pt.NameL
 		
-		nomatch := true
-		loop, parse, dirlist, `n														; scan through dirlist filenames
+		nomatch := true																	; set NOMATCH before backscan
+		
+		loop, parse, dirlist, `n														; DIRLIST filename loop 
 		{
 			fl := A_LoopField
 			if (fl="") {
 				break																	; reach end of list, break out
 			}
 			progress, show
-			progress , % 100*A_index/65 ,,% fl, % idx1 ") " z_pt.NameL " (ed=" zdx.ed ")"
+			progress, % 100*A_index/65 
+				,,% fl
+				, % idx1 ") " z_pt.NameF " " z_pt.NameL " " mrn
 			
 			tdx := []
 			ta := new XML("archback/" fl)												; TA = next archback xml (Temp Arch)
