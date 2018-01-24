@@ -162,7 +162,7 @@ SaveIt:
 			eventlog(kMRN " removed from active lists.")
 		}
 		yaChk := yArch.selectSingleNode("/root/id[@mrn='" kMRN "']/diagnoses")
-		if ((yaChk.getAttribute("ed")) && !(yaChk.text)) {
+		if !(yaChk.text) {
 			eventlog(kMRN " blank DX in archlist.")
 		}
 	}
