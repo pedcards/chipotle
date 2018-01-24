@@ -649,14 +649,14 @@ DxRestore:
 					: "")
 				;~ . "ARCH (ed=" zdx.ed ")`n" zdx.out . line
 				. tdx.out
-				, ((ydx.dx.text) ? "Replace currlist|":"") . "Replace archlist|Skip this backup|Next patient"
+				, ((ydx.dx.text) ? "Replace currlist|":"") . "Replace archlist|Goto next backup|Skip this patient"
 				,"Q")
-			if instr(which,"Next") {
+			if instr(which,"Skip") {
 				eventlog("Chose NEXT PATIENT")
 				break																	; BREAK to next MRN
 			}
-			if instr(which,"Skip") {
-				eventlog("Chose to SKIP this backup")
+			if instr(which,"backup") {
+				eventlog("Chose to GOTO next sbackup")
 				continue																; CONTINUE to next archback list
 			}
 			
