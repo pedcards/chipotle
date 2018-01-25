@@ -687,8 +687,10 @@ DxRestore:
 		}
 		
 		if (nomatch) {																	; no DX in any archback loop, 
-			changeDx(mrn,"misc","this line left intentionally blank",za)					; leave marker to prevent matching this again
+			changeDx(mrn,"misc","this line left intentionally blank",za)				; leave marker to prevent matching this again
 			za.save("archlist.xml")
+			changeDx(mrn,"misc","this line left intentionally blank",y)
+			y.save("currlist.xml")
 			eventlog(mrn ": Left un-blank marker.")
 		}
 	}
