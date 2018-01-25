@@ -649,8 +649,9 @@ ArchiveNode(node,i:=0) {
 		eventlog("ArchiveNode created <" node "> in " kMRN ".")
 	}
 	
-	clone := x.cloneNode(true)											; make a copy
-	yArch.selectSingleNode(MRN).replaceChild(clone,arcX)				; replace arcX with the clone.
+	clone := x.cloneNode(true)											; make a copy of y node
+	arcX := yArch.selectSingleNode(MRN "/" node)						; get the node, whether existant or new
+	arcX.parentNode.replaceChild(clone,arcX)							; replace arcX with the clone.
 	
 	if ((node="demog") and (yArch.selectSingleNode(MRN "/demog/data"))){
 		yArch.selectSingleNode(MRN "/demog").removeChild(yArch.selectSingleNode(MRN "/demog/data"))
