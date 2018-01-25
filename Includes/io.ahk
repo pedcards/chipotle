@@ -644,9 +644,10 @@ ArchiveNode(node,i:=0) {
 		;MsgBox Fail
 		return
 	}
-	if !IsObject(yArch.selectSingleNode(MRN "/" node))					; if no node exists,
+	if !IsObject(yArch.selectSingleNode(MRN "/" node)) {				; if no node exists,
 		yArch.addElement(node,MRN)										; create it.
-	arcX := yArch.selectSingleNode(MRN "/" node)						; get the node, whether existant or new
+		eventlog("ArchiveNode created <" node "> in " kMRN ".")
+	}
 	
 	clone := x.cloneNode(true)											; make a copy
 	yArch.selectSingleNode(MRN).replaceChild(clone,arcX)				; replace arcX with the clone.
