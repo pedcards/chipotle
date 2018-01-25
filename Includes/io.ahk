@@ -653,7 +653,7 @@ ArchiveNode(node,i:=0) {
 	arcX := yArch.selectSingleNode(MRN "/" node)						; get the node, whether existant or new
 	arcX.parentNode.replaceChild(clone,arcX)							; replace arcX with the clone.
 	
-	if ((node="demog") and (yArch.selectSingleNode(MRN "/demog/data"))){
+	if ((node="demog") and IsObject(yArch.selectSingleNode(MRN "/demog/data"))){
 		yArch.selectSingleNode(MRN "/demog").removeChild(yArch.selectSingleNode(MRN "/demog/data"))
 	}
 	
