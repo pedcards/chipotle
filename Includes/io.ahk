@@ -162,7 +162,7 @@ SaveIt:
 			eventlog(kMRN " removed from active lists.")
 		}
 		yaChk := yArch.selectSingleNode("/root/id[@mrn='" kMRN "']/diagnoses")
-		if ((yaChk.getAttribute("ed")) && !(yaChk.text)) {
+		if !(yaChk.text) {
 			eventlog(kMRN " blank DX in archlist.")
 		}
 	}
@@ -204,7 +204,7 @@ SaveIt:
 	{
 		tmpDt := A_LoopFileTimeCreated													; File creation date
 		tmpDt -= A_Now, Hours															; diff dates
-		if (tmpDt < -24) {																; older than 24 hrs,
+		if (tmpDt < -48) {																; older than 48 hrs,
 			FileDelete, % "bak/" A_LoopFileName											; delete it.
 		}
 	}
@@ -644,14 +644,16 @@ ArchiveNode(node,i:=0) {
 		;MsgBox Fail
 		return
 	}
-	if !IsObject(yArch.selectSingleNode(MRN "/" node))					; if no node exists,
+	if !IsObject(yArch.selectSingleNode(MRN "/" node)) {				; if no node exists,
 		yArch.addElement(node,MRN)										; create it.
+		eventlog("ArchiveNode created <" node "> in " kMRN ".")
+	}
+	
+	clone := x.cloneNode(true)											; make a copy of y node
 	arcX := yArch.selectSingleNode(MRN "/" node)						; get the node, whether existant or new
+	arcX.parentNode.replaceChild(clone,arcX)							; replace arcX with the clone.
 	
-	clone := x.cloneNode(true)											; make a copy
-	yArch.selectSingleNode(MRN).replaceChild(clone,arcX)				; replace arcX with the clone.
-	
-	if ((node="demog") and (yArch.selectSingleNode(MRN "/demog/data"))){
+	if ((node="demog") and IsObject(yArch.selectSingleNode(MRN "/demog/data"))){
 		yArch.selectSingleNode(MRN "/demog").removeChild(yArch.selectSingleNode(MRN "/demog/data"))
 	}
 	

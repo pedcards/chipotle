@@ -565,13 +565,13 @@ DxRestore:
 	}
 	Sort, dirlist, R
 	
-	loop, parse, bl, `n, `r
+	loop, parse, bl, `n, `r																; BL loop through MRN
 	{
 		idx1 := A_Index
 		mrn := A_LoopField
 		znode := za.selectSingleNode("/root/id[@mrn='" mrn "']")						; ZNODE = <id[@mrn]>
 		if !IsObject(znode) {
-			continue																	; doesn't exist? move along
+			continue																	; MRN doesn't exist in archlist? move along
 		}
 		zdx := []
 		zdx.dx := znode.selectSingleNode("diagnoses")									; get <diagnoses>
@@ -581,15 +581,18 @@ DxRestore:
 		progress, show
 		progress, ,, % z_pt.NameL
 		
-		nomatch := true
-		loop, parse, dirlist, `n														; scan through dirlist filenames
+		nomatch := true																	; set NOMATCH before backscan
+		
+		loop, parse, dirlist, `n														; DIRLIST filename loop 
 		{
 			fl := A_LoopField
 			if (fl="") {
 				break																	; reach end of list, break out
 			}
 			progress, show
-			progress , % 100*A_index/65 ,,% fl, % idx1 ") " z_pt.NameL " (ed=" zdx.ed ")"
+			progress, % 100*A_index/65 
+				,,% fl
+				, % idx1 ") " z_pt.NameF " " z_pt.NameL " " mrn
 			
 			tdx := []
 			ta := new XML("archback/" fl)												; TA = next archback xml (Temp Arch)
@@ -646,14 +649,14 @@ DxRestore:
 					: "")
 				;~ . "ARCH (ed=" zdx.ed ")`n" zdx.out . line
 				. tdx.out
-				, ((ydx.dx.text) ? "Replace currlist|":"") . "Replace archlist|Skip this backup|Next patient"
+				, ((ydx.dx.text) ? "Replace currlist|":"") . "Replace archlist|Goto next backup|Skip this patient"
 				,"Q")
-			if instr(which,"Next") {
+			if instr(which,"Skip") {
 				eventlog("Chose NEXT PATIENT")
 				break																	; BREAK to next MRN
 			}
-			if instr(which,"Skip") {
-				eventlog("Chose to SKIP this backup")
+			if instr(which,"backup") {
+				eventlog("Chose to GOTO next sbackup")
 				continue																; CONTINUE to next archback list
 			}
 			
@@ -673,7 +676,7 @@ DxRestore:
 			za.save("archlist.xml")														; writeout archlist
 			eventlog(mrn " DX (" tdx.ed ") replaced in archlist")
 			
-			if (zdx.lst="y") {
+			if (!(ydx.dx.text)||(zdx.lst="y")) {
 				cloneDx(mrn,y)
 				y.save("currlist.xml")													; if in currlist, also update that
 				eventlog(mrn " DX (" tdx.ed ") replaced in currlist")
@@ -708,10 +711,11 @@ CloneDx(mrn,ByRef dest) {
 */
 	global ta
 	
-	x := ta.selectSingleNode("/root/id[@mrn='" mrn "']/diagnoses")
+	in := ta.selectSingleNode("/root/id[@mrn='" mrn "']/diagnoses")
+	clone := in.cloneNode(true)
 	
-	y := dest.selectSingleNode("/root/id[@mrn='" mrn "']/diagnoses")
-	y.parentNode.replaceChild(x,y)
+	out := dest.selectSingleNode("/root/id[@mrn='" mrn "']/diagnoses")
+	out.parentNode.replaceChild(clone,out)
 	
 	return
 }
