@@ -204,7 +204,7 @@ SaveIt:
 	{
 		tmpDt := A_LoopFileTimeCreated													; File creation date
 		tmpDt -= A_Now, Hours															; diff dates
-		if (tmpDt < -24) {																; older than 24 hrs,
+		if (tmpDt < -48) {																; older than 48 hrs,
 			FileDelete, % "bak/" A_LoopFileName											; delete it.
 		}
 	}
