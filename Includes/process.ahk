@@ -262,34 +262,34 @@ matchCisList() {
 	return arr
 }
 
-processCORES: 										;*** Parse CORES Rounding/Handoff Report
+processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 {
 	filecheck()
-	FileOpen(".currlock", "W")													; Create lock file.
-	refreshCurr()																; load freshest currlist into memory
+	FileOpen(".currlock", "W")															; Create lock file.
+	refreshCurr()																		; load freshest currlist into memory
 
 	Progress, b,, Scanning...
-	RemoveNode("/root/lists/cores")
-	y.addElement("cores", "/root/lists", {date: timenow})
+	RemoveNode("/root/lists/cores")														; clear out <lists/cores>
+	y.addElement("cores", "/root/lists", {date: timenow})								; create new dated <lists/cores>
 
-	GuiControl, Main:Text, GUIcoresTXT, %timenow%
+	GuiControl, Main:Text, GUIcoresTXT, %timenow%										
 	GuiControl, Main:Text, GUIcoresChk, ***
 	Gui, Main:Submit, NoHide
 	N:=1, n0:=0, n1:=0
 	
-	While clip {
-		ptBlock := StrX( clip, "Patient Information" ,N,19, "Patient Information" ,1,20, N )
+	While clip {																					; parse through CLIP
+		ptBlock := StrX( clip, "Patient Information" ,N,19, "Patient Information" ,1,20, N )		; get each "Patient Information" block
 		if instr(ptBlock,"CORES Rounding") {
-			ptBlock := StrX( ptBlock, "",1,1, "CORES Rounding" ,1,15)
+			ptBlock := StrX( ptBlock, "",1,1, "CORES Rounding" ,1,15)								; sometimes "Patient Information~~~CORES Rounding"
 		}
 		if instr(ptBlock,"Contacts 1`r") {
-			ptBlock := StrX( ptBlock, "",1,1, "Contacts 1" ,1,11)
+			ptBlock := StrX( ptBlock, "",1,1, "Contacts 1" ,1,11)									; last pt is "Patient Information~~~Contacts 1"
 		}
 		if (ptBlock = "") {
-			break   ; end of clip reached
+			break   																				; ...or end of clip reached
 		} else {
 		NN = 1
-		Cores_Demo := strX(ptBlock, "",1,0, "DOB:",1,0,NN)
+		Cores_Demo := strX(ptBlock, "",1,0, "DOB:",1,0,NN)											; DEMOGRAPHICS block
 		CORES_Loc := trim(StrX(Cores_Demo, "",1,0, "`r",1,1))
 		CORES_MRNx := trim(RegExMatch(Cores_Demo,"\d{6,7}",CORES_MRN))
 		CORES_Name := trim(StrX(Cores_Demo,CORES_Loc,1,StrLen(CORES_Loc),CORES_MRNx,1,8)," `t`r`n")
@@ -297,9 +297,10 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 			CORES_name_last := Trim(StrX(CORES_name, ,0,0, ", ",1,2))			
 			CORES_name_first := Trim(StrX(CORES_name, ", ",0,2, " ",1,0))	
 		Progress,,, % CORES_name_last ", " CORES_name_first
-		CORES_DCW := StrX( ptBlock, "DCW: " ,1,5, "`r" ,1,1, NN )				; skip to Line 5
-		CORES_Alls := StrX( ptBlock, "Allergy: " ,1,9, "`r" ,1,1, NN )			; Line 6
-		CORES_Code := StrX( ptBlock, "Code Status: " ,1,13, "`r" ,1,1, NN )		; Line 7
+		
+		CORES_DCW := StrX( ptBlock, "DCW: " ,1,5, "`r" ,1,1, NN )									; skip to Line 5
+		CORES_Alls := StrX( ptBlock, "Allergy: " ,1,9, "`r" ,1,1, NN )								; Line 6
+		CORES_Code := StrX( ptBlock, "Code Status: " ,1,13, "`r" ,1,1, NN )							; Line 7
 
 		CORES_HX =
 		CORES_HX := RegExReplace(StRegX( ptBlock, "`r",NN,2, "Medications.*(DRIPS|SCH MEDS)",1,NN),"[^[:ascii:]]","~")
@@ -349,13 +350,13 @@ processCORES: 										;*** Parse CORES Rounding/Handoff Report
 		
 		n0 += 1
 		; List parsed, now place in XML(y)
-		y.addElement("mrn", "/root/lists/cores", CORES_mrn)
+		y.addElement("mrn", "/root/lists/cores", CORES_mrn)								; add MRN to <lists/cores>
 		MRNstring := "/root/id[@mrn='" . CORES_mrn . "']"
-		if !IsObject(y.selectSingleNode(MRNstring)) {		; If no arch record, create it.
+		if !IsObject(y.selectSingleNode(MRNstring)) {									; If no <id@mrn> record in Y, create it.
 			y.addElement("id", "root", {mrn: CORES_mrn})
 			y.addElement("demog", MRNstring)
 				y.addElement("name_last", MRNstring . "/demog", CORES_name_last)	
-				y.addElement("name_first", MRNstring . "/demog", CORES_name_first)	; would keep since name could change
+				y.addElement("name_first", MRNstring . "/demog", CORES_name_first)		; would keep since name could change
 			y.addElement("diagnoses", MRNstring)
 			y.addElement("notes", MRNstring)
 			y.addElement("plan", MRNstring)
