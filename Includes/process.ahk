@@ -368,17 +368,16 @@ processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 			tmpdt := infos.Item(A_index-1).getAttribute("date")
 			tmpTD := tmpdt
 			tmpTD -= A_now, Days
-			if ((tmpTD < -7) or (substr(tmpdt,1,8) = substr(A_now,1,8))) {			; remove old nodes or replace info/mar from today.
-			;if (tmpTD < -7)  {														; remove old nodes.
+			if ((tmpTD < -7) or (substr(tmpdt,1,8) = substr(A_now,1,8))) {				; remove old nodes or replace info/mar from today.
 				RemoveNode(MRNstring "/info[@date='" tmpdt "']")
 				continue
 			}
-			if (tmpTD < 1) {														; remove old info/hx and info/notes from nodes older than 1 day.
+			if (tmpTD < 1) {															; remove old info/hx and info/notes from nodes older than 1 day.
 				RemoveNode(MRNstring "/info[@date='" tmpdt "']/hx")
 				RemoveNode(MRNstring "/info[@date='" tmpdt "']/notes")
 			}
 		}
-		Loop % (infos := y.selectNodes(MRNstring "/MAR")).length					; remove old MAR except for this run.
+		Loop % (infos := y.selectNodes(MRNstring "/MAR")).length						; remove old MAR except for this run.
 		{
 			tmpdt := infos.Item(A_Index-1).getAttribute("date")
 			if (tmpdt!=timenow) {
@@ -386,13 +385,13 @@ processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 			}
 		}
 	
-		y.addElement("info", MRNstring, {date: timenow})	; Create a new /info node
+		y.addElement("info", MRNstring, {date: timenow})								; Create a new /info node
 		yInfoDt := MRNstring . "/info[@date='" timenow "']"
 			y.addElement("dcw", yInfoDt, CORES_DCW)
 			y.addElement("allergies", yInfoDt, CORES_Alls)
 			y.addElement("code", yInfoDt, CORES_Code)
 			if !(y.selectSingleNode(yInfoDt "/hx").text)
-				y.addElement("hx", yInfoDt, "CORES hx")				; CORES_HX
+				y.addElement("hx", yInfoDt, "CORES hx")									; CORES_HX
 			y.addElement("vs", yInfoDt)
 				y.addElement("wt", yInfoDt "/vs", StrX(CORES_vsWt,,1,1,"kg",1,2,NN))
 				if (tmp:=StrX(CORES_vsWt,"(",NN,2,")",1,1))
