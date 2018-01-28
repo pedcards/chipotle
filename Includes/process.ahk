@@ -357,9 +357,12 @@ processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 			y.addElement("demog", MRNstring)
 				y.addElement("name_last", MRNstring . "/demog", CORES_name_last)	
 				y.addElement("name_first", MRNstring . "/demog", CORES_name_first)		; would keep since name could change
-			y.addElement("diagnoses", MRNstring)
-			y.addElement("notes", MRNstring)
-			y.addElement("plan", MRNstring)
+			FetchNode("diagnoses")														; Check for existing node in Archlist,
+			FetchNode("notes")															; retrieve old Dx, Notes, Plan. (Status is discarded)
+			FetchNode("plan")															; Otherwise, create placeholders.
+			FetchNode("prov")
+			WriteOut("/root","id[@mrn='" CORES_mrn "']")
+			eventlog("processCORES pulled " CORES_mrn " from archive, added to active list.")
 			n1 += 1
 		}
 		; Remove the old Info nodes
