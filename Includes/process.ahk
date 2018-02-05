@@ -265,7 +265,7 @@ matchCisList() {
 processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 {
 	filecheck()
-	FileOpen(".currlock", "W")															; Create lock file.
+	;~ FileOpen(".currlock", "W")															; Create lock file.
 	refreshCurr()																		; load freshest currlist into memory
 
 	Progress, b,, Scanning...
