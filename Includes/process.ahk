@@ -357,6 +357,7 @@ processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 			FetchNode("notes")															; retrieve old Dx, Notes, Plan. (Status is discarded)
 			FetchNode("plan")															; Otherwise, create placeholders.
 			FetchNode("prov")
+			FetchNode("data")
 			WriteOut("/root","id[@mrn='" CORES_mrn "']")
 			eventlog("processCORES pulled " CORES_mrn " from archive, added to active list.")
 			n1 += 1
