@@ -792,19 +792,6 @@ refreshCurr(lock:="") {
 	ExitApp
 }
 
-repairXML(ByRef y, ByRef z) {
-/*	Attempt to repair broken XML file.
-	"Y" = broken XML, "Z" = last good bak version
-	Get X chars from broken tail for polymerase annealing.
-	Search for "<id mrn=" backwards from broken tail, get the MRN string.
-	Search for same "tail" within the same ID MRN in Z.
-	Copy the remainder of Z from that point.
-	Attach to broken tail of Y.
-*/
-
-	; Cool idea, but will this really be relevant if we have a constant supply of good bak files?
-}
-
 WriteOut(path,node) {
 /* 
 	Prevents concurrent writing of y.MRN data. If someone is saving data (.currlock exists), script will wait
