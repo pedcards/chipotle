@@ -157,6 +157,7 @@ readCISCol(location:="") {
 			FetchNode("notes")										; retrieve old Dx, Notes, Plan. (Status is discarded)
 			FetchNode("plan")										; Otherwise, create placeholders.
 			FetchNode("prov")
+			FetchNode("data")
 			if (archDxDate := y.selectSingleNode(MRNstring "/diagnoses").getattribute("date")) {				; Dx node fetched from archlist
 				if (archDxNotes := y.selectSingleNode(MRNstring "/diagnoses/notes").text) {						; DxNotes has text
 					y.setText(MRNstring "/diagnoses/notes", "[[" niceDate(archDxDate) ": " archDxNotes "]]")	; Denote with [[date]]
