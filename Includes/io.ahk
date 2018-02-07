@@ -133,6 +133,7 @@ SaveIt:
 		ArchiveNode("prov") 
 		ArchiveNode("notes") 
 		ArchiveNode("plan") 
+		ArchiveNode("data")
 		if (A_index/10 == Round(A_index/10)) {
 			Progress, % 80*(A_Index/yaNum), % dialogVals[Rand(dialogVals.MaxIndex())] "..." 
 		}
