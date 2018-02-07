@@ -153,17 +153,14 @@ readCISCol(location:="") {
 		if !IsObject(y.selectSingleNode(MRNstring)) {				; If no MRN node exists, create it.
 			y.addElement("id", "root", {mrn: CIS_mrn})
 			y.addElement("demog", MRNstring)
+			fetchGot := false
 			FetchNode("diagnoses")									; Check for existing node in Archlist,
 			FetchNode("notes")										; retrieve old Dx, Notes, Plan. (Status is discarded)
 			FetchNode("plan")										; Otherwise, create placeholders.
 			FetchNode("prov")
-			if (archDxDate := y.selectSingleNode(MRNstring "/diagnoses").getattribute("date")) {				; Dx node fetched from archlist
-				if (archDxNotes := y.selectSingleNode(MRNstring "/diagnoses/notes").text) {						; DxNotes has text
-					y.setText(MRNstring "/diagnoses/notes", "[[" niceDate(archDxDate) ": " archDxNotes "]]")	; Denote with [[date]]
-				}																								; This may be obsolete since now delete notes on dc
-			}
+			FetchNode("data")
 			WriteOut("/root","id[@mrn='" CIS_mrn "']")
-			eventlog(CIS_mrn " pulled from archive, added to active list.")
+			eventlog("processCIS " CIS_mrn ((fetchGot) ? " pulled from archive":" new") ", added to active list.")
 		} else {													; Otherwise clear old demog & loc info.
 			RemoveNode(MRNstring . "/demog")
 			y.insertElement("demog", MRNstring . "/diagnoses")		; Insert before "diagnoses" node.
@@ -265,7 +262,6 @@ matchCisList() {
 processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 {
 	filecheck()
-	;~ FileOpen(".currlock", "W")															; Create lock file.
 	refreshCurr()																		; load freshest currlist into memory
 
 	Progress, b,, Scanning...
@@ -277,7 +273,7 @@ processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 	Gui, Main:Submit, NoHide
 	N:=1, n0:=0, n1:=0
 	
-	While clip {																					; parse through CLIP
+	While (clip) {																					; parse through CLIP
 		ptBlock := StrX( clip, "Patient Information" ,N,19, "Patient Information" ,1,20, N )		; get each "Patient Information" block
 		if instr(ptBlock,"CORES Rounding") {
 			ptBlock := StrX( ptBlock, "",1,1, "CORES Rounding" ,1,15)								; sometimes "Patient Information~~~CORES Rounding"
@@ -287,7 +283,7 @@ processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 		}
 		if (ptBlock = "") {
 			break   																				; ...or end of clip reached
-		} else {
+		}
 		NN = 1
 		Cores_Demo := strX(ptBlock, "",1,0, "DOB:",1,0,NN)											; DEMOGRAPHICS block
 		CORES_Loc := trim(StrX(Cores_Demo, "",1,0, "`r",1,1))
@@ -301,7 +297,7 @@ processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 		CORES_DCW := StrX( ptBlock, "DCW: " ,1,5, "`r" ,1,1, NN )									; skip to Line 5
 		CORES_Alls := StrX( ptBlock, "Allergy: " ,1,9, "`r" ,1,1, NN )								; Line 6
 		CORES_Code := StrX( ptBlock, "Code Status: " ,1,13, "`r" ,1,1, NN )							; Line 7
-
+		
 		CORES_HX =
 		CORES_HX := RegExReplace(StRegX( ptBlock, "`r",NN,2, "Medications.*(DRIPS|SCH MEDS)",1,NN),"[^[:ascii:]]","~")
 			StringReplace, CORES_hx, CORES_hx, •%A_space%, *%A_Space%, ALL
@@ -357,12 +353,14 @@ processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 			y.addElement("demog", MRNstring)
 				y.addElement("name_last", MRNstring . "/demog", CORES_name_last)	
 				y.addElement("name_first", MRNstring . "/demog", CORES_name_first)		; would keep since name could change
+			fetchGot := false
 			FetchNode("diagnoses")														; Check for existing node in Archlist,
 			FetchNode("notes")															; retrieve old Dx, Notes, Plan. (Status is discarded)
 			FetchNode("plan")															; Otherwise, create placeholders.
 			FetchNode("prov")
+			FetchNode("data")
 			WriteOut("/root","id[@mrn='" CORES_mrn "']")
-			eventlog("processCORES pulled " CORES_mrn " from archive, added to active list.")
+			eventlog("processCORES " CORES_mrn ((fetchGot) ? " pulled from archive":" new") ", added to active list.")
 			n1 += 1
 		}
 		; Remove the old Info nodes
@@ -426,8 +424,8 @@ processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 				MedListParse("meds",CORES_Meds)
 				MedListParse("prn",CORES_PRN)
 				MedListParse("diet",CORES_Diet)
-			}
 		}
+		WriteOut("/root","id[@mrn='" CORES_mrn "']")
 	}
 	Progress off
 	writeFile()
@@ -479,5 +477,3 @@ readHIS(txt) {
 	}
 	return y
 }
-
-

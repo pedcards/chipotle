@@ -133,6 +133,7 @@ SaveIt:
 		ArchiveNode("prov") 
 		ArchiveNode("notes") 
 		ArchiveNode("plan") 
+		ArchiveNode("data")
 		if (A_index/10 == Round(A_index/10)) {
 			Progress, % 80*(A_Index/yaNum), % dialogVals[Rand(dialogVals.MaxIndex())] "..." 
 		}
@@ -641,10 +642,9 @@ ArchiveNode(node,i:=0) {
 	MRN := "/root/id[@mrn='" kMRN "']"
 	x := y.selectSingleNode(MRN "/" node)							; Get "node" from k (y.id[mrn])
 	if !IsObject(x) {
-		;MsgBox Fail
-		return
+		return														; return if no such node in y
 	}
-	if !IsObject(yArch.selectSingleNode(MRN "/" node)) {				; if no node exists,
+	if !IsObject(yArch.selectSingleNode(MRN "/" node)) {				; if no node exists in arch,
 		yArch.addElement(node,MRN)										; create it.
 		eventlog("ArchiveNode created <" node "> in " kMRN ".")
 	}
@@ -671,20 +671,19 @@ ArchiveNode(node,i:=0) {
 }
 
 FetchNode(node) {
-	global
-	local x, clone
+	global y, yArch, MRNstring, fetchGot
 	if IsObject(yArch.selectSingleNode(MRNstring "/" node)) {		; Node arch exists
 		x := yArch.selectSingleNode(MRNstring "/" node)
 		clone := x.cloneNode(true)
 		y.selectSingleNode(MRNstring).appendChild(clone)			; using appendChild as no Child exists yet.
+		fetchGot := true
 	} else {
 		y.addElement(node, MRNstring)								; If no node arch exists, create placeholder
 	}
 }
 
 RemoveNode(node) {
-	global
-	local q
+	global y
 	q := y.selectSingleNode(node)
 	q.parentNode.removeChild(q)
 }
@@ -790,19 +789,6 @@ refreshCurr(lock:="") {
 	FileDelete, .currlock
 	MsgBox, 16, CRITICAL ERROR, Unable to read currlist. `n`nExiting.
 	ExitApp
-}
-
-repairXML(ByRef y, ByRef z) {
-/*	Attempt to repair broken XML file.
-	"Y" = broken XML, "Z" = last good bak version
-	Get X chars from broken tail for polymerase annealing.
-	Search for "<id mrn=" backwards from broken tail, get the MRN string.
-	Search for same "tail" within the same ID MRN in Z.
-	Copy the remainder of Z from that point.
-	Attach to broken tail of Y.
-*/
-
-	; Cool idea, but will this really be relevant if we have a constant supply of good bak files?
 }
 
 WriteOut(path,node) {
