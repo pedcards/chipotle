@@ -273,7 +273,7 @@ processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 	Gui, Main:Submit, NoHide
 	N:=1, n0:=0, n1:=0
 	
-	While clip {																					; parse through CLIP
+	While (clip) {																					; parse through CLIP
 		ptBlock := StrX( clip, "Patient Information" ,N,19, "Patient Information" ,1,20, N )		; get each "Patient Information" block
 		if instr(ptBlock,"CORES Rounding") {
 			ptBlock := StrX( ptBlock, "",1,1, "CORES Rounding" ,1,15)								; sometimes "Patient Information~~~CORES Rounding"
@@ -283,7 +283,7 @@ processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 		}
 		if (ptBlock = "") {
 			break   																				; ...or end of clip reached
-		} else {
+		}
 		NN = 1
 		Cores_Demo := strX(ptBlock, "",1,0, "DOB:",1,0,NN)											; DEMOGRAPHICS block
 		CORES_Loc := trim(StrX(Cores_Demo, "",1,0, "`r",1,1))
@@ -424,8 +424,8 @@ processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 				MedListParse("meds",CORES_Meds)
 				MedListParse("prn",CORES_PRN)
 				MedListParse("diet",CORES_Diet)
-			}
 		}
+		WriteOut("/root","id[@mrn='" CORES_mrn "']")
 	}
 	Progress off
 	writeFile()
