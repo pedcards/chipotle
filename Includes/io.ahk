@@ -671,12 +671,12 @@ ArchiveNode(node,i:=0) {
 }
 
 FetchNode(node) {
-	global
-	local x, clone
+	global y, yArch, MRNstring, fetchGot
 	if IsObject(yArch.selectSingleNode(MRNstring "/" node)) {		; Node arch exists
 		x := yArch.selectSingleNode(MRNstring "/" node)
 		clone := x.cloneNode(true)
 		y.selectSingleNode(MRNstring).appendChild(clone)			; using appendChild as no Child exists yet.
+		fetchGot := true
 	} else {
 		y.addElement(node, MRNstring)								; If no node arch exists, create placeholder
 	}
