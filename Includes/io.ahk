@@ -642,10 +642,9 @@ ArchiveNode(node,i:=0) {
 	MRN := "/root/id[@mrn='" kMRN "']"
 	x := y.selectSingleNode(MRN "/" node)							; Get "node" from k (y.id[mrn])
 	if !IsObject(x) {
-		;MsgBox Fail
-		return
+		return														; return if no such node in y
 	}
-	if !IsObject(yArch.selectSingleNode(MRN "/" node)) {				; if no node exists,
+	if !IsObject(yArch.selectSingleNode(MRN "/" node)) {				; if no node exists in arch,
 		yArch.addElement(node,MRN)										; create it.
 		eventlog("ArchiveNode created <" node "> in " kMRN ".")
 	}
