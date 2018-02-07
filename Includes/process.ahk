@@ -153,13 +153,14 @@ readCISCol(location:="") {
 		if !IsObject(y.selectSingleNode(MRNstring)) {				; If no MRN node exists, create it.
 			y.addElement("id", "root", {mrn: CIS_mrn})
 			y.addElement("demog", MRNstring)
+			fetchGot := false
 			FetchNode("diagnoses")									; Check for existing node in Archlist,
 			FetchNode("notes")										; retrieve old Dx, Notes, Plan. (Status is discarded)
 			FetchNode("plan")										; Otherwise, create placeholders.
 			FetchNode("prov")
 			FetchNode("data")
 			WriteOut("/root","id[@mrn='" CIS_mrn "']")
-			eventlog(CIS_mrn " pulled from archive, added to active list.")
+			eventlog("processCIS " CIS_mrn ((fetchGot) ? " pulled from archive":" new") ", added to active list.")
 		} else {													; Otherwise clear old demog & loc info.
 			RemoveNode(MRNstring . "/demog")
 			y.insertElement("demog", MRNstring . "/diagnoses")		; Insert before "diagnoses" node.
@@ -359,7 +360,7 @@ processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 			FetchNode("prov")
 			FetchNode("data")
 			WriteOut("/root","id[@mrn='" CORES_mrn "']")
-			eventlog("processCORES " CORES_mrn " from archive, added to active list.")
+			eventlog("processCORES " CORES_mrn ((fetchGot) ? " pulled from archive":" new") ", added to active list.")
 			n1 += 1
 		}
 		; Remove the old Info nodes
@@ -476,5 +477,3 @@ readHIS(txt) {
 	}
 	return y
 }
-
-
