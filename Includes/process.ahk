@@ -285,8 +285,8 @@ processCORES(clip) {
 		NN := 1																			; NN = position in ptBlock
 		cores := []																		; Reset CORES obj
 		cores.demog := stregX(ptBlock,"",1,0,"DOB:",1)
-		cores.loc := stregX(cores.demog,"",1,0,"[\r\n]+",0,NN)
-		cores.name := stregX(cores.demog,"",NN,0,"[\r\n]+",1,NN)
+		cores.loc := stregX(cores.demog,"",1,0,"\R+",0,NN)
+		cores.name := stregX(cores.demog,"",NN,0,"\R+",0,NN)
 			cores.name_last := Trim(StrX(cores.name,"",0,0, ",",1,1))
 			cores.name_first := Trim(StrX(cores.name,",",1,1, "",0))
 		RegExMatch(cores.demog,"\d{6,7}",tmp,NN)
@@ -308,10 +308,9 @@ processCORES(clip) {
 		
 		cores.vsBlock := stregX(ptBlock,"Vitals",NN,1,"Ins/Outs",1,NN)
 			cores.vsWt := trim(stregX(cores.vsBlock,"Meas Wt:",1,1,"\R",0,NN)," `r`n")
-			if (instr(CORES_vsWt,"No current data available")) {
-				CORES_vsWt := "n/a"
-			}
-		MsgBox % "'" cores.vsWt "'"
+			cores.vsWt := !instr(cores.vsWt,"No current data available") ?: "n/a"
+			
+		MsgBox,,% cores.name, % "'" cores.vsWt "'"
 	}
 	
 return	
