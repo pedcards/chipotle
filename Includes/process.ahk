@@ -157,11 +157,7 @@ readCISCol(location:="") {
 			FetchNode("notes")										; retrieve old Dx, Notes, Plan. (Status is discarded)
 			FetchNode("plan")										; Otherwise, create placeholders.
 			FetchNode("prov")
-			if (archDxDate := y.selectSingleNode(MRNstring "/diagnoses").getattribute("date")) {				; Dx node fetched from archlist
-				if (archDxNotes := y.selectSingleNode(MRNstring "/diagnoses/notes").text) {						; DxNotes has text
-					y.setText(MRNstring "/diagnoses/notes", "[[" niceDate(archDxDate) ": " archDxNotes "]]")	; Denote with [[date]]
-				}																								; This may be obsolete since now delete notes on dc
-			}
+			FetchNode("data")
 			WriteOut("/root","id[@mrn='" CIS_mrn "']")
 			eventlog(CIS_mrn " pulled from archive, added to active list.")
 		} else {													; Otherwise clear old demog & loc info.
@@ -361,6 +357,7 @@ processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 			FetchNode("notes")															; retrieve old Dx, Notes, Plan. (Status is discarded)
 			FetchNode("plan")															; Otherwise, create placeholders.
 			FetchNode("prov")
+			FetchNode("data")
 			WriteOut("/root","id[@mrn='" CORES_mrn "']")
 			eventlog("processCORES pulled " CORES_mrn " from archive, added to active list.")
 			n1 += 1
