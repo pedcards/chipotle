@@ -259,7 +259,65 @@ matchCisList() {
 	return arr
 }
 
-processCORES: 																			;*** Parse CORES Rounding/Handoff Report
+processCORES(clip) {
+	global y, yArch
+		, GUIcoresTXT, GUIcoresChk, timenow
+		, CORES_Pt, CORES_Pg, CORES_end
+	filecheck()
+	refreshCurr()
+	
+	RemoveNode("/root/lists/cores")														; clear out <lists/cores>
+	y.addElement("cores", "/root/lists", {date: timenow})								; create new dated <lists/cores>
+	
+	GuiControl, Main:Text, GUIcoresTXT, %timenow%										
+	GuiControl, Main:Text, GUIcoresChk, ***
+	Gui, Main:Submit, NoHide
+	N:=1, n0:=0, n1:=0
+	
+	while (clip) {
+		ptBlock := stregX(clip
+			, CORES_Pt,N,1																; N = position in CLIP
+			, CORES_Pt "|" CORES_Pg "|" CORES_end,1,N)									; match to next pt, next page, or end
+		if (ptBlock = "") {
+			MsgBox Done
+			break
+		}
+		NN := 1																			; NN = position in ptBlock
+		cores := []																		; Reset CORES obj
+		cores.demog := stregX(ptBlock,"",1,0,"DOB:",1)
+		cores.loc := stregX(cores.demog,"",1,0,"[\r\n]+",0,NN)
+		cores.name := stregX(cores.demog,"",NN,0,"[\r\n]+",1,NN)
+			cores.name_last := Trim(StrX(cores.name,"",0,0, ",",1,1))
+			cores.name_first := Trim(StrX(cores.name,",",1,1, "",0))
+		RegExMatch(cores.demog,"\d{6,7}",tmp,NN)
+		cores.mrn := tmp
+		;~ Progress,,, % CORES.name
+		
+		cores.DCW := stregX(ptBlock,"DCW: ",1,1,"\R",1,NN)
+		cores.Alls := stregX(ptBlock,"Allergy: ",1,1,"\R",1,NN)
+		cores.Code := stregX(ptBlock,"Code Status: ",1,1,"\R",1,NN)
+		
+		cores.Hx := stregX(ptBlock,"",NN,0,"Medications.*(DRIPS|SCH MEDS)",1,NN)
+			cores.Hx := RegExReplace(cores.Hx,"• ","* ")
+		cores.Diet := stregX(cores.Hx "<<<","Diet.*\*",1,1,"<<<",1)
+		
+		cores.MedBlock := stregX(ptBlock,"Medications",NN,1,"Vitals",1,NN)
+			cores.Drips := stregX(cores.MedBlock,"Drips\R",1,1,"SCH MEDS",1)
+			cores.Meds := stregX(cores.MedBlock,"SCH MEDS\R",1,1,"PRN",1)
+			cores.PRN := stregX(cores.MedBlock "<<<","PRN\R",1,1,"<<<",1)
+		
+		cores.vsBlock := stregX(ptBlock,"Vitals",NN,1,"Ins/Outs",1,NN)
+			cores.vsWt := trim(stregX(cores.vsBlock,"Meas Wt:",1,1,"\R",0,NN)," `r`n")
+			if (instr(CORES_vsWt,"No current data available")) {
+				CORES_vsWt := "n/a"
+			}
+		MsgBox % "'" cores.vsWt "'"
+	}
+	
+return	
+}
+
+processCORES_old: 																			;*** Parse CORES Rounding/Handoff Report
 {
 	filecheck()
 	refreshCurr()																		; load freshest currlist into memory
@@ -425,7 +483,7 @@ processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 				MedListParse("prn",CORES_PRN)
 				MedListParse("diet",CORES_Diet)
 		}
-		WriteOut("/root","id[@mrn='" CORES_mrn "']")
+		;~ WriteOut("/root","id[@mrn='" CORES_mrn "']")
 	}
 	Progress off
 	writeFile()
