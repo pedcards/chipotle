@@ -261,7 +261,6 @@ matchCisList() {
 processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 {
 	filecheck()
-	;~ FileOpen(".currlock", "W")															; Create lock file.
 	refreshCurr()																		; load freshest currlist into memory
 
 	Progress, b,, Scanning...
@@ -297,7 +296,7 @@ processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 		CORES_DCW := StrX( ptBlock, "DCW: " ,1,5, "`r" ,1,1, NN )									; skip to Line 5
 		CORES_Alls := StrX( ptBlock, "Allergy: " ,1,9, "`r" ,1,1, NN )								; Line 6
 		CORES_Code := StrX( ptBlock, "Code Status: " ,1,13, "`r" ,1,1, NN )							; Line 7
-
+		
 		CORES_HX =
 		CORES_HX := RegExReplace(StRegX( ptBlock, "`r",NN,2, "Medications.*(DRIPS|SCH MEDS)",1,NN),"[^[:ascii:]]","~")
 			StringReplace, CORES_hx, CORES_hx, •%A_space%, *%A_Space%, ALL
@@ -353,13 +352,14 @@ processCORES: 																			;*** Parse CORES Rounding/Handoff Report
 			y.addElement("demog", MRNstring)
 				y.addElement("name_last", MRNstring . "/demog", CORES_name_last)	
 				y.addElement("name_first", MRNstring . "/demog", CORES_name_first)		; would keep since name could change
+			fetchGot := false
 			FetchNode("diagnoses")														; Check for existing node in Archlist,
 			FetchNode("notes")															; retrieve old Dx, Notes, Plan. (Status is discarded)
 			FetchNode("plan")															; Otherwise, create placeholders.
 			FetchNode("prov")
 			FetchNode("data")
 			WriteOut("/root","id[@mrn='" CORES_mrn "']")
-			eventlog("processCORES pulled " CORES_mrn " from archive, added to active list.")
+			eventlog("processCORES " CORES_mrn " from archive, added to active list.")
 			n1 += 1
 		}
 		; Remove the old Info nodes
