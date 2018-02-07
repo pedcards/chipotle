@@ -683,8 +683,7 @@ FetchNode(node) {
 }
 
 RemoveNode(node) {
-	global
-	local q
+	global y
 	q := y.selectSingleNode(node)
 	q.parentNode.removeChild(q)
 }
