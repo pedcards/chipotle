@@ -307,13 +307,25 @@ processCORES(clip) {
 			cores.PRN := stregX(cores.MedBlock "<<<","PRN\R",1,1,"<<<",1)
 		
 		cores.vsBlock := stregX(ptBlock,"Vitals",NN,1,"Ins/Outs",1,NN)
-			cores.vsWt := trim(stregX(cores.vsBlock,"Meas Wt:",1,1,"\R",0,NN)," `r`n")
+			cores.vsWt := trim(stregX(cores.vsBlock,"Meas Wt:",1,1,"\R",0,NNN)," `r`n")
 			cores.vsWt := !instr(cores.vsWt,"No current data available") ?: "n/a"
-			
-		MsgBox,,% cores.name, % "'" cores.vsWt "'"
+			cores.vsTmp := stregX(cores.vsBlock,"^T ",NNN,1,"HR ",1,NNN)
+			cores.vsHR := stregX(cores.vsBlock,"HR ",NNN,1,"MHR",1,NNN)
+		MsgBox,,% cores.name, % NNN " '" fmtMean(cores.vsTmp) "'"
 	}
 	
 return	
+}
+
+fmtMean(str) {
+/*	from string " 78-140 124 "
+ *	returns "78-140 (124)"
+ */
+str := trim(str)
+str := RegExReplace(str,"-[\s]+","-")
+str := RegExReplace(str," ([^ ](.*))"," ($1)")
+return str
+	
 }
 
 processCORES_old: 																			;*** Parse CORES Rounding/Handoff Report
