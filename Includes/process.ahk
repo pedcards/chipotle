@@ -291,7 +291,7 @@ processCORES(clip) {
 			cores.name_first := Trim(StrX(cores.name,",",1,1, "",0))
 		RegExMatch(cores.demog,"\d{6,7}",tmp,NN)
 		cores.mrn := tmp
-		;~ Progress,,, % CORES.name
+		;~ Progress,,, % CORES.mrn
 		
 		cores.DCW := stregX(ptBlock,"DCW: ",1,1,"\R",1,NN)
 		cores.Alls := stregX(ptBlock,"Allergy: ",1,1,"\R",1,NN)
@@ -300,19 +300,119 @@ processCORES(clip) {
 		cores.Hx := stregX(ptBlock,"",NN,0,"Medications.*(DRIPS|SCH MEDS)",1,NN)
 			cores.Hx := RegExReplace(cores.Hx,"• ","* ")
 		cores.Diet := stregX(cores.Hx "<<<","Diet.*\*",1,1,"<<<",1)
+			cores.Diet := RegExReplace(cores.Diet,"Diet *","*")
 		
 		cores.MedBlock := stregX(ptBlock,"Medications",NN,1,"Vitals",1,NN)
 			cores.Drips := stregX(cores.MedBlock,"Drips\R",1,1,"SCH MEDS",1)
 			cores.Meds := stregX(cores.MedBlock,"SCH MEDS\R",1,1,"PRN",1)
 			cores.PRN := stregX(cores.MedBlock "<<<","PRN\R",1,1,"<<<",1)
 		
-		cores.vsBlock := stregX(ptBlock,"Vitals",NN,1,"Ins/Outs",1,NN)
-			cores.vsWt := trim(stregX(cores.vsBlock,"Meas Wt:",1,1,"\R",0,NNN)," `r`n")
+		cores.vs := stregX(ptBlock,"Vitals",NN,1,"Ins/Outs",1,NN)
+			cores.vsWt := trim(stregX(cores.vs,"Meas Wt:",1,1,"\R",0,NNN)," `r`n")
 			cores.vsWt := !instr(cores.vsWt,"No current data available") ?: "n/a"
-			cores.vsTmp := stregX(cores.vsBlock,"^T ",NNN,1,"HR ",1,NNN)
-			cores.vsHR := stregX(cores.vsBlock,"HR ",NNN,1,"MHR",1,NNN)
-		MsgBox,,% cores.name, % NNN " '" fmtMean(cores.vsTmp) "'"
+			cores.vsTmp := fmtMean(stregX(cores.vs,"^T ",NNN,1,"HR ",1,NNN))
+			cores.vsHR := fmtMean(stregX(cores.vs,"HR ",NNN,1,"MHR",1,NNN))
+			cores.vsRR := fmtMean(stregX(cores.vs,"RR ",NNN,1,"\R",1,NNN))
+			cores.vsNBP := fmtMean(stregX(cores.vs,"NI?BP ",NNN,1,"\R",1,NNN))
+			cores.vsVent := stregX(cores.vs,"",NNN,0,"SpO2",1,NNN)
+			cores.vsSat := fmtMean(stregX(cores.vs,"SpO2",NNN,1,"\R",1,NNN))
+			cores.vsPain := fmtMean(stregX(cores.vs,"Pain Score",NNN,1,"\R",1,NNN))
+		cores.io := stregX(ptBlock,"Ins/Outs",NN,1,"Labs \(72 Hrs\)",1,NN)
+			
+		cores.labsBlock := stregX(ptBlock ">>>","Labs (.*)? / Studies",NN,1,">>>",1,NN)
+			cores.labs := trim(stregX(cores.labsBlock,"",1,1,"^(Studies|Notes)",1))
+			cores.studies := trim(stregX(cores.labsBlock ">>>","^Studies",1,1,"^(Notes|>>>)",1))
+			cores.notes := RegExReplace(trim(stregX(cores.labsBlock ">>>","^Notes",1,1,">>>",1)),"[^[:ascii:]]","~")
+			
+		n0 += 1																			; n0 = number of CORES pts processed
+		; List parsed, now place in XML(y)
+		y.addElement("mrn", "/root/lists/cores", CORES.mrn)								; add MRN to <lists/cores>
+		MRNstring := "/root/id[@mrn='" . CORES.mrn . "']"
+		if !IsObject(y.selectSingleNode(MRNstring)) {									; If no <id@mrn> record in Y, create it.
+			y.addElement("id", "root", {mrn: CORES.mrn})
+			y.addElement("demog", MRNstring)
+				y.addElement("name_last", MRNstring . "/demog", CORES.name_last)	
+				y.addElement("name_first", MRNstring . "/demog", CORES.name_first)		; would keep since name could change
+			fetchGot := false
+			FetchNode("diagnoses")														; Check for existing node in Archlist,
+			FetchNode("notes")															; retrieve old Dx, Notes, Plan. (Status is discarded)
+			FetchNode("plan")															; Otherwise, create placeholders.
+			FetchNode("prov")
+			FetchNode("data")
+			WriteOut("/root","id[@mrn='" CORES.mrn "']")
+			eventlog("processCORES " CORES.mrn ((fetchGot) ? " pulled from archive":" new") ", added to active list.")
+			n1 += 1																		; n1 = number of new CORES pts added
+		}
+		; Remove the old Info nodes
+		Loop % (infos := y.selectNodes(MRNstring "/info")).length
+		{
+			tmpdt := infos.Item(A_index-1).getAttribute("date")
+			tmpTD := tmpdt
+			tmpTD -= A_now, Days
+			if ((tmpTD < -7) or (substr(tmpdt,1,8) = substr(A_now,1,8))) {				; remove old nodes or replace info/mar from today.
+				RemoveNode(MRNstring "/info[@date='" tmpdt "']")
+				continue
+			}
+			if (tmpTD < 1) {															; remove old info/hx and info/notes from nodes older than 1 day.
+				RemoveNode(MRNstring "/info[@date='" tmpdt "']/hx")
+				RemoveNode(MRNstring "/info[@date='" tmpdt "']/notes")
+			}
+		}
+		; Remove old MAR except for this run.
+		Loop % (infos := y.selectNodes(MRNstring "/MAR")).length
+		{
+			tmpdt := infos.Item(A_Index-1).getAttribute("date")
+			if (tmpdt!=timenow) {
+				RemoveNode(MRNstring "/MAR[@date='" tmpdt "']")
+			}
+		}
+	
+		y.addElement("info", MRNstring, {date: timenow})								; Create a new /info node
+		yInfoDt := MRNstring . "/info[@date='" timenow "']"
+			y.addElement("dcw", yInfoDt, CORES.DCW)
+			y.addElement("allergies", yInfoDt, CORES.Alls)
+			y.addElement("code", yInfoDt, CORES.Code)
+			if !(y.selectSingleNode(yInfoDt "/hx").text) {
+				y.addElement("hx", yInfoDt, "CORES hx")									; CORES_HX
+			}
+			y.addElement("vs", yInfoDt)
+				y.addElement("wt", yInfoDt "/vs", StrX(CORES.vsWt,,1,1,"kg",1,2,NN))
+				if (tmp:=StrX(CORES.vsWt,"(",NN,2,")",1,1)) {
+					y.selectSingleNode(yInfoDt "/vs/wt").setAttribute("change", tmp)
+				}
+				y.addElement("temp", yInfoDt "/vs", CORES.vsTmp)
+				y.addElement("hr",   yInfoDt "/vs", CORES.vsHR)
+				y.addElement("rr",   yInfoDt "/vs", CORES.vsRR)
+				y.addElement("bp",   yInfoDt "/vs", CORES.vsNBP)
+				y.addElement("spo2", yInfoDt "/vs", CORES.vsSat)
+				y.addElement("pain", yInfoDt "/vs", CORES.vsPain)
+			y.addElement("io", yInfoDt )
+				;~ y.addElement("in",  yInfoDt "/io", CORES.ioIn)
+				;~ y.addElement("ent", yInfoDt "/io", CORES.ioEnt)
+				;~ y.addElement("po",  yInfoDt "/io", CORES.ioPO)
+				;~ y.addElement("out", yInfoDt "/io", CORES.ioOut)
+				;~ y.addElement("ct",  yInfoDt "/io", CORES.ioCT)
+				;~ y.addElement("net", yInfoDt "/io", CORES.ioNet)
+				;~ y.addElement("uop", yInfoDt "/io", CORES.ioUOP)
+			y.addElement("labs", yInfoDt )
+				parseLabs(CORES.Labs)
+			y.addElement("studies", yInfoDt , CORES.Studies)
+			y.addElement("notes", yInfoDt , CORES.Notes)
+		if !isobject(y.selectSingleNode(MRNstring "/MAR")) {
+			y.addElement("MAR", MRNstring)											; Create a new /MAR node
+		}
+		y.selectSingleNode(MRNstring "/MAR").setAttribute("date", timenow)			; Change date to now
+		if !(y.selectNodes(MRNstring "/MAR/*").length) {							; Populate only if empty
+			yMarDt := MRNstring "/MAR[@date='" timenow "']"
+				MedListParse("drips",CORES.Drips)
+				MedListParse("meds",CORES.Meds)
+MsgBox % cores.mrn
+				MedListParse("prn",CORES.PRN)
+				MedListParse("diet",CORES.Diet)
+		}
+		;~ WriteOut("/root","id[@mrn='" CORES_mrn "']")
 	}
+
 	
 return	
 }
@@ -321,8 +421,9 @@ fmtMean(str) {
 /*	from string " 78-140 124 "
  *	returns "78-140 (124)"
  */
-str := trim(str)
+str := trim(str," `t`r`n")
 str := RegExReplace(str,"-[\s]+","-")
+str := RegExReplace(str,"/[\s]+","/")
 str := RegExReplace(str," ([^ ](.*))"," ($1)")
 return str
 	
