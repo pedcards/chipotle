@@ -263,6 +263,7 @@ processCORES(clip) {
 	global y, yArch
 		, GUIcoresTXT, GUIcoresChk, timenow
 		, CORES_Pt, CORES_Pg, CORES_end
+		, yMarDT
 	filecheck()
 	refreshCurr()
 	
@@ -404,9 +405,8 @@ processCORES(clip) {
 		y.selectSingleNode(MRNstring "/MAR").setAttribute("date", timenow)			; Change date to now
 		if !(y.selectNodes(MRNstring "/MAR/*").length) {							; Populate only if empty
 			yMarDt := MRNstring "/MAR[@date='" timenow "']"
-				MedListParse("drips",CORES.Drips)
-				MedListParse("meds",CORES.Meds)
-MsgBox % cores.mrn
+				MedListParse("drips",cores.Drips)
+				MedListParse("meds",cores.Meds)
 				MedListParse("prn",CORES.PRN)
 				MedListParse("diet",CORES.Diet)
 		}
