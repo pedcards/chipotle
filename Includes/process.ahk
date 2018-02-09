@@ -263,7 +263,7 @@ processCORES(clip) {
 	global y, yArch
 		, GUIcoresTXT, GUIcoresChk, timenow
 		, CORES_Pt, CORES_Pg, CORES_end
-		, yMarDT
+		, yMarDT, MRNstring
 	filecheck()
 	refreshCurr()
 	
@@ -277,16 +277,18 @@ processCORES(clip) {
 	StringReplace, clip, clip, % cores_pt, % cores_pt, UseErrorLevel
 	totPt := ErrorLevel
 	
-	while (clip) {
-		ptBlock := stregX(clip
+	while (clip) {																		; parse through CLIP
+		ptBlock := stregX(clip															; get each "Patient Information" block
 			, CORES_Pt,N,1																; N = position in CLIP
 			, CORES_Pt "|" CORES_Pg "|" CORES_end,1,N)									; match to next pt, next page, or end
 		if (ptBlock = "") {
-			break
+			break																		; end of clip reached
 		}
+		
 		NN := 1																			; NN = position in ptBlock
 		cores := []																		; Reset CORES obj
-		cores.demog := stregX(ptBlock,"",1,0,"DOB:",1)
+		
+		cores.demog := stregX(ptBlock,"",1,0,"DOB:",1)									; DEMOGRAPHICS block
 		cores.loc := stregX(cores.demog,"",1,0,"\R+",0,NN)
 		cores.name := stregX(cores.demog,"",NN,0,"\R+",0,NN)
 			cores.name_last := Trim(StrX(cores.name,"",0,0, ",",1,1))
@@ -295,9 +297,9 @@ processCORES(clip) {
 		cores.mrn := tmp
 		Progress, % 100*(n0+1)/totPt, % cores.name, % CORES.mrn
 		
-		cores.DCW := stregX(ptBlock,"DCW: ",1,1,"\R",1,NN)
-		cores.Alls := stregX(ptBlock,"Allergy: ",1,1,"\R",1,NN)
-		cores.Code := stregX(ptBlock,"Code Status: ",1,1,"\R",1,NN)
+		cores.DCW := stregX(ptBlock,"DCW: ",1,1,"\R",1,NN)								; skip to line 5
+		cores.Alls := stregX(ptBlock,"Allergy: ",1,1,"\R",1,NN)							; line 6
+		cores.Code := stregX(ptBlock,"Code Status: ",1,1,"\R",1,NN)						; line 7
 		
 		cores.Hx := stregX(ptBlock,"",NN,0,"Medications.*(DRIPS|SCH MEDS)",1,NN)
 			cores.Hx := RegExReplace(cores.Hx,"• ","* ")
@@ -341,7 +343,6 @@ processCORES(clip) {
 			FetchNode("plan")															; Otherwise, create placeholders.
 			FetchNode("prov")
 			FetchNode("data")
-			WriteOut("/root","id[@mrn='" CORES.mrn "']")
 			eventlog("processCORES " CORES.mrn ((fetchGot) ? " pulled from archive":" new") ", added to active list.")
 			n1 += 1																		; n1 = number of new CORES pts added
 		}
@@ -411,12 +412,12 @@ processCORES(clip) {
 				MedListParse("prn",CORES.PRN)
 				MedListParse("diet",CORES.Diet)
 		}
-		;~ WriteOut("/root","id[@mrn='" CORES_mrn "']")
 	}																				; end WHILE
-	Progress off
 	writeFile()
 	eventlog("CORES data updated.")
 	FileDelete, .currlock
+	
+	Progress off
 	MsgBox,,CORES data update, % n0 " total records read.`n" n1 " new records added."
 	
 return	
@@ -430,183 +431,8 @@ str := trim(str," `t`r`n")
 str := RegExReplace(str,"-[\s]+","-")
 str := RegExReplace(str,"/[\s]+","/")
 str := RegExReplace(str," ([^ ](.*))"," ($1)")
+
 return str
-	
-}
-
-processCORES_old: 																			;*** Parse CORES Rounding/Handoff Report
-{
-	filecheck()
-	refreshCurr()																		; load freshest currlist into memory
-
-	Progress, b,, Scanning...
-	RemoveNode("/root/lists/cores")														; clear out <lists/cores>
-	y.addElement("cores", "/root/lists", {date: timenow})								; create new dated <lists/cores>
-
-	GuiControl, Main:Text, GUIcoresTXT, %timenow%										
-	GuiControl, Main:Text, GUIcoresChk, ***
-	Gui, Main:Submit, NoHide
-	N:=1, n0:=0, n1:=0
-	
-	While (clip) {																					; parse through CLIP
-		ptBlock := StrX( clip, "Patient Information" ,N,19, "Patient Information" ,1,20, N )		; get each "Patient Information" block
-		if instr(ptBlock,"CORES Rounding") {
-			ptBlock := StrX( ptBlock, "",1,1, "CORES Rounding" ,1,15)								; sometimes "Patient Information~~~CORES Rounding"
-		}
-		if instr(ptBlock,"Contacts 1`r") {
-			ptBlock := StrX( ptBlock, "",1,1, "Contacts 1" ,1,11)									; last pt is "Patient Information~~~Contacts 1"
-		}
-		if (ptBlock = "") {
-			break   																				; ...or end of clip reached
-		}
-		NN = 1
-		Cores_Demo := strX(ptBlock, "",1,0, "DOB:",1,0,NN)											; DEMOGRAPHICS block
-		CORES_Loc := trim(StrX(Cores_Demo, "",1,0, "`r",1,1))
-		CORES_MRNx := trim(RegExMatch(Cores_Demo,"\d{6,7}",CORES_MRN))
-		CORES_Name := trim(StrX(Cores_Demo,CORES_Loc,1,StrLen(CORES_Loc),CORES_MRNx,1,8)," `t`r`n")
-			CORES_name := RegExReplace(CORES_name,"'","``")
-			CORES_name_last := Trim(StrX(CORES_name, ,0,0, ", ",1,2))			
-			CORES_name_first := Trim(StrX(CORES_name, ", ",0,2, " ",1,0))	
-		Progress,,, % CORES_name_last ", " CORES_name_first
-		
-		CORES_DCW := StrX( ptBlock, "DCW: " ,1,5, "`r" ,1,1, NN )									; skip to Line 5
-		CORES_Alls := StrX( ptBlock, "Allergy: " ,1,9, "`r" ,1,1, NN )								; Line 6
-		CORES_Code := StrX( ptBlock, "Code Status: " ,1,13, "`r" ,1,1, NN )							; Line 7
-		
-		CORES_HX =
-		CORES_HX := RegExReplace(StRegX( ptBlock, "`r",NN,2, "Medications.*(DRIPS|SCH MEDS)",1,NN),"[^[:ascii:]]","~")
-			StringReplace, CORES_hx, CORES_hx, •%A_space%, *%A_Space%, ALL
-			;~ StringReplace, CORES_hx, CORES_hx, `r`n, <br>, ALL
-			;~ StringReplace, CORES_hx, CORES_hx, Medical History, <hr><b><i>Medical History</i></b>
-			;~ StringReplace, CORES_hx, CORES_hx, ID Statement, <hr><b><i>ID Statement</i></b>
-			;~ StringReplace, CORES_hx, CORES_hx, Active Issues, <hr><b><i>Active Issues</i></b>
-			;~ StringReplace, CORES_hx, CORES_hx, Social Hx, <hr><b><i>Social Hx</i></b>
-			;~ StringReplace, CORES_hx, CORES_hx, Action Items - To Dos, <hr><b><i>Action Items - To Dos</i></b>
-		CORES_Diet := substr(cores_hx,RegExMatch(cores_hx,"m)Diet.*\*"))
-			StringReplace, CORES_Diet, CORES_Diet, Diet *, *
-			StringReplace, CORES_Diet, CORES_Diet, <br>, `r`n, ALL
-			;~ CORES_DietStr := CORES_Diet
-			StringReplace, CORES_Diet, CORES_Diet, *%A_Space%, •%A_space%, ALL
-		
-		CORES_MedBlock = 
-		CORES_MedBlock := StrX( ptBlock, "Medications" ,NN,11, "Vitals" ,1,7, NN )
-		CORES_Drips := StrX( CORES_MedBlock, "DRIPS`r" ,1,6, "SCH MEDS" ,1,9 )
-		CORES_Meds := StrX( CORES_MedBlock, "SCH MEDS`r" ,1,9, "PRN" ,1,4 )
-		CORES_PRN := StrX( CORES_MedBlock, "PRN`r" ,1,4, "" ,0,0 )
-		
-		CORES_vsBlock := StrX( ptBlock, "Vitals" ,NN,6, "Ins/Outs" ,1,8, NN ) ; ...,1,8, NN)
-			CORES_vsWt := StrX( CORES_vsBlock, "Meas Wt:",0,8, "`r`n" ,1,2, NNN)
-				if (instr(CORES_vsWt,"No current data available")) {
-					CORES_vsWt := "n/a"
-				}
-			CORES_vsTmp := RTrim(StrX( CORES_vsBlock, "`r`nT ",NNN,4, "HR " ,1,3, NNN), " M")
-			CORES_vsHR := StrX(StrX( CORES_vsBlock, "HR ",NNN,3, "RR", 1,3, NNN),"",0,0,"MHR",1,3)
-			CORES_vsRR := StrX( CORES_vsBlock, "RR",NNN,3, "`r`n", 1,1, NNN)
-			CORES_vsNBP := StrX( CORES_vsBlock, "NIBP",NNN,5, "`r`n", 1,1, NNN)
-			CORES_vsVent := StrX( CORES_vsBlock, "`r`n",NNN-2,1, "SpO2",1,4, NNN)
-			CORES_vsSat := StrX( CORES_vsBlock, "SpO2",NNN,5, "`r`n",1,1, NNN)
-			CORES_vsPain := StrX( CORES_vsBlock, "`r`n" ,NNN-1 ,1, "",1,1, NNN)
-		CORES_IOBlock := StrX( ptBlock, "Ins/Outs" ,NN,8, "Labs (72 Hrs)" ,1,14, NN)
-			CORES_ioIn := StrX( CORES_IOBlock, "In=",1,4, "`r`n",1,1)
-			CORES_ioEnt := StrX( CORES_IOBlock, "Gastric/Enteral=",1,17, "`r`n",1,1)
-			CORES_ioPO := StrX( CORES_IOBlock, "Oral=",1,6, "`r`n",1,1)
-			CORES_ioOut := StrX( CORES_IOBlock, "Out=",1,5, "`r`n",1,1)
-			CORES_ioCT := StrX( CORES_IOBlock, "Chest Tube=",1,11, "`r`n",1,1)
-			CORES_ioNet := StrX( CORES_IOBlock, "IO Net=",1,8, "`r`n",1,1)
-			CORES_ioUOP := StrX( CORES_IOBlock, "UOP=",1,5, "`r`n",1,1)
-		CORES_LabsBlock := strx(ptblock, "Labs (72 Hrs) / Studies",1,23, "",0,0)
-			CORES_Labs := trim(StRegX( CORES_LabsBlock, "" ,1,1, "\`n(Studies|Notes)",1))
-			CORES_Studies := trim(StrX( CORES_LabsBlock, "`nStudies",1,8, "`nNotes",1,6))
-			CORES_Notes := RegExReplace(trim(StrX( CORES_LabsBlock, "`nNotes",1,6, "",0,0)),"[^[:ascii:]]","~")
-		
-		n0 += 1
-		; List parsed, now place in XML(y)
-		y.addElement("mrn", "/root/lists/cores", CORES_mrn)								; add MRN to <lists/cores>
-		MRNstring := "/root/id[@mrn='" . CORES_mrn . "']"
-		if !IsObject(y.selectSingleNode(MRNstring)) {									; If no <id@mrn> record in Y, create it.
-			y.addElement("id", "root", {mrn: CORES_mrn})
-			y.addElement("demog", MRNstring)
-				y.addElement("name_last", MRNstring . "/demog", CORES_name_last)	
-				y.addElement("name_first", MRNstring . "/demog", CORES_name_first)		; would keep since name could change
-			fetchGot := false
-			FetchNode("diagnoses")														; Check for existing node in Archlist,
-			FetchNode("notes")															; retrieve old Dx, Notes, Plan. (Status is discarded)
-			FetchNode("plan")															; Otherwise, create placeholders.
-			FetchNode("prov")
-			FetchNode("data")
-			WriteOut("/root","id[@mrn='" CORES_mrn "']")
-			eventlog("processCORES " CORES_mrn ((fetchGot) ? " pulled from archive":" new") ", added to active list.")
-			n1 += 1
-		}
-		; Remove the old Info nodes
-		Loop % (infos := y.selectNodes(MRNstring "/info")).length
-		{
-			tmpdt := infos.Item(A_index-1).getAttribute("date")
-			tmpTD := tmpdt
-			tmpTD -= A_now, Days
-			if ((tmpTD < -7) or (substr(tmpdt,1,8) = substr(A_now,1,8))) {				; remove old nodes or replace info/mar from today.
-				RemoveNode(MRNstring "/info[@date='" tmpdt "']")
-				continue
-			}
-			if (tmpTD < 1) {															; remove old info/hx and info/notes from nodes older than 1 day.
-				RemoveNode(MRNstring "/info[@date='" tmpdt "']/hx")
-				RemoveNode(MRNstring "/info[@date='" tmpdt "']/notes")
-			}
-		}
-		Loop % (infos := y.selectNodes(MRNstring "/MAR")).length						; remove old MAR except for this run.
-		{
-			tmpdt := infos.Item(A_Index-1).getAttribute("date")
-			if (tmpdt!=timenow) {
-				RemoveNode(MRNstring "/MAR[@date='" tmpdt "']")
-			}
-		}
-	
-		y.addElement("info", MRNstring, {date: timenow})								; Create a new /info node
-		yInfoDt := MRNstring . "/info[@date='" timenow "']"
-			y.addElement("dcw", yInfoDt, CORES_DCW)
-			y.addElement("allergies", yInfoDt, CORES_Alls)
-			y.addElement("code", yInfoDt, CORES_Code)
-			if !(y.selectSingleNode(yInfoDt "/hx").text)
-				y.addElement("hx", yInfoDt, "CORES hx")									; CORES_HX
-			y.addElement("vs", yInfoDt)
-				y.addElement("wt", yInfoDt "/vs", StrX(CORES_vsWt,,1,1,"kg",1,2,NN))
-				if (tmp:=StrX(CORES_vsWt,"(",NN,2,")",1,1))
-					y.selectSingleNode(yInfoDt "/vs/wt").setAttribute("change", tmp)
-				y.addElement("temp", yInfoDt "/vs", CORES_vsTmp)
-				y.addElement("hr",   yInfoDt "/vs", CORES_vsHR)
-				y.addElement("rr",   yInfoDt "/vs", CORES_vsRR)
-				y.addElement("bp",   yInfoDt "/vs", CORES_vsNBP)
-				y.addElement("spo2", yInfoDt "/vs", CORES_vsSat)
-				y.addElement("pain", yInfoDt "/vs", CORES_vsPain)
-			y.addElement("io", yInfoDt )
-				y.addElement("in",  yInfoDt "/io", CORES_ioIn)
-				y.addElement("ent", yInfoDt "/io", CORES_ioEnt)
-				y.addElement("po",  yInfoDt "/io", CORES_ioPO)
-				y.addElement("out", yInfoDt "/io", CORES_ioOut)
-				y.addElement("ct",  yInfoDt "/io", CORES_ioCT)
-				y.addElement("net", yInfoDt "/io", CORES_ioNet)
-				y.addElement("uop", yInfoDt "/io", CORES_ioUOP)
-			y.addElement("labs", yInfoDt )
-				parseLabs(CORES_Labs)
-			y.addElement("studies", yInfoDt , CORES_Studies)
-			y.addElement("notes", yInfoDt , CORES_Notes)
-		if !isobject(y.selectSingleNode(MRNstring "/MAR"))
-			y.addElement("MAR", MRNstring)											; Create a new /MAR node
-		y.selectSingleNode(MRNstring "/MAR").setAttribute("date", timenow)			; Change date to now
-		if !(y.selectNodes(MRNstring "/MAR/*").length) {							; Populate only if empty
-			yMarDt := MRNstring "/MAR[@date='" timenow "']"
-				MedListParse("drips",CORES_Drips)
-				MedListParse("meds",CORES_Meds)
-				MedListParse("prn",CORES_PRN)
-				MedListParse("diet",CORES_Diet)
-		}
-		;~ WriteOut("/root","id[@mrn='" CORES_mrn "']")
-	}
-	Progress off
-	writeFile()
-	eventlog("CORES data updated.")
-	FileDelete, .currlock
-	Return
 }
 
 processSensis(txt) {
