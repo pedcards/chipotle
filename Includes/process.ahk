@@ -322,7 +322,11 @@ processCORES(clip) {
 			cores.vsSat := fmtMean(stregX(cores.vs,"SpO2",NNN,1,"\R",1,NNN))
 			cores.vsPain := fmtMean(stregX(cores.vs,"Pain Score",NNN,1,"\R",1,NNN))
 		cores.io := stregX(ptBlock,"Ins/Outs",NN,1,"Labs \(72 Hrs\)",1,NN)
-			
+			cores.ioIntake := ioVal(cores.io,"Intake").v2
+			cores.ioOutput := ioVal(cores.io,"Output").v2
+			cores.ioCT := ioVal(cores.io,"Chst Tube").v2
+			cores.ioUOP := ioVal(cores.io,"UOP").v1
+			cores.ioNet := ioVal(cores.io,"IO Net").v1
 		cores.labsBlock := stregX(ptBlock ">>>","Labs (.*)? / Studies",NN,1,">>>",1,NN)
 			cores.labs := trim(stregX(cores.labsBlock,"",1,1,"^(Studies|Notes)",1))
 			cores.studies := trim(stregX(cores.labsBlock ">>>","^Studies",1,1,"^(Notes|>>>)",1))
@@ -390,13 +394,11 @@ processCORES(clip) {
 				y.addElement("spo2", yInfoDt "/vs", CORES.vsSat)
 				y.addElement("pain", yInfoDt "/vs", CORES.vsPain)
 			y.addElement("io", yInfoDt )
-				;~ y.addElement("in",  yInfoDt "/io", CORES.ioIn)
-				;~ y.addElement("ent", yInfoDt "/io", CORES.ioEnt)
-				;~ y.addElement("po",  yInfoDt "/io", CORES.ioPO)
-				;~ y.addElement("out", yInfoDt "/io", CORES.ioOut)
-				;~ y.addElement("ct",  yInfoDt "/io", CORES.ioCT)
-				;~ y.addElement("net", yInfoDt "/io", CORES.ioNet)
-				;~ y.addElement("uop", yInfoDt "/io", CORES.ioUOP)
+				y.addElement("in",  yInfoDt "/io", CORES.ioIntake)
+				y.addElement("out", yInfoDt "/io", CORES.ioOutput)
+				y.addElement("ct",  yInfoDt "/io", CORES.ioCT)
+				y.addElement("net", yInfoDt "/io", CORES.ioNet)
+				y.addElement("uop", yInfoDt "/io", CORES.ioUOP)
 			y.addElement("labs", yInfoDt )
 				parseLabs(CORES.Labs)
 			y.addElement("studies", yInfoDt , CORES.Studies)
@@ -433,6 +435,18 @@ str := RegExReplace(str,"/[\s]+","/")
 str := RegExReplace(str," ([^ ](.*))"," ($1)")
 
 return str
+}
+
+ioVal(blk,str) {
+/*	from IO block "blk"
+ *	retrieve "str v1 v2 v3"
+ *	where v1,v2,v3 = today,yesterday,2d ago
+ *	or "str= val"
+ *	return VAL
+ */
+ln := trim(stregX(blk,"^" str,1,0,"\R",1))
+RegExMatch(ln,"\s([\d.-]+)\s*([\d.-]+)?\s*([\d.-]+)?",v)
+return {v1:v1,v2:v2,v3:v3}
 }
 
 processSensis(txt) {
