@@ -1,4 +1,16 @@
-processCIS:										;*** Parse CIS patient list
+processCIS(clip) {
+	global y, yArch
+		, mrnstring, clip, timenow
+		, cicudocs, txpdocs
+		
+	filecheck()
+	refreshCurr()																		; Get latest local currlist into memory
+	
+	cis_list := readCisCol()															; Parse clip into cols
+	
+}
+
+processCIS_old:										;*** Parse CIS patient list
 {
 	filecheck()
 	refreshCurr()																		; Get latest local currlist into memory
