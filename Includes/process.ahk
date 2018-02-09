@@ -274,13 +274,14 @@ processCORES(clip) {
 	GuiControl, Main:Text, GUIcoresChk, ***
 	Gui, Main:Submit, NoHide
 	N:=1, n0:=0, n1:=0
+	StringReplace, clip, clip, % cores_pt, % cores_pt, UseErrorLevel
+	totPt := ErrorLevel
 	
 	while (clip) {
 		ptBlock := stregX(clip
 			, CORES_Pt,N,1																; N = position in CLIP
 			, CORES_Pt "|" CORES_Pg "|" CORES_end,1,N)									; match to next pt, next page, or end
 		if (ptBlock = "") {
-			MsgBox Done
 			break
 		}
 		NN := 1																			; NN = position in ptBlock
@@ -292,7 +293,7 @@ processCORES(clip) {
 			cores.name_first := Trim(StrX(cores.name,",",1,1, "",0))
 		RegExMatch(cores.demog,"\d{6,7}",tmp,NN)
 		cores.mrn := tmp
-		;~ Progress,,, % CORES.mrn
+		Progress, % 100*(n0+1)/totPt, % cores.name, % CORES.mrn
 		
 		cores.DCW := stregX(ptBlock,"DCW: ",1,1,"\R",1,NN)
 		cores.Alls := stregX(ptBlock,"Allergy: ",1,1,"\R",1,NN)
@@ -411,8 +412,12 @@ processCORES(clip) {
 				MedListParse("diet",CORES.Diet)
 		}
 		;~ WriteOut("/root","id[@mrn='" CORES_mrn "']")
-	}
-
+	}																				; end WHILE
+	Progress off
+	writeFile()
+	eventlog("CORES data updated.")
+	FileDelete, .currlock
+	MsgBox,,CORES data update, % n0 " total records read.`n" n1 " new records added."
 	
 return	
 }

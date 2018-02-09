@@ -204,7 +204,6 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 		WinClose, % CORES_window
 		gosub initClipSub
 		processCORES(clip)
-		MsgBox,,CORES data update, % n0 " total records read.`n" n1 " new records added."
 	} else {
 		MsgBox, 16, Wrong format!, % "Requires """ CORES_type """"
 		WinClose, % CORES_window
