@@ -203,8 +203,7 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 		SetTimer, SeekCores, On
 		WinClose, % CORES_window
 		gosub initClipSub
-		Gosub processCORES
-		MsgBox,,CORES data update, % n0 " total records read.`n" n1 " new records added."
+		processCORES(clip)
 	} else {
 		MsgBox, 16, Wrong format!, % "Requires """ CORES_type """"
 		WinClose, % CORES_window
