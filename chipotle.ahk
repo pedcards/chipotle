@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.4.1.0"
+vers := "2.4.1.1"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
@@ -203,8 +203,7 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 		SetTimer, SeekCores, On
 		WinClose, % CORES_window
 		gosub initClipSub
-		Gosub processCORES
-		MsgBox,,CORES data update, % n0 " total records read.`n" n1 " new records added."
+		processCORES(clip)
 	} else {
 		MsgBox, 16, Wrong format!, % "Requires """ CORES_type """"
 		WinClose, % CORES_window
