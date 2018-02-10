@@ -267,6 +267,7 @@ processCORES(clip) {
 	filecheck()
 	refreshCurr()
 	
+	FileOpen(".currlock", "W")															; Create lock file.
 	RemoveNode("/root/lists/cores")														; clear out <lists/cores>
 	y.addElement("cores", "/root/lists", {date: timenow})								; create new dated <lists/cores>
 	
