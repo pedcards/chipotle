@@ -1,6 +1,6 @@
 processCIS(clip) {
 	global y, yArch
-		, mrnstring, clip, timenow
+		, mrnstring, timenow
 		, cicudocs, txpdocs
 		, loc, location, locString
 		, cis_list
@@ -65,7 +65,7 @@ Return
 }
 
 readCISCol(location:="") {
-	global y, yArch, mrnstring, clip, timenow, cicudocs, txpdocs
+	global y, yArch, mrnstring, clip, timenow, cicudocs, txpdocs, fetchgot
 	clip_elem := Object()						; initialize the arrays
 	scan_elem := Object()
 	clip_array := Object()
@@ -269,7 +269,7 @@ processCORES(clip) {
 	global y, yArch
 		, GUIcoresTXT, GUIcoresChk, timenow
 		, CORES_Pt, CORES_Pg, CORES_end
-		, yMarDT, MRNstring
+		, yMarDT, MRNstring, fetchgot
 	filecheck()
 	refreshCurr()
 	
@@ -288,7 +288,7 @@ processCORES(clip) {
 			, CORES_Pt,N,1																; N = position in CLIP
 			, CORES_Pt "|" CORES_Pg "|" CORES_end,1,N)									; match to next pt, next page, or end
 		if (ptBlock = "") {
-			break																		; end of clip reached
+			break															 			; end of clip reached
 		}
 		
 		NN := 1																			; NN = position in ptBlock
