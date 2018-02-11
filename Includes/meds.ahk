@@ -2,7 +2,7 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 	global meds1, meds2, meds0, y, MRNstring, yMarDt, medfilt_drip, medfilt_med
 	tempArray = 
 	medWords =
-	StringReplace, bList, bList, •%A_space%, ``, ALL
+	StringReplace, bList, bList, % chr(8226) " ", ``, ALL											; replace bullet character
 	StringSplit, tempArray, bList, ``
 	Loop, %tempArray0%
 	{
