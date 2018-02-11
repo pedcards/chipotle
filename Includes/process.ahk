@@ -120,7 +120,10 @@ readCISCol(location:="") {
 		}
 	}
 ; Third pass: parse array elements according to identified field types
-	Loop, % clip_elem.MaxIndex()
+	filecheck()
+	FileOpen(".currlock", "W")															; Create lock file.
+
+	Loop, % (maxclip:=clip_elem.MaxIndex())
 	{
 		clip_num := A_Index	
 		CIS_mrn := clip_elem[clip_num,colIdx["MRN"]]				; MRN
@@ -165,7 +168,6 @@ readCISCol(location:="") {
 			FetchNode("plan")										; Otherwise, create placeholders.
 			FetchNode("prov")
 			FetchNode("data")
-			WriteOut("/root","id[@mrn='" CIS_mrn "']")
 			eventlog("processCIS " CIS_mrn ((fetchGot) ? " pulled from archive":" new") ", added to active list.")
 		} else {													; Otherwise clear old demog & loc info.
 			RemoveNode(MRNstring . "/demog")
@@ -184,8 +186,6 @@ readCISCol(location:="") {
 		y.addElement("unit", MRNstring . "/demog/data", CIS_loc_unit)
 		y.addElement("room", MRNstring . "/demog/data", CIS_loc_room)
 		
-		list.push(CIS_mrn)											; add MRN to list
-		
 		; Capture each encounter
 		if !IsObject(y.selectSingleNode(MRNstring "/prov/enc[@adm='" CIS_admit "']")) {
 			y.addElement("enc", MRNstring "/prov", {adm:CIS_admit, attg:CIS_attg, svc:CIS_svc})
@@ -199,6 +199,8 @@ readCISCol(location:="") {
 			y.selectSingleNode(MRNstring "/status").setAttribute("txp", "on")			; Set status flag.
 		}
 		
+		list.push(CIS_mrn)											; add MRN to list
+		
 		; Add Cardiology/SURGCNTR patients to SURGCNTR list, these are cath patients, will fall off when discharged?
 		if (CIS_svc="Cardiology" and CIS_loc_unit="SURGCNTR") {
 			SurgCntrPath := "/root/lists/SURGCNTR"
@@ -210,6 +212,8 @@ readCISCol(location:="") {
 			}
 		}
 	}
+	filedelete, .currlock
+	progress off
 	if (colErr) {
 		MsgBox,,Columns Error, % "This list is missing the following columns:`n`n" colErr "`nPlease repair CIS settings."
 	}
