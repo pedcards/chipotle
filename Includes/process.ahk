@@ -1,5 +1,9 @@
-processCIS:										;*** Parse CIS patient list
-{
+processCIS(clip) {
+	global y, yArch
+		, mrnstring, timenow
+		, cicudocs, txpdocs
+		, loc, location, locString
+		, cis_list
 	filecheck()
 	refreshCurr()																		; Get latest local currlist into memory
 	
@@ -56,10 +60,12 @@ processCIS:										;*** Parse CIS patient list
 		gosub PrintIt
 	}
 Return
+	
+	
 }
 
 readCISCol(location:="") {
-	global y, yArch, mrnstring, clip, timenow, cicudocs, txpdocs
+	global y, yArch, mrnstring, clip, timenow, cicudocs, txpdocs, fetchgot
 	clip_elem := Object()						; initialize the arrays
 	scan_elem := Object()
 	clip_array := Object()
@@ -114,7 +120,10 @@ readCISCol(location:="") {
 		}
 	}
 ; Third pass: parse array elements according to identified field types
-	Loop, % clip_elem.MaxIndex()
+	filecheck()
+	FileOpen(".currlock", "W")															; Create lock file.
+
+	Loop, % (maxclip:=clip_elem.MaxIndex())
 	{
 		clip_num := A_Index	
 		CIS_mrn := clip_elem[clip_num,colIdx["MRN"]]				; MRN
@@ -159,7 +168,6 @@ readCISCol(location:="") {
 			FetchNode("plan")										; Otherwise, create placeholders.
 			FetchNode("prov")
 			FetchNode("data")
-			WriteOut("/root","id[@mrn='" CIS_mrn "']")
 			eventlog("processCIS " CIS_mrn ((fetchGot) ? " pulled from archive":" new") ", added to active list.")
 		} else {													; Otherwise clear old demog & loc info.
 			RemoveNode(MRNstring . "/demog")
@@ -178,8 +186,6 @@ readCISCol(location:="") {
 		y.addElement("unit", MRNstring . "/demog/data", CIS_loc_unit)
 		y.addElement("room", MRNstring . "/demog/data", CIS_loc_room)
 		
-		list.push(CIS_mrn)											; add MRN to list
-		
 		; Capture each encounter
 		if !IsObject(y.selectSingleNode(MRNstring "/prov/enc[@adm='" CIS_admit "']")) {
 			y.addElement("enc", MRNstring "/prov", {adm:CIS_admit, attg:CIS_attg, svc:CIS_svc})
@@ -193,6 +199,8 @@ readCISCol(location:="") {
 			y.selectSingleNode(MRNstring "/status").setAttribute("txp", "on")			; Set status flag.
 		}
 		
+		list.push(CIS_mrn)											; add MRN to list
+		
 		; Add Cardiology/SURGCNTR patients to SURGCNTR list, these are cath patients, will fall off when discharged?
 		if (CIS_svc="Cardiology" and CIS_loc_unit="SURGCNTR") {
 			SurgCntrPath := "/root/lists/SURGCNTR"
@@ -204,6 +212,8 @@ readCISCol(location:="") {
 			}
 		}
 	}
+	filedelete, .currlock
+	progress off
 	if (colErr) {
 		MsgBox,,Columns Error, % "This list is missing the following columns:`n`n" colErr "`nPlease repair CIS settings."
 	}
@@ -263,10 +273,11 @@ processCORES(clip) {
 	global y, yArch
 		, GUIcoresTXT, GUIcoresChk, timenow
 		, CORES_Pt, CORES_Pg, CORES_end
-		, yMarDT, MRNstring
+		, yMarDT, MRNstring, fetchgot
 	filecheck()
 	refreshCurr()
 	
+	FileOpen(".currlock", "W")															; Create lock file.
 	RemoveNode("/root/lists/cores")														; clear out <lists/cores>
 	y.addElement("cores", "/root/lists", {date: timenow})								; create new dated <lists/cores>
 	
@@ -282,7 +293,7 @@ processCORES(clip) {
 			, CORES_Pt,N,1																; N = position in CLIP
 			, CORES_Pt "|" CORES_Pg "|" CORES_end,1,N)									; match to next pt, next page, or end
 		if (ptBlock = "") {
-			break																		; end of clip reached
+			break															 			; end of clip reached
 		}
 		
 		NN := 1																			; NN = position in ptBlock
@@ -302,7 +313,7 @@ processCORES(clip) {
 		cores.Code := stregX(ptBlock,"Code Status: ",1,1,"\R",1,NN)						; line 7
 		
 		cores.Hx := stregX(ptBlock,"",NN,0,"Medications.*(DRIPS|SCH MEDS)",1,NN)
-			cores.Hx := RegExReplace(cores.Hx,"• ","* ")
+			;~ cores.Hx := RegExReplace(cores.Hx,"* ","* ")								; was breaking gitkraken
 		cores.Diet := stregX(cores.Hx "<<<","Diet.*\*",1,1,"<<<",1)
 			cores.Diet := RegExReplace(cores.Diet,"Diet *","*")
 		
@@ -322,7 +333,11 @@ processCORES(clip) {
 			cores.vsSat := fmtMean(stregX(cores.vs,"SpO2",NNN,1,"\R",1,NNN))
 			cores.vsPain := fmtMean(stregX(cores.vs,"Pain Score",NNN,1,"\R",1,NNN))
 		cores.io := stregX(ptBlock,"Ins/Outs",NN,1,"Labs \(72 Hrs\)",1,NN)
-			
+			cores.ioIntake := ioVal(cores.io,"Intake").v2
+			cores.ioOutput := ioVal(cores.io,"Output").v2
+			cores.ioCT := ioVal(cores.io,"Chst Tube").v2
+			cores.ioUOP := ioVal(cores.io,"UOP").v1
+			cores.ioNet := ioVal(cores.io,"IO Net").v1
 		cores.labsBlock := stregX(ptBlock ">>>","Labs (.*)? / Studies",NN,1,">>>",1,NN)
 			cores.labs := trim(stregX(cores.labsBlock,"",1,1,"^(Studies|Notes)",1))
 			cores.studies := trim(stregX(cores.labsBlock ">>>","^Studies",1,1,"^(Notes|>>>)",1))
@@ -390,13 +405,11 @@ processCORES(clip) {
 				y.addElement("spo2", yInfoDt "/vs", CORES.vsSat)
 				y.addElement("pain", yInfoDt "/vs", CORES.vsPain)
 			y.addElement("io", yInfoDt )
-				;~ y.addElement("in",  yInfoDt "/io", CORES.ioIn)
-				;~ y.addElement("ent", yInfoDt "/io", CORES.ioEnt)
-				;~ y.addElement("po",  yInfoDt "/io", CORES.ioPO)
-				;~ y.addElement("out", yInfoDt "/io", CORES.ioOut)
-				;~ y.addElement("ct",  yInfoDt "/io", CORES.ioCT)
-				;~ y.addElement("net", yInfoDt "/io", CORES.ioNet)
-				;~ y.addElement("uop", yInfoDt "/io", CORES.ioUOP)
+				y.addElement("in",  yInfoDt "/io", CORES.ioIntake)
+				y.addElement("out", yInfoDt "/io", CORES.ioOutput)
+				y.addElement("ct",  yInfoDt "/io", CORES.ioCT)
+				y.addElement("net", yInfoDt "/io", CORES.ioNet)
+				y.addElement("uop", yInfoDt "/io", CORES.ioUOP)
 			y.addElement("labs", yInfoDt )
 				parseLabs(CORES.Labs)
 			y.addElement("studies", yInfoDt , CORES.Studies)
@@ -433,6 +446,18 @@ str := RegExReplace(str,"/[\s]+","/")
 str := RegExReplace(str," ([^ ](.*))"," ($1)")
 
 return str
+}
+
+ioVal(blk,str) {
+/*	from IO block "blk"
+ *	retrieve "str v1 v2 v3"
+ *	where v1,v2,v3 = today,yesterday,2d ago
+ *	or "str= val"
+ *	return VAL
+ */
+ln := trim(stregX(blk,"^" str,1,0,"\R",1))
+RegExMatch(ln,"\s([\d.-]+)\s*([\d.-]+)?\s*([\d.-]+)?",v)
+return {v1:v1,v2:v2,v3:v3}
 }
 
 processSensis(txt) {
