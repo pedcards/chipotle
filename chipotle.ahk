@@ -212,7 +212,7 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 		&& ((clipCk ~= CIS_colRx["Room"]) or (clipCk ~= CIS_colRx["Locn"]))
 		&& (clipCk ~= CIS_colRx["MRN"])) {												; Check for features of CIS patient list
 	Gosub initClipSub
-	Gosub processCIS
+	processCIS(clip)
 	if !(locString) {						; Avoids error if exit QueryList
 		return								; without choice.
 	}
