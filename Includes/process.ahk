@@ -64,29 +64,6 @@ Return
 	
 }
 
-processCIS_old:										;*** Parse CIS patient list
-{
-	FileOpen(".currlock", "W")															; Create lock file.
-	RemoveNode("/root/lists/" . location)												; Clear existing /root/lists for this location
-	y.addElement(location, "/root/lists", {date: timenow})								; Refresh this list
-	for k,v in cis_list
-	{
-		y.addElement("mrn", "/root/lists/" location, v)
-	}
-	
-	listsort(location)
-	writefile()
-	eventlog(location " list updated.")
-	FileDelete, .currlock
-		
-	MsgBox, 4, Print now?, Print list: %locString%
-	IfMsgBox, Yes
-	{
-		gosub PrintIt
-	}
-Return
-}
-
 readCISCol(location:="") {
 	global y, yArch, mrnstring, clip, timenow, cicudocs, txpdocs
 	clip_elem := Object()						; initialize the arrays
