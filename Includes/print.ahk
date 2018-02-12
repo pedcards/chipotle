@@ -63,6 +63,17 @@ PrintIt:
 				pr_today .= "\f2q\f0 (" breakDate(pr.callN).MM "/" breakDate(pr.callN).DD ") Call Dr. " pr.provCard "\line\fs12 "
 			}
 		}
+		loop, % (prE:=k.selectNodes("data/Echo/study")).length {
+			prE0 := prE.item(A_index-1)
+			prE0dt := pre0.getAttribute("date")
+			if (prE0dt>E0best) {
+				E0best := prE0dt
+			}
+		}
+		tmp := k.selectSingleNode("data/Echo/study[@date='" E0best "']").text
+		pr_today .= strQ(tmp
+				,	"\line\line Echo " breakDate(E0best).MM "/" breakDate(E0best).DD ": ###\line ") 
+		E0best :=
 
 		CIS_dx := ((pr.dxCard) ? "[[Dx]] " RegExReplace(pr.dxCard,"[\r\n]"," * ") "\line " : "")
 				. ((pr.dxSurg) ?  "[[Surg]] " RegExReplace(pr.dxSurg,"[\r\n]"," * ") "\line " : "")
