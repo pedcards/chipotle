@@ -10,8 +10,8 @@ TblCols(tabs*) {
 	return tblCols
 }
 
-PrintIt:
-{
+PrintIt() {
+	global y, location
 	rtfTblCols := tblCols(2.25							; Location (e.g. tab stop at 1.5")
 						, 3.75							; MRN
 						, 4.625							; Sex/Age

@@ -57,7 +57,7 @@ processCIS(clip) {
 	MsgBox, 4, Print now?, Print list: %locString%
 	IfMsgBox, Yes
 	{
-		gosub PrintIt
+		PrintIt()
 	}
 Return
 	
