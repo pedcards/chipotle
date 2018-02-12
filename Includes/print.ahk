@@ -81,7 +81,7 @@ PrintIt:
 				. strQ(RegExReplace(pmNoteChk(pr.dxNotes),"[\r\n]"," * "), "[[Notes]] ###\line ")
 		
 		rtfList .= "\keepn\trowd\trgaph144\trkeep" rtfTblCols "`n\b"
-			. "\intbl " . pr.nameL ", " pr.nameF ((pr.provCard) ? "\fs12  (" pr.provCard . ((pr.provSchCard) ? "//" pr.provSchCard : "") ")\fs18" : "") "\cell`n"
+			. "\intbl " . pr.nameL ", " pr.nameF . strQ(pr.provCard,"\fs12  (###" strQ(pr.provSchCard,"//###") ")\fs18") "\cell`n"
 			. "\intbl " . pr.Unit " " pr.Room "\cell`n"
 			. "\intbl " . kMRN "\cell`n"
 			. "\intbl " . SubStr(pr.Sex,1,1) " " pr.Age "\cell`n" 
@@ -95,21 +95,21 @@ PrintIt:
 			. "\intbl\fs12 " . pr_todo "\fs18\cell`n"
 			. "\row`n"
 	}
-
+	
 	onCall := getCall(rtfNow)
-	rtfCall := ((tmp:=onCall.Ward_A) ? "Ward: " tmp "   " : "")
-			. ((tmp:=onCall.Ward_F) ? "Ward Fellow: " tmp "   " : "")
-			. ((tmp:=onCall.ICU_A) ? "ICU: " tmp "   " : "")
-			. ((tmp:=onCall.ICU_F) ? "ICU Fellow: " tmp "   " : "")
-			. ((tmp:=onCall.TXP) ? "Txp: " tmp "   " : "")
-			. ((tmp:=onCall.EP) ? "EP: " tmp "   " : "")
-			. ((tmp:=onCall.TEE) ? "TEE: " tmp "   " : "")
-	rtfCall .= ((rtfCall) ? "`n\line`n" : "")
-			. ((tmp:=onCall.ARNP_CL) ? "ARNP Cath: " tmp "   " : "")
-			. ((tmp:=onCall.ARNP_IP) ? "ARNP RC6: " tmp " 7-4594   " : "")
-			. ((tmp:=onCall.CICU) ? "CICU: " tmp " 7-6503, Fellow: 7-6507, Resource Attg: 7-8532   " : "")
-			. ((tmp:=onCall.Reg_Con) ? "Reg Cons: " tmp "   " : "")
-	rtfCall .= ((rtfCall) ? "`n\line`n" : "")
+	rtfCall := strQ(onCall.Ward_A,"Ward: ###   ")
+			. strQ(onCall.Ward_F,"Ward Fellow: ###   ")
+			. strQ(onCall.ICU_A,"ICU: ###   ")
+			. strQ(onCall.ICU_F,"ICU Fellow: ###   ")
+			. strQ(onCall.TXP,"Txp: ###   ")
+			. strQ(onCall.EP,"EP: ###   ")
+			. strQ(onCall.TEE,"TEE: ###   ")
+	rtfCall .= strQ(rtfCall,"`n\line`n")
+			. strQ(onCall.ARNP_CL,"ARNP Cath: ###   ")
+			. strQ(onCall.ARNP_IP,"ARNP RC6: ### 7-4594   ")
+			. strQ(onCall.CICU,"CICU: ### 7-6503, Fellow: 7-6507, Resource Attg: 7-8532   ")
+			. strQ(onCall.Reg_Con,"Reg Cons: ###   ")
+	rtfCall .= strQ(rtfCall,"`n\line`n")
 			. "\ul HC Fax: 987-3839   Clinic RN: 7-7693   Echo Lab: 7-2019   RC6.Charge RN: 7-2108,7-6200   RC6.UC Desk: 7-2021   FA6.Charge RN: 7-2475   FA6.UC Desk: 7-2040\ul0"
 	
 	rtfOut =
