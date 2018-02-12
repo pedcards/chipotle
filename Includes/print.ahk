@@ -74,11 +74,11 @@ PrintIt:
 		pr_today .= strQ(tmp
 				,	"\line\line Echo " breakDate(E0best).MM "/" breakDate(E0best).DD ": ###\line ") 
 		E0best :=
-
-		CIS_dx := ((pr.dxCard) ? "[[Dx]] " RegExReplace(pr.dxCard,"[\r\n]"," * ") "\line " : "")
-				. ((pr.dxSurg) ?  "[[Surg]] " RegExReplace(pr.dxSurg,"[\r\n]"," * ") "\line " : "")
-				. ((pr.dxEP) ? "[[EP]] " RegExReplace(pr.dxEP,"[\r\n]"," * ") "\line " : "")
-				. ((pr.dxNotes) ? "[[Notes]] " RegExReplace(pmNoteChk(pr.dxNotes),"[\r\n]"," * ") : "")
+		
+		CIS_dx := strQ(RegExReplace(pr.dxCard,"[\r\n]"," * "),"[[Dx]] ###\line ")
+				. strQ(RegExReplace(pr.dxSurg,"[\r\n]"," * "),"[[Surg]] ###\line ") 
+				. strQ(RegExReplace(pr.dxEP,"[\r\n]"," * "),  "[[EP]] ###\line ")
+				. strQ(RegExReplace(pmNoteChk(pr.dxNotes),"[\r\n]"," * "), "[[Notes]] ###\line ")
 		
 		rtfList .= "\keepn\trowd\trgaph144\trkeep" rtfTblCols "`n\b"
 			. "\intbl " . pr.nameL ", " pr.nameF ((pr.provCard) ? "\fs12  (" pr.provCard . ((pr.provSchCard) ? "//" pr.provSchCard : "") ")\fs18" : "") "\cell`n"
