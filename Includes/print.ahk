@@ -1,17 +1,28 @@
-PrintIt:
-{
+TblCols(tabs*) {
+/*	tabs = array of tab stops in inches, e.g. 2.25", 3.75", 4.6"
+ *	returns formatted string
+ */
 	TblC:="\cellx", tw:=1440							; Measured in twips (1440 = 1", 720 = 1/2", 360 = 1/4")
-	rtfTblCols := 	  TblC . round(tw * 2.25)			; Location (e.g. tab stop at 1.5")
-					. TblC . round(tw * 3.75)			; MRN
-					. TblC . round(tw * 4.625)			; Sex/Age
-					. TblC . round(tw * 5.625)			; DOB
-					. TblC . round(tw * 6.5)			; Days
-					. TblC . round(tw * 7.0)			; Admit date
-					. TblC . round(tw * 7.875)			; Right margin
+	for k,val in tabs
+	{
+		tblCols .= TblC . round(tw * val)
+	}
+	return tblCols
+}
 
-	rtfTblCol2 :=	  TblC . round(tw * 2.25)			; Diagnoses (below NAME)
-					. TblC . round(tw * 5.625)			; Todo later (below DOB)
-					. TblC . round(tw * 7.875)			; Right margin
+PrintIt() {
+	global y, location
+	rtfTblCols := tblCols(2.25							; Location (e.g. tab stop at 1.5")
+						, 3.75							; MRN
+						, 4.625							; Sex/Age
+						, 5.625							; DOB
+						, 6.5 							; Days
+						, 7.0							; Admit date
+						, 7.875)						; Right margin
+
+	rtfTblCol2 := tblCols(2.25							; Diagnoses (below NAME)
+						, 5.625							; Todo later (below DOB)
+						, 7.875)						; Right margin
 
 	rtfList :=
 	CIS_dx :=
@@ -21,17 +32,18 @@ PrintIt:
 		kMRN := prList.item(i:=A_Index-1).text
 		k := y.selectSingleNode("/root/id[@mrn='" kMRN "']")
 		pr := ptParse(kMRN)
-		pr_adm := parseDate(pr.Admit)
-		CIS_adm := pr_adm.YYYY . pr_adm.MM . pr_adm.DD
+		pr_adm := parseDate(pr.Admit)													; admit date
+		CIS_adm := pr_adm.YYYY . pr_adm.MM . pr_adm.DD									; format date 20170415
 		CIS_los := A_Now
-		CIS_los -= CIS_adm, days
-		pri := k.selectNodes("info").item(k.selectNodes("info").length-1)			; take the last Info child element
-		pri_date := pri.getAttribute("date")
-		pri_now := A_Now
-		pri_now -= pri_date, Hours
+		CIS_los -= CIS_adm, days														; los between admit and now
 		
-		pr_today :=
-		pr_todo := "\fs12"
+		pri := k.selectNodes("info").item(k.selectNodes("info").length-1)				; take the last Info child element
+		pri_date := pri.getAttribute("date")											; date of last info entry
+		pri_now := A_Now
+		pri_now -= pri_date, Hours														; difference in hours since last info entry
+		
+		pr_today :=																		; today = col-A
+		pr_todo := "\fs12"																; todo = col-C
 		if (pri_now < 26) {									; only generate VS if CORES from last 24 hr or so
 			pr_VS := pri.selectSingleNode("vs")
 			pr_todo .= "Wt = " . pr_VS.selectSingleNode("wt").text " (" niceDate(pri_date) ")\line "
@@ -39,48 +51,47 @@ PrintIt:
 					;~ . ((i:=pr_VS.selectSingleNode("hr").text) ? "HR = " . vsMean(i) : "")
 					;~ . ((i:=pr_VS.selectSingleNode("rr").text) ? ", RR = " . vsMean(i) : "") "\line "
 					;~ . ((i:=pr_VS.selectSingleNode("bp").text) ? "BP = " . vsMean(i) : "") "\line "
-			Loop, % (prMAR:=k.selectNodes("MAR/*")).length {						; only generate Meds if CORES from today
-				prMed := prMAR.item(A_Index-1)
+			Loop, % (prMAR:=k.selectNodes("MAR/*")).length {							; only generate Meds if CORES from today
+				prMed := prMAR.item(A_Index-1)											; MAR items
 				prMedCl := prMed.getAttribute("class")
-				if (prMedCl="cardiac") or (prMedCl="arrhythmia") {
-					pr_todo .= "\f2s\f0" . prMed.text . "\line "
+				if (prMedCl="cardiac") or (prMedCl="arrhythmia") {						; either class CARDIAC or ARRHYTHMIA
+					pr_todo .= "\f2s\f0" . prMed.text . "\line "						; add to TODO column
 				}
 			}
 		}
-		Loop, % (plT:=k.selectNodes("plan/tasks/todo")).length {
+		Loop, % (plT:=k.selectNodes("plan/tasks/todo")).length {						; scan through <tasks/todo> items
 			tMRN:=plT.item(A_Index-1)
 			plD := tMRN.getAttribute("due")
 			plDate := substr(plD,5,2) . "/" . substr(plD,7,2)
 			plD -= A_Now, D
-			if (plD<2)
-				pr_today .= "\f2q\f0 (" . plDate . ") " . tMRN.text . "\line\fs12 "
+			if (plD<2)																	; time differnce for TODO is 1 day or less
+				pr_today .= "\f2q\f0 (" . plDate . ") " . tMRN.text . "\line\fs12 "		; add to TODAY col-A
 			else
-				pr_todo  .= "\f2q\f0 (" . plDate . ") " . tMRN.text . "\line\fs12 "
+				pr_todo  .= "\f2q\f0 (" . plDate . ") " . tMRN.text . "\line\fs12 "		; otherwise add to TODO col-C
 		}
 		if (pr_call := pr.callN) {
-			pr_call -= A_Now, D
+			pr_call -= A_Now, D															; add Call task item if callN diff less than 1 day
 			if (pr_call<1) {
 				pr_today .= "\f2q\f0 (" breakDate(pr.callN).MM "/" breakDate(pr.callN).DD ") Call Dr. " pr.provCard "\line\fs12 "
 			}
 		}
+		E0best :=
 		loop, % (prE:=k.selectNodes("data/Echo/study")).length {
-			prE0 := prE.item(A_index-1)
-			prE0dt := pre0.getAttribute("date")
+			prE0 := prE.item(A_index-1)													; each <data/Echo> item 
+			prE0dt := pre0.getAttribute("date")											; study date
 			if (prE0dt>E0best) {
-				E0best := prE0dt
+				E0best := prE0dt														; find most recent study
 			}
 		}
-		tmp := k.selectSingleNode("data/Echo/study[@date='" E0best "']").text
-		pr_today .= strQ(tmp
+		pr_today .= strQ(k.selectSingleNode("data/Echo/study[@date='" E0best "']").text		; add to TODAY col-A
 				,	"\line\line Echo " breakDate(E0best).MM "/" breakDate(E0best).DD ": ###\line ") 
-		E0best :=
 		
-		CIS_dx := strQ(RegExReplace(pr.dxCard,"[\r\n]"," * "),"[[Dx]] ###\line ")
-				. strQ(RegExReplace(pr.dxSurg,"[\r\n]"," * "),"[[Surg]] ###\line ") 
+		CIS_dx := strQ(RegExReplace(pr.dxCard,"[\r\n]"," * "),"[[Dx]] ###\line ")		; add <diagnosis> sections if present
+				. strQ(RegExReplace(pr.dxSurg,"[\r\n]"," * "),"[[Surg]] ###\line ") 	; to the DX col-B
 				. strQ(RegExReplace(pr.dxEP,"[\r\n]"," * "),  "[[EP]] ###\line ")
 				. strQ(RegExReplace(pmNoteChk(pr.dxNotes),"[\r\n]"," * "), "[[Notes]] ###\line ")
 		
-		rtfList .= "\keepn\trowd\trgaph144\trkeep" rtfTblCols "`n\b"
+		rtfList .= "\keepn\trowd\trgaph144\trkeep" rtfTblCols "`n\b"					; define Tbl ID row 
 			. "\intbl " . pr.nameL ", " pr.nameF . strQ(pr.provCard,"\fs12  (###" strQ(pr.provSchCard,"//###") ")\fs18") "\cell`n"
 			. "\intbl " . pr.Unit " " pr.Room "\cell`n"
 			. "\intbl " . kMRN "\cell`n"
@@ -89,14 +100,14 @@ PrintIt:
 			. "\intbl " . CIS_los "\cell`n"
 			. "\intbl " . pr_adm.Date "\cell`n\b0"
 			. "\row`n"
-			. "\pard\trowd\trgaph144\trrh720\trkeep" . rtfTblCol2 . "`n"
+			. "\pard\trowd\trgaph144\trrh720\trkeep" . rtfTblCol2 . "`n"				; define col-A col-B col-C
 			. "\intbl\fs12 " . pr_today "\cell`n"
 			. "\intbl\fs12 " . CIS_dx "\line\cell`n"
 			. "\intbl\fs12 " . pr_todo "\fs18\cell`n"
 			. "\row`n"
 	}
 	
-	onCall := getCall(rtfNow)
+	onCall := getCall(rtfNow)															; generate on-call header block
 	rtfCall := strQ(onCall.Ward_A,"Ward: ###   ")
 			. strQ(onCall.Ward_F,"Ward Fellow: ###   ")
 			. strQ(onCall.ICU_A,"ICU: ###   ")
@@ -174,12 +185,12 @@ Page \chpgn\~\~\~\~
 		Run, print %fileout%
 		eventlog(fileout " printed.")
 	}
-	rtfList :=
 return
 }
 
-PrintARNP:
-{
+PrintARNP() {
+	global y, location
+	
 	TblC:="\cellx", tw:=1440							; Measured in twips (1440 = 1", 720 = 1/2", 360 = 1/4")
 	TblBrdr:="\clbrdrt\brdrs\clbrdrl\brdrs\clbrdrb\brdrs\clbrdrr\brdrs"
 	TcelX:=0
