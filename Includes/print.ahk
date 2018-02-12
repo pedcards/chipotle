@@ -1,17 +1,28 @@
+TblCols(tabs*) {
+/*	tabs = array of tab stops in inches, e.g. 2.25", 3.75", 4.6"
+ *	returns formatted string
+ */
+	TblC:="\cellx", tw:=1440							; Measured in twips (1440 = 1", 720 = 1/2", 360 = 1/4")
+	for k,val in tabs
+	{
+		tblCols .= TblC . round(tw * val)
+	}
+	return tblCols
+}
+
 PrintIt:
 {
-	TblC:="\cellx", tw:=1440							; Measured in twips (1440 = 1", 720 = 1/2", 360 = 1/4")
-	rtfTblCols := 	  TblC . round(tw * 2.25)			; Location (e.g. tab stop at 1.5")
-					. TblC . round(tw * 3.75)			; MRN
-					. TblC . round(tw * 4.625)			; Sex/Age
-					. TblC . round(tw * 5.625)			; DOB
-					. TblC . round(tw * 6.5)			; Days
-					. TblC . round(tw * 7.0)			; Admit date
-					. TblC . round(tw * 7.875)			; Right margin
+	rtfTblCols := tblCols(2.25							; Location (e.g. tab stop at 1.5")
+						, 3.75							; MRN
+						, 4.625							; Sex/Age
+						, 5.625							; DOB
+						, 6.5 							; Days
+						, 7.0							; Admit date
+						, 7.875)						; Right margin
 
-	rtfTblCol2 :=	  TblC . round(tw * 2.25)			; Diagnoses (below NAME)
-					. TblC . round(tw * 5.625)			; Todo later (below DOB)
-					. TblC . round(tw * 7.875)			; Right margin
+	rtfTblCol2 := tblCols(2.25							; Diagnoses (below NAME)
+						, 5.625							; Todo later (below DOB)
+						, 7.875)						; Right margin
 
 	rtfList :=
 	CIS_dx :=
