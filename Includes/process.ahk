@@ -314,8 +314,8 @@ processCORES(clip) {
 		
 		cores.Hx := stregX(ptBlock,"",NN,0,"Medications.*(DRIPS|SCH MEDS)",1,NN)
 			;~ cores.Hx := RegExReplace(cores.Hx,"* ","* ")								; was breaking gitkraken
-		cores.Diet := stregX(cores.Hx "<<<","Diet.*\*",1,1,"<<<",1)
-			cores.Diet := RegExReplace(cores.Diet,"Diet *","*")
+		cores.Diet := stregX(cores.Hx "<<<","^\s*Diet *",1,1,"<<<",1)
+			cores.Diet := RegExReplace(cores.Diet,"Diet \*","*")
 		
 		cores.MedBlock := stregX(ptBlock,"Medications",NN,1,"Vitals",1,NN) "<<<"
 			cores.Drips := stregX(cores.MedBlock,"Drips\R",1,1,"SCH MEDS|PRN|ANTIBIOTICS|<<<",1)

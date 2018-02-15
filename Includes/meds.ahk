@@ -22,7 +22,7 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 			continue
 		}
 		if (medlist="abx") {
-			y.addElement(medlist, yMarDt, {class: "Abx"}, RegExReplace(medName,"(\d+)\s+-\s+(.*?)","$2 (Day $1)"))
+			y.addElement("meds", yMarDt, {class: "Abx"}, RegExReplace(medName,"(\d+)\s+-\s+(.*?)[\r\n]+","$2 (Day $1) "))
 			continue
 		}
 		if (medlist="diet") {
@@ -42,7 +42,7 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 			dietStr .= diet " | "
 		}
 		else
-			y.addElement(medlist, yMarDt, {class: "Other"}, medName)
+			y.addElement("meds", yMarDt, {class: "Other"}, medName)
 	}
 	if (dietStr) {
 		StringReplace, dietStr, dietStr, `r, , All
