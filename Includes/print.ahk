@@ -54,7 +54,7 @@ PrintIt() {
 			Loop, % (prMAR:=k.selectNodes("MAR/*")).length {							; only generate Meds if CORES from today
 				prMed := prMAR.item(A_Index-1)											; MAR items
 				prMedCl := prMed.getAttribute("class")
-				if (prMedCl="cardiac") or (prMedCl="arrhythmia") {						; either class CARDIAC or ARRHYTHMIA
+				if (prMedCl~="Cardiac|Arrhythmia|Abx") {						; either class CARDIAC or ARRHYTHMIA
 					pr_todo .= "\f2s\f0" . prMed.text . "\line "						; add to TODO column
 				}
 			}
@@ -237,7 +237,7 @@ PrintARNP() {
 		Loop, % (prMAR:=k.selectNodes("MAR/*")).length {
 			prMed := prMAR.item(A_Index-1)
 			prMedCl := prMed.getAttribute("class")
-			if (prMedCl="cardiac") or (prMedCl="arrhythmia") {
+			if (prMedCl~="Cardiac|Arrhythmia|Abx") {
 				pr_todo .= "\f2s\f0" . prMed.text . "\line "
 				pr_meds .= "\f2s\f0" . prMed.text . "\line "
 			}
