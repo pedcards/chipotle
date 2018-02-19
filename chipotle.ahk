@@ -448,35 +448,21 @@ readStorkList() {
 		y.addElement("home", stork_str "/mother", storkVal("Home"))
 		
 		y.addElement("birth", stork_str)
-		
 		y.addElement("hosp", stork_str "/birth", storkVal("Delivery Hosp"))
-		
 		y.addElement("edc", stork_str "/birth", storkVal("EDC"))
 		
-		stork_del := storkVal("Planned date")
-		if (stork_del) {
-			tmp := RegExMatch(stork_del,"\d")
-			y.addElement("mode", stork_str "/birth", trim(substr(stork_del,1,tmp-1)))
-			y.addElement("planned", stork_str "/birth", trim(substr(stork_del,tmp)))
-		}
+		y.addElement("mode", stork_str "/birth",stregX(storkVal("Planned date"),"",1,0,"\d",1))
+		y.addElement("planned", stork_str "/birth",stregX(storkVal("Planned date") "<<<","\d",1,0,"<<<",1))
 		
 		y.addElement("dx", stork_str "/baby", storkVal("Diagnosis"))
 		
-		stork_notes := storkVal("Comments")
-		if (stork_notes)
-			y.addElement("notes", stork_str "/baby", stork_notes)
+		y.addElement("notes", stork_str "/baby", storkVal("Comments"))
 		
 		y.addElement("cont", stork_str)
-		y.addElement("cont", stork_str "/cont", storkVal("CRD"))
+		getPnProv("CRD", stork_str "/cont")
 		
 		y.addElement("enc", stork_str)
-		stork_prv := trim(cleanSpace(storkVal("Recent dates")))
-		nn := 0
-		While (stork_prv) 
-		{
-			stork_prov := parsePnProv(stork_prv,"enc")
-			y.addElement(stork_prov.svc, stork_str "/enc", {date:stork_prov.date}, stork_prov.prov)
-		}
+		getPnProv("Recent dates", stork_str "/enc")
 		
 		y.addElement("cord", stork_str "/birth", storkVal("Cord blood"))
 		
@@ -493,24 +479,32 @@ readStorkList() {
 Return
 }
 
+getPnProv(cel,node) {
+	global y
+	
+	cel := trim(cleanSpace(storkVal(cel))," `t`r`n")									; Make some corrections for common typos
+	cel := RegExReplace(cel,"([:\/]) ","$1")
+	cel := RegExReplace(cel,";",":")
+	cel := RegExReplace(cel,"([[:alpha:]])(\d)","$1/$2")
+	
+	loop, parse, cel, %A_Space%, `r`n
+	{
+		prov := parsePnProv(A_LoopField)
+		y.addElement("prov", node, {svc:prov.svc,date:prov.date}, prov.prov)
+	}
+}
+
+parsePnProv(txt) {
+	svc := stregX(txt,"",1,0,"[:\/]",1,nn)
+	prov := stregX(txt "<<<","[:\/]",1,1,"(\/)|(<<<)",1,nn)
+	dt := substr(txt,nn+1)
+	return {svc:trim(svc), prov:trim(prov," ()"), date:trim(dt)}
+}
+
 storkVal(val) {
 	global stork_cel, stork_hdr
 	res := stork_cel[ObjHasValue(stork_hdr,val)]
 	return res
-}
-
-parsePnProv(ByRef txt , src) {
-	txt := RegExReplace(txt,"([:\/]) ","$1")											; Make some corrections for common typos
-	txt := RegExReplace(txt,";",":")
-	txt := RegExReplace(txt,"([[:alpha:]])(\d)","$1/$2")
-	
-	str := strX(txt,"",0,0, " ",1,1,n)													; get the next text block
-	
-	svc := strX(str,"",0,0, "/",1,1)
-	prov := strX(str,"/",1,1, "/",1,1,nn)
-	dt := substr(str,nn+1)
-	txt := substr(txt,n)
-	return {svc:trim(svc), prov:trim(prov), date:trim(dt)}
 }
 
 readForecast:
