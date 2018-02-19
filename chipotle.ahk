@@ -981,7 +981,7 @@ cleanString(x) {
 	replace := {"{":"["															; substitutes for common error-causing chars
 				,"}":"]"
 				, "\":"/"
-				,"ñ":"n"}
+				,chr(241):"n"}
 				
 	for what, with in replace													; convert each WHAT to WITH substitution
 	{
