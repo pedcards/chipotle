@@ -421,14 +421,14 @@ readStorkList() {
 				stork_cel[ColNum] := cel
 			}
 		}
-		stork_mrn := Round(stork_cel[ObjHasValue(stork_hdr,"Mother SCH")])
+		stork_mrn := Round(storkVal("Mother SCH"))
 		progress, % 100*RowNum/40, Scanning records..., % stork_mrn
 		if !(stork_mrn)
 			continue
 		y.addElement("id","/root/lists/stork",{mrn:stork_mrn})
 		stork_str := "/root/lists/stork/id[@mrn='" stork_mrn "']"
 		
-		stork_names := stork_cel[ObjHasValue(stork_hdr,"Names")]
+		stork_names := storkVal("Names")
 		if (instr(stork_names,",",,,2)) {												; A second "," means baby name present
 			pos2 := RegExMatch(stork_names,"i)(?<=\s)[a-z\-\/]+,",,instr(stork_names,",",,,1))
 			name2 := trim(substr(stork_names,pos2))
@@ -445,54 +445,54 @@ readStorkList() {
 				y.addElement("nameF", stork_str "/mother", trim(strX(stork_names,", ",0,2)))
 		}
 		
-		stork_uw := stork_cel[ObjHasValue(stork_hdr,"Mother UW")]
+		stork_uw := storkVal("Mother UW")
 		if (stork_uw) {
 			y.addElement("UW", stork_str "/mother", stork_uw)
 		}
 		
-		stork_home := stork_cel[ObjHasValue(stork_hdr,"Home")]
+		stork_home := storkVal("Home")
 		y.addElement("home", stork_str "/mother", stork_home)
 		
-		stork_hosp := stork_cel[ObjHasValue(stork_hdr,"Delivery Hosp")]
+		stork_hosp := storkVal("Delivery Hosp")
 		y.addElement("birth", stork_str)
 		y.addElement("hosp", stork_str "/birth", stork_hosp)
 		
-		stork_edc := stork_cel[ObjHasValue(stork_hdr,"EDC")]
+		stork_edc := storkVal("EDC")
 		y.addElement("edc", stork_str "/birth", stork_edc)
 		
-		stork_del := stork_cel[ObjHasValue(stork_hdr,"Planned date")]
+		stork_del := storkVal("Planned date")
 		if (stork_del) {
 			tmp := RegExMatch(stork_del,"\d")
 			y.addElement("mode", stork_str "/birth", trim(substr(stork_del,1,tmp-1)))
 			y.addElement("planned", stork_str "/birth", trim(substr(stork_del,tmp)))
 		}
 		
-		stork_dx := stork_cel[ObjHasValue(stork_hdr,"Diagnosis")]
+		stork_dx := storkVal("Diagnosis")
 		y.addElement("dx", stork_str "/baby", stork_dx)
 		
-		stork_notes := stork_cel[ObjHasValue(stork_hdr,"Comments")]
+		stork_notes := storkVal("Comments")
 		if (stork_notes)
 			y.addElement("notes", stork_str "/baby", stork_notes)
 		
 		y.addElement("prov", stork_str)
 		
-		stork_cont := stork_cel[ObjHasValue(stork_hdr,"CRD")]
-		if (stork_cont)
-			y.addElement("cont", stork_str "/prov", stork_cont)
+		;~ stork_cont := storkVal("CRD")
+		;~ if (stork_cont)
+			;~ y.addElement("cont", stork_str "/prov", stork_cont)
 		
-		stork_prv := trim(cleanSpace(stork_cel[ObjHasValue(stork_hdr,"Recent dates")]))
+		stork_prv := trim(cleanSpace(storkVal("Recent dates")))
 		nn := 0
 		While (stork_prv) 
 		{
-			stork_prov := parsePnProv(stork_prv)
+			stork_prov := parsePnProv(stork_prv,"enc")
 			y.addElement(stork_prov.svc, stork_str "/prov", {date:stork_prov.date}, stork_prov.prov)
 		}
 		
-		stork_cord := stork_cel[ObjHasValue(stork_hdr,"Cord blood")]
+		stork_cord := storkVal("Cord blood")
 		if (stork_cord)
 			y.addElement("cord", stork_str "/birth", stork_cord)
 		
-		stork_orca := stork_cel[ObjHasValue(stork_hdr,"Orca Plan")]
+		stork_orca := storkVal("Orca Plan")
 		if (stork_orca)
 			y.addElement("orca", stork_str "/birth", stork_orca)
 		
@@ -508,8 +508,21 @@ readStorkList() {
 Return
 }
 
-parsePnProv(ByRef txt) {
-	str := strX(txt,"",0,0, " ",1,1,n)
+storkVal(val) {
+	global stork_cel, stork_hdr
+	res := stork_cel[ObjHasValue(stork_hdr,val)]
+	return res
+}
+
+parsePnProv(ByRef txt , src) {
+	txt := RegExReplace(txt,"([:\/]) ","$1")											; Make some corrections for common typos
+	txt := RegExReplace(txt,";",":")
+	txt := RegExReplace(txt,"(\w)(\d)","$1/$2")
+	
+	str := strX(txt,"",0,0, " ",1,1,n)													; get the next text block
+	
+	;~ if (txt~="\/\d+ ") {
+		
 	svc := strX(str,"",0,0, "/",1,1)
 	prov := strX(str,"/",1,1, "/",1,1,nn)
 	dt := substr(str,nn+1)
