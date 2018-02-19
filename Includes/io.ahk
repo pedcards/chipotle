@@ -487,7 +487,8 @@ parseJSON(txt) {
 checkXML(xml) {
 /*	Simple integrity check for XML files.
 	Reads XML file into string, checks if string ends with </root>
-	If success, returns obj. If not, returns error.
+	If fail, returns error.
+	Otherwise, checks/replaces illegal chars
  */
 	FileRead, str, % xml	
 	Loop, parse, str, `n, `r
@@ -498,18 +499,22 @@ checkXML(xml) {
 		}
 		lastline := test
 	}
-	if instr(lastline,"</root>") {
-		if (pos:=RegExMatch(str,"[^[:ascii:]]")) {
-			per := instr(str,"<id",,pos-strlen(str))
-			RegExMatch(str,"O)<\w+((\s+\w+(\s*=\s*(?:"".*?""|'.*?'|[\^'"">\s]+))?)+\s*|\s*)/?>",pre,per)
-			RegExMatch(str,"O)</\w+\s*[\^>]*>",post,pos)
-			eventlog("Illegal chars detected in " xml " in " pre.value "/" post.value ".")
-			str := RegExReplace(str,"[^[:ascii:]]","~")
-		}
-		return str
-	} else {
-		return error 
+	if !instr(lastline,"</root>") {														; does not end in </root>
+		return error
 	}
+	
+	while (pos:=RegExMatch(str,"[^[:ascii:]]")) 
+	{
+		pos --
+		pre := instr(substr(str,1,pos),"mrn=",,0)										; search backwards from pos
+		mrn := trim(stregX(str,"mrn=",pre,1,">",1)," """)
+		tag := stregX(str,"</",pos,0,">",0)
+		
+		str := RegExReplace(str,"[^[:ascii:]]","~",,1)									; replace 1 illegal char
+		eventlog("Illegal chars detected in " xml " pos " pos ", <id mrn=" mrn ">" tag ".")
+	}
+	
+	return str
 }
 
 importNodes() {
