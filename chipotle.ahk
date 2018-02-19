@@ -453,8 +453,9 @@ readStorkList() {
 		stork_home := storkVal("Home")
 		y.addElement("home", stork_str "/mother", stork_home)
 		
-		stork_hosp := storkVal("Delivery Hosp")
 		y.addElement("birth", stork_str)
+		
+		stork_hosp := storkVal("Delivery Hosp")
 		y.addElement("hosp", stork_str "/birth", stork_hosp)
 		
 		stork_edc := storkVal("EDC")
@@ -476,9 +477,9 @@ readStorkList() {
 		
 		y.addElement("prov", stork_str)
 		
-		;~ stork_cont := storkVal("CRD")
-		;~ if (stork_cont)
-			;~ y.addElement("cont", stork_str "/prov", stork_cont)
+		stork_cont := storkVal("CRD")
+		if (stork_cont)
+			y.addElement("cont", stork_str "/prov", stork_cont)
 		
 		stork_prv := trim(cleanSpace(storkVal("Recent dates")))
 		nn := 0
@@ -517,12 +518,10 @@ storkVal(val) {
 parsePnProv(ByRef txt , src) {
 	txt := RegExReplace(txt,"([:\/]) ","$1")											; Make some corrections for common typos
 	txt := RegExReplace(txt,";",":")
-	txt := RegExReplace(txt,"(\w)(\d)","$1/$2")
+	txt := RegExReplace(txt,"([[:alpha:]])(\d)","$1/$2")
 	
 	str := strX(txt,"",0,0, " ",1,1,n)													; get the next text block
 	
-	;~ if (txt~="\/\d+ ") {
-		
 	svc := strX(str,"",0,0, "/",1,1)
 	prov := strX(str,"/",1,1, "/",1,1,nn)
 	dt := substr(str,nn+1)
