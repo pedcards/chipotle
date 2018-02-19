@@ -444,22 +444,14 @@ readStorkList() {
 				y.addElement("nameL", stork_str "/mother", trim(strX(stork_names,,0,0,", ",1,2)))
 				y.addElement("nameF", stork_str "/mother", trim(strX(stork_names,", ",0,2)))
 		}
-		
-		stork_uw := storkVal("Mother UW")
-		if (stork_uw) {
-			y.addElement("UW", stork_str "/mother", stork_uw)
-		}
-		
-		stork_home := storkVal("Home")
-		y.addElement("home", stork_str "/mother", stork_home)
+		y.addElement("UW", stork_str "/mother", storkVal("Mother UW"))
+		y.addElement("home", stork_str "/mother", storkVal("Home"))
 		
 		y.addElement("birth", stork_str)
 		
-		stork_hosp := storkVal("Delivery Hosp")
-		y.addElement("hosp", stork_str "/birth", stork_hosp)
+		y.addElement("hosp", stork_str "/birth", storkVal("Delivery Hosp"))
 		
-		stork_edc := storkVal("EDC")
-		y.addElement("edc", stork_str "/birth", stork_edc)
+		y.addElement("edc", stork_str "/birth", storkVal("EDC"))
 		
 		stork_del := storkVal("Planned date")
 		if (stork_del) {
@@ -468,35 +460,27 @@ readStorkList() {
 			y.addElement("planned", stork_str "/birth", trim(substr(stork_del,tmp)))
 		}
 		
-		stork_dx := storkVal("Diagnosis")
-		y.addElement("dx", stork_str "/baby", stork_dx)
+		y.addElement("dx", stork_str "/baby", storkVal("Diagnosis"))
 		
 		stork_notes := storkVal("Comments")
 		if (stork_notes)
 			y.addElement("notes", stork_str "/baby", stork_notes)
 		
-		y.addElement("prov", stork_str)
+		y.addElement("cont", stork_str)
+		y.addElement("cont", stork_str "/cont", storkVal("CRD"))
 		
-		stork_cont := storkVal("CRD")
-		if (stork_cont)
-			y.addElement("cont", stork_str "/prov", stork_cont)
-		
+		y.addElement("enc", stork_str)
 		stork_prv := trim(cleanSpace(storkVal("Recent dates")))
 		nn := 0
 		While (stork_prv) 
 		{
 			stork_prov := parsePnProv(stork_prv,"enc")
-			y.addElement(stork_prov.svc, stork_str "/prov", {date:stork_prov.date}, stork_prov.prov)
+			y.addElement(stork_prov.svc, stork_str "/enc", {date:stork_prov.date}, stork_prov.prov)
 		}
 		
-		stork_cord := storkVal("Cord blood")
-		if (stork_cord)
-			y.addElement("cord", stork_str "/birth", stork_cord)
+		y.addElement("cord", stork_str "/birth", storkVal("Cord blood"))
 		
-		stork_orca := storkVal("Orca Plan")
-		if (stork_orca)
-			y.addElement("orca", stork_str "/birth", stork_orca)
-		
+		y.addElement("orca", stork_str "/birth", storkVal("Orca Plan"))
 	}
 	Progress, Hide
 
