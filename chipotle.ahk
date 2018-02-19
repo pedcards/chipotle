@@ -345,8 +345,7 @@ Sort2D(Byref TDArray, KeyName, Order=1) {
 	}
 }
 
-readStorkList:
-{
+readStorkList() {
 /*	Directly read a Stork List XLS.
 	Sheets
 		(1) is "Potential cCHD"
@@ -354,21 +353,25 @@ readStorkList:
 		(3) is archives
 	
 */
-	storkPath := A_WorkingDir "\files\stork.xls"
+	global y
+		, stork_hdr, stork_cel
+	
+	storkPath := A_WorkingDir "\files\fetal\stork.xlsx"
 	if !FileExist(storkPath) {
 		MsgBox None!
 		return
 	}
+	progress,,Opening file...,Initialization
 	if IsObject(y.selectSingleNode("/root/lists/stork")) {
 		RemoveNode("/root/lists/stork")
 	}
 	y.addElement("stork","/root/lists"), {date:timenow}
 		
-	storkPath := A_WorkingDir "\files\stork.xls"
 	oWorkbook := ComObjGet(storkPath)
 	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] ;array of column letters
 	stork_hdr := Object()
 	stork_cel := Object()
+	
 	Loop 
 	{
 		RowNum := A_Index
@@ -379,7 +382,7 @@ readStorkList:
 		}
 		if !(chk)
 			break
-		Progress,,% rownum, Scanning Stork List
+		
 		Loop
 		{	
 			ColNum := A_Index
@@ -419,6 +422,7 @@ readStorkList:
 			}
 		}
 		stork_mrn := Round(stork_cel[ObjHasValue(stork_hdr,"Mother SCH")])
+		progress, % 100*RowNum/40, Scanning records..., % stork_mrn
 		if !(stork_mrn)
 			continue
 		y.addElement("id","/root/lists/stork",{mrn:stork_mrn})
@@ -442,8 +446,9 @@ readStorkList:
 		}
 		
 		stork_uw := stork_cel[ObjHasValue(stork_hdr,"Mother UW")]
-		if (stork_uw)
+		if (stork_uw) {
 			y.addElement("UW", stork_str "/mother", stork_uw)
+		}
 		
 		stork_home := stork_cel[ObjHasValue(stork_hdr,"Home")]
 		y.addElement("home", stork_str "/mother", stork_home)
