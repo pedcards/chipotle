@@ -507,12 +507,14 @@ storkVal(val) {
 	return res
 }
 
-readForecast:
-{
+readForecast() {
 /*	Read electronic forecast XLS
 	\\childrens\files\HCSchedules\Electronic Forecast\2016\11-7 thru 11-13_2016 Electronic Forecast.xlsx
 	Move into /lists/forecast/call {date=20150301}/<PM_We_F>Del Toro</PM_We_F>
 */
+	global y
+		, dialogVals, forecastPath
+	
 	eventlog("Check electronic forecast.")
 	fcMod := substr(y.selectSingleNode("/root/lists/forecast").getAttribute("mod"),1,8)
 	if (fcMod = substr(A_now,1,8)) {
@@ -521,7 +523,7 @@ readForecast:
 	}
 	
 	; Get Qgenda items
-	gosub readQgenda
+	readQgenda()
 	
 	; Find the most recently modified "*Electronic Forecast.xls" file
 	fcLast :=
@@ -570,7 +572,10 @@ readForecast:
 			continue																	; skip to next file
 		}
 		
-		gosub parseForecast																; parseForecast on this file
+		Progress, 100, % dialogVals[Rand(dialogVals.MaxIndex())] "...", % fcFile
+		FileCopy, %fcFileLong%, fcTemp.xlsx, 1											; create local copy to avoid conflict if open
+		eventlog("Parsing " fcFileLong)
+		parseForecast(fcRecent)																	; parseForecast on this file
 	}
 	if !FileExist(fcFileLong) {															; no file found
 		EventLog("Electronic Forecast.xlsx file not found!")
@@ -578,19 +583,16 @@ readForecast:
 return
 }
 
-parseForecast:
-{
+parseForecast(fcRecent) {
+	global y
+		, forecast_val, forecast_svc
+	
 	; Initialize some stuff
-	Progress, 100, % dialogVals[Rand(dialogVals.MaxIndex())] "...", % fcFile
 	if !IsObject(y.selectSingleNode("/root/lists/forecast")) {							; create if for some reason doesn't exist
 		y.addElement("forecast","/root/lists")
 	} 
-	
 	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] 	; array of column letters
 	fcDate:=[]																			; array of dates
-	
-	eventlog("Parsing " fcFileLong)
-	FileCopy, %fcFileLong%, fcTemp.xlsx, 1												; create local copy to avoid conflict if open
 	oWorkbook := ComObjGet(A_WorkingDir "\fcTemp.xlsx")
 	getVals := false																	; flag when have hit the Date vals row
 	valsEnd := false																	; flag when reached the last row
@@ -685,12 +687,13 @@ parseForecast:
 Return
 }
 
-readQgenda:
-{
+readQgenda() {
 /*	Fetch upcoming call schedule in Qgenda
 	Parse JSON into call elements
 	Move into /lists/forecast/call {date=20150301}/<PM_We_F>Del Toro</PM_We_F>
 */
+	global y
+	
 	t0 := t1 := A_now
 	t1 += 14, Days
 	FormatTime,t0, %t0%, MM/dd/yyyy

@@ -51,7 +51,7 @@ GetIt:
 	FileDelete, .currlock
 	
 	Progress 100, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	gosub readForecast
+	readForecast()
 	
 	Progress, off
 Return
@@ -449,7 +449,6 @@ sendCallReminder(who) {
 }
 
 httpComm(url:="",verb:="") {
-	; consider two parameters?
 	global servFold
 	if (url="") {
 		url := "https://depts.washington.edu/pedcards/change/direct.php?" 
