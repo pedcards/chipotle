@@ -469,7 +469,7 @@ PatConsole:
 	Gui, Font, s6
 	Gui, Add, Button, xP+50 yP gPatCxSel, Select File									; show file selector
 	Gui, Add, Button, xP yP+18 gPatLGuiClose, Close all									; close GUI and all opened patient files
-	Gui, Show, % "x" scrRight-200 " y10 AutoSize", % PatName
+	Gui, Show, % "x" scrRight-200 " y50 AutoSize", % PatName
 	return
 }
 
