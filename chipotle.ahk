@@ -221,7 +221,7 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 		gosub saveCensus
 	}
 	if (location="CSR" or location="CICU") {
-		gosub IcuMerge
+		IcuMerge()
 	}
 } else if ((clipCk ~= "MRN:\d{6,8}") || (clipCk ~= "^[A-Z '\-]+, [A-Z .'()\-]+$")) {
 	clk := parseClip(clipCk)
@@ -781,9 +781,10 @@ getCall(dt) {
 	return callObj
 }
 
-IcuMerge:
-{
-	FormatTime, cicuDate, A_Now, yyyyMMdd
+IcuMerge() {
+	global y, timenow, loc_surg, csrDocs
+	
+	;~ FormatTime, cicuDate, A_Now, yyyyMMdd
 	tmpDT_crd := substr(y.selectSingleNode("/root/lists/Cards").getAttribute("date"),1,8)
 	tmpDT_csr := substr(y.selectSingleNode("/root/lists/CSR").getAttribute("date"),1,8)
 	tmpDT_cicu := substr(y.selectSingleNode("/root/lists/CICU").getAttribute("date"),1,8)
