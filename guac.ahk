@@ -446,6 +446,14 @@ PatLGuiClose:
 		StringReplace , tmpNm, tmpNm, .%tmpExt%											; convert tmpNm without ext
 		WinKill, %tmpNm%																; close it
 	}
+	
+	if (PatLCons := WinExist("ahk_class NUIDialog ahk_exe WINWORD.EXE")) {
+		ControlSend,, {n}, ahk_id %PatLCons%
+	}
+	if (PatLCons := WinExist("Acrobat","close all tabs")) {
+		ControlSend,, {t}, ahk_id %PatLCons%
+	}
+	
 	Gui, PatL:Destroy																	; destroy PatList GUI
 	if (Presenter) {																	; update Takt time for Presenter only
 		PatTime -= A_Now, Seconds														; time diff for time patient data opened
