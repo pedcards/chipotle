@@ -392,7 +392,7 @@ PatDir:
 	Gui, Add, ListBox, % "r" filenum " section w" patLBw " vPatFile gPatFileGet", % filelist
 	Gui, Font, s12
 	Gui, Add, Button, wP Disabled vplMRNbut, No MRN found								; default MRN button to Disabled
-	Gui, Add, Button, wP gPatFileGet , Open files...
+	Gui, Add, Button, wP gPatFileGet , Open all files...
 	Gui, Font, s8
 	if (patMRN) {																		; MRN found in gXML
 		pt := checkChip(patMRN)															; check Chipotle currlist (#1) and archlist (#2) for MRN, returns in obj pt
