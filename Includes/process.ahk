@@ -208,7 +208,7 @@ readCISCol(location:="") {
 				y.addElement("SURGCNTR","/root/lists", {date:timenow})
 			}
 			if !IsObject(y.selectSingleNode(SurgCntrPath "/mrn[text()='" CIS_mrn "']")) {
-				y.addElement("mrn", SurgCntrPath, CIS_mrn)
+				y.addElement("mrn", SurgCntrPath, {date:timenow}, CIS_mrn)
 			}
 		}
 	}
