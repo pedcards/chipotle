@@ -112,6 +112,18 @@ SaveIt:
 	writeout("/root/lists","hold")
 	gosub MakeCoordList
 	
+	Loop, % (yHold := y.selectNodes("/root/lists/SURGCNTR/mrn")).length {
+		k := yHold.item(A_index-1)
+		kMRN := k.text
+		tmpDt := k.getAttribute("date")
+		tmpDt -= A_Now, Days
+		if (tmpDt < -1) {
+			k.parentNode.removeChild(k)
+			eventlog("Remove " kMRN " from SURGCNTR.")
+		}
+	}
+	writeout("/root/lists","SURGCNTR")
+	
 	filecheck()																			; file in use, delay until .currlock cleared
 	FileOpen(".currlock", "W")															; Create lock file.
 
@@ -176,11 +188,6 @@ SaveIt:
 			, Database cleaning
 			, % "The following patient records no longer appear `non any CIS census and have been removed `nfrom the active list:`n`n" . errtext
 		Progress, 85
-	}
-	; =================================================
-	if IsObject(y.selectSingleNode("/root/lists/SURGCNTR")) {
-		RemoveNode("/root/lists/SURGCNTR")
-		eventlog("SURGCNTR removed.")
 	}
 	
 	y.save("currlist.xml")
