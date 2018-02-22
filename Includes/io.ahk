@@ -51,7 +51,7 @@ GetIt:
 	FileDelete, .currlock
 	
 	Progress 100, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	gosub readForecast
+	readForecast()
 	
 	Progress, off
 Return
@@ -111,6 +111,18 @@ SaveIt:
 	}
 	writeout("/root/lists","hold")
 	gosub MakeCoordList
+	
+	Loop, % (yHold := y.selectNodes("/root/lists/SURGCNTR/mrn")).length {
+		k := yHold.item(A_index-1)
+		kMRN := k.text
+		tmpDt := k.getAttribute("date")
+		tmpDt -= A_Now, Days
+		if (tmpDt < -1) {
+			k.parentNode.removeChild(k)
+			eventlog("Remove " kMRN " from SURGCNTR.")
+		}
+	}
+	writeout("/root/lists","SURGCNTR")
 	
 	filecheck()																			; file in use, delay until .currlock cleared
 	FileOpen(".currlock", "W")															; Create lock file.
@@ -176,11 +188,6 @@ SaveIt:
 			, Database cleaning
 			, % "The following patient records no longer appear `non any CIS census and have been removed `nfrom the active list:`n`n" . errtext
 		Progress, 85
-	}
-	; =================================================
-	if IsObject(y.selectSingleNode("/root/lists/SURGCNTR")) {
-		RemoveNode("/root/lists/SURGCNTR")
-		eventlog("SURGCNTR removed.")
 	}
 	
 	y.save("currlist.xml")
@@ -449,7 +456,6 @@ sendCallReminder(who) {
 }
 
 httpComm(url:="",verb:="") {
-	; consider two parameters?
 	global servFold
 	if (url="") {
 		url := "https://depts.washington.edu/pedcards/change/direct.php?" 
@@ -487,7 +493,8 @@ parseJSON(txt) {
 checkXML(xml) {
 /*	Simple integrity check for XML files.
 	Reads XML file into string, checks if string ends with </root>
-	If success, returns obj. If not, returns error.
+	If fail, returns error.
+	Otherwise, checks/replaces illegal chars
  */
 	FileRead, str, % xml	
 	Loop, parse, str, `n, `r
@@ -498,18 +505,22 @@ checkXML(xml) {
 		}
 		lastline := test
 	}
-	if instr(lastline,"</root>") {
-		if (pos:=RegExMatch(str,"[^[:ascii:]]")) {
-			per := instr(str,"<id",,pos-strlen(str))
-			RegExMatch(str,"O)<\w+((\s+\w+(\s*=\s*(?:"".*?""|'.*?'|[\^'"">\s]+))?)+\s*|\s*)/?>",pre,per)
-			RegExMatch(str,"O)</\w+\s*[\^>]*>",post,pos)
-			eventlog("Illegal chars detected in " xml " in " pre.value "/" post.value ".")
-			str := RegExReplace(str,"[^[:ascii:]]","~")
-		}
-		return str
-	} else {
-		return error 
+	if !instr(lastline,"</root>") {														; does not end in </root>
+		return error
 	}
+	
+	while (pos:=RegExMatch(str,"[^[:ascii:]]")) 
+	{
+		pos --
+		pre := instr(substr(str,1,pos),"mrn=",,0)										; search backwards from pos
+		mrn := trim(stregX(str,"mrn=",pre,1,">",1)," """)
+		tag := stregX(str,"</",pos,0,">",0)
+		
+		str := RegExReplace(str,"[^[:ascii:]]","~",,1)									; replace 1 illegal char
+		eventlog("Illegal chars detected in " xml " pos " pos ", <id mrn=" mrn ">" tag ".")
+	}
+	
+	return str
 }
 
 importNodes() {

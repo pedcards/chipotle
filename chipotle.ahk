@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.4.1.4"
+vers := "2.4.1.5"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
@@ -95,9 +95,10 @@ if (isCICU) {
 	mainTitle2 := "Children's Heart Center"
 	mainTitle3 := "Inpatient Longitudinal Integrator"
 } else if (isARNP) {
-	loc := ["CSR","CICU"]
+	loc := ["CSR","CICU","Cards"]
 	loc["CSR"] := {"name":"Cardiac Surgery", "datevar":"GUIcsrTXT"}
 	loc["CICU"] := {"name":"Cardiac ICU", "datevar":"GUIicuTXT"}
+	loc["Cards"] := {"name":"Cardiology", "datevar":"GUIcrdTXT"}
 	callLoc := "CSR"
 	mainTitle1 := "CON CARNE"
 	mainTitle2 := "Collective Organized Notebook"
@@ -221,7 +222,7 @@ If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.in
 		gosub saveCensus
 	}
 	if (location="CSR" or location="CICU") {
-		gosub IcuMerge
+		IcuMerge()
 	}
 } else if ((clipCk ~= "MRN:\d{6,8}") || (clipCk ~= "^[A-Z '\-]+, [A-Z .'()\-]+$")) {
 	clk := parseClip(clipCk)
@@ -345,8 +346,7 @@ Sort2D(Byref TDArray, KeyName, Order=1) {
 	}
 }
 
-readStorkList:
-{
+readStorkList() {
 /*	Directly read a Stork List XLS.
 	Sheets
 		(1) is "Potential cCHD"
@@ -354,21 +354,25 @@ readStorkList:
 		(3) is archives
 	
 */
-	storkPath := A_WorkingDir "\files\stork.xls"
+	global y
+		, stork_hdr, stork_cel
+	
+	storkPath := A_WorkingDir "\files\fetal\stork.xlsx"
 	if !FileExist(storkPath) {
 		MsgBox None!
 		return
 	}
+	progress,,Opening file...,Initialization
 	if IsObject(y.selectSingleNode("/root/lists/stork")) {
 		RemoveNode("/root/lists/stork")
 	}
 	y.addElement("stork","/root/lists"), {date:timenow}
 		
-	storkPath := A_WorkingDir "\files\stork.xls"
 	oWorkbook := ComObjGet(storkPath)
 	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] ;array of column letters
 	stork_hdr := Object()
 	stork_cel := Object()
+	
 	Loop 
 	{
 		RowNum := A_Index
@@ -379,7 +383,7 @@ readStorkList:
 		}
 		if !(chk)
 			break
-		Progress,,% rownum, Scanning Stork List
+		
 		Loop
 		{	
 			ColNum := A_Index
@@ -418,13 +422,14 @@ readStorkList:
 				stork_cel[ColNum] := cel
 			}
 		}
-		stork_mrn := Round(stork_cel[ObjHasValue(stork_hdr,"Mother SCH")])
+		stork_mrn := Round(storkVal("Mother SCH"))
+		progress, % 100*RowNum/40, Scanning records..., % stork_mrn
 		if !(stork_mrn)
 			continue
 		y.addElement("id","/root/lists/stork",{mrn:stork_mrn})
 		stork_str := "/root/lists/stork/id[@mrn='" stork_mrn "']"
 		
-		stork_names := stork_cel[ObjHasValue(stork_hdr,"Names")]
+		stork_names := storkVal("Names")
 		if (instr(stork_names,",",,,2)) {												; A second "," means baby name present
 			pos2 := RegExMatch(stork_names,"i)(?<=\s)[a-z\-\/]+,",,instr(stork_names,",",,,1))
 			name2 := trim(substr(stork_names,pos2))
@@ -440,57 +445,29 @@ readStorkList:
 				y.addElement("nameL", stork_str "/mother", trim(strX(stork_names,,0,0,", ",1,2)))
 				y.addElement("nameF", stork_str "/mother", trim(strX(stork_names,", ",0,2)))
 		}
+		y.addElement("UW", stork_str "/mother", storkVal("Mother UW"))
+		y.addElement("home", stork_str "/mother", storkVal("Home"))
 		
-		stork_uw := stork_cel[ObjHasValue(stork_hdr,"Mother UW")]
-		if (stork_uw)
-			y.addElement("UW", stork_str "/mother", stork_uw)
-		
-		stork_home := stork_cel[ObjHasValue(stork_hdr,"Home")]
-		y.addElement("home", stork_str "/mother", stork_home)
-		
-		stork_hosp := stork_cel[ObjHasValue(stork_hdr,"Delivery Hosp")]
 		y.addElement("birth", stork_str)
-		y.addElement("hosp", stork_str "/birth", stork_hosp)
+		y.addElement("hosp", stork_str "/birth", storkVal("Delivery Hosp"))
+		y.addElement("edc", stork_str "/birth", storkVal("EDC"))
 		
-		stork_edc := stork_cel[ObjHasValue(stork_hdr,"EDC")]
-		y.addElement("edc", stork_str "/birth", stork_edc)
+		y.addElement("mode", stork_str "/birth",stregX(storkVal("Planned date"),"",1,0,"\d",1))
+		y.addElement("planned", stork_str "/birth",stregX(storkVal("Planned date") "<<<","\d",1,0,"<<<",1))
 		
-		stork_del := stork_cel[ObjHasValue(stork_hdr,"Planned date")]
-		if (stork_del) {
-			tmp := RegExMatch(stork_del,"\d")
-			y.addElement("mode", stork_str "/birth", trim(substr(stork_del,1,tmp-1)))
-			y.addElement("planned", stork_str "/birth", trim(substr(stork_del,tmp)))
-		}
+		y.addElement("dx", stork_str "/baby", storkVal("Diagnosis"))
 		
-		stork_dx := stork_cel[ObjHasValue(stork_hdr,"Diagnosis")]
-		y.addElement("dx", stork_str "/baby", stork_dx)
+		y.addElement("notes", stork_str "/baby", storkVal("Comments"))
 		
-		stork_notes := stork_cel[ObjHasValue(stork_hdr,"Comments")]
-		if (stork_notes)
-			y.addElement("notes", stork_str "/baby", stork_notes)
+		y.addElement("cont", stork_str)
+		getPnProv("CRD", stork_str "/cont")
 		
-		y.addElement("prov", stork_str)
+		y.addElement("enc", stork_str)
+		getPnProv("Recent dates", stork_str "/enc")
 		
-		stork_cont := stork_cel[ObjHasValue(stork_hdr,"CRD")]
-		if (stork_cont)
-			y.addElement("cont", stork_str "/prov", stork_cont)
+		y.addElement("cord", stork_str "/birth", storkVal("Cord blood"))
 		
-		stork_prv := trim(cleanSpace(stork_cel[ObjHasValue(stork_hdr,"Recent dates")]))
-		nn := 0
-		While (stork_prv) 
-		{
-			stork_prov := parsePnProv(stork_prv)
-			y.addElement(stork_prov.svc, stork_str "/prov", {date:stork_prov.date}, stork_prov.prov)
-		}
-		
-		stork_cord := stork_cel[ObjHasValue(stork_hdr,"Cord blood")]
-		if (stork_cord)
-			y.addElement("cord", stork_str "/birth", stork_cord)
-		
-		stork_orca := stork_cel[ObjHasValue(stork_hdr,"Orca Plan")]
-		if (stork_orca)
-			y.addElement("orca", stork_str "/birth", stork_orca)
-		
+		y.addElement("orca", stork_str "/birth", storkVal("Orca Plan"))
 	}
 	Progress, Hide
 
@@ -503,21 +480,42 @@ readStorkList:
 Return
 }
 
-parsePnProv(ByRef txt) {
-	str := strX(txt,"",0,0, " ",1,1,n)
-	svc := strX(str,"",0,0, "/",1,1)
-	prov := strX(str,"/",1,1, "/",1,1,nn)
-	dt := substr(str,nn+1)
-	txt := substr(txt,n)
-	return {svc:trim(svc), prov:trim(prov), date:trim(dt)}
+getPnProv(cel,node) {
+	global y
+	
+	cel := trim(cleanSpace(storkVal(cel))," `t`r`n")									; Make some corrections for common typos
+	cel := RegExReplace(cel,"([:\/]) ","$1")
+	cel := RegExReplace(cel,";",":")
+	cel := RegExReplace(cel,"([[:alpha:]])(\d)","$1/$2")
+	
+	loop, parse, cel, %A_Space%, `r`n
+	{
+		prov := parsePnProv(A_LoopField)
+		y.addElement("prov", node, {svc:prov.svc,date:prov.date}, prov.prov)
+	}
 }
 
-readForecast:
-{
+parsePnProv(txt) {
+	svc := stregX(txt,"",1,0,"[:\/]",1,nn)
+	prov := stregX(txt "<<<","[:\/]",1,1,"(\/)|(<<<)",1,nn)
+	dt := substr(txt,nn+1)
+	return {svc:trim(svc), prov:trim(prov," ()"), date:trim(dt)}
+}
+
+storkVal(val) {
+	global stork_cel, stork_hdr
+	res := stork_cel[ObjHasValue(stork_hdr,val)]
+	return res
+}
+
+readForecast() {
 /*	Read electronic forecast XLS
 	\\childrens\files\HCSchedules\Electronic Forecast\2016\11-7 thru 11-13_2016 Electronic Forecast.xlsx
 	Move into /lists/forecast/call {date=20150301}/<PM_We_F>Del Toro</PM_We_F>
 */
+	global y
+		, dialogVals, forecastPath
+	
 	eventlog("Check electronic forecast.")
 	fcMod := substr(y.selectSingleNode("/root/lists/forecast").getAttribute("mod"),1,8)
 	if (fcMod = substr(A_now,1,8)) {
@@ -526,7 +524,7 @@ readForecast:
 	}
 	
 	; Get Qgenda items
-	gosub readQgenda
+	readQgenda()
 	
 	; Find the most recently modified "*Electronic Forecast.xls" file
 	fcLast :=
@@ -575,7 +573,10 @@ readForecast:
 			continue																	; skip to next file
 		}
 		
-		gosub parseForecast																; parseForecast on this file
+		Progress, 100, % dialogVals[Rand(dialogVals.MaxIndex())] "...", % fcFile
+		FileCopy, %fcFileLong%, fcTemp.xlsx, 1											; create local copy to avoid conflict if open
+		eventlog("Parsing " fcFileLong)
+		parseForecast(fcRecent)																	; parseForecast on this file
 	}
 	if !FileExist(fcFileLong) {															; no file found
 		EventLog("Electronic Forecast.xlsx file not found!")
@@ -583,19 +584,16 @@ readForecast:
 return
 }
 
-parseForecast:
-{
+parseForecast(fcRecent) {
+	global y
+		, forecast_val, forecast_svc
+	
 	; Initialize some stuff
-	Progress, 100, % dialogVals[Rand(dialogVals.MaxIndex())] "...", % fcFile
 	if !IsObject(y.selectSingleNode("/root/lists/forecast")) {							; create if for some reason doesn't exist
 		y.addElement("forecast","/root/lists")
 	} 
-	
 	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] 	; array of column letters
 	fcDate:=[]																			; array of dates
-	
-	eventlog("Parsing " fcFileLong)
-	FileCopy, %fcFileLong%, fcTemp.xlsx, 1												; create local copy to avoid conflict if open
 	oWorkbook := ComObjGet(A_WorkingDir "\fcTemp.xlsx")
 	getVals := false																	; flag when have hit the Date vals row
 	valsEnd := false																	; flag when reached the last row
@@ -690,12 +688,13 @@ parseForecast:
 Return
 }
 
-readQgenda:
-{
+readQgenda() {
 /*	Fetch upcoming call schedule in Qgenda
 	Parse JSON into call elements
 	Move into /lists/forecast/call {date=20150301}/<PM_We_F>Del Toro</PM_We_F>
 */
+	global y
+	
 	t0 := t1 := A_now
 	t1 += 14, Days
 	FormatTime,t0, %t0%, MM/dd/yyyy
@@ -783,9 +782,10 @@ getCall(dt) {
 	return callObj
 }
 
-IcuMerge:
-{
-	FormatTime, cicuDate, A_Now, yyyyMMdd
+IcuMerge() {
+	global y, timenow, loc_surg, csrDocs
+	
+	;~ FormatTime, cicuDate, A_Now, yyyyMMdd
 	tmpDT_crd := substr(y.selectSingleNode("/root/lists/Cards").getAttribute("date"),1,8)
 	tmpDT_csr := substr(y.selectSingleNode("/root/lists/CSR").getAttribute("date"),1,8)
 	tmpDT_cicu := substr(y.selectSingleNode("/root/lists/CICU").getAttribute("date"),1,8)
@@ -981,7 +981,7 @@ cleanString(x) {
 	replace := {"{":"["															; substitutes for common error-causing chars
 				,"}":"]"
 				, "\":"/"
-				,"ñ":"n"}
+				,chr(241):"n"}
 				
 	for what, with in replace													; convert each WHAT to WITH substitution
 	{

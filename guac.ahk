@@ -392,7 +392,7 @@ PatDir:
 	Gui, Add, ListBox, % "r" filenum " section w" patLBw " vPatFile gPatFileGet", % filelist
 	Gui, Font, s12
 	Gui, Add, Button, wP Disabled vplMRNbut, No MRN found								; default MRN button to Disabled
-	Gui, Add, Button, wP gPatFileGet , Open files...
+	Gui, Add, Button, wP gPatFileGet , Open all files...
 	Gui, Font, s8
 	if (patMRN) {																		; MRN found in gXML
 		pt := checkChip(patMRN)															; check Chipotle currlist (#1) and archlist (#2) for MRN, returns in obj pt
@@ -446,6 +446,14 @@ PatLGuiClose:
 		StringReplace , tmpNm, tmpNm, .%tmpExt%											; convert tmpNm without ext
 		WinKill, %tmpNm%																; close it
 	}
+	
+	if (PatLCons := WinExist("ahk_class NUIDialog ahk_exe WINWORD.EXE")) {
+		ControlSend,, {n}, ahk_id %PatLCons%
+	}
+	if (PatLCons := WinExist("Acrobat","close all tabs")) {
+		ControlSend,, {t}, ahk_id %PatLCons%
+	}
+	
 	Gui, PatL:Destroy																	; destroy PatList GUI
 	if (Presenter) {																	; update Takt time for Presenter only
 		PatTime -= A_Now, Seconds														; time diff for time patient data opened
@@ -469,7 +477,7 @@ PatConsole:
 	Gui, Font, s6
 	Gui, Add, Button, xP+50 yP gPatCxSel, Select File									; show file selector
 	Gui, Add, Button, xP yP+18 gPatLGuiClose, Close all									; close GUI and all opened patient files
-	Gui, Show, % "x" scrRight-200 " y10 AutoSize", % PatName
+	Gui, Show, % "x" scrRight-200 " y50 AutoSize", % PatName
 	return
 }
 
