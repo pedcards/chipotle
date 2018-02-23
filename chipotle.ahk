@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.4.1.7"
+vers := "2.4.1.8"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
@@ -516,18 +516,17 @@ readForecast() {
 	global y
 		, dialogVals, forecastPath
 	
-	eventlog("Check electronic forecast.")
-	fcMod := substr(y.selectSingleNode("/root/lists/forecast").getAttribute("mod"),1,8)
-	if (fcMod = substr(A_now,1,8)) {
-		eventlog("Already done.")
-		return																			; Skip this if already done today
+	; Get Qgenda items
+	fcMod := substr(y.selectSingleNode("/root/lists/forecast").getAttribute("mod"),1,8) 
+	if !(fcMod = substr(A_now,1,8)) {													; Forecast has not been scanned today
+		progress, , Updating schedules, Reading Qgenda...
+		readQgenda()																	; Read Qgenda once daily
 	}
 	
-	; Get Qgenda items
-	progress, 10, Updating schedules, Reading Qgenda...
-	readQgenda()
-	
 	; Find the most recently modified "*Electronic Forecast.xls" file
+	eventlog("Check electronic forecast.")
+	progress,, Updating schedules, Scanning forecast files...
+	
 	fcLast :=
 	fcNext :=
 	fcFile := 
@@ -550,38 +549,43 @@ readForecast() {
 		fcFile := A_LoopFileName														; filename, no path
 		fcFileLong := A_LoopFileLongPath												; long path
 		fcRecent := A_LoopFileTimeModified												; most recent file modified
-		Progress, % 10+A_index*10, Updating schedules, % fcFile
 		if InStr(fcFile,"~") {
 			continue																	; skip ~tmp files
 		}
-		d1 := zDigit(strX(fcFile,"",1,0,"-",1,1)) . zDigit(strX(fcFile,"-",1,1," ",1,1))	; zdigit numerals string from filename
-		fcNode := y.selectSingleNode("/root/lists/forecast")
+		d1 := zDigit(strX(fcFile,"",1,0,"-",1,1)) . zDigit(strX(fcFile,"-",1,1," ",1,1))	; zdigit numerals string from filename "2-19 thru..."
+		fcNode := y.selectSingleNode("/root/lists/forecast")							; fcNode = Forecast Node
 		
-		if (d1=fcNext) {
-			tmp := fcNode.getAttribute("next")
-			if ((strX(tmp,"",1,0,"-",1,1) = fcNext) && (strX(tmp,"-",1,1,"",0) = fcRecent)) {
-				continue																; skip to next if attr date and file unchanged
+		if (d1=fcNext) {																; this is next week's schedule
+			tmp := fcNode.getAttribute("next")											; read the fcNode attr for next week DT-mod (0205-20180202155212)
+			if ((strX(tmp,"",1,0,"-",1,1) = fcNext) && (strX(tmp,"-",1,1,"",0) = fcRecent)) { ; this file's M attr matches last adjusted fcNode next attr
+				eventlog(fcFile " already done.")
+				continue																; if attr date and file unchanged, go to next file
 			}
+			fcNode.setAttribute("next",fcNext "-" fcRecent)								; otherwise, this is unscanned
 			eventlog("fcNext " fcNext "-" fcRecent)
-			fcNode.setAttribute("next",fcNext "-" fcRecent)
-		} else if (d1=fcLast) {
+		} else if (d1=fcLast) {															; matches last Monday's schedule
 			tmp := fcNode.getAttribute("last")
-			if ((strX(tmp,"",1,0,"-",1,1) = fcLast) && (strX(tmp,"-",1,1,"",0) = fcRecent)) {
+			if ((strX(tmp,"",1,0,"-",1,1) = fcLast) && (strX(tmp,"-",1,1,"",0) = fcRecent)) { ; this file's M attr matches last week's fcNode last attr
+				eventlog(fcFile " already done.")
 				continue																; skip to next if attr date and file unchanged
 			}
-			eventlog("fcLast " fcLast "-" fcRecent)
-			fcNode.setAttribute("last",fcLast "-" fcRecent)
+			fcNode.setAttribute("last",fcLast "-" fcRecent)								; otherwise, this is unscanned
+			eventlog("fcLast " fcLast "-" fcRecent)										
 		} else {																		; does not match either fcNext or fcLast
 			continue																	; skip to next file
 		}
 		
+		Progress,, Updating schedules, % fcFile
 		FileCopy, %fcFileLong%, fcTemp.xlsx, 1											; create local copy to avoid conflict if open
 		eventlog("Parsing " fcFileLong)
-		parseForecast(fcRecent)																	; parseForecast on this file
+		parseForecast(fcRecent)															; parseForecast on this file (unprocessed NEXT or LAST)
 	}
 	if !FileExist(fcFileLong) {															; no file found
 		EventLog("Electronic Forecast.xlsx file not found!")
 	}
+	
+	Progress, off	
+	
 return
 }
 
@@ -654,10 +658,10 @@ parseForecast(fcRecent) {
 				} else {
 					row_nm := RegExReplace(cel,"(\s+)|[\/\*\?]","_")					; no match, create ad hoc and replace space, /, \, *, ? with "_"
 				}
+				progress,, Scanning forecast, % row_nm
 				continue																; results in some ROW NAME, now move to the next column
 			}
 			
-			Progress, % 100*rowNum/36, Updating schedules, % row_nm
 			fcNode := "/root/lists/forecast/call[@date='" fcDate[colNum] "']"
 			if !IsObject(y.selectSingleNode(fcNode "/" row_nm)) {						; create node for service person if not present
 				y.addElement(row_nm,fcNode)
@@ -669,8 +673,6 @@ parseForecast(fcRecent) {
 	oExcel := oWorkbook.Application
 	oExcel.DisplayAlerts := false
 	oExcel.quit
-	
-	Progress, off
 	
 	y.selectSingleNode("/root/lists/forecast").setAttribute("xlsdate",fcRecent)			; change forecast[@xlsdate] to the XLS mod date
 	y.selectSingleNode("/root/lists/forecast").setAttribute("mod",A_Now)				; change forecast[@mod] to now

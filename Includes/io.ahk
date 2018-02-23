@@ -51,8 +51,9 @@ GetIt:
 	FileDelete, .currlock
 	
 	Progress 100, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	readForecast()
-	
+	if !(vSaveIt=true) {
+		readForecast()
+	}
 	Progress, off
 Return
 }
