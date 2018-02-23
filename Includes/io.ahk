@@ -174,10 +174,10 @@ SaveIt:
 			RemoveNode("/root/id[@mrn='" kMRN "']")										; ID node is archived, remove it from Y.
 			eventlog(kMRN " removed from active lists.")
 		}
-		yaChk := yArch.selectSingleNode("/root/id[@mrn='" kMRN "']/diagnoses")
-		if !(yaChk.text) {
-			eventlog(kMRN " blank DX in archlist.")
-		}
+		;~ yaChk := yArch.selectSingleNode("/root/id[@mrn='" kMRN "']/diagnoses")
+		;~ if !(yaChk.text) {
+			;~ eventlog(kMRN " blank DX in archlist.")
+		;~ }
 	}
 
 	Progress, 90, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
