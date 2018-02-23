@@ -99,6 +99,7 @@ SaveIt:
 	Progress, b w300, Processing...
 	
 	; Purge leftover hold records, and refresh Coord list
+	gosub MakeCoordList
 	Loop, % (yHold := y.selectNodes("/root/lists/hold/mrn")).length {
 		k := yHold.item(A_index-1)
 		kMRN := k.text
@@ -109,8 +110,9 @@ SaveIt:
 			eventlog("Remove hold on " kMRN ".")
 		}
 	}
-	writeout("/root/lists","hold")
-	gosub MakeCoordList
+	if IsObject(y.selectSingleNode("/root/lists/hold")) {
+		writeout("/root/lists","hold")
+	}
 	
 	Loop, % (yHold := y.selectNodes("/root/lists/SURGCNTR/mrn")).length {
 		k := yHold.item(A_index-1)
@@ -122,7 +124,9 @@ SaveIt:
 			eventlog("Remove " kMRN " from SURGCNTR.")
 		}
 	}
-	writeout("/root/lists","SURGCNTR")
+	if IsObject(y.selectSingleNode("/root/lists/SURGCNTR")) {
+		writeout("/root/lists","SURGCNTR")
+	}
 	
 	filecheck()																			; file in use, delay until .currlock cleared
 	FileOpen(".currlock", "W")															; Create lock file.
