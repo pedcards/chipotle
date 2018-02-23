@@ -126,7 +126,7 @@ SaveIt:
 	
 	filecheck()																			; file in use, delay until .currlock cleared
 	FileOpen(".currlock", "W")															; Create lock file.
-
+	
 	; Save all MRN, Dx, Notes, ToDo, etc in arch.xml
 	yaNum := y.selectNodes("/root/id").length
 	Loop, % (yaN := y.selectNodes("/root/id")).length {									; Loop through each ID/MRN in Currlist
@@ -818,6 +818,7 @@ WriteOut(path,node) {
 	
 	if !IsObject(locNode) {
 		eventlog("No such node <" path "/" node "> for WriteOut.")
+		FileDelete, .currlock														; release lock file.
 		return error
 	}
 	
