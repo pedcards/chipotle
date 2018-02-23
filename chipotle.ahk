@@ -524,6 +524,7 @@ readForecast() {
 	}
 	
 	; Get Qgenda items
+	progress, 10, Updating schedules, Reading Qgenda...
 	readQgenda()
 	
 	; Find the most recently modified "*Electronic Forecast.xls" file
@@ -549,6 +550,7 @@ readForecast() {
 		fcFile := A_LoopFileName														; filename, no path
 		fcFileLong := A_LoopFileLongPath												; long path
 		fcRecent := A_LoopFileTimeModified												; most recent file modified
+		Progress, % 10+A_index*10, Updating schedules, % fcFile
 		if InStr(fcFile,"~") {
 			continue																	; skip ~tmp files
 		}
@@ -573,7 +575,6 @@ readForecast() {
 			continue																	; skip to next file
 		}
 		
-		Progress, 100, % dialogVals[Rand(dialogVals.MaxIndex())] "...", % fcFile
 		FileCopy, %fcFileLong%, fcTemp.xlsx, 1											; create local copy to avoid conflict if open
 		eventlog("Parsing " fcFileLong)
 		parseForecast(fcRecent)																	; parseForecast on this file
@@ -620,7 +621,6 @@ parseForecast(fcRecent) {
 			}
 			
 			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value				; Scan Sheet1 A2.. etc
-			;~ Progress, % 100*rowNum/36, % cel, % row_nm
 			if ((cel="") && (colnum=maxcol)) {											; at maxCol and empty, break this cols loop
 				break
 			}
@@ -657,6 +657,7 @@ parseForecast(fcRecent) {
 				continue																; results in some ROW NAME, now move to the next column
 			}
 			
+			Progress, % 100*rowNum/36, Updating schedules, % row_nm
 			fcNode := "/root/lists/forecast/call[@date='" fcDate[colNum] "']"
 			if !IsObject(y.selectSingleNode(fcNode "/" row_nm)) {						; create node for service person if not present
 				y.addElement(row_nm,fcNode)
