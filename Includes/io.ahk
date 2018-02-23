@@ -99,6 +99,7 @@ SaveIt:
 	Progress, b w300, Processing...
 	
 	; Purge leftover hold records, and refresh Coord list
+	gosub MakeCoordList
 	Loop, % (yHold := y.selectNodes("/root/lists/hold/mrn")).length {
 		k := yHold.item(A_index-1)
 		kMRN := k.text
@@ -110,7 +111,6 @@ SaveIt:
 		}
 	}
 	writeout("/root/lists","hold")
-	gosub MakeCoordList
 	
 	Loop, % (yHold := y.selectNodes("/root/lists/SURGCNTR/mrn")).length {
 		k := yHold.item(A_index-1)
@@ -815,6 +815,11 @@ WriteOut(path,node) {
 	locPath := y.selectSingleNode(path)
 	locNode := locPath.selectSingleNode(node)
 	clone := locNode.cloneNode(true)											; make copy of y.node
+	
+	if !IsObject(locNode) {
+		eventlog("No such node <" path "/" node "> for WriteOut.")
+		return error
+	}
 	
 	if (ck:=checkXML("currlist.xml")) {											; Valid XML
 		z := new XML(ck)
