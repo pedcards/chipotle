@@ -166,7 +166,7 @@ ButtonChili:
 
 ButtonConCarne:
 {
-	isARNP := true
+	;~ isARNP := true
 	return
 }
 

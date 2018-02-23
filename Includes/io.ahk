@@ -126,7 +126,7 @@ SaveIt:
 	
 	filecheck()																			; file in use, delay until .currlock cleared
 	FileOpen(".currlock", "W")															; Create lock file.
-
+	
 	; Save all MRN, Dx, Notes, ToDo, etc in arch.xml
 	yaNum := y.selectNodes("/root/id").length
 	Loop, % (yaN := y.selectNodes("/root/id")).length {									; Loop through each ID/MRN in Currlist
@@ -174,10 +174,10 @@ SaveIt:
 			RemoveNode("/root/id[@mrn='" kMRN "']")										; ID node is archived, remove it from Y.
 			eventlog(kMRN " removed from active lists.")
 		}
-		yaChk := yArch.selectSingleNode("/root/id[@mrn='" kMRN "']/diagnoses")
-		if !(yaChk.text) {
-			eventlog(kMRN " blank DX in archlist.")
-		}
+		;~ yaChk := yArch.selectSingleNode("/root/id[@mrn='" kMRN "']/diagnoses")
+		;~ if !(yaChk.text) {
+			;~ eventlog(kMRN " blank DX in archlist.")
+		;~ }
 	}
 
 	Progress, 90, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
@@ -818,6 +818,7 @@ WriteOut(path,node) {
 	
 	if !IsObject(locNode) {
 		eventlog("No such node <" path "/" node "> for WriteOut.")
+		FileDelete, .currlock														; release lock file.
 		return error
 	}
 	
