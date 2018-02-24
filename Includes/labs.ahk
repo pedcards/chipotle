@@ -65,6 +65,7 @@ labGetSection(byref block) {
 	
 	blockNext := match2.value()
 	blockRes := strX(block,blockDate,from,match1.len(),blockNext,1,match2.len(),n)
+	blockRes := RegExReplace(blockRes,"[^[:ascii:]]","~")
 	block := substr(block,n)
 	return {date:trim(blockDate," `t`r`n"), old:labDate(dateOld.value), new:labDate(dateNew.value), res:trim(blockRes," `t`r`n")}
 }
