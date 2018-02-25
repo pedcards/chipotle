@@ -537,6 +537,14 @@ importNodes() {
 		zType := zPath.getAttribute("type")										; element type, e.g. diagnoses, prov, status, todo, summary
 		zChange := zPath.getAttribute("change")									; and changed flags (add, del, done, undo)
 		
+		if (zType="call") {														; adds/mods node in zType
+			zDate := zPath.getAttribute("date")
+			path := "/root/lists/forecast/call[@date='" zDate "']/" zChange
+			y.setText(path,zMRN)
+			y.selectSingleNode(path).setAttribute("mod",A_now)
+			eventlog("Call change: [" zDate "] " zChange "=>" zMRN )
+			continue
+		}
 		compareDates(zMRN,zType,zChange)
 	}
 	
