@@ -29,6 +29,7 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 		if (medlist="diet") {																		; diet string replacements
 			diet := RegExReplace(medname,"i)(,\s+)?(Requested|Start) date\/time: .*")
 			diet := RegExReplace(diet,"i)(, )?Start: \d{1,2}\/\d{2}\/\d{2} \d{1,2}:\d{2}:\d{2}")
+			diet := RegExReplace(diet,"[^[:ascii:]]","~")
 			StringReplace, diet, diet, Other (Nonstandard),, All
 			StringReplace, diet, diet, Nonformulary Formula,, All
 			StringReplace, diet, diet, % "(Formula, Nonformulary)",, All

@@ -324,6 +324,7 @@ processCORES(clip) {
 			cores.Abx := stregX(cores.MedBlock,"ANTIBIOTICS\R",1,1,"SCH MEDS|PRN|ANTIBIOTICS|<<<",1)
 		
 		cores.vs := stregX(ptBlock,"Vitals",NN,1,"Ins/Outs",1,NN)
+			cores.vs := RegExReplace(cores.vs,"[^[:ascii:]]","~")
 			cores.vsWt := trim(stregX(cores.vs,"Meas Wt:",1,1,"\R",0,NNN)," `r`n")
 			cores.vsWt := !instr(cores.vsWt,"No current data available") ?: "n/a"
 			cores.vsTmp := fmtMean(stregX(cores.vs,"^T ",NNN,1,"HR ",1,NNN))

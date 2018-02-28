@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.4.1.9"
+vers := "2.4.2.0"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
@@ -519,7 +519,6 @@ readForecast() {
 	; Get Qgenda items
 	fcMod := substr(y.selectSingleNode("/root/lists/forecast").getAttribute("mod"),1,8) 
 	if !(fcMod = substr(A_now,1,8)) {													; Forecast has not been scanned today
-		progress, , Updating schedules, Reading Qgenda...
 		readQgenda()																	; Read Qgenda once daily
 	}
 	
@@ -731,9 +730,13 @@ readQgenda() {
 			, "TXP Inpt":"Txp"
 			, "IW":"Ward_A"}
 	
+	progress, , Updating schedules, Reading Qgenda...
 	str := httpComm(url)
+	
+	progress, , Updating schedules, Parsing JSON...
 	qOut := parseJSON(str)
 	
+	progress, , Updating schedules, Updating Forecast...
 	Loop, % qOut.MaxIndex()
 	{
 		i := A_Index

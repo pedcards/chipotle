@@ -11,7 +11,7 @@ TblCols(tabs*) {
 }
 
 PrintIt() {
-	global y, location
+	global y, location, locString
 	rtfTblCols := tblCols(2.25							; Location (e.g. tab stop at 1.5")
 						, 3.75							; MRN
 						, 4.625							; Sex/Age
