@@ -504,15 +504,15 @@ PatFileGet:
 	Gui, PatL:Submit, NoHide
 	if (A_GuiEvent = "DoubleClick") {													; double-click on line, just pass the line data
 		files := PatFile
-	} else if (A_GuiControl = "Open files...") {										; clicked "Open files..." button
+	} else if (A_GuiControl = "Open all files...") {										; clicked "Open files..." button
 		files := trim(filelist,"|")														; trim "|" from end
-		;~ If (filenum>4) {
-			;~ MsgBox, 52, % "Lots of files (" filenum ")", Really open all of these files?
-			;~ IfMsgBox, Yes
-				;~ tmp = true
-			;~ if !(tmp)																	; necessary as dialog can be Yes, No, or close
-				;~ return
-		;~ }
+		If (filenum>4) {
+			MsgBox, 52, % "Lots of files (" filenum ")", Really open all of these files?
+			IfMsgBox, Yes
+				tmp = true
+			if !(tmp)																	; necessary as dialog can be Yes, No, or close
+				return
+		}
 	} else {
 		return
 	}
