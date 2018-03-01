@@ -4,6 +4,18 @@ plTasksList:
 	Gui, tlist:Add, Listview, -Multi AltSubmit Checked Grid NoSortHdr W780 gplTaskEdit vTaskLV hwndHLV, Task Date|Item|DateIdx|Created|Done
 	LV_Colors.Attach(HLV,1,0,0)
 	Gui, tlist:Default
+	gosub plTaskGrid
+	
+	GuiControl, tlist:Move, TaskLV, % "H" tlvH
+	Gui, tlist:Add, Button, % "w780 x10 y" tlvH+10 " gplTaskEdit", ADD A TASK...
+	Gui, tlist:Show, % "W800 H" tlvH+35 , % pl_nameL " - Tasks"
+	GuiControl, tlist:+Redraw, %HLV%
+	Gui, plistG:Hide
+Return	
+}
+
+plTaskGrid:
+{
 	pTct := 1
 	i:=0
 	if IsObject(plTodo := y.selectSingleNode(pl_mrnstring "/plan/call")) {
@@ -56,12 +68,6 @@ plTasksList:
 	if pTct<4
 		pTct:=4
 	tlvH := (pTct)*21
-	GuiControl, tlist:Move, TaskLV, % "H" tlvH
-	Gui, tlist:Add, Button, % "w780 x10 y" tlvH+10 " gplTaskEdit", ADD A TASK...
-	Gui, tlist:Show, % "W800 H" tlvH+35 , % pl_nameL " - Tasks"
-	GuiControl, tlist:+Redraw, %HLV%
-	Gui, plistG:Hide
-Return	
 }
 
 plTaskEdit:
@@ -138,6 +144,7 @@ plTaskEdit:
 			eventlog(mrn " todo " tmpD " deleted.")
 			gosub plTasksList
 		}
+		GuiControl, +Redraw, %HLV%
 		Return
 	}
 

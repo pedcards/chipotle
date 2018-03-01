@@ -126,17 +126,25 @@ PatListGUI:
 	
 /*	Info/task blocks
 */
+	Gui, Add, Listview
+		, -Multi -Hdr Backgroundf0f0f0 cBlack AltSubmit Checked Grid NoSortHdr x610 y30 w240 h120 gplTaskEdit vTaskLV hwndHLV
+		, Task Date|Item|DateIdx|Created|Done
+		LV_Colors.Attach(HLV,1,0,0)
+		gosub plTaskGrid
+		LV_ModifyCol(2)
+		GuiControl, +Redraw, %HLV%
+	Gui, Add, Button, x610 y150 w240 h20 gplTaskEdit, ADD A TASK...
+
 	e0:=plEchoRes(mrn)
-	Gui, Add, Text, x610 y30 w240 h150 gplTasksList, Click me!
 	Gui, Add, Text, xp y200 wp h120 gplDataList, % strQ(e0.res,"Echo " e0.date ": ###")
+	
 	Gui, Add, Text, xp y350 wp h160 v2 gplMAR, % ""
 		. strQ(plMARtext("drips","Arrhythmia") plMARtext("drips","Cardiac"), "=== DRIPS ===`n###")
 		. strQ(plMARtext("meds","Arrhythmia") plMARtext("meds","Cardiac"), "=== SCHEDULED MEDS ===`n###")
 		. strQ(plMARtext("prn","Arrhythmia") plMARtext("prn","Cardiac"), "=== PRN ===`n###")
 		. strQ(plMARtext("diet","Diet"), "`n=== DIET ===`n###")
 	
-/*	Group boxes
-	- Draw these last to prevent text messing up lines
+/*	Group boxes - Draw these last to prevent text messing up lines
 */
 	Gui, Font, Bold
 	Gui, Add, GroupBox, x16 y14 w240 h160 , % pl_NameL . ", " . pl_NameF				; Demographics
@@ -158,7 +166,7 @@ PatListGUI:
 	
 /*	Add buttons
 */
-	Gui, Add, Button, x36 y540 w160 h40 gplTasksList Disabled, Tasks/Todos
+	Gui, Add, Button, x36 y540 w160 h40 gplTasksList Disabledd, Tasks/Todos
 	Gui, Add, Button, xp+180 yp w160 h40 gplupd Disabled, Update notes
 	Gui, Add, Button, xp+180 yp w160 h40 gplSumm, Summary Notes
 	Gui, Add, Button, x36 yp+44 w160 h40 v1 gplCORES Disabled, Vascular map
