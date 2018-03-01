@@ -399,6 +399,30 @@ plDiet(txt:="") {
 	Return txt
 }
 
+plEchoRes(mrn,DT="") {
+	global y
+	
+	k := y.selectSingleNode("/root/id[@mrn='" MRN "']")
+	if (DT) {
+		studies := k.selectSingleNode("data/Echo/study[@date='" DT "']")
+		bestDT := DT
+	} else {
+		studies := k.selectNodes("data/Echo/study")
+		loop, % studies.length {
+			study := studies.item(A_index-1)											; each <data/Echo> item 
+			studyDT := study.getAttribute("date")										; study date
+			if (studyDT>bestDT) {	
+				bestDT := studyDT														; find most recent study
+			}
+		}
+	}
+	
+	ResTxt := k.selectSingleNode("data/Echo/study[@date='" bestDT "']").text
+	ResDT := breakDate(bestDT).MM "/" breakDate(bestDT).DD
+	
+	return {res:ResTxt,date:ResDT} 
+}
+
 PtParse(mrn) {
 	global y
 	ob := Object()
