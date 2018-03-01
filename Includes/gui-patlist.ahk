@@ -123,6 +123,9 @@ PatListGUI:
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxEP gplInputNote, %pl_dxEP%
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxSurg gplInputNote, %pl_dxSurg%
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxProb gplInputNote, %pl_dxProb%
+	
+/*	Info/task blocks
+*/
 
 /*	Group boxes
 	- Draw these last to prevent text messing up lines
@@ -139,6 +142,10 @@ PatListGUI:
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , EP diagnoses/problems
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Surgeries/Caths/Interventions
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Problem List
+	
+	Gui, Add, GroupBox, x600 y14 w260 h160 , TODO list
+	Gui, Add, GroupBox, xp y180 wp h140 , Data Highlights
+	Gui, Add, GroupBox, xp y330 wp h180 , Meds/Diet
 	Gui, Font, Normal
 	
 /*	Add buttons
@@ -150,8 +157,11 @@ PatListGUI:
 	Gui, Add, Button, xp+180 yp w160 h40 gplDataList Disabled, Data highlights
 	Gui, Add, Button, xp+180 yp w160 h40 v2 gplMAR Disabled, Meds/Diet (CORES)
 
-	Gui, Show, w600 h670, % "Patient Information - " pl_NameL
 	Gui, Add, Button, x176 yp+44 w240 h40 gplSave, SAVE
+
+/*	Display GUI
+*/
+	Gui, Show, w880 h670, % "Patient Information - " pl_NameL
 	plEditNote = 
 	plEditStat =
 
