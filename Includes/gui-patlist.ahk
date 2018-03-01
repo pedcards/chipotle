@@ -67,6 +67,12 @@ PatListGUI:
 {
 	refreshCurr(1)														; refresh Y with currlock
 	holdlist(mrn)
+	
+	Gui, plistG:Destroy
+	Gui, plistG:Default
+	
+/*	Demographics block
+*/
 	pl_demo := ""
 		. "DOB: " pl_DOB 
 		. "   Age: " (instr(pl_Age,"month")?RegExReplace(pl_Age,"i)month","mo"):instr(pl_Age,"year")?RegExReplace(pl_Age,"i)year","yr"):pl_Age) 
@@ -77,20 +83,26 @@ PatListGUI:
 	if !(pl_Unit) {																				; no unit means is an ad hoc entry
 		pl_demo := "`nDemographics will be added`nwhen patient is admitted"
 	}
-	Gui, plistG:Destroy
-	Gui, plistG:Default
 	Gui, Add, Text, x26 y38 w200 h80 , % pl_demo
+	
+/*	Providers block
+*/
 	Gui, Add, Text, x266 y24 w150 h30 gplInputCard, Primary Cardiologist:
 	Gui, Add, Text, xp yp+14 cBlue w140 vpl_card, % pl_ProvCard
 	Gui, Add, Text, xp yp+20 w150 h30 gplInputCard, Continuity Cardiologist:
 	Gui, Add, Text, xp yp+14 cBlue w140 vpl_SCHcard, % pl_ProvSchCard
 	Gui, Add, Text, xp yp+20 w150 h30 gplInputCard, Cardiac Surgeon:
 	Gui, Add, Text, xp yp+14 cBlue w140 vpl_CSR, % pl_ProvCSR
+	
+/*	Call block
+*/
 	Gui, Add, Text, xp y140 w150 h28 , Last call:
 	Gui, Add, Text, xp+50 yp w80 vCrdCall_L , % ((pl_Call_L) ? niceDate(pl_Call_L) : "---")		;substr(pl_Call_L,1,8)
 	Gui, Add, Text, xp-50 yp+14 , Next call:
 	Gui, Add, Text, xp+50 yp w80 vCrdCall_N, % ((pl_Call_N) ? niceDate(pl_Call_N) : "---")
-
+	
+/*	Status flags
+*/
 	Gui, Add, CheckBox, x446 y34 w120 h20 Checked%pl_statCons% vpl_statCons gplInputNote, Consult
 	Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statTxp% vpl_statTxp gplInputNote, Transplant
 	Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statRes% vpl_statRes gplInputNote, Research
@@ -103,6 +115,8 @@ PatListGUI:
 		Gui, Font
 	}
 	
+/*	Diagnosis input blocks
+*/
 	Gui, Add, Edit, x16 y132 w240 h40 gplInputNote vpl_misc, %pl_misc%
 	Gui, Add, Edit, x26 y196 w540 h48 vpl_dxNotes gplInputNote, % pmNoteChk(pl_dxNotes)
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxCard gplInputNote, %pl_dxCard%
@@ -110,20 +124,14 @@ PatListGUI:
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxSurg gplInputNote, %pl_dxSurg%
 	Gui, Add, Edit, x26 yp+70 w540 h48 vpl_dxProb gplInputNote, %pl_dxProb%
 
-	Gui, Add, Button, x36 y540 w160 h40 gplTasksList, Tasks/Todos
-	Gui, Add, Button, xp+180 yp w160 h40 gplupd Disabledd, Update notes
-	Gui, Add, Button, xp+180 yp w160 h40 gplSumm, Summary Notes
-	Gui, Add, Button, x36 yp+44 w160 h40 v1 gplCORES, Patient History (CORES)
-	Gui, Add, Button, xp+180 yp w160 h40 gplDataList, Data highlights
-	Gui, Add, Button, xp+180 yp w160 h40 v2 gplMAR, Meds/Diet (CORES)
-
-	Gui, Add, Button, x176 yp+44 w240 h40 gplSave, SAVE
-
+/*	Group boxes
+	- Draw these last to prevent text messing up lines
+*/
 	Gui, Font, Bold
-	Gui, Add, GroupBox, x16 y14 w240 h160 , % pl_NameL . ", " . pl_NameF
-	;Gui, Add, GroupBox, xp yp+110 w240 h50
-	Gui, Add, GroupBox, x256 y14 w160 h118
-	Gui, Add, GroupBox, xp yp+110 w160 h50 
+	Gui, Add, GroupBox, x16 y14 w240 h160 , % pl_NameL . ", " . pl_NameF				; Demographics
+	Gui, Add, GroupBox, xp yp+110 w240 h50												; Extra box
+	Gui, Add, GroupBox, x256 y14 w160 h118												; Providers
+	Gui, Add, GroupBox, xp yp+110 wp h50												; Call dates 
 
 	Gui, Add, GroupBox, x436 y14 w140 h160 , Status Flags
 	Gui, Add, GroupBox, x16 y180 w560 h70 , Temporary Notes (will be deleted)
@@ -132,8 +140,18 @@ PatListGUI:
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Surgeries/Caths/Interventions
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Problem List
 	Gui, Font, Normal
+	
+/*	Add buttons
+*/
+	Gui, Add, Button, x36 y540 w160 h40 gplTasksList Disabledd, Tasks/Todos
+	Gui, Add, Button, xp+180 yp w160 h40 gplupd Disabledd, Update notes
+	Gui, Add, Button, xp+180 yp w160 h40 gplSumm, Summary Notes
+	Gui, Add, Button, x36 yp+44 w160 h40 v1 gplCORES Disabled, Patient History (CORES)
+	Gui, Add, Button, xp+180 yp w160 h40 gplDataList Disabled, Data highlights
+	Gui, Add, Button, xp+180 yp w160 h40 v2 gplMAR Disabled, Meds/Diet (CORES)
 
 	Gui, Show, w600 h670, % "Patient Information - " pl_NameL
+	Gui, Add, Button, x176 yp+44 w240 h40 gplSave, SAVE
 	plEditNote = 
 	plEditStat =
 
