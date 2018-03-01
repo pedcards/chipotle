@@ -126,7 +126,15 @@ PatListGUI:
 	
 /*	Info/task blocks
 */
-
+	e0:=plEchoRes(mrn)
+	Gui, Add, Text, x610 y30 w240 h150 gplTasksList, Click me!
+	Gui, Add, Text, xp y200 wp h120 gplDataList, % strQ(e0.res,"Echo " e0.date ": ###")
+	Gui, Add, Text, xp y350 wp h160 v2 gplMAR, % ""
+		. strQ(plMARtext("drips","Arrhythmia") plMARtext("drips","Cardiac"), "=== DRIPS ===`n###")
+		. strQ(plMARtext("meds","Arrhythmia") plMARtext("meds","Cardiac"), "=== SCHEDULED MEDS ===`n###")
+		. strQ(plMARtext("prn","Arrhythmia") plMARtext("prn","Cardiac"), "=== PRN ===`n###")
+		. strQ(plMARtext("diet","Diet"), "`n=== DIET ===`n###")
+	
 /*	Group boxes
 	- Draw these last to prevent text messing up lines
 */
@@ -143,19 +151,19 @@ PatListGUI:
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Surgeries/Caths/Interventions
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Problem List
 	
-	Gui, Add, GroupBox, x600 y14 w260 h160 , TODO list
+	Gui, Add, GroupBox, x600 y14 w260 h160 Disabled, Tasks/Todos
 	Gui, Add, GroupBox, xp y180 wp h140 , Data Highlights
-	Gui, Add, GroupBox, xp y330 wp h180 , Meds/Diet
+	Gui, Add, GroupBox, xp y330 wp h180 , % "Cardiac Meds/Diet (" nicedate(DateCores) ")"
 	Gui, Font, Normal
 	
 /*	Add buttons
 */
-	Gui, Add, Button, x36 y540 w160 h40 gplTasksList Disabledd, Tasks/Todos
-	Gui, Add, Button, xp+180 yp w160 h40 gplupd Disabledd, Update notes
+	Gui, Add, Button, x36 y540 w160 h40 gplTasksList Disabled, Tasks/Todos
+	Gui, Add, Button, xp+180 yp w160 h40 gplupd Disabled, Update notes
 	Gui, Add, Button, xp+180 yp w160 h40 gplSumm, Summary Notes
-	Gui, Add, Button, x36 yp+44 w160 h40 v1 gplCORES Disabled, Patient History (CORES)
+	Gui, Add, Button, x36 yp+44 w160 h40 v1 gplCORES Disabled, Vascular map
 	Gui, Add, Button, xp+180 yp w160 h40 gplDataList Disabled, Data highlights
-	Gui, Add, Button, xp+180 yp w160 h40 v2 gplMAR Disabled, Meds/Diet (CORES)
+	Gui, Add, Button, xp+180 yp w160 h40 v333 gplMAR Disabled, Meds/Diet (CORES)
 
 	Gui, Add, Button, x176 yp+44 w240 h40 gplSave, SAVE
 
@@ -374,6 +382,18 @@ plMARlist(group,class) {
 		LV_Add("", plMed)
 	}
 	return
+}
+
+plMARtext(group,class) {
+	global
+	local res
+	
+	Loop, % (plMAR := y.selectNodes(pl_mrnstring "/MAR/" group "[@class='" class "']")).length {
+		plMed := plMAR.item(A_Index-1).text
+		plMed = %plMed%
+		res .= "* " plMed "`n"
+	}
+	return res
 }
 
 plDiet(txt:="") {
