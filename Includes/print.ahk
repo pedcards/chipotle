@@ -75,16 +75,8 @@ PrintIt() {
 				pr_today .= "\f2q\f0 (" breakDate(pr.callN).MM "/" breakDate(pr.callN).DD ") Call Dr. " pr.provCard "\line\fs12 "
 			}
 		}
-		E0best :=
-		loop, % (prE:=k.selectNodes("data/Echo/study")).length {
-			prE0 := prE.item(A_index-1)													; each <data/Echo> item 
-			prE0dt := pre0.getAttribute("date")											; study date
-			if (prE0dt>E0best) {
-				E0best := prE0dt														; find most recent study
-			}
-		}
-		pr_today .= strQ(k.selectSingleNode("data/Echo/study[@date='" E0best "']").text		; add to TODAY col-A
-				,	"\line\line Echo " breakDate(E0best).MM "/" breakDate(E0best).DD ": ###\line ") 
+		E0best := plEchoRes(kMRN)
+		pr_today .= strQ(E0best.res,"\line\line Echo " E0best.date ": ###\line ")			; add to TODAY col-A
 		
 		CIS_dx := strQ(RegExReplace(pr.dxCard,"[\r\n]"," * "),"[[Dx]] ###\line ")		; add <diagnosis> sections if present
 				. strQ(RegExReplace(pr.dxSurg,"[\r\n]"," * "),"[[Surg]] ###\line ") 	; to the DX col-B
