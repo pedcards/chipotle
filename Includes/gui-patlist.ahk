@@ -144,9 +144,16 @@ PatListGUI:
 		. strQ(plMARtext("prn","Arrhythmia") plMARtext("prn","Cardiac"), "=== PRN ===`n###")
 		. strQ(plMARtext("diet","Diet"), "`n=== DIET ===`n###")
 	
-/*	Group boxes - Draw these last to prevent text messing up lines
+/*	Group boxes and Buttons - Draw these last to prevent text messing up lines
 */
 	Gui, Font, Bold
+	Gui, Add, GroupBox, x16 y180 w560 h70 , Temporary Notes (will be deleted)
+	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Diagnoses && Problems
+	Gui, Add, GroupBox, x16 yp+70 w560 h70 , EP diagnoses/problems
+	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Surgeries/Caths/Interventions
+	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Problem List
+	Gui, Add, Button, x176 y+10 w240 h40 gplSave, SAVE
+	
 	Gui, Add, GroupBox, x16 y14 w240 h160 , % pl_NameL . ", " . pl_NameF				; Demographics
 	Gui, Add, GroupBox, xp yp+110 w240 h50												; Extra box
 	Gui, Add, GroupBox, x256 y14 w160 h118												; Providers
@@ -160,18 +167,8 @@ PatListGUI:
 	Gui, Add, Button, xp+140 yp w120 h30 gplSumm, Summary Notes
 	Gui, Add, Button, x600 yp+34 w120 h30 v1 gplCORES Disabled, Vascular map
 	
-	Gui, Add, GroupBox, x16 y180 w560 h70 , Temporary Notes (will be deleted)
-	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Diagnoses && Problems
-	Gui, Add, GroupBox, x16 yp+70 w560 h70 , EP diagnoses/problems
-	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Surgeries/Caths/Interventions
-	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Problem List
-	
-	Gui, Add, Button, x176 yp+100 w240 h40 gplSave, SAVE
-	
 	Gui, Font, Normal
 	
-/*	Add buttons
-*/
 	;~ Gui, Add, Button, x36 y540 w160 h40 gplTasksList Disabled, Tasks/Todos
 	;~ Gui, Add, Button, xp+180 yp w160 h40 gplupd Disabled, Update notes
 	;~ Gui, Add, Button, xp+180 yp w160 h40 gplSumm, Summary Notes
