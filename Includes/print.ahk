@@ -181,7 +181,7 @@ return
 }
 
 PrintARNP() {
-	global y, location, ccFields
+	global y, location, locString, ccFields, rtflist, pr
 	
 	TblC:="\cellx", tw:=1440							; Measured in twips (1440 = 1", 720 = 1/2", 360 = 1/4")
 	TblBrdr:="\clbrdrt\brdrs\clbrdrl\brdrs\clbrdrb\brdrs\clbrdrr\brdrs"
