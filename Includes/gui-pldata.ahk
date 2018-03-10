@@ -5,7 +5,7 @@ plDataList:
 	Gui, plistG:Hide
 	Gui, dlist:Destroy
 	Gui, dlist:Add, Button, x10 y360 w200 h30 gplDataEdit, Add study...
-	Gui, dlist:Add, Tab2, x10 y10 w800 h340 vDataTab, Recent||Echo|ECG|CXR|Cath|GXT|CMR
+	Gui, dlist:Add, Tab3, x10 y10 w800 h340 vDataTab, Recent||Echo|ECG|CXR|Cath|GXT|CMR
 	Gui, dlist:Default
 	plData("Recent")
 	plData("Echo")
@@ -103,22 +103,27 @@ plData(Dtype) {
 	global
 	local plDlist, plData, plDataIdx, plDataDate, plDataDisp, plDataItem
 	Gui, dlist:Tab, %Dtype%
-	Gui, dlist:Add, ListView, -Multi Grid NoSortHdr w780 h300 vDataLV%Dtype% gplDataEdit, DateCr|DateIdx|Date|Result
-	If (Dtype="Recent")
+	Gui, dlist:Add, ListView, -Multi Grid NoSortHdr w780 h300 vDataLV%Dtype% gplDataEdit, DateCr|DateIdx|Date|Type|Result
+	If (Dtype="Recent") {
 		Dtype:="*"
+	}
 
 	Loop, % (plDlist := y.selectNodes(pl_mrnstring "/data/" Dtype "/study")).length {
 		plData := plDlist.item(A_index-1)
 		plDataIdx := plData.getAttribute("created")
 		plDataDate := plData.getAttribute("date")
 		plDataDisp := substr(plDataDate,5,2) . "/" . substr(plDataDate,7,2) . "/" . substr(plDataDate,1,4)
+		plDataType := plData.parentNode.nodeName
 		plDataItem := plData.text
-		LV_Add("", plDataIdx, plDataDate, plDataDisp, plDataItem)
+		LV_Add("", plDataIdx, plDataDate, plDataDisp, plDataType, plDataItem)
 	}
 	LV_ModifyCol(1, 0)
 	LV_ModifyCol(2, "0 Sort")
 	LV_ModifyCol(3, "AutoHdr")
-	if (Dtype="*")
+	LV_ModifyCol(4, "AutoHdr")
+	if (Dtype="*") {
 		LV_ModifyCol(2, "0 SortDesc")
+	}
+
 }
 
