@@ -2,8 +2,19 @@ PatListGet:
 {
 	refreshCurr(1)																		; get most recent currlist
 	if (A_GuiControl="TeamLV") {
-		LV_GetText(mrn, A_EventInfo)
+		pl_list := []
+		pl_pos:=A_EventInfo
+		pl_maxpos := LV_GetCount()
+		loop % pl_maxpos
+		{
+			LV_GetText(tmp,A_index)
+			pl_list[A_index] := tmp
+		}
 	}
+	mrn := pl_list[pl_pos]
+	pl_next := pl_list[pl_pos+1-pl_maxpos*(pl_pos=pl_maxpos)]
+	pl_prev := pl_list[pl_pos-1+pl_maxpos*(pl_pos=1)]
+	
 	if (instr(A_GuiControl,"callGrp")) {
 		Gui, cList:Listview, % A_GuiControl
 		LV_GetText(mrn, A_EventInfo)
