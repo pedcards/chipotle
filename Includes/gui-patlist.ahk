@@ -329,6 +329,18 @@ plSave:
 Return
 }
 
+plNext:
+{
+	if (A_GuiControl="N") {
+		pl_pos := pl_pos+1-pl_maxpos*(pl_pos=pl_maxpos)
+	}
+	if (A_GuiControl="P") {
+		pl_pos := pl_pos-1+pl_maxpos*(pl_pos=1)
+	}
+	gosub PatListGet
+	return
+}
+
 pListGGuiClose:
 {
 	if ((plEditNote) or (plEditSys) or (plEditStat)) {
