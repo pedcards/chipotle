@@ -325,6 +325,8 @@ plNext:
 	if (A_GuiControl="P") {
 		pl_pos := pl_pos-1+pl_maxpos*(pl_pos=1)
 	}
+	adhoc := true
+	gosub plSave
 	gosub PatListGet
 	return
 }
