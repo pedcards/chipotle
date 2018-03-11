@@ -163,11 +163,14 @@ PatListGUI:
 	Gui, Add, GroupBox, x600 y14 w260 h160 Disabled, Tasks/Todos
 	Gui, Add, GroupBox, xp y180 wp h140 , Data Highlights
 	Gui, Add, GroupBox, xp y330 wp h180 , % "Cardiac Meds/Diet (" nicedate(DateCores) ")"
-	Gui, Add, Button, x600 yp+200 w120 h30 gplupd Disabled, Update notes
-	Gui, Add, Button, xp+140 yp w120 h30 gplSumm, Summary Notes
-	Gui, Add, Button, x600 yp+34 w120 h30 v1 gplCORES Disabled, Vascular map
+	Gui, Add, Button, x600 y+20 w120 h20 gplupd Disabled, Update notes
+	Gui, Add, Button, x+20 yp w120 hp gplSumm, Summary Notes
+	Gui, Add, Button, x600 y+4 w120 hp v1 gplCORES Disabled, Vascular map
 	
 	Gui, Font, Normal
+	
+	Gui, Add, Button, x600 y+20 wp h20 vP gplNext, % "<<< " substr(ptParse(pl_prev).nameL,1,12)
+	Gui, Add, Button, x+20 yp wp hp vN gplNext, % substr(ptParse(pl_next).nameL,1,12) " >>>"
 	
 	;~ Gui, Add, Button, x36 y540 w160 h40 gplTasksList Disabled, Tasks/Todos
 	;~ Gui, Add, Button, xp+180 yp w160 h40 gplupd Disabled, Update notes
