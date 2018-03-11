@@ -2,8 +2,19 @@ PatListGet:
 {
 	refreshCurr(1)																		; get most recent currlist
 	if (A_GuiControl="TeamLV") {
-		LV_GetText(mrn, A_EventInfo)
+		pl_list := []
+		pl_pos:=A_EventInfo
+		pl_maxpos := LV_GetCount()
+		loop % pl_maxpos
+		{
+			LV_GetText(tmp,A_index)
+			pl_list[A_index] := tmp
+		}
 	}
+	mrn := pl_list[pl_pos]
+	pl_next := pl_list[pl_pos+1-pl_maxpos*(pl_pos=pl_maxpos)]
+	pl_prev := pl_list[pl_pos-1+pl_maxpos*(pl_pos=1)]
+	
 	if (instr(A_GuiControl,"callGrp")) {
 		Gui, cList:Listview, % A_GuiControl
 		LV_GetText(mrn, A_EventInfo)
@@ -144,9 +155,16 @@ PatListGUI:
 		. strQ(plMARtext("prn","Arrhythmia") plMARtext("prn","Cardiac"), "=== PRN ===`n###")
 		. strQ(plMARtext("diet","Diet"), "`n=== DIET ===`n###")
 	
-/*	Group boxes - Draw these last to prevent text messing up lines
+/*	Group boxes and Buttons - Draw these last to prevent text messing up lines
 */
 	Gui, Font, Bold
+	Gui, Add, GroupBox, x16 y180 w560 h70 , Temporary Notes (will be deleted)
+	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Diagnoses && Problems
+	Gui, Add, GroupBox, x16 yp+70 w560 h70 , EP diagnoses/problems
+	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Surgeries/Caths/Interventions
+	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Problem List
+	Gui, Add, Button, x176 y+10 w240 h40 gplSave, SAVE
+	
 	Gui, Add, GroupBox, x16 y14 w240 h160 , % pl_NameL . ", " . pl_NameF				; Demographics
 	Gui, Add, GroupBox, xp yp+110 w240 h50												; Extra box
 	Gui, Add, GroupBox, x256 y14 w160 h118												; Providers
@@ -156,37 +174,19 @@ PatListGUI:
 	Gui, Add, GroupBox, x600 y14 w260 h160 Disabled, Tasks/Todos
 	Gui, Add, GroupBox, xp y180 wp h140 , Data Highlights
 	Gui, Add, GroupBox, xp y330 wp h180 , % "Cardiac Meds/Diet (" nicedate(DateCores) ")"
-	Gui, Add, Button, x600 yp+200 w120 h30 gplupd Disabled, Update notes
-	Gui, Add, Button, xp+140 yp w120 h30 gplSumm, Summary Notes
-	Gui, Add, Button, x600 yp+34 w120 h30 v1 gplCORES Disabled, Vascular map
-	
-	Gui, Add, GroupBox, x16 y180 w560 h70 , Temporary Notes (will be deleted)
-	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Diagnoses && Problems
-	Gui, Add, GroupBox, x16 yp+70 w560 h70 , EP diagnoses/problems
-	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Surgeries/Caths/Interventions
-	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Problem List
-	
-	Gui, Add, Button, x176 yp+100 w240 h40 gplSave, SAVE
+	Gui, Add, Button, x600 y+20 w120 h20 gplupd Disabled, Update notes
+	Gui, Add, Button, x+20 yp w120 hp gplSumm, Summary Notes
+	Gui, Add, Button, x600 y+4 w120 hp v1 gplCORES Disabled, Vascular map
 	
 	Gui, Font, Normal
 	
-/*	Add buttons
-*/
-	;~ Gui, Add, Button, x36 y540 w160 h40 gplTasksList Disabled, Tasks/Todos
-	;~ Gui, Add, Button, xp+180 yp w160 h40 gplupd Disabled, Update notes
-	;~ Gui, Add, Button, xp+180 yp w160 h40 gplSumm, Summary Notes
-	;~ Gui, Add, Button, x36 yp+44 w160 h40 v1 gplCORES Disabled, Vascular map
-	;~ Gui, Add, Button, xp+180 yp w160 h40 gplDataList Disabled, Data highlights
-	;~ Gui, Add, Button, xp+180 yp w160 h40 v333 gplMAR Disabled, Meds/Diet (CORES)
+	Gui, Add, Button, x600 y+20 wp h20 vP gplNext, % "<<< " substr(ptParse(pl_prev).nameL,1,12)
+	Gui, Add, Button, x+20 yp wp hp vN gplNext, % substr(ptParse(pl_next).nameL,1,12) " >>>"
 	
-	;~ Gui, Add, Button, x600 yp+200 w120 h30 gplupd Disabled, Update notes
-	;~ Gui, Add, Button, xp+140 yp w120 h30 gplSumm, Summary Notes
-	;~ Gui, Add, Button, x600 yp+34 w120 h30 v1 gplCORES Disabled, Vascular map
-	
-
 /*	Display GUI
 */
-	Gui, Show, w880 h620, % "Patient Information - " pl_NameL
+	;~ Gui, Show, w880 h620, % "Patient Information - " pl_NameL
+	Gui, Show, , % "Patient Information - " pl_NameL
 	plEditNote = 
 	plEditStat =
 
@@ -315,6 +315,20 @@ plSave:
 	}
 	gosub TeamList
 Return
+}
+
+plNext:
+{
+	if (A_GuiControl="N") {
+		pl_pos := pl_pos+1-pl_maxpos*(pl_pos=pl_maxpos)
+	}
+	if (A_GuiControl="P") {
+		pl_pos := pl_pos-1+pl_maxpos*(pl_pos=1)
+	}
+	adhoc := true
+	gosub plSave
+	gosub PatListGet
+	return
 }
 
 pListGGuiClose:
