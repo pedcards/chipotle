@@ -183,18 +183,6 @@ PatListGUI:
 	Gui, Add, Button, x600 y+20 wp h20 vP gplNext, % "<<< " substr(ptParse(pl_prev).nameL,1,12)
 	Gui, Add, Button, x+20 yp wp hp vN gplNext, % substr(ptParse(pl_next).nameL,1,12) " >>>"
 	
-	;~ Gui, Add, Button, x36 y540 w160 h40 gplTasksList Disabled, Tasks/Todos
-	;~ Gui, Add, Button, xp+180 yp w160 h40 gplupd Disabled, Update notes
-	;~ Gui, Add, Button, xp+180 yp w160 h40 gplSumm, Summary Notes
-	;~ Gui, Add, Button, x36 yp+44 w160 h40 v1 gplCORES Disabled, Vascular map
-	;~ Gui, Add, Button, xp+180 yp w160 h40 gplDataList Disabled, Data highlights
-	;~ Gui, Add, Button, xp+180 yp w160 h40 v333 gplMAR Disabled, Meds/Diet (CORES)
-	
-	;~ Gui, Add, Button, x600 yp+200 w120 h30 gplupd Disabled, Update notes
-	;~ Gui, Add, Button, xp+140 yp w120 h30 gplSumm, Summary Notes
-	;~ Gui, Add, Button, x600 yp+34 w120 h30 v1 gplCORES Disabled, Vascular map
-	
-
 /*	Display GUI
 */
 	;~ Gui, Show, w880 h620, % "Patient Information - " pl_NameL
