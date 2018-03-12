@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.4.2.4"
+vers := "2.4.2.5"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
@@ -708,18 +708,22 @@ readQgenda() {
 		. "&endDate=" t1
 		. "&$select=Date,TaskName,StaffLName,StaffFName"
 		. "&$filter="
-		.	"TaskName eq 'CALL' "
-		.	"or TaskName eq 'fCall' "
-	;	.	"or TaskName eq 'CATH LAB' "
-	;	.	"or TaskName eq 'CATH RES' "
-		.	"or TaskName eq 'EP Call' "
-	;	.	"or TaskName eq 'Fetal Call' "
-		.	"or TaskName eq 'ICU' "
-	;	.	"or TaskName eq 'TEE/ECHO' "
-	;	.	"or TaskName eq 'TEE Call' "
-		.	"or TaskName eq 'TXP Inpt' "
-	;	.	"or TaskName eq 'TXP Res' "
-		.	"or TaskName eq 'IW'"
+		.	"("
+		.		"TaskName eq 'CALL' "
+		.		"or TaskName eq 'fCall' "
+	;	.		"or TaskName eq 'CATH LAB' "
+	;	.		"or TaskName eq 'CATH RES' "
+		.		"or TaskName eq 'EP Call' "
+	;	.		"or TaskName eq 'Fetal Call' "
+		.		"or TaskName eq 'ICU' "
+	;	.		"or TaskName eq 'TEE/ECHO' "
+	;	.		"or TaskName eq 'TEE Call' "
+		.		"or TaskName eq 'TXP Inpt' "
+	;	.		"or TaskName eq 'TXP Res' "
+		.		"or TaskName eq 'IW'"
+		.	") "
+		.	"and IsPublished "
+		.	"and not IsStruck"
 		. "&$orderby=Date,TaskName"
 		. q_eml
 	
