@@ -703,29 +703,6 @@ readQgenda() {
 	FormatTime,t1, %t1%, MM/dd/yyyy
 	IniRead, q_com, qgenda.ppk, api, com
 	IniRead, q_eml, qgenda.ppk, api, eml
-	url := "https://api.qgenda.com/v1/schedule?companyKey=" q_com
-		. "&startDate=" t0
-		. "&endDate=" t1
-		. "&$select=Date,TaskName,StaffLName,StaffFName"
-		. "&$filter="
-		.	"("
-		.		"TaskName eq 'CALL' "
-		.		"or TaskName eq 'fCall' "
-	;	.		"or TaskName eq 'CATH LAB' "
-	;	.		"or TaskName eq 'CATH RES' "
-		.		"or TaskName eq 'EP Call' "
-	;	.		"or TaskName eq 'Fetal Call' "
-		.		"or TaskName eq 'ICU' "
-	;	.		"or TaskName eq 'TEE/ECHO' "
-	;	.		"or TaskName eq 'TEE Call' "
-		.		"or TaskName eq 'TXP Inpt' "
-	;	.		"or TaskName eq 'TXP Res' "
-		.		"or TaskName eq 'IW'"
-		.	") "
-		.	"and IsPublished "
-		.	"and not IsStruck"
-		. "&$orderby=Date,TaskName"
-		. "&" q_eml
 	
 	qg_fc := {"CALL":"PM_We_A"
 			, "fCall":"PM_We_F"
@@ -734,8 +711,40 @@ readQgenda() {
 			, "TXP Inpt":"Txp"
 			, "IW":"Ward_A"}
 	
+	progress, , Updating schedules, Auth Qgenda...
+	url := "https://api.qgenda.com/v2/login"
+	str := httpGetter("POST",url,q_eml
+		,"Content-Type=application/x-www-form-urlencoded")
+	qAuth := parseJSON(str)[1]																; MsgBox % qAuth[1].access_token
+	
 	progress, , Updating schedules, Reading Qgenda...
-	str := httpGetter("GET",url)
+	url := "https://api.qgenda.com/v2/schedule"
+		. "?companyKey=" q_com
+		. "&startDate=" t0
+		. "&endDate=" t1
+		. "&$select=Date,TaskName,StaffLName,StaffFName"
+		. "&$filter="
+		.	"("
+		.		"TaskName eq 'CALL'"
+		.		" or TaskName eq 'fCall'"
+	;	.		" or TaskName eq 'CATH LAB'"
+	;	.		" or TaskName eq 'CATH RES'"
+		.		" or TaskName eq 'EP Call'"
+	;	.		" or TaskName eq 'Fetal Call'"
+		.		" or TaskName eq 'ICU'"
+	;	.		" or TaskName eq 'TEE/ECHO'"
+	;	.		" or TaskName eq 'TEE Call'"
+		.		" or TaskName eq 'TXP Inpt'"
+	;	.		" or TaskName eq 'TXP Res'"
+		.		" or TaskName eq 'IW'"
+		.	")"
+		.	" and IsPublished"
+		.	" and not IsStruck"
+		. "&$orderby=Date,TaskName"
+		. "&" q_eml
+	str := httpGetter("GET",url,
+		,"Authorization= bearer " qAuth.access_token
+		,"Content-Type=application/json")
 	
 	progress, , Updating schedules, Parsing JSON...
 	qOut := parseJSON(str)

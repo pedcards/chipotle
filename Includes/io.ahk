@@ -486,6 +486,7 @@ httpGetter(RequestType:="",URL:="",Payload:="",Header*) {
 	loop, % Header.MaxIndex()
 	{
 		splitIni(Header[A_index],hdr_type,hdr_val) 
+		;~ MsgBox % "'" hdr_type "'`n'" hdr_val "'"
 		pWHttp.SetRequestHeader(hdr_type, hdr_val)
 	}
 	
