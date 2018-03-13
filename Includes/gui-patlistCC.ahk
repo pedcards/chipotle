@@ -46,12 +46,15 @@ PatListGUIcc:
 	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gPlSumm", Weekly Summary
 	Gui, Add, Button, % "xP+"win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5 " gPlTasksList", Tasks/Todo
 	Gui, Add, Button, % "xP+"win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5 " gplMar", Medications
-	Gui, Add, Button, % "x"win.bor+win.boxF " yP w"win.boxQ-20 " h"win.rh*2.5,Hello >'o'<
+	Gui, Add, Button, % "x"win.bor+win.boxF " yP w"win.boxQ-20 " h"win.rh*2.5 " vP gplNext", % "<<< " substr(ptParse(pl_prev).nameL,1,12)
+	Gui, Add, Button, % "xP+"win.boxQ-20 " yP w"win.boxQ-20 " h"win.rh*2.5 " vN gplNext", % substr(ptParse(pl_next).nameL,1,12) " >>>"
+	
 	Gui, Add, Button, % "x"win.bor " w"win.boxQ-20 " h"win.rh*2.5 " gplHealthMaint", Health Maintenance
 	Gui, Add, Button, % "xP+"win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5 " Disabled", Cath Plan
 	Gui, Add, Button, % "xP+"win.boxQ " yP w"win.boxQ-20 " h"win.rh*2.5 " gplDCinject", Discharge note injector
 	Gui, Add, Button, % "x"win.bor+win.boxF " yP w"win.boxQ-20 " h"win.rh*2.5 " gplSave", SAVE
-	Gui, Show, % "w"winFw " h"win.wY, % "CON CARNE - " pl_nameL
+	Gui, Show, , % "CON CARNE - " pl_nameL
+	;~ Gui, Show, % "w"winFw " h"win.wY, % "CON CARNE - " pl_nameL
 
 	tmpDarr := Object()
 	tmpDt := "DX|"
