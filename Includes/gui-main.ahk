@@ -161,12 +161,13 @@ return
 
 ButtonChili:
 {
+	Reload
 	return
 }
 
 ButtonConCarne:
 {
-	;~ isARNP := true
+	Reload
 	return
 }
 
