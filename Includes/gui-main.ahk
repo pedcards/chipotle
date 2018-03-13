@@ -290,6 +290,7 @@ FindPt:
 		if IsObject(y.selectSingleNode(MRNstring)) {				; exists in currlist, open PatList
 			eventlog("Found MRN in currlist.")
 			adhoc := true
+			pl_list := [tmpMRN]
 			gosub PatListGet
 			return
 		} 
@@ -308,6 +309,7 @@ FindPt:
 			eventlog("Found name in currlist.")
 			MRN := tmpNode.parentNode.getAttribute("mrn")
 			adhoc := true
+			pl_list := [MRN]
 			gosub PatListGet
 			return
 		}
@@ -374,6 +376,7 @@ pullPtArch:
 	FetchNode("prov")
 	WriteOut("/root","id[@mrn='" mrn "']")
 	eventlog(mrn " ad hoc created.")
+	pl_list := [MRN]
 	gosub PatListGet
 	Return
 }
