@@ -291,12 +291,15 @@ FindPt:
 			eventlog("Found MRN in currlist.")
 			adhoc := true
 			pl_list := [tmpMRN]
+			pl_pos := 1
 			gosub PatListGet
 			return
 		} 
 		if IsObject(yArch.selectSingleNode(MRNstring)) {
 			eventlog("Found MRN in archlist.")
 			adhoc := true
+			pl_list := [tmpMRN]
+			pl_pos := 1
 			gosub pullPtArch
 			return
 		}
@@ -310,6 +313,7 @@ FindPt:
 			MRN := tmpNode.parentNode.getAttribute("mrn")
 			adhoc := true
 			pl_list := [MRN]
+			pl_pos := 1
 			gosub PatListGet
 			return
 		}
@@ -317,6 +321,8 @@ FindPt:
 			eventlog("Found name in archlist.")
 			MRN := tmpNode.parentNode.getAttribute("mrn")
 			adhoc := true
+			pl_list := [MRN]
+			pl_pos := 1
 			gosub pullPtArch
 			return
 		}
@@ -358,6 +364,8 @@ FindPt:
 	tmpNameL := strX(encName,"",1,0,",",1,1)
 	tmpNameF := strX(encName,", ",1,2,"",0)
 	adhoc = true
+	pl_list := [MRN]
+	pl_pos := 1
 	gosub pullPtArch
 	
 	Return
@@ -376,7 +384,6 @@ pullPtArch:
 	FetchNode("prov")
 	WriteOut("/root","id[@mrn='" mrn "']")
 	eventlog(mrn " ad hoc created.")
-	pl_list := [MRN]
 	gosub PatListGet
 	Return
 }
