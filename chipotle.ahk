@@ -735,7 +735,7 @@ readQgenda() {
 			, "IW":"Ward_A"}
 	
 	progress, , Updating schedules, Reading Qgenda...
-	str := httpComm(url)
+	str := httpGetter("GET",url)
 	
 	progress, , Updating schedules, Parsing JSON...
 	qOut := parseJSON(str)
