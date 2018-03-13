@@ -725,7 +725,7 @@ readQgenda() {
 		.	"and IsPublished "
 		.	"and not IsStruck"
 		. "&$orderby=Date,TaskName"
-		. q_eml
+		. "&" q_eml
 	
 	qg_fc := {"CALL":"PM_We_A"
 			, "fCall":"PM_We_F"
