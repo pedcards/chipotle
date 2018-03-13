@@ -483,10 +483,9 @@ httpGetter(RequestType:="",URL:="",Payload:="",Header*) {
 	pWHttp := ComObjCreate("WinHttp.WinHttpRequest.5.1")
 	pWHttp.Open(RequestType, URL, 0)
 	
-	loop, % Header.length
+	loop, % Header.MaxIndex()
 	{
 		splitIni(Header[A_index],hdr_type,hdr_val) 
-		MsgBox % hdr_type "`n" hdr_val
 		pWHttp.SetRequestHeader(hdr_type, hdr_val)
 	}
 	
