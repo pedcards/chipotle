@@ -161,12 +161,13 @@ return
 
 ButtonChili:
 {
+	Reload
 	return
 }
 
 ButtonConCarne:
 {
-	;~ isARNP := true
+	Reload
 	return
 }
 
@@ -290,12 +291,16 @@ FindPt:
 		if IsObject(y.selectSingleNode(MRNstring)) {				; exists in currlist, open PatList
 			eventlog("Found MRN in currlist.")
 			adhoc := true
+			pl_list := [tmpMRN]
+			pl_pos := 1
 			gosub PatListGet
 			return
 		} 
 		if IsObject(yArch.selectSingleNode(MRNstring)) {
 			eventlog("Found MRN in archlist.")
 			adhoc := true
+			pl_list := [tmpMRN]
+			pl_pos := 1
 			gosub pullPtArch
 			return
 		}
@@ -308,6 +313,8 @@ FindPt:
 			eventlog("Found name in currlist.")
 			MRN := tmpNode.parentNode.getAttribute("mrn")
 			adhoc := true
+			pl_list := [MRN]
+			pl_pos := 1
 			gosub PatListGet
 			return
 		}
@@ -315,6 +322,8 @@ FindPt:
 			eventlog("Found name in archlist.")
 			MRN := tmpNode.parentNode.getAttribute("mrn")
 			adhoc := true
+			pl_list := [MRN]
+			pl_pos := 1
 			gosub pullPtArch
 			return
 		}
@@ -356,6 +365,8 @@ FindPt:
 	tmpNameL := strX(encName,"",1,0,",",1,1)
 	tmpNameF := strX(encName,", ",1,2,"",0)
 	adhoc = true
+	pl_list := [MRN]
+	pl_pos := 1
 	gosub pullPtArch
 	
 	Return

@@ -472,6 +472,32 @@ httpComm(url:="",verb:="") {
 	return whr.ResponseText														; the http response
 }
 
+httpGetter(RequestType 	:= ""
+		,URL 			:= ""
+		,Payload 		:= ""
+		,Header			:= "") {
+/*	more sophisticated WinHttp submitter, request GET or POST
+ *	based on https://autohotkey.com/boards/viewtopic.php?p=135125&sid=ebbd793db3b3d459bfb4c42b4ccd090b#p135125
+ */
+	hdr := { "form":"application/x-www-form-urlencoded"
+			,"json":"application/json"
+			,"html":"text/html"}
+	
+	pWHttp := ComObjCreate("WinHttp.WinHttpRequest.5.1")
+	pWHttp.Open(RequestType, URL, 0)
+	if (Header) {
+		pWHttp.SetRequestHeader("Content-Type", hdr[Header])
+	}
+	if(StrLen(Payload) > 0) {
+		pWHttp.Send(Payload)	
+	} else {
+		pWHttp.Send()
+	}
+	pWHttp.WaitForResponse()
+	vText := pWHttp.ResponseText
+return vText
+}
+
 parseJSON(txt) {
 	out := {}
 	Loop																		; Go until we say STOP
