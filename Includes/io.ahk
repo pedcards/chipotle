@@ -139,6 +139,7 @@ SaveIt:
 			yArch.addElement("diagnoses","/root/id[@mrn='" kMRN "']") 
 			yArch.addElement("notes","/root/id[@mrn='" kMRN "']") 
 			yArch.addElement("plan","/root/id[@mrn='" kMRN "']") 
+			yArch.addElement("data","/root/id[@mrn='" kMRN "']") 
 			eventlog(kMRN " created in archlist.") 
 		}
 		ArchiveNode("demog")															; clone nodes to arch if not already done 
