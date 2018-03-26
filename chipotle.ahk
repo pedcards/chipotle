@@ -915,9 +915,9 @@ getCentrip() {
 		y.addElement("desc",prStr,trim(el.procs," `;"))
 		
 		writeout(ptStr,"data")
+		eventlog("Updated Centripetus data for " el.mrn)
 	}
 	progress, off
-	MsgBox Done
 	return
 }
 

@@ -366,6 +366,8 @@ saveCensus:
 			sendCallReminder("Ward_A")
 			sendCallReminder("ICU_A")
 		}
+		
+		getCentrip()
 	}
 	
 	return
