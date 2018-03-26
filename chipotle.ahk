@@ -1002,6 +1002,17 @@ parseDate(x) {
 			,	hr:zDigit((DT5~="i)p")?(DHM1+12):DHM1),min:DHM2}
 	}
 	
+	; 02/09/2015 (8:33 am)?
+	if (x~="\d{1,2}[\-/_\.]\d{1,2}[\-/_\.]\d{4}") {
+		RegExMatch(x,"(\d{1,2})[\-/_\.](\d{1,2})[\-/_\.](\d{4})",d)
+		RegExMatch(x,"(\d{1,2}):(\d{2})(:\d{2})?(.*)(AM|PM)?",t)
+		if (t6="pm" and t1<12) {
+			t1 += 12
+		}
+		return {MM:zDigit(d1),DD:zDigit(d2),YYYY:d3
+			,	hr:zDigit(t1),min:t2,sec:trim(t3,":"),AMPM:trim(t4)}
+	}
+	
 	; Remaining are "2/9/2015" or "2/9/2015 8:31" 
 	StringSplit, DT, x, %A_Space%
 	StringSplit, DY, DT1, /
