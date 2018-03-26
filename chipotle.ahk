@@ -878,6 +878,11 @@ IcuMerge() {
 return
 }
 
+nodeTxt(node,el) {
+	x := node.selectSingleNode(el).text
+	return x
+}
+
 PatNode(mrn,path,node) {
 	global y
 	return y.selectSingleNode("/root/id[@mrn='" mrn "']/" path "/" node)
