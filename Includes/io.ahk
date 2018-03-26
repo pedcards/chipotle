@@ -364,6 +364,7 @@ saveCensus:
 		if (A_WDay="6") {
 			sendCallReminder("CICU")
 			sendCallReminder("Ward_A")
+			sendCallReminder("ICU_A")
 		}
 	}
 	
