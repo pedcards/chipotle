@@ -934,8 +934,8 @@ filecheck() {
 			progress off
 			return error
 		}
+		progress off
 	} 
-	progress off
 	return
 }
 
