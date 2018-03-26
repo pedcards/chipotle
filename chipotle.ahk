@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.4.3.0"
+vers := "2.4.3.1"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
@@ -878,6 +878,54 @@ IcuMerge() {
 return
 }
 
+getCentrip() {
+	global y
+	c := new XML("data_in\centripetus\CentripData.xml")
+	
+	loop, % (nodes:=c.selectNodes("/xml/CentripData/Surgery")).Length
+	{
+		progress % 100*A_index/20
+		el := []
+		k := nodes.item(A_index-1)
+		el.uid := nodeTxt(k,"CaseNumber")
+		el.mrn := nodeTxt(k,"MRN")
+		dtmp := parseDate(nodeTxt(k,"SurgDt"))
+		el.dt := substr(dtmp.YYYY dtmp.MM dtmp.DD dtmp.hr dtmp.min "00",1,14)
+		el.surgeon := strX(nodeTxt(k,"Surgeon"),"",1,1,",",1)
+		el.cpb := nodeTxt(k,"CPBTm")
+		el.xc := nodeTxt(k,"XClampTm")
+		loop, % (procs:=k.selectNodes(".//Procedure")).Length
+		{
+			pr := procs.item(A_Index-1)
+			el.procs .= strQ(nodeTxt(pr,"Description"),"###; ")
+		}
+		ptStr := "/root/id[@mrn='" el.mrn "']"
+		prStr := ptStr "/data/procs/surg[@case='" el.uid "']"
+		if !IsObject(y.selectSingleNode(ptStr)) {										; No id@mrn in currlist
+			continue
+		}
+		if IsObject(y.selectSingleNode(prStr)) {										; Surgery already captured
+			continue
+		}
+		makeNodes(el.mrn,"data/procs")
+		y.addElement("surg",ptStr "/data/procs",{case:el.uid})
+		y.addElement("date",prStr,el.dt)
+		y.addElement("surgeon",prStr,el.surgeon)
+		y.addElement("times",prStr,{cpb:el.cpb,xc:el.xc})
+		y.addElement("desc",prStr,trim(el.procs," `;"))
+		
+		writeout(ptStr,"data")
+		eventlog("Updated Centripetus data for " el.mrn)
+	}
+	progress, off
+	return
+}
+
+nodeTxt(node,el) {
+	x := node.selectSingleNode(el).text
+	return x
+}
+
 PatNode(mrn,path,node) {
 	global y
 	return y.selectSingleNode("/root/id[@mrn='" mrn "']/" path "/" node)
@@ -952,6 +1000,17 @@ parseDate(x) {
 		StringSplit, DHM, DT4, :
 		return {"MM":zDigit(objHasValue(mo,DT1)),"DD":zDigit(trim(DT2,",")),"YYYY":DT3
 			,	hr:zDigit((DT5~="i)p")?(DHM1+12):DHM1),min:DHM2}
+	}
+	
+	; 02/09/2015 (8:33 am)?
+	if (x~="\d{1,2}[\-/_\.]\d{1,2}[\-/_\.]\d{4}") {
+		RegExMatch(x,"(\d{1,2})[\-/_\.](\d{1,2})[\-/_\.](\d{4})",d)
+		RegExMatch(x,"(\d{1,2}):(\d{2})(:\d{2})?(.*)(AM|PM)?",t)
+		if (t6="pm" and t1<12) {
+			t1 += 12
+		}
+		return {MM:zDigit(d1),DD:zDigit(d2),YYYY:d3
+			,	hr:zDigit(t1),min:t2,sec:trim(t3,":"),AMPM:trim(t4)}
 	}
 	
 	; Remaining are "2/9/2015" or "2/9/2015 8:31" 

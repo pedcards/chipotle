@@ -1,7 +1,5 @@
 plDataList:
 {
-;~ MsgBox Coming soon!
-;~ Return
 	Gui, plistG:Hide
 	Gui, dlist:Destroy
 	Gui, dlist:Add, Button, x10 y360 w200 h30 gplDataEdit, Add study...
