@@ -66,6 +66,7 @@ Menu, menuFile, Add, Find/Add a patient, FindPt
 Menu, menuFile, Add
 Menu, menuFile, Add, Import Stork List, readStorkList
 Menu, menuFile, Add, Update Electronic Forecast, readForecast
+Menu, menuFile, Add, Read Centripetus data, getCentrip
 Menu, MenuBar, Add, File, :menuFile
 
 Menu, menuHelp, Add, Help, buttonHelp
