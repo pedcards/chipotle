@@ -878,6 +878,49 @@ IcuMerge() {
 return
 }
 
+getCentrip() {
+	global y
+	c := new XML("data_in\centripetus\CentripData.xml")
+	
+	loop, % (nodes:=c.selectNodes("/xml/CentripData/Surgery")).Length
+	{
+		progress % 100*A_index/20
+		el := []
+		k := nodes.item(A_index-1)
+		el.uid := nodeTxt(k,"CaseNumber")
+		el.mrn := nodeTxt(k,"MRN")
+		dtmp := parseDate(nodeTxt(k,"SurgDt"))
+		el.dt := substr(dtmp.YYYY dtmp.MM dtmp.DD dtmp.hr dtmp.min "00",1,14)
+		el.surgeon := strX(nodeTxt(k,"Surgeon"),"",1,1,",",1)
+		el.cpb := nodeTxt(k,"CPBTm")
+		el.xc := nodeTxt(k,"XClampTm")
+		loop, % (procs:=k.selectNodes(".//Procedure")).Length
+		{
+			pr := procs.item(A_Index-1)
+			el.procs .= strQ(nodeTxt(pr,"Description"),"###; ")
+		}
+		ptStr := "/root/id[@mrn='" el.mrn "']"
+		prStr := ptStr "/data/procs/surg[@case='" el.uid "']"
+		if !IsObject(y.selectSingleNode(ptStr)) {										; No id@mrn in currlist
+			continue
+		}
+		if IsObject(y.selectSingleNode(prStr)) {										; Surgery already captured
+			continue
+		}
+		makeNodes(el.mrn,"data/procs")
+		y.addElement("surg",ptStr "/data/procs",{case:el.uid})
+		y.addElement("date",prStr,el.dt)
+		y.addElement("surgeon",prStr,el.surgeon)
+		y.addElement("times",prStr,{cpb:el.cpb,xc:el.xc})
+		y.addElement("desc",prStr,trim(el.procs," `;"))
+		
+		writeout(ptStr,"data")
+	}
+	progress, off
+	MsgBox Done
+	return
+}
+
 nodeTxt(node,el) {
 	x := node.selectSingleNode(el).text
 	return x
