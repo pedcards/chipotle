@@ -79,12 +79,19 @@ if (ObjHasValue(admins,user)) {
 	if (tmp~="Coord")
 		isCoord := true
 }
-if (ObjHasValue(coordusers,user))
+if (ObjHasValue(coordusers,user)) {
 	isCoord := true
-if (ObjHasValue(cicuUsers,user))
+}
+if (ObjHasValue(cicuUsers,user)) {
 	isCICU = true
-if (ObjHasValue(ArnpUsers,user))
+}
+if (ObjHasValue(ArnpUsers,user)) {
 	isARNP := true
+}
+if (ObjHasValue(pharmUsers,user)) {
+	isARNP := true
+	isPharm := true
+}
 
 if (isCICU) {
 	loc := ["CSR","CICU"]												; loc[] defines the choices offered from QueryList. You can only break your own list.
