@@ -369,7 +369,7 @@ plMAR:
 			. "MAR data is older than 24 hrs`n`n"
 			. "Update CORES data to refresh MAR"
 	} else {
-		Gui, MarGui:Add, Tab2, w420 h440, Cardiac Meds||Other Meds|Diet
+		Gui, MarGui:Add, Tab3, w420 h440, Cardiac Meds||Other Meds|Diet|Pharm notes
 		Gui, MarGui:Tab, Cardiac Meds
 		Gui, MarGui:Add, ListView, Grid NoSortHdr w400 h400, Medication
 		Gui, MarGui:Default
