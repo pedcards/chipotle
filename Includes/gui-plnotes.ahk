@@ -10,6 +10,10 @@ plInputNote:
 		;~ gosub PatListGet
 		;~ return
 	;~ }
+	if (isPharm) {
+		MsgBox % "Cannot edit in Pharm mode"
+		return
+	}
 	i:=A_GuiControl
 	if (i~="pl_statCo|pl_noteCo") {
 		if !(plEditCoord) {
