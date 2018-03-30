@@ -66,7 +66,7 @@ PatListGet:
 	pl_noteCo := pl.coordNote
 	if (isCoord) {														; Coordinator GUI
 		gosub PatListCoGUI
-	} else if (isARNP) {												; ConCarne GUI
+	} else if ((isARNP)||(isPharm)) {										; ConCarne GUI
 		gosub PatListGUIcc
 	} else {															; Generic provider GUI (everyone else)
 		gosub PatListGUI
