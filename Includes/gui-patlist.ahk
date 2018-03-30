@@ -363,7 +363,7 @@ plMAR:
 	CoresD := pl_MAR.getAttribute("date")
 	tmpD := CoresD
 	tmpD -= A_Now, Hours						; Datediff in hours
-	if (tmpD > -24) {
+	if (tmpD < -24000) {
 	;~ if (tmpD < -24) {
 		Gui, MarGui:Add, Tab, w420 h440, Meds
 		Gui, MarGui:Add, Text, w400 h400 Center, % "`n`n`n`n"
