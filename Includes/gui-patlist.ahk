@@ -402,7 +402,7 @@ plMAR:
 		plMARlist("diet","Diet")
 	}
 	tmp := breakDate(CoresD)
-	Gui, MarGui:Show, AutoSize, % "CORES " nicedate(CoresD) " @ " tmp.HH ":" tmp.Min ", MAR " plDiet()
+	Gui, MarGui:Show, AutoSize, % "CORES " nicedate(CoresD) " @ " tmp.HH ":" tmp.Min 
 	return
 }
 
