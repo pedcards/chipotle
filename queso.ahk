@@ -380,7 +380,28 @@ MoveDev:
 	}
 	z.save("currlist.xml")
 	
-	MsgBox % "Z: " ct_Z
+	loop, % (nodes := za.selectNodes("//id/diagnoses/device")).Length
+	{
+		node := nodes.item(A_index-1)
+		dev.model := node.getAttribute("model")
+		dev.mrn := node.parentNode.parentNode.getAttribute("mrn")
+		clone := node.cloneNode(true)
+		
+		mrnStr := "/root/id[@mrn='" dev.mrn "']"
+		if !IsObject(mrnStr "/data") {
+			za.addElement("data",mrnStr)
+		}
+		za.addElement("hold",mrnStr "/data")
+		out := za.selectSingleNode(mrnStr "/data/hold")
+		out.parentNode.replaceChild(clone,out)
+		node.parentNode.removeChild(node)
+		
+		ct_ZA ++
+	}
+	za.save("archlist.xml")
+	
+	MsgBox % "Z: " ct_Z "`n"
+			. "ZA: " ct_ZA
 return
 }
 
