@@ -71,6 +71,7 @@ MainGUI:
 	;~ Gui, main:Add, Button, wp gBlankDX, Find Dx Blanks
 	Gui, main:Add, Button, wp gDxRestore, Restore Dx
 	;~ Gui, main:Add, Button, wp gRegionalCensus, Regional Census
+	Gui, main:Add, Button, wp gMoveDev, Move DEVICE
 	Gui, main:Add, Button, wp gEnvInfo, Env Info
 	Gui, main:Add, Button, wp gActiveWindow, ActiveWindowInfo
 	Gui, main:Show, AutoSize, QUESO Admin
@@ -348,6 +349,60 @@ CleanArch:
 	MsgBox % j " records removed."
 	za.save("archlist.xml")
 	Return
+}
+
+MoveDev:
+{
+/*	Move <device> nodes from <diagnoses> --> <data>
+*/
+	z := new XML("currlist.xml")														; Get fresh lists
+	za := new XML("archlist.xml")
+	dev := Object()
+	ct_Z := ct_ZA := 0
+	
+	loop, % (nodes := z.selectNodes("//id/diagnoses/device")).Length
+	{
+		node := nodes.item(A_index-1)
+		dev.model := node.getAttribute("model")
+		dev.mrn := node.parentNode.parentNode.getAttribute("mrn")
+		clone := node.cloneNode(true)
+		
+		mrnStr := "/root/id[@mrn='" dev.mrn "']"
+		if !IsObject(mrnStr "/data") {
+			z.addElement("data",mrnStr)
+		}
+		z.addElement("hold",mrnStr "/data")
+		out := z.selectSingleNode(mrnStr "/data/hold")
+		out.parentNode.replaceChild(clone,out)
+		node.parentNode.removeChild(node)
+		
+		ct_Z ++
+	}
+	z.save("currlist.xml")
+	
+	loop, % (nodes := za.selectNodes("//id/diagnoses/device")).Length
+	{
+		node := nodes.item(A_index-1)
+		dev.model := node.getAttribute("model")
+		dev.mrn := node.parentNode.parentNode.getAttribute("mrn")
+		clone := node.cloneNode(true)
+		
+		mrnStr := "/root/id[@mrn='" dev.mrn "']"
+		if !IsObject(mrnStr "/data") {
+			za.addElement("data",mrnStr)
+		}
+		za.addElement("hold",mrnStr "/data")
+		out := za.selectSingleNode(mrnStr "/data/hold")
+		out.parentNode.replaceChild(clone,out)
+		node.parentNode.removeChild(node)
+		
+		ct_ZA ++
+	}
+	za.save("archlist.xml")
+	
+	MsgBox % "Z: " ct_Z "`n"
+			. "ZA: " ct_ZA
+return
 }
 
 RegionalCensus:
@@ -820,6 +875,7 @@ filecheck() {
 
 #Include xml.ahk
 #Include StrX.ahk
+#Include StRegX.ahk
 #Include Class_LV_Colors.ahk
 #Include sift3.ahk
 #Include CMsgBox.ahk

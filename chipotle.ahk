@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.4.3.1"
+vers := "2.4.3.2"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
@@ -79,12 +79,19 @@ if (ObjHasValue(admins,user)) {
 	if (tmp~="Coord")
 		isCoord := true
 }
-if (ObjHasValue(coordusers,user))
+if (ObjHasValue(coordusers,user)) {
 	isCoord := true
-if (ObjHasValue(cicuUsers,user))
+}
+if (ObjHasValue(cicuUsers,user)) {
 	isCICU = true
-if (ObjHasValue(ArnpUsers,user))
+}
+if (ObjHasValue(ArnpUsers,user)) {
 	isARNP := true
+}
+if (ObjHasValue(pharmUsers,user)) {
+	isARNP := true
+	isPharm := true
+}
 
 if (isCICU) {
 	loc := ["CSR","CICU"]												; loc[] defines the choices offered from QueryList. You can only break your own list.

@@ -17,6 +17,7 @@ admins:=[]
 coordUsers:=[]
 cicuUsers:=[]
 arnpUsers:=[]
+pharmUsers:=[]
 txpDocs:=[]
 csrDocs:=[]
 cicuDocs:=[]
@@ -55,6 +56,9 @@ Forecast_val:=[]
 		}
 		if (sec="ARNP") {
 			arnpUsers.Insert(i)
+		}
+		if (sec="PHARM") {
+			pharmUsers.Insert(i)
 		}
 		if (sec="TXPDOCS") {
 			txpDocs.Insert(i)
