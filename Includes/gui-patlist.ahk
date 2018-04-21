@@ -502,7 +502,7 @@ PtParse(mrn) {
 	ob.callN := pl.selectSingleNode("plan/call").getAttribute("next")
 	ob.callL := pl.selectSingleNode("plan/call").getAttribute("last")
 	ob.callBy := pl.selectSingleNode("plan/call").getAttribute("by")
-	ob.PM := pl.selectSingleNode("diagnoses/ep")
+	ob.PM := pl.selectSingleNode("data/device")
 	ob.CORES := pl.selectSingleNode("info/hx").text
 	ob.info := pl.selectSingleNode("info")
 	ob.MAR := pl.selectSingleNode("MAR")
@@ -600,7 +600,7 @@ plPMsettings:
 		return
 	}
 	else if (PM_chk="Permanent") {
-		pm_dev := y.selectSingleNode(pl_MRNstring "/diagnoses/device")
+		pm_dev := y.selectSingleNode(pl_MRNstring "/data/device")
 		pm_IPG := pm_dev.getAttribute("model")
 		pmDate := breakDate(pm_dev.getAttribute("ed"))
 		PmSet := Object()																; clear pmSet object
@@ -698,11 +698,11 @@ plPMsave:
 		WriteOut(pl_mrnstring, "pacing")
 	}
 	if (PM_chk="Permanent") {
-		if IsObject(y.selectSingleNode(pl_MRNstring "/diagnoses/device")) {			; Remove node if present
-			removeNode(pl_MRNstring "/diagnoses/device")
+		if IsObject(y.selectSingleNode(pl_MRNstring "/data/device")) {			; Remove node if present
+			removeNode(pl_MRNstring "/data/device")
 		}
-		pmNowString := pl_MRNstring "/diagnoses/device"
-		y.addElement("device", pl_MRNstring "/diagnoses", {ed:A_now, au:user, model:PmSet_model, SN:PmSet_serial})		; Add <dx/ep/device> element
+		pmNowString := pl_MRNstring "/data/device"
+		y.addElement("device", pl_MRNstring "/data", {ed:A_now, au:user, model:PmSet_model, SN:PmSet_serial})		; Add <dx/ep/device> element
 			y.addElement("mode", pmNowString, PmSet_mode)
 			y.addElement("LRL", pmNowString, PmSet_LRL)
 			y.addElement("URL", pmNowString, PmSet_URL)
@@ -717,7 +717,7 @@ plPMsave:
 			y.addElement("Vp", pmNowString, PmSet_Vp)
 			y.addElement("Vs", pmNowString, PmSet_Vs)
 			y.addElement("notes", pmNowString, PmSet_notes)
-		WriteOut(pl_MRNstring "/diagnoses", "device")
+		WriteOut(pl_MRNstring "/data", "device")
 	}
 	eventlog(mrn " " pm_chk " pacer settings changed.")
 	return
@@ -741,8 +741,8 @@ pmNoteChk(txt) {
 				. ((tmp:=y.getText(pl_pmStr "/Vp")) ? " => " tmp " mA" : "")
 				. "] "
 	}
-	if IsObject(y.selectSingleNode(pl_MRNstring "/diagnoses/device")) {
-		pl_pmStr := pl_MRNstring "/diagnoses/device"
+	if IsObject(y.selectSingleNode(pl_MRNstring "/data/device")) {
+		pl_pmStr := pl_MRNstring "/data/device"
 		pm_str := "[PM " y.getText(pl_pmStr "/mode") " "
 				. ((tmp:=y.getText(pl_pmStr "/LRL")) ? tmp : "")
 				. ((tmp:=y.getText(pl_pmStr "/URL")) ? "-" tmp : "")
