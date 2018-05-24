@@ -214,9 +214,9 @@ readCISCol(location:="") {
 	}
 	filedelete, .currlock
 	progress off
-	if (colErr) {
-		MsgBox,,Columns Error, % "This list is missing the following columns:`n`n" colErr "`nPlease repair CIS settings."
-	}
+	;~ if (colErr) {
+		;~ MsgBox,,Columns Error, % "This list is missing the following columns:`n`n" colErr "`nPlease repair CIS settings."
+	;~ }
 	return list
 }
 
