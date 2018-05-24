@@ -142,6 +142,17 @@ readCISCol(location:="") {
 		} else {
 			CIS_loc_room := clip_elem[clip_num,colIdx["Room"]]		; No Location column
 			CIS_loc_unit := clip_elem[clip_num,colIdx["Unit"]]		; Get Room and Unit separately
+			if !(CIS_loc_unit) {									; No Unit found
+				CIS_loc_unit := (CIS_loc_room~="FA\.6.*-C") 
+					? "CICU-F6"
+				: (CIS_loc_room~="FA\.6.*-P")
+					? "PICU-F6"
+				: (CIS_loc_room~="FA\.5.*-P")
+					? "PICU-F5"
+				: (CIS_loc_room~="RA\.6.*-N")
+					? "NICU-R6"
+				: ""
+			}
 		}
 		CIS_attg := clip_elem[clip_num,colIdx["Attg"]]					; Attending
 			StrX(CIS_attg,",",1,2," ",1,2,n )							; Get ATTG last,first name
