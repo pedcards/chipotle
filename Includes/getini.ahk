@@ -128,3 +128,12 @@ splitIni(x, ByRef y, ByRef z) {
 	return
 }
 
+makeLoc(vars*) {
+	global loc
+	res := []
+	for index,var in vars {
+		res.Push(var)
+		res[var] := loc[var]
+	}
+	return res
+}
