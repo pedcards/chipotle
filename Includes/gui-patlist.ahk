@@ -162,7 +162,7 @@ PatListGUI:
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Diagnoses && Problems
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , EP diagnoses/problems
 	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Surgeries/Caths/Interventions
-	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Problem List
+	Gui, Add, GroupBox, x16 yp+70 w560 h70 , Problem List (not printed)
 	Gui, Add, Button, x176 y+10 w240 h40 gplSave, SAVE
 	
 	Gui, Add, GroupBox, x16 y14 w240 h160 , % pl_NameL . ", " . pl_NameF				; Demographics
