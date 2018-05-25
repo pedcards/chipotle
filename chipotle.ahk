@@ -110,7 +110,7 @@ if (isCICU) {
 	mainTitle2 := "Collective Organized Notebook"
 	mainTitle3 := "for Cardiac ARNP Efficiency"
 } else if (isCoord) {
-	loc := makeLoc("CSR","CICU","Cards")
+	loc := makeLoc("CSR","CICU","Cards","ICUCons")
 }
 
 Docs := Object()

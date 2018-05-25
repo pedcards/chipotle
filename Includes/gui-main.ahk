@@ -190,10 +190,10 @@ MakeCoordList:
 		y.addElement("Coord","/root/lists")
 	}
 	tmpCk := false
-	Loop, % (plist := y.selectNodes("/root/lists/CSR/mrn | /root/lists/ICUCons/mrn")).length {		; Read all MRN in CSR and ICUCons lists into plist
-		kMRN := plist.item(A_Index-1).text													; Get MRN
+	Loop, % (plist := y.selectNodes("/root/lists/CSR/mrn")).length {					; Read all MRN in CSR and ICUCons lists into plist
+		kMRN := plist.item(A_Index-1).text												; Get MRN
 		if (y.selectSingleNode("/root/id[@mrn='" kMRN "']/status").getAttribute("txp")="on") {		; TXP status is "on"
-			continue																	; move along
+			continue																				; move along
 		}
 		if !IsObject(y.selectSingleNode("/root/lists/Coord/mrn[text()='" kMRN "']")) {	; CSR patient doesn't exist in Coord
 			y.addElement("mrn","/root/lists/Coord",kMRN)								; Add to Coord
