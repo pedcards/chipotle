@@ -146,8 +146,11 @@ PatListGUI:
 		GuiControl, +Redraw, %HLV%
 	Gui, Add, Button, x610 y150 w240 h20 gplTaskEdit, ADD A TASK...
 
-	e0:=plEchoRes(mrn)
-	Gui, Add, Text, xp y200 wp h120 gplDataList, % strQ(e0.res,"Echo " e0.date ": ###")
+	e0:=plDataRes(mrn,"Echo")
+	e1:=plDataRes(mrn,"Cath")
+	Gui, Add, Text, xp y200 wp h120 gplDataList
+		, % strQ(e0.res,"Echo " e0.date ": ###`n")
+		.   strQ(e1.res,"Cath " e1.date ": ###`n")
 	
 	Gui, Add, Text, xp y350 wp h160 v2 gplMAR, % ""
 		. strQ(plMARtext("drips","Arrhythmia") plMARtext("drips","Cardiac"), "=== DRIPS ===`n###")
@@ -450,15 +453,15 @@ plDiet(txt:="") {
 	Return txt
 }
 
-plEchoRes(mrn,DT="") {
+plDataRes(mrn,type,DT="") {
 	global y
 	
 	k := y.selectSingleNode("/root/id[@mrn='" MRN "']")
 	if (DT) {
-		studies := k.selectSingleNode("data/Echo/study[@date='" DT "']")
+		studies := k.selectSingleNode("data/" type "/study[@date='" DT "']")
 		bestDT := DT
 	} else {
-		studies := k.selectNodes("data/Echo/study")
+		studies := k.selectNodes("data/" type "/study")
 		loop, % studies.length {
 			study := studies.item(A_index-1)											; each <data/Echo> item 
 			studyDT := study.getAttribute("date")										; study date
@@ -468,7 +471,7 @@ plEchoRes(mrn,DT="") {
 		}
 	}
 	
-	ResTxt := k.selectSingleNode("data/Echo/study[@date='" bestDT "']").text
+	ResTxt := k.selectSingleNode("data/" type "/study[@date='" bestDT "']").text
 	ResDT := breakDate(bestDT).MM "/" breakDate(bestDT).DD
 	
 	return {res:ResTxt,date:ResDT} 

@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.4.3.6"
+vers := "2.4.4.0"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
@@ -71,13 +71,15 @@ if (InStr(A_WorkingDir,"Ahk")) {
 }
 if (ObjHasValue(admins,user)) {
 	isAdmin := true
-	tmp:=CMsgBox("Administrator","Which user role?","*&Normal CHIPOTLE|&CICU CHILI|&ARNP Con Carne|Coordinator","Q","V")
+	tmp:=CMsgBox("Administrator","Which user role?","*&Normal CHIPOTLE|&CICU CHILI|&ARNP Con Carne|Coordinator|BPD","Q","V")
 	if (tmp~="CHILI")
 		isCICU := true
 	if (tmp~="ARNP")
 		isARNP := true
 	if (tmp~="Coord")
 		isCoord := true
+	if (tmp~="BPD")
+		isBPD := true
 }
 if (ObjHasValue(coordusers,user)) {
 	isCoord := true
@@ -91,6 +93,9 @@ if (ObjHasValue(ArnpUsers,user)) {
 if (ObjHasValue(pharmUsers,user)) {
 	isARNP := true
 	isPharm := true
+}
+if (ObjHasValue(bpdUsers,user)) {
+	isBPD := true
 }
 
 mainTitle1 := "CHIPOTLE"												; Default title, unless changed below
@@ -111,6 +116,11 @@ if (isCICU) {
 	mainTitle3 := "for Cardiac ARNP Efficiency"
 } else if (isCoord) {
 	loc := makeLoc("CSR","CICU","Cards","ICUCons")
+} else if (isBPD) {
+	loc := makeLoc("PHTN")
+	mainTitle1 := "CILANTRO"
+	mainTitle2 := "Combined Interface for Longitudinal Aggregation"
+	mainTitle3 := "Networked Team Rounds Organizer"
 }
 
 Docs := Object()
