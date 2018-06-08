@@ -450,15 +450,15 @@ plDiet(txt:="") {
 	Return txt
 }
 
-plEchoRes(mrn,DT="") {
+plDataRes(mrn,type,DT="") {
 	global y
 	
 	k := y.selectSingleNode("/root/id[@mrn='" MRN "']")
 	if (DT) {
-		studies := k.selectSingleNode("data/Echo/study[@date='" DT "']")
+		studies := k.selectSingleNode("data/" type "/study[@date='" DT "']")
 		bestDT := DT
 	} else {
-		studies := k.selectNodes("data/Echo/study")
+		studies := k.selectNodes("data/" type "/study")
 		loop, % studies.length {
 			study := studies.item(A_index-1)											; each <data/Echo> item 
 			studyDT := study.getAttribute("date")										; study date
@@ -468,7 +468,7 @@ plEchoRes(mrn,DT="") {
 		}
 	}
 	
-	ResTxt := k.selectSingleNode("data/Echo/study[@date='" bestDT "']").text
+	ResTxt := k.selectSingleNode("data/" type "/study[@date='" bestDT "']").text
 	ResDT := breakDate(bestDT).MM "/" breakDate(bestDT).DD
 	
 	return {res:ResTxt,date:ResDT} 
