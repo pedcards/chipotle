@@ -60,6 +60,9 @@ Forecast_val:=[]
 		if (sec="PHARM") {
 			pharmUsers.Insert(i)
 		}
+		if (sec="BPD") {
+			bpdUsers.Insert(i)
+		}
 		if (sec="TXPDOCS") {
 			txpDocs.Insert(i)
 		}

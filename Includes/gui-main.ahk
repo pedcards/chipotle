@@ -15,7 +15,6 @@ while (str := loc[i:=A_Index]) {					; get the dates for each of the lists
 	Gui, Main:Add, Button, % "x20 y" (posy:=75+(i*25)) " w110 h20 gTeamList vE" str, % loc[str,"name"]
 	Gui, Main:Add, Text, % "v" loc[str,"datevar"] " x170 y" (posy+4) " w70 h20" 
 		, % strDT.MM "/" strDT.DD "  " strDT.HH ":" strDT.Min
-	;Gui, 1:Add, Picture, % "x220 y" (posy+3) " gPrintOut v" str , printer.png
 	loc[str,"ypos"] := posy
 }
 if (isCICU) {

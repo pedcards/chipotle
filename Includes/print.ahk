@@ -75,8 +75,10 @@ PrintIt() {
 				pr_today .= "\f2q\f0 (" breakDate(pr.callN).MM "/" breakDate(pr.callN).DD ") Call Dr. " pr.provCard "\line\fs12 "
 			}
 		}
-		E0best := plEchoRes(kMRN)
-		pr_today .= strQ(E0best.res,"\line\line Echo " E0best.date ": ###\line ")			; add to TODAY col-A
+		E0best := plDataRes(kMRN,"Echo")
+		E1best := plDataRes(kMRN,"Cath")
+		pr_today .= strQ(E0best.res,"\line\line \ul Echo " E0best.date "\ul0: ###\line ")			; add to TODAY col-A
+		pr_today .= strQ(E1best.res,"\ul Cath " E1best.date "\ul0: ###\line ")
 		
 		CIS_dx := strQ(RegExReplace(pr.dxCard,"[\r\n]"," * "),"[[Dx]] ###\line ")		; add <diagnosis> sections if present
 				. strQ(RegExReplace(pr.dxSurg,"[\r\n]"," * "),"[[Surg]] ###\line ") 	; to the DX col-B
