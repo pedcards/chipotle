@@ -146,8 +146,11 @@ PatListGUI:
 		GuiControl, +Redraw, %HLV%
 	Gui, Add, Button, x610 y150 w240 h20 gplTaskEdit, ADD A TASK...
 
-	e0:=plEchoRes(mrn)
-	Gui, Add, Text, xp y200 wp h120 gplDataList, % strQ(e0.res,"Echo " e0.date ": ###")
+	e0:=plDataRes(mrn,"Echo")
+	e1:=plDataRes(mrn,"Cath")
+	Gui, Add, Text, xp y200 wp h120 gplDataList
+		, % strQ(e0.res,"Echo " e0.date ": ###`n")
+		.   strQ(e1.res,"Cath " e1.date ": ###`n")
 	
 	Gui, Add, Text, xp y350 wp h160 v2 gplMAR, % ""
 		. strQ(plMARtext("drips","Arrhythmia") plMARtext("drips","Cardiac"), "=== DRIPS ===`n###")
