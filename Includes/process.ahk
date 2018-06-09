@@ -416,6 +416,7 @@ processCORES(clip) {
 				y.addElement("rr",   yInfoDt "/vs", CORES.vsRR)
 				y.addElement("bp",   yInfoDt "/vs", CORES.vsNBP)
 				y.addElement("spo2", yInfoDt "/vs", CORES.vsSat)
+				y.addElement("vent", yInfoDt "/vs", CORES.vsVent)
 				y.addElement("pain", yInfoDt "/vs", CORES.vsPain)
 			y.addElement("io", yInfoDt )
 				y.addElement("in",  yInfoDt "/io", CORES.ioIntake)
