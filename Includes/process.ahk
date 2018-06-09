@@ -337,8 +337,8 @@ processCORES(clip) {
 		cores.vs := stregX(ptBlock,"Vitals",NN,1,"Ins/Outs",1,NN)
 			cores.vs := RegExReplace(cores.vs,"[^[:ascii:]]","~")
 			cores.vsWt := trim(stregX(cores.vs,"Meas Wt:",1,1,"\R",0,NNN)," `r`n")
-			cores.vsWt := !instr(cores.vsWt,"No current data available") ?: "n/a"
-			cores.vsTmp := fmtMean(stregX(cores.vs,"^T ",NNN,1,"(M)?HR ",1,NNN))
+			cores.vsWt := instr(cores.vsWt,"No current data available") ? "n/a" : cores.vsWt
+			cores.vsTmp := fmtMean(stregX(cores.vs,"^T ",NNN,1,"\R|(M)?HR ",1,NNN))
 			cores.vsHR := fmtMean(stregX(cores.vs,"(M)?HR ",NNN,1,"MHR|\R",1,NNN))
 			cores.vsRR := fmtMean(stregX(cores.vs,"RR ",NNN,1,"\R",1,NNN))
 			cores.vsNBP := fmtMean(stregX(cores.vs,"NI?BP ",NNN,1,"\R",1,NNN))
