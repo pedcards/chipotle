@@ -53,3 +53,46 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 	}
 	return
 }
+
+coresParse(sec,byref cores) {
+/*	sec		= section to parse, vs or io
+	return values in cores.sec+res
+*/
+	txt := cores[sec]
+	vals := []
+	vals[sec] := []
+	labels := []
+	labels[sec] := []
+	vals.vs   := ["Meas Wt:(.*)?\R"
+				, "^T (.*)?\R"
+				, "MHR (.*)?\R"
+				, "RR (.*)?\R"
+				, "NI?BP (.*)?\R"
+				, "SpO2 (.*)?\R"
+				, "Pain Score (.*)?\R"]
+	labels.vs := ["Wt"
+				, "Tmp"
+				, "HR"
+				, "RR"
+				, "NBP"
+				, "Sat"
+				, "Pain"]
+	
+	vals.io := []
+	labels.io := []
+	
+	loop, parse, txt, `n,`r
+	{
+		i := A_LoopField "`r"
+		key := objHasValue(vals[sec],i,1)
+		RegExMatch(i,"O)" vals[sec][key],res)
+		if (sec="vs") {
+			x := fmtMean(res.value(1))
+		}
+		if (sec="io") {
+			x := ioVal(res.value(1),vals[sec][key])
+		}
+		cores[sec labels[sec][key]] := x
+	}
+	return cores
+}

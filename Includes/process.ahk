@@ -336,15 +336,9 @@ processCORES(clip) {
 		
 		cores.vs := stregX(ptBlock,"Vitals",NN,1,"Ins/Outs",1,NN)
 			cores.vs := RegExReplace(cores.vs,"[^[:ascii:]]","~")
-			cores.vsWt := trim(stregX(cores.vs,"Meas Wt:",1,1,"\R",0,NNN)," `r`n")
-			cores.vsWt := instr(cores.vsWt,"No current data available") ? "n/a" : cores.vsWt
-			cores.vsTmp := fmtMean(stregX(cores.vs,"^T ",NNN,1,"\R|(M)?HR ",1,NNN))
-			cores.vsHR := fmtMean(stregX(cores.vs,"(M)?HR ",NNN,1,"MHR|\R",1,NNN))
-			cores.vsRR := fmtMean(stregX(cores.vs,"RR ",NNN,1,"\R",1,NNN))
-			cores.vsNBP := fmtMean(stregX(cores.vs,"NI?BP ",NNN,1,"\R",1,NNN))
-			cores.vsVent := stregX(cores.vs,"",NNN,0,"SpO2",1,NNN)
-			cores.vsSat := fmtMean(stregX(cores.vs,"SpO2",NNN,1,"\R",1,NNN))
-			cores.vsPain := fmtMean(stregX(cores.vs,"Pain Score",NNN,1,"\R",1,NNN))
+			cores.vs := RegExReplace(cores.vs," M?HR ","`nMHR ")
+			cores.vsVent := stregX(cores.vs,"NI?BP(.*)?\R",1,1,"SpO2",1)
+			coresParse("vs",cores)
 		cores.io := stregX(ptBlock,"Ins/Outs",NN,1,"Labs \(72 Hrs\)",1,NN)
 			cores.ioIntake := ioVal(cores.io,"Intake").v2
 			cores.ioOutput := ioVal(cores.io,"Output").v2
@@ -456,6 +450,7 @@ fmtMean(str) {
  *	returns "78-140 (124)"
  */
 str := trim(str," `t`r`n")
+str := RegExReplace(str,"No (current )?data available","n/a")
 str := RegExReplace(str,"-[\s]+","-")
 str := RegExReplace(str,"/[\s]+","/")
 str := RegExReplace(str," ([^ ](.*))"," ($1)")
