@@ -107,22 +107,22 @@ ccData(pl,sec) {
 				txt .= "Wt:`t" i.text ((j:=i.getAttribute("change")) ? " is "j : "")
 			}
 			if (i:=x.selectSingleNode("temp")) {
-				txt .= "`nTemp:`t" vsMean(i.text) 
+				txt .= "`nTemp:`t" i.text
 			}
 			if (i:=x.selectSingleNode("hr")) {
-				txt .= "`nHR:`t" vsMean(i.text)
+				txt .= "`nHR:`t" i.text
 			}
 			if (i:=x.selectSingleNode("rr")) {
-				txt .= "`nRR:`t" vsMean(i.text)
+				txt .= "`nRR:`t" i.text
 			}
 			if (i:=x.selectSingleNode("bp")) {
-				txt .= "`nBP:`t" vsMean(i.text)
+				txt .= "`nBP:`t" i.text
 			}
 			if (i:=x.selectSingleNode("spo2")) {
-				txt .= "`nspO2:`t" vsMean(i.text)
+				txt .= "`nspO2:`t" i.text
 			}
 			if (i:=x.selectSingleNode("pain")) {
-				txt .= "`nPain:`t" vsMean(i.text)
+				txt .= "`nPain:`t" i.text
 			}
 		if (x := pl.selectSingleNode("io")) {
 			txt .= "`n"
