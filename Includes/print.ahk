@@ -58,10 +58,10 @@ PrintIt() {
 					pr_todo .= "\f2s\f0" . prMed.text . "\line "						; add to TODO column
 				}
 			}
-			if (prVent:=pri.selectSingleNode("vs/vent").text) {
-				prVent := RegExReplace(prVent,"\R","\line ")
-				prABG := pri.selectSingleNode("labs/Lytes/ABG").text
-				pr_todo .= "VENT\line " strQ(prABG,"###\line ") prVent
+			if (pri.selectSingleNode("vent").text) {
+				pr_todo .= "\line " strQ(pri.selectSingleNode("labs/Lytes/ABG").text,"###\line ") 
+						. strQ(pri.selectSingleNode("vent/mode").text,"###\line ") 
+						. strQ(pri.selectSingleNode("vent/flow").text,"###\line ")
 			}
 		}
 		Loop, % (plT:=k.selectNodes("plan/tasks/todo")).length {						; scan through <tasks/todo> items
