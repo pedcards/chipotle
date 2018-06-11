@@ -53,3 +53,77 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 	}
 	return
 }
+
+coresParse(sec,byref cores) {
+	global y, MRNstring, timenow
+	yInfo := MRNstring "/info[@date='" timenow "']/" sec
+	
+	txt := cores[sec]
+	vals := []
+	vals[sec] := []
+	labels := []
+	labels[sec] := []
+	vals.vs   := ["Meas Wt:(.*)?\R"
+				, "^T (.*)?\R"
+				, "MHR (.*)?\R"
+				, "RR (.*)?\R"
+				, "NI?BP (.*)?\R"
+				, "SpO2 (.*)?\R"
+				, "Pain Score (.*)?\R"]
+	labels.vs := ["wt"
+				, "temp"
+				, "hr"
+				, "rr"
+				, "bp"
+				, "spo2"
+				, "pain"]
+	
+	vals.vent   := ["O2 % Admin (.*)?\R"
+				,   "Flow: (.*)?\R"
+				,   "Vent: (.*)?\R"
+				,   "Mode: (.*)?\R"
+				,   "TV: (.*)?\R"
+				,   "PS: (.*)?\R"
+				,   "MAP: (.*)?\R"
+				,   "PEEP: (.*)?\R"
+				,   "CPAP: (.*)?\R"]
+	labels.vent := ["po2"
+				,   "flow"
+				,   "vent"
+				,   "mode"
+				,   "tv"
+				,   "ps"
+				,   "map"
+				,   "peep"
+				,   "cpap"]
+	
+	loop, parse, txt, `n,`r
+	{
+		i := A_LoopField "`r"
+		if !(key := objHasValue(vals[sec],i,1)) {
+			continue
+		}
+		ele := labels[sec][key]
+		RegExMatch(i,"O)" vals[sec][key],res)
+		val := res.value(1)
+		
+		if (sec="vs") {
+			if (ele="wt") {
+				val := RegExReplace(val,"No (current )?data available","n/a")
+				y.addElement(ele, yInfo, strX(val,,1,1,"kg",1,2,NN))
+				if (tmp:=StrX(val,"(",NN,2,")",1,1)) {
+					y.selectSingleNode(yInfo "/wt").setAttribute("change", tmp)
+				}
+			} else {
+				y.addElement(ele, yInfo, fmtMean(val))
+			}
+		}
+		if (sec="io") {
+			x := ioVal(res.value(1),vals[sec][key])
+		}
+		if (sec="vent") {
+			y.addElement(ele, yInfo, val)
+		}
+	}
+	return
+}

@@ -335,16 +335,15 @@ processCORES(clip) {
 			cores.Abx := stregX(cores.MedBlock,"ANTIBIOTICS\R",1,1,"SCH MEDS|PRN|ANTIBIOTICS|<<<",1)
 		
 		cores.vs := stregX(ptBlock,"Vitals",NN,1,"Ins/Outs",1,NN)
+			cores.vent := stregX(cores.vs,"NI?BP(.*)?\R",1,1,"SpO2",1)
 			cores.vs := RegExReplace(cores.vs,"[^[:ascii:]]","~")
-			cores.vsWt := trim(stregX(cores.vs,"Meas Wt:",1,1,"\R",0,NNN)," `r`n")
-			cores.vsWt := !instr(cores.vsWt,"No current data available") ?: "n/a"
-			cores.vsTmp := fmtMean(stregX(cores.vs,"^T ",NNN,1,"HR ",1,NNN))
-			cores.vsHR := fmtMean(stregX(cores.vs,"HR ",NNN,1,"MHR",1,NNN))
-			cores.vsRR := fmtMean(stregX(cores.vs,"RR ",NNN,1,"\R",1,NNN))
-			cores.vsNBP := fmtMean(stregX(cores.vs,"NI?BP ",NNN,1,"\R",1,NNN))
-			cores.vsVent := stregX(cores.vs,"",NNN,0,"SpO2",1,NNN)
-			cores.vsSat := fmtMean(stregX(cores.vs,"SpO2",NNN,1,"\R",1,NNN))
-			cores.vsPain := fmtMean(stregX(cores.vs,"Pain Score",NNN,1,"\R",1,NNN))
+			cores.vs := RegExReplace(cores.vs," M?HR ","`nMHR ")
+			cores.vent := RegExReplace(cores.vent,"High-Flow nasal cannula","HFNC")
+			cores.vent := RegExReplace(cores.vent," \(Intermittent Mandatory Venti.*?\)")
+			cores.vent := RegExReplace(cores.vent," \(Assist/Control Venti.*?\)")
+			cores.vent := RegExReplace(cores.vent," TV:","`nTV:")
+			cores.vent := RegExReplace(cores.vent," MAP:","`nMAP:")
+			cores.vent := RegExReplace(cores.vent," PEEP:","`nPEEP:")
 		cores.io := stregX(ptBlock,"Ins/Outs",NN,1,"Labs \(72 Hrs\)",1,NN)
 			cores.ioIntake := ioVal(cores.io,"Intake").v2
 			cores.ioOutput := ioVal(cores.io,"Output").v2
@@ -407,16 +406,9 @@ processCORES(clip) {
 				y.addElement("hx", yInfoDt, "CORES hx")									; CORES_HX
 			}
 			y.addElement("vs", yInfoDt)
-				y.addElement("wt", yInfoDt "/vs", StrX(CORES.vsWt,,1,1,"kg",1,2,NN))
-				if (tmp:=StrX(CORES.vsWt,"(",NN,2,")",1,1)) {
-					y.selectSingleNode(yInfoDt "/vs/wt").setAttribute("change", tmp)
-				}
-				y.addElement("temp", yInfoDt "/vs", CORES.vsTmp)
-				y.addElement("hr",   yInfoDt "/vs", CORES.vsHR)
-				y.addElement("rr",   yInfoDt "/vs", CORES.vsRR)
-				y.addElement("bp",   yInfoDt "/vs", CORES.vsNBP)
-				y.addElement("spo2", yInfoDt "/vs", CORES.vsSat)
-				y.addElement("pain", yInfoDt "/vs", CORES.vsPain)
+				coresParse("vs",cores)
+			y.addElement("vent", yInfoDt)
+				coresParse("vent",cores)
 			y.addElement("io", yInfoDt )
 				y.addElement("in",  yInfoDt "/io", CORES.ioIntake)
 				y.addElement("out", yInfoDt "/io", CORES.ioOutput)

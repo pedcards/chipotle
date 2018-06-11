@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.4.4.0"
+vers := "2.4.4.1"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
@@ -72,14 +72,18 @@ if (InStr(A_WorkingDir,"Ahk")) {
 if (ObjHasValue(admins,user)) {
 	isAdmin := true
 	tmp:=CMsgBox("Administrator","Which user role?","*&Normal CHIPOTLE|&CICU CHILI|&ARNP Con Carne|Coordinator|BPD","Q","V")
-	if (tmp~="CHILI")
+	if (tmp~="CHILI") {
 		isCICU := true
-	if (tmp~="ARNP")
+	} 
+	if (tmp~="ARNP") {
 		isARNP := true
-	if (tmp~="Coord")
+	}
+	if (tmp~="Coord") {
 		isCoord := true
-	if (tmp~="BPD")
+	}
+	if (tmp~="BPD") {
 		isBPD := true
+	}
 }
 if (ObjHasValue(coordusers,user)) {
 	isCoord := true
@@ -238,8 +242,8 @@ Return
 }
 
 ^F12::
-	FileSelectFile , clipname,, %A_ScriptDir%/files, Select file:, AHK clip files (*.clip)
-	;clipname := "cores0301rhr.clip"
+	;~ FileSelectFile , clipname,, %A_ScriptDir%/files, Select file:, AHK clip files (*.clip)
+	clipname := "cores0608rhr.clip"
 	FileRead, Clipboard, *c %clipname%
 Return
 
