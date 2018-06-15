@@ -26,8 +26,11 @@ CIS_colRx:=[]
 dialogVals:=[]
 teamSort:=[]
 ccFields:=[]
+bpdFields:=[]
 meds1:=[]
 meds2:=[]
+meds3:=[]
+meds4:=[]
 meds0:=[]
 medfilt:=[]
 Forecast_svc:=[]
@@ -103,11 +106,20 @@ Forecast_val:=[]
 		if (sec="CC Systems") {
 			ccFields.Insert(i)
 		}
+		if (sec="BPD Systems") {
+			bpdFields.Insert(i)
+		}
 		if (sec="MEDS1") {
 			meds1.Insert(i)
 		}
 		if (sec="MEDS2") {
 			meds2.Insert(i)
+		}
+		if (sec="MEDS3") {
+			meds3.Insert(i)
+		}
+		if (sec="MEDS4") {
+			meds4.Insert(i)
 		}
 		if (sec="MEDS0") {
 			meds0.Insert(i)

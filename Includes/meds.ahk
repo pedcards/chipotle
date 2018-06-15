@@ -63,13 +63,13 @@ coresParse(sec,byref cores) {
 	vals[sec] := []
 	labels := []
 	labels[sec] := []
-	vals.vs   := ["Meas Wt:(.*)?\R"
-				, "^T (.*)?\R"
-				, "MHR (.*)?\R"
-				, "RR (.*)?\R"
-				, "NI?BP (.*)?\R"
-				, "SpO2 (.*)?\R"
-				, "Pain Score (.*)?\R"]
+	vals.vs   := ["Meas Wt:"
+				, "^T"
+				, "MHR"
+				, "RR"
+				, "NI?BP"
+				, "SpO2"
+				, "Pain Score"]
 	labels.vs := ["wt"
 				, "temp"
 				, "hr"
@@ -78,19 +78,25 @@ coresParse(sec,byref cores) {
 				, "spo2"
 				, "pain"]
 	
-	vals.vent   := ["O2 % Admin (.*)?\R"
-				,   "Flow: (.*)?\R"
-				,   "Vent: (.*)?\R"
-				,   "Mode: (.*)?\R"
-				,   "TV: (.*)?\R"
-				,   "PS: (.*)?\R"
-				,   "MAP: (.*)?\R"
-				,   "PEEP: (.*)?\R"
-				,   "CPAP: (.*)?\R"]
-	labels.vent := ["po2"
+	vals.vent   := ["O2 % Admin"
+				,   "Flow:"
+				,   "Vent:"
+				,   "Mode:"
+				,	"Rate:"
+				,	"Insp Press:"
+				,	"PIP:"
+				,   "TV:"
+				,   "PS:"
+				,   "MAP:"
+				,   "PEEP:"
+				,   "CPAP:"]
+	labels.vent := ["fio2"
 				,   "flow"
 				,   "vent"
 				,   "mode"
+				,	"rate"
+				,	"insp"
+				,	"pip"
 				,   "tv"
 				,   "ps"
 				,   "map"
@@ -104,7 +110,7 @@ coresParse(sec,byref cores) {
 			continue
 		}
 		ele := labels[sec][key]
-		RegExMatch(i,"O)" vals[sec][key],res)
+		RegExMatch(i,"O)" vals[sec][key] " (.*)?\R",res)
 		val := res.value(1)
 		
 		if (sec="vs") {

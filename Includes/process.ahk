@@ -341,6 +341,8 @@ processCORES(clip) {
 			cores.vent := RegExReplace(cores.vent,"High-Flow nasal cannula","HFNC")
 			cores.vent := RegExReplace(cores.vent," \(Intermittent Mandatory Venti.*?\)")
 			cores.vent := RegExReplace(cores.vent," \(Assist/Control Venti.*?\)")
+			cores.vent := RegExReplace(cores.vent," Insp Press:","`nInsp Press:")
+			cores.vent := RegExReplace(cores.vent," \(PIP:(\d+)\)","`nPIP: $1")
 			cores.vent := RegExReplace(cores.vent," TV:","`nTV:")
 			cores.vent := RegExReplace(cores.vent," MAP:","`nMAP:")
 			cores.vent := RegExReplace(cores.vent," PEEP:","`nPEEP:")

@@ -50,6 +50,7 @@ PatListGet:
 	pl_info := pl.info
 	pl_CORES := pl.CORES
 	pl_MAR := pl.MAR
+	pl_EGA := pl.EGA
 	pl_daily := pl.daily
 	pl_ccSys := pl.ccSys
 	pl_ProvCard := pl.provCard
@@ -192,6 +193,12 @@ PatListGUI:
 	Gui, Show, , % "Patient Information - " pl_NameL
 	plEditNote = 
 	plEditStat =
+
+	;-----------------------------------------------------------------------------------------------------------
+	if (isBPD) {
+		egaCheck(mrn)																	; Check EGA for BPD team
+	}
+	;-----------------------------------------------------------------------------------------------------------
 
 Return
 }
@@ -505,6 +512,7 @@ PtParse(mrn) {
 	ob.callL := pl.selectSingleNode("plan/call").getAttribute("last")
 	ob.callBy := pl.selectSingleNode("plan/call").getAttribute("by")
 	ob.PM := pl.selectSingleNode("data/device")
+	ob.EGA := pl.selectSingleNode("data/ega").text
 	ob.CORES := pl.selectSingleNode("info/hx").text
 	ob.info := pl.selectSingleNode("info")
 	ob.MAR := pl.selectSingleNode("MAR")
@@ -534,6 +542,28 @@ SetStatus(mrn,node,att,value) {
 	FormatTime, tmpdate, A_Now, yyyyMMddHHmmss
 	k.setAttribute("ed", tmpdate)
 	k.setAttribute("au", user)
+}
+
+egaCheck(mrn) {
+	global y, pl_mrnString, pl_dxCard, pl_dxNotes, pl_EGA
+	egaStr := "i)[23]\d([ \-]*[0-6]/7)?\s*wk"
+	RegExMatch(pl_dxCard,egaStr,egaDx)
+	egaDx := RegExReplace(egaDx,"\s*wk")
+	if ((egaDx="") or (pl_EGA = egaDx)) {												; Either none entered or already matches
+		return
+	}
+	MsgBox, 4132, Detected EGA in Dx, % "Store gestational age as`n" egaDx " wks?"
+	IfMsgBox, Yes
+	{
+		if !IsObject(y.selectSingleNode(pl_MRNstring "/data/ega")) {
+			y.addElement("ega", pl_MRNstring "/data")										; Add <pacing> element if necessary
+		}
+		y.setText(pl_MRNstring "/data/ega",egaDx)
+		
+		WriteOut(pl_MRNstring "/data","ega")
+	}
+	
+	return
 }
 
 plPMsettings:

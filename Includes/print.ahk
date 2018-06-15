@@ -60,8 +60,9 @@ PrintIt() {
 			}
 			if (pri.selectSingleNode("vent").text) {
 				pr_todo .= "\line " strQ(pri.selectSingleNode("labs/Lytes/ABG").text,"###\line ") 
-						. strQ(pri.selectSingleNode("vent/mode").text,"###\line ") 
-						. strQ(pri.selectSingleNode("vent/flow").text,"###\line ")
+						. strQ(pri.selectSingleNode("vent/mode").text,"###" strQ(pri.selectSingleNode("vent/fio2").text,", FiO2 ###\line ")) 
+						. strQ(pri.selectSingleNode("vent/flow").text,"###" strQ(pri.selectSingleNode("vent/fio2").text,", FiO2 ###\line "))
+						;~ . strQ(pri.selectSingleNode("vent/fio2").text,", FiO2 ###\line ")
 			}
 		}
 		Loop, % (plT:=k.selectNodes("plan/tasks/todo")).length {						; scan through <tasks/todo> items
