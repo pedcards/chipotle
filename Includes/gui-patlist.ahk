@@ -546,9 +546,9 @@ SetStatus(mrn,node,att,value) {
 
 egaCheck(mrn) {
 	global y, pl_mrnString, pl_dxCard, pl_dxNotes, pl_EGA
-	egaStr := "i)[23]\d([ \-]*[0-6]/7)?\s*wk"
+	egaStr := "i)[23]\d([ \-]*[0-6]/7)?\s*-?wk"
 	RegExMatch(pl_dxCard,egaStr,egaDx)
-	egaDx := RegExReplace(egaDx,"\s*wk")
+	egaDx := RegExReplace(egaDx,"\s*-?wk")
 	if ((egaDx="") or (pl_EGA = egaDx)) {												; Either none entered or already matches
 		return
 	}
