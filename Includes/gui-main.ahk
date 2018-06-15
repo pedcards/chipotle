@@ -189,7 +189,7 @@ MakeCoordList:
 		y.addElement("Coord","/root/lists")
 	}
 	tmpCk := false
-	Loop, % (plist := y.selectNodes("/root/lists/CSR/mrn")).length {					; Read all MRN in CSR and ICUCons lists into plist
+	Loop, % (plist := y.selectNodes("/root/lists/CSR/mrn")).length {					; Read all MRN in CSR list into plist. Do ICUCons too?
 		kMRN := plist.item(A_Index-1).text												; Get MRN
 		if (y.selectSingleNode("/root/id[@mrn='" kMRN "']/status").getAttribute("txp")="on") {		; TXP status is "on"
 			continue																				; move along
@@ -222,7 +222,7 @@ MakeCoordList:
 		}
 		if !(loopCk) {																	; Not present in any list? i.e. discharged
 			removeNode("/root/lists/Coord/mrn[text()='" kMRN "']")						; Remove from Coord list
-			eventlog(kMRN " no longer on any active lists. Removed.")					; Move along to next Coord element
+			eventlog(kMRN " no longer on any active lists. Removed from Coord.")		; Move along to next Coord element
 			tmpCk := true																; I have removed something from Coord
 			continue
 		}
