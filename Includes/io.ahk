@@ -133,13 +133,14 @@ SaveIt:
 	Loop, % (yaN := y.selectNodes("/root/id")).length {									; Loop through each ID/MRN in Currlist
 		k := yaN.item(A_Index-1)
 		kMRN := k.getAttribute("mrn")
-		if !IsObject(yaMRN:=yArch.selectSingleNode("/root/id[@mrn='" kMRN "']")) {		; If ID MRN node does not exist in Archlist, 
+		kMRNstr := "/root/id[@mrn='" kMRN "']"
+		if !IsObject(yaMRN:=yArch.selectSingleNode(kMRNstr)) {		; If ID MRN node does not exist in Archlist, 
 			yArch.addElement("id","root", {mrn: kMRN})									; then create it 
-			yArch.addElement("demog","/root/id[@mrn='" kMRN "']")						; along with the placeholder children 
-			yArch.addElement("diagnoses","/root/id[@mrn='" kMRN "']") 
-			yArch.addElement("notes","/root/id[@mrn='" kMRN "']") 
-			yArch.addElement("plan","/root/id[@mrn='" kMRN "']") 
-			yArch.addElement("data","/root/id[@mrn='" kMRN "']") 
+			yArch.addElement("demog",kMRNstr)						; along with the placeholder children 
+			yArch.addElement("diagnoses",kMRNstr) 
+			yArch.addElement("notes",kMRNstr) 
+			yArch.addElement("plan",kMRNstr) 
+			yArch.addElement("data",kMRNstr) 
 			eventlog(kMRN " created in archlist.") 
 		}
 		ArchiveNode("demog")															; clone nodes to arch if not already done 
@@ -167,13 +168,13 @@ SaveIt:
 			}
 		}
 		if !(errList) {																	; If did not match any list, archive the ID/MRN
-			if IsObject(yArch.selectSingleNode("/root/id[@mrn='" kMRN "']/diagnoses/notes")) {
-				yArch.setText("/root/id[@mrn='" kMRN "']/diagnoses/notes","")			; Clear the notes field so no confusion next admit
+			if IsObject(yArch.selectSingleNode(kMRNstr "/diagnoses/notes")) {
+				yArch.setText(kMRNstr "/diagnoses/notes","")							; Clear the notes field so no confusion next admit
 			}
 			ArchiveNode("notes",1)														; ArchiveNode(node,1) to archive this node by today's date
 			ArchiveNode("plan",1)
 			errtext .= "* " . k.selectSingleNode("demog/name_first").text . " " . k.selectSingleNode("demog/name_last").text . "`n"
-			RemoveNode("/root/id[@mrn='" kMRN "']")										; ID node is archived, remove it from Y.
+			RemoveNode(kMRNstr)															; ID node is archived, remove it from Y.
 			eventlog(kMRN " removed from active lists.")
 		}
 		;~ yaChk := yArch.selectSingleNode("/root/id[@mrn='" kMRN "']/diagnoses")
