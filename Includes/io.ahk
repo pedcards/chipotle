@@ -176,11 +176,15 @@ SaveIt:
 			errtext .= "* " . k.selectSingleNode("demog/name_first").text . " " . k.selectSingleNode("demog/name_last").text . "`n"
 			RemoveNode(kMRNstr)															; ID node is archived, remove it from Y.
 			eventlog(kMRN " removed from active lists.")
+			
+			yaChk :=  yArch.selectSingleNode(kMRNstr "/diagnoses").text					; Check for text in /diagnoses or /data
+					. yArch.selectSingleNode(kMRNstr "/data").text
+			if (yaChk="") {																; There is no text
+				q := yArch.selectSingleNode(kMRNstr)
+				q.parentNode.removeChild(q)												; Remove from archlist
+				eventlog(kMRN " Removed blank DX from archlist.")
+			}
 		}
-		;~ yaChk := yArch.selectSingleNode("/root/id[@mrn='" kMRN "']/diagnoses")
-		;~ if !(yaChk.text) {
-			;~ eventlog(kMRN " blank DX in archlist.")
-		;~ }
 	}
 
 	Progress, 90, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
