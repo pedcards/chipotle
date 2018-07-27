@@ -66,9 +66,9 @@ MainGUI:
 	Gui, main:Add, Button, w150 gStatsGUI, Statistics
 	Gui, main:Add, Button, wp gViewLog, View logs
 	Gui, main:Add, Button, wp gUnlock, Release lock
-	Gui, main:Add, Button, wp gQuery, Query archive
-	;~ Gui, main:Add, Button, wp gCleanArch, Clean archive
-	;~ Gui, main:Add, Button, wp gBlankDX, Find Dx Blanks
+	;~ Gui, main:Add, Button, wp gQuery, Query archive
+	Gui, main:Add, Button, wp gCleanArch, Clean archive
+	Gui, main:Add, Button, wp gBlankDX, Find Dx Blanks
 	Gui, main:Add, Button, wp gDxRestore, Restore Dx
 	;~ Gui, main:Add, Button, wp gRegionalCensus, Regional Census
 	Gui, main:Add, Button, wp gMoveDev, Move DEVICE
@@ -162,7 +162,8 @@ StatsGUI:
 		ta_prov := k.selectSingleNode("prov").getAttribute("provCard")
 		ta_notes := k.selectSingleNode("notes").text
 		ta_plan := k.selectSingleNode("plan").text
-		if (!ta_dx and !ta_prov and !ta_notes and !ta_plan) {
+		ta_data := k.selectSingleNode("data").text
+		if (!ta_dx and !ta_prov and !ta_notes and !ta_plan and !ta_data) {
 			j ++
 		}
 	}
@@ -315,17 +316,22 @@ CleanArch:
 	eventlog("Clean archives.")
 	j := 0
 	l_edits := 0
-	Loop, % (totarch := za.selectNodes("/root/id")).length
+	totarch := za.selectNodes("/root/id")
+	Loop, % totarch.length
 	{
+		progress, % 100*A_index/totarch.length
 		k := totarch.item((i:=A_index)-1)
 		ta_mrn := k.getAttribute("mrn")
 		ta_name := k.selectSingleNode("demog/name_last").text ", " k.selectSingleNode("demog/name_first").text
 		ta_dx := k.selectSingleNode("diagnoses").text									; Dx fields
 		ta_prov := k.selectSingleNode("prov").getAttribute("provCard")					; Provider attr
+				.  k.selectSingleNode("prov").getAttribute("SchCard")
+				.  k.selectSingleNode("prov").getAttribute("CSR")
+		ta_data := k.selectSingleNode("data").text
 		ta_notes := k.selectSingleNode("notes").text									; Current summary notes
 		ta_plan := k.selectSingleNode("plan").text										; Current todo items
-		ta_arc := k.selectSingleNode("archive")										; Archived dc/plan and dc/notes
-		if (!ta_dx and !ta_prov and !ta_notes and !ta_plan and !ta_arc.text) {
+		ta_arc := k.selectSingleNode("archive").text									; Archived dc/plan and dc/notes
+		if (!ta_dx and !ta_prov and !ta_notes and !ta_plan and !ta_arc) {
 			j ++
 			RemoveNode("/root/id[@mrn='" ta_mrn "']", za)
 		} else {
@@ -345,6 +351,7 @@ CleanArch:
 			}
 		}
 	}
+	progress, off
 	eventlog(j " records removed from arch.")
 	MsgBox % j " records removed."
 	za.save("archlist.xml")
@@ -547,8 +554,7 @@ checkCrd(x) {
 	return {"fuzz":fuzz,"best":best,"group":group}
 }
 
-BlankDx: 
-{
+BlankDx() {
 /*	Scan through arch records for empty dx
 	Ignore records with no dx [@ed] attr (never had a dx)
 */
@@ -561,7 +567,8 @@ BlankDx:
 	rep := new XML("<root/>")
 	reptxt :=  ""
 	repct := 0
-	numnodes := (nodes := za.selectNodes("/root/id")).length
+	nodes := za.selectNodes("/root/id")
+	numnodes := (nodes).length
 	loop, % numnodes
 	{
 		idx := A_index
@@ -573,11 +580,15 @@ BlankDx:
 		dx := node.selectSingleNode("diagnoses")
 			dxEd := dx.getAttribute("ed")
 			dxAu := dx.getAttribute("au")
-		dx_text := dx.text
+		data := node.selectSingleNode("data")
+		prov :=   node.selectSingleNode("prov").getAttribute("provCard")
+				. node.selectSingleNode("prov").getAttribute("SchCard")
+				. node.selectSingleNode("prov").getAttribute("CSR")
+		chk := dx.text . data.text . prov
 		
 		Progress, % 100*(idx/numnodes)
 		
-		if (dx_text) {																	; Skip if DX exists
+		if !(chk="") {																	; Skip if DX or DATA exists
 			continue
 		}
 		if (%which%) {																	; ANY:(mrn) (always true), PREV:(dxEd) (only true if dxEd exists)
@@ -606,7 +617,7 @@ DxRestore:
 	If instr(which,"MRN") {
 		InputBox, bl, Search records, Enter MRN to search,,, 150 						; set BL as a single MRN
 	} if instr(which,"Scan") {
-		gosub BlankDx
+		BlankDx()
 		FileRead, bl, blanks.txt														; read blanks.txt into BL
 	} if instr(which,"Close") {
 		return

@@ -552,7 +552,7 @@ egaCheck(mrn) {
 	if ((egaDx="") or (pl_EGA = egaDx)) {												; Either none entered or already matches
 		return
 	}
-	MsgBox, 4132, Detected EGA in Dx, % "Store gestational age as`n" egaDx " wks?"
+	MsgBox, 4132, Detected EGA in Diagnoses, % "Store gestational age as`n" egaDx " wks?"
 	IfMsgBox, Yes
 	{
 		if !IsObject(y.selectSingleNode(pl_MRNstring "/data/ega")) {
