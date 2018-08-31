@@ -367,7 +367,8 @@ saveCensus:
 		eventlog("Regional census updated.")
 		
 		if (A_WDay="6") {
-			sendCallReminder("CICU")
+			sendCallReminder("CICU_Red")
+			sendCallReminder("CICU_Blue")
 			sendCallReminder("Ward_A")
 			sendCallReminder("ICU_A")
 		}
