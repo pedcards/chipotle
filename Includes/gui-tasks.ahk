@@ -68,6 +68,8 @@ plTaskGrid:
 	if pTct<4
 		pTct:=4
 	tlvH := (pTct)*21
+	
+	return
 }
 
 plTaskEdit:
