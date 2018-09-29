@@ -11,8 +11,12 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 		if ObjHasValue(meds0, medName, "med") {														; skip meds on no-fly list meds0
 			continue
 		}
+		
 		medName:=RegExReplace(medName,medfilt_med)													; do some string replacements
 		medName:=RegExReplace(medName,medfilt_drip,"gtt.")
+		medName:=RegExReplace(medName,"\(\d{1,2}/\d{1,2}\)")
+		medName:=RegExReplace(medName,"i)(?<!Q|every|given)\s[0-9.]+\s(hrs|min)")
+		
 		if ObjHasValue(meds1, medName, "med") {														; in meds1 list (cardiac meds)
 			y.addElement(medlist, yMarDt, {class: "Cardiac"}, medName)
 			continue

@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.4.4.5"
+vers := "2.4.4.6"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
@@ -133,31 +133,29 @@ outGrpV := {}
 tmpIdxG := 0
 Loop, Read, outdocs.csv
 {
-	tmp := tmp0 := tmp1 := tmp2 := tmp3 := tmp4 := ""
-	tmpline := A_LoopReadLine
-	StringSplit, tmp, tmpline, `, , `"
-	if ((tmp1="Name") or (tmp1="end")) {
+	tmp := StrSplit(A_LoopReadLine,",","""")
+	if (tmp.1="Name" or tmp.1="end" or tmp.1="") {					; header, end, or blank lines
 		continue
 	}
-	if (tmp1) {
-		if (tmp2="" and tmp3="" and tmp4="") {							; Fields 2,3,4 blank = new group
-			tmpGrp := tmp1
-			tmpIdx := 0
-			tmpIdxG += 1
-			outGrps.Insert(tmpGrp)
-			continue
-		} else if (tmp4="group") {										; Field4 "group" = synonym for group name
-			tmpIdx += 1													; if including names, place at END of group list to avoid premature match
-			Docs[tmpGrp,tmpIdx]:=tmp1
-			outGrpV[tmpGrp] := "callGrp" . tmpIdxG
-		} else {														; Otherwise format Crd name to first initial, last name
-			tmpIdx += 1
-			StringSplit, tmpPrv, tmp1, %A_Space%`"
-			tmpPrv := substr(tmpPrv1,1,1) . ". " . tmpPrv2
-			Docs[tmpGrp,tmpIdx]:=tmpPrv
-			outGrpV[tmpGrp] := "callGrp" . tmpIdxG
-		}
+	if (tmp.2="" and tmp.3="" and tmp.4="") {						; Fields 2,3,4 blank = new group
+		tmpGrp := tmp.1
+		tmpIdx := 0
+		tmpIdxG += 1
+		outGrps.Insert(tmpGrp)
+		continue
 	}
+	if (tmp.4="group") {											; Field4 "group" = synonym for group name
+		tmpIdx += 1													; if including names, place at END of group list to avoid premature match
+		Docs[tmpGrp,tmpIdx]:=tmp.1
+		outGrpV[tmpGrp] := "callGrp" . tmpIdxG
+		continue
+	}
+	tmpIdx += 1														; Otherwise format Crd name to first initial, last name
+	nameF := strX(tmp.1,"",1,0," ",1,1)
+	nameL := strX(tmp.1," ",1,1,"",0)
+	tmpPrv := substr(nameF,1,1) . ". " . nameL
+	Docs[tmpGrp,tmpIdx] := tmpPrv
+	outGrpV[tmpGrp] := "callGrp" . tmpIdxG
 }
 outGrpV["Other"] := "callGrp" . (tmpIdxG+1)
 outGrpV["TO CALL"] := "callGrp" . (tmpIdxG+2)
@@ -243,7 +241,7 @@ Return
 
 ^F12::
 	;~ FileSelectFile , clipname,, %A_ScriptDir%/files, Select file:, AHK clip files (*.clip)
-	clipname := "cores0608rhr.clip"
+	clipname := "cores0927.clip"
 	FileRead, Clipboard, *c %clipname%
 Return
 
