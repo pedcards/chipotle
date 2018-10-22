@@ -57,7 +57,7 @@ PatListGUIcc:
 	;~ Gui, Show, % "w"winFw " h"win.wY, % "CON CARNE - " pl_nameL
 
 	tmpDarr := Object()
-	tmpDt := "DX|"
+	tmpDt := "DX|DATA|"
 	Loop % (yInfo:=y.selectNodes("//id[@mrn='" MRN "']/info")).length
 	{
 		yInfoDt := yInfo.Item(A_index-1).getAttribute("date")
@@ -97,6 +97,14 @@ PatListGUIcc:
 	Gui, Add, Text
 	Gui, Add, Text, % "w" w0 " ", Misc notes
 	Gui, Add, Edit, % "w" w0 " h40 gplInputNote vpl_misc", %pl_misc%
+	
+	Gui, Tab, DATA
+	e0:=plDataRes(mrn,"Echo")
+	e1:=plDataRes(mrn,"Cath")
+	;~ Gui, Add, Text, % "w" w0, Echo
+	Gui, Add, Text, % "xp y80 w" w0 " gplDataList"
+		, % strQ(e0.res,"Echo " e0.date ": ###`n")
+		.   strQ(e1.res,"Cath " e1.date ": ###`n")
 	return
 }
 

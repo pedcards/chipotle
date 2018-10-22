@@ -45,6 +45,7 @@ PrintIt() {
 		pr_today :=																		; today = col-A
 		pr_todo := "\fs12"																; todo = col-C
 		if (pri_now < 26) {									; only generate VS if CORES from last 24 hr or so
+			pr_todo .= strQ(pri.selectSingleNode("team").text,"\b ### Team\b0\line ")
 			pr_VS := pri.selectSingleNode("vs")
 			pr_todo .= "Wt = " . pr_VS.selectSingleNode("wt").text " (" niceDate(pri_date) ")\line "
 					;~ . ((i:=pr_VS.selectSingleNode("spo2").text) ? ", O2 sat = " . vsMean(i) : "") "\line "
@@ -118,8 +119,8 @@ PrintIt() {
 	rtfCall .= strQ(rtfCall,"`n\line`n")
 			. strQ(onCall.ARNP_CL,"ARNP Cath: ###   ")
 			. strQ(onCall.ARNP_IP,"ARNP RC6: ### 7-4594   ")
-			. strQ(onCall.CICU,"CICU: ### 7-6503, Fellow: 7-6507, Resource Attg: 7-8532   ")
-			. strQ(onCall.Reg_Con,"Reg Cons: ###   ")
+			. strQ(onCall.CICU_Red,"CICU Red: ### 7-6503   ")
+			. strQ(onCall.CICU_Blue,"CICU Blue: ### 7-8532   ")
 	rtfCall .= strQ(rtfCall,"`n\line`n")
 			. "\ul HC Fax: 987-3839   Clinic RN: 7-7693   Echo Lab: 7-2019   RC6.Charge RN: 7-2108,7-6200   RC6.UC Desk: 7-2021   FA6.Charge RN: 7-2475   FA6.UC Desk: 7-2040\ul0"
 	
