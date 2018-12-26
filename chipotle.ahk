@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.4.4.7"
+vers := "2.4.4.8"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
@@ -772,6 +772,9 @@ readQgenda() {
 		}
 		if (qNameL qNameF = "NelsonJames") {									; Special fix to make Tony findable on paging call site
 			qNameF:="Tony"
+		}
+		if (qnameF qNameL = "JoshFriedland") {									; Special fix for Josh who is registered incorrectly on Qgenda
+			qnameL:="Friedland-Little"
 		}
 		
 		tmpDt := qDate.YYYY . qDate.MM . qDate.DD								; tmpDt in format YYYYMMDD
