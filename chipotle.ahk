@@ -773,6 +773,9 @@ readQgenda() {
 		if (qNameL qNameF = "NelsonJames") {									; Special fix to make Tony findable on paging call site
 			qNameF:="Tony"
 		}
+		if (qnameF qNameL = "JoshFriedland") {									; Special fix for Josh who is registered incorrectly on Qgenda
+			qnameL:="Friedland-Little"
+		}
 		
 		tmpDt := qDate.YYYY . qDate.MM . qDate.DD								; tmpDt in format YYYYMMDD
 		if !IsObject(y.selectSingleNode("/root/lists/forecast/call[@date='" tmpDt "']")) {
