@@ -166,26 +166,9 @@ Page \chpgn\~\~\~\~
 (
 }`r`n
 )
-	fileout := "patlist-" . location . ".rtf"
-	if FileExist(fileout) {
-		FileDelete, %fileout%
-	}
-	FileAppend, %rtfOut%, %fileout%
-	
-	prt := substr(A_GuiControl,1,1)
-	if (prt="O") {
-		Run, %fileout%
-		MsgBox, 262192, Open temp file
-		, % "Only use this function to troubleshoot `n"
-		. "printing to the local printer. `n`n"
-		. "Changes to this file will not `n"
-		. "be saved to the CHIPOTLE database `n"
-		. "and will likely be lost!"
-		eventlog(fileout " opened in Word.")
-	} else {
-		Run, print %fileout%
-		eventlog(fileout " printed.")
-	}
+
+gosub printOut
+
 return
 }
 
@@ -361,6 +344,14 @@ Page \chpgn\~\~\~\~
 (
 }`r`n
 )
+
+gosub printOut
+
+return
+}
+
+printOut:
+{
 	fileout := "patlist-" . location . ".rtf"
 	if FileExist(fileout) {
 		FileDelete, %fileout%
@@ -382,7 +373,8 @@ Page \chpgn\~\~\~\~
 		eventlog(fileout " printed.")
 	}
 	rtfList :=
-return
+	
+	return
 }
 
 strQ(var1,txt) {
