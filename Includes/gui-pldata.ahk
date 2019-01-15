@@ -35,7 +35,7 @@ plDataEdit:
 			return
 		LV_GetText(tmpTS,Agn,1)								; Date created index
 		LV_GetText(tmpD,Agn,2)								; Study date
-		LV_GetText(tmp,Agn,4)								; Results
+		LV_GetText(tmp,Agn,5)								; Results
 	}
 	formW:=700, formR:=5, formtype:="D"
 	gosub plForm

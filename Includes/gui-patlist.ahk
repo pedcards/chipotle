@@ -178,7 +178,8 @@ PatListGUI:
 	Gui, Add, GroupBox, x600 y14 w260 h160 Disabled, Tasks/Todos
 	Gui, Add, GroupBox, xp y180 wp h140 , Data Highlights
 	Gui, Add, GroupBox, xp y330 wp h180 , % "Cardiac Meds/Diet (" nicedate(DateCores) ")"
-	Gui, Add, Button, x600 y+20 w120 h20 gplupd Disabled, Update notes
+	;~ Gui, Add, Button, x600 y+20 w120 h20 gplupd Disabled, Update notes
+	Gui, Add, Button, x600 y+20 w120 h20 gplupd Disabled, Cath Req
 	Gui, Add, Button, x+20 yp w120 hp gplSumm, Summary Notes
 	Gui, Add, Button, x600 y+4 w120 hp v1 gplCORES Disabled, Vascular map
 	

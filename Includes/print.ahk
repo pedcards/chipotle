@@ -83,8 +83,11 @@ PrintIt() {
 			}
 		}
 		E0best := plDataRes(kMRN,"Echo")
+		E0res := (strlen(E0best.res)>255) 
+				? substr(E0best.res,1,255) "..." 
+				: E0best.res
 		E1best := plDataRes(kMRN,"Cath")
-		pr_today .= strQ(E0best.res,"\line\line \ul Echo " E0best.date "\ul0: ###\line ")			; add to TODAY col-A
+		pr_today .= strQ(E0res,"\line\line \ul Echo " E0best.date "\ul0: ###\line ")	; add to TODAY col-A
 		pr_today .= strQ(E1best.res,"\ul Cath " E1best.date "\ul0: ###\line ")
 		
 		CIS_dx := strQ(RegExReplace(pr.dxCard,"[\r\n]"," * "),"[[Dx]] ###\line ")		; add <diagnosis> sections if present
@@ -166,26 +169,9 @@ Page \chpgn\~\~\~\~
 (
 }`r`n
 )
-	fileout := "patlist-" . location . ".rtf"
-	if FileExist(fileout) {
-		FileDelete, %fileout%
-	}
-	FileAppend, %rtfOut%, %fileout%
-	
-	prt := substr(A_GuiControl,1,1)
-	if (prt="O") {
-		Run, %fileout%
-		MsgBox, 262192, Open temp file
-		, % "Only use this function to troubleshoot `n"
-		. "printing to the local printer. `n`n"
-		. "Changes to this file will not `n"
-		. "be saved to the CHIPOTLE database `n"
-		. "and will likely be lost!"
-		eventlog(fileout " opened in Word.")
-	} else {
-		Run, print %fileout%
-		eventlog(fileout " printed.")
-	}
+
+printOut(rtfOut)
+
 return
 }
 
@@ -361,15 +347,20 @@ Page \chpgn\~\~\~\~
 (
 }`r`n
 )
-	fileout := "patlist-" . location . ".rtf"
-	if FileExist(fileout) {
-		FileDelete, %fileout%
-	}
+
+printOut(rtfOut)
+
+return
+}
+
+printOut(rtfOut) {
+	global location, user
+	fileout := ".\output\" location "-" A_now "-" user ".rtf"
+	
 	FileAppend, %rtfOut%, %fileout%
 	
 	prt := substr(A_GuiControl,1,1)
 	if (prt="O") {
-		Run, %fileout%
 		MsgBox, 262192, Open temp file
 		, % "Only use this function to troubleshoot `n"
 		. "printing to the local printer. `n`n"
@@ -377,12 +368,14 @@ Page \chpgn\~\~\~\~
 		. "be saved to the CHIPOTLE database `n"
 		. "and will likely be lost!"
 		eventlog(fileout " opened in Word.")
+		RunWait, %fileout%
 	} else {
-		Run, print %fileout%
 		eventlog(fileout " printed.")
+		RunWait, print "%fileout%"
 	}
-	rtfList :=
-return
+	FileDelete, %fileout%
+	
+	return
 }
 
 strQ(var1,txt) {

@@ -319,7 +319,8 @@ processCORES(clip) {
 		cores.mrn := tmp
 		Progress, % 100*(n0+1)/totPt, % cores.name, % CORES.mrn
 		
-		cores.Team := stregX(ptBlock,"ICU Team:",1,1,"\R",1)
+		tmp := stregX(ptBlock,"ICU Team:",1,1,"\R",1)
+		cores.Team := (tmp="None") ? "" : tmp
 		cores.DCW := stregX(ptBlock,"DCW: ",1,1,"\R",1,NN)								; skip to line 5
 		cores.Alls := stregX(ptBlock,"Allergy: ",1,1,"\R",1,NN)							; line 6
 		cores.Code := stregX(ptBlock,"Code Status: ",1,1,"\R",1,NN)						; line 7
