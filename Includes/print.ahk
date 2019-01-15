@@ -357,9 +357,6 @@ printOut(rtfOut) {
 	global location, user
 	fileout := ".\output\" location "-" A_now "-" user ".rtf"
 	
-	if FileExist(fileout) {
-		FileDelete, %fileout%
-	}
 	FileAppend, %rtfOut%, %fileout%
 	
 	prt := substr(A_GuiControl,1,1)
@@ -376,6 +373,7 @@ printOut(rtfOut) {
 		eventlog(fileout " printed.")
 		RunWait, print "%fileout%"
 	}
+	FileDelete, %fileout%
 	
 	return
 }
