@@ -355,7 +355,7 @@ return
 
 printOut(rtfOut) {
 	global location, user
-	fileout := location "-" A_now "-" user ".rtf"
+	fileout := ".\output\" location "-" A_now "-" user ".rtf"
 	
 	if FileExist(fileout) {
 		FileDelete, %fileout%
