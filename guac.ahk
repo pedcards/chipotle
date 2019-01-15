@@ -526,6 +526,12 @@ PatFileGet:
 		if (patloopfile~="i)PCC|Cath|CXR|ECG|EKG") {										; auto open key files
 			patdirfile := filepath "\" PatloopFile										; path + file name
 			Run, %patDirFile%															; open by Windows default method
+			
+			if (patloopfile~="i)PCC") {													; PCC docx
+				oDoc := ComObjGet(patdirfile)
+				oDoc.ActiveWindow.View.Zoom.PageFit := 2								; "wdPageFitTextFit"
+				ComObjConnect(oDoc)														; disconnect object
+			}
 		}
 	}
 Return
