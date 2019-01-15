@@ -28,7 +28,7 @@ else
 	Presenter := false
 
 firstRun := true
-SplashImage, % chipDir "gru.jpg", B2 
+SplashImage, % chipDir "guac.jpg", B2 
 
 y := new XML(chipdir "currlist.xml")												; Get latest local currlist into memory
 arch := new XML(chipdir "archlist.xml")												; Get archive.xml
@@ -39,7 +39,7 @@ ConfStart := A_Now
 
 Gosub MainGUI																		; Draw the main GUI
 if (firstRun) {
-	SoundPlay, % chipDir "chillin.wav", Wait
+	;~ SoundPlay, % chipDir "chillin.wav", Wait
 	SplashImage, off
 	firstRun := false
 }
