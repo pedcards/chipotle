@@ -83,8 +83,11 @@ PrintIt() {
 			}
 		}
 		E0best := plDataRes(kMRN,"Echo")
+		E0res := (strlen(E0best.res)>255) 
+				? substr(E0best.res,1,255) "..." 
+				: E0best.res
 		E1best := plDataRes(kMRN,"Cath")
-		pr_today .= strQ(E0best.res,"\line\line \ul Echo " E0best.date "\ul0: ###\line ")			; add to TODAY col-A
+		pr_today .= strQ(E0res,"\line\line \ul Echo " E0best.date "\ul0: ###\line ")	; add to TODAY col-A
 		pr_today .= strQ(E1best.res,"\ul Cath " E1best.date "\ul0: ###\line ")
 		
 		CIS_dx := strQ(RegExReplace(pr.dxCard,"[\r\n]"," * "),"[[Dx]] ###\line ")		; add <diagnosis> sections if present
