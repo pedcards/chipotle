@@ -167,7 +167,7 @@ Page \chpgn\~\~\~\~
 }`r`n
 )
 
-gosub printOut
+printOut(rtfOut)
 
 return
 }
@@ -345,14 +345,15 @@ Page \chpgn\~\~\~\~
 }`r`n
 )
 
-gosub printOut
+printOut(rtfOut)
 
 return
 }
 
-printOut:
-{
-	fileout := "patlist-" . location . ".rtf"
+printOut(rtfOut) {
+	global location, user
+	fileout := location "-" A_now "-" user ".rtf"
+	
 	if FileExist(fileout) {
 		FileDelete, %fileout%
 	}
@@ -372,7 +373,6 @@ printOut:
 		Run, print %fileout%
 		eventlog(fileout " printed.")
 	}
-	rtfList :=
 	
 	return
 }
