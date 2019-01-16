@@ -485,9 +485,24 @@ PatCxTimer:
 {
 	tt := elapsed(PatTime,A_Now)														; get elapsed time between PatTime and A_Now
 	GuiControl, PatCx:Text, PatCxT, % tt.mm ":" tt.ss									; update PatCx time display
-	if (tt.mm >= 10) {
+	
+	if (tt.mm >= 15) {																	; bkgd alternates RED/YEL every cycle (0.5 sec)
+		PatCxColor := !(PatCxColor)
+		Gui, PatCx:Color
+		, % (patCxColor) 
+		? "Red" 
+		: "Yellow"
+	}
+	else if (tt.mm >= 12) {																; bkgd alternates RED/YEL every other sec if over 12 mins
+		Gui, PatCx:Color
+		, % (mod(tt.ss,2)=0) 
+		? "Red" 
+		: "Yellow"
+	}
+	else if (tt.mm >= 10) {
 		Gui, PatCx:Color, Red															; change bkgd RED if over 10 mins
-	} else if (tt.mm >= 8) {
+	} 
+	else if (tt.mm >= 8) {
 		Gui, PatCx:Color, Yellow														; otherwise change bkgd YEL if over 8 mins
 	}
 	return
