@@ -411,7 +411,7 @@ PatDir:
 	Gui, Show, w800 AutoSize, % "[Guac] Patient: " PatName
 	
 	Gosub PatConsole																	; launch PatConsole for patient clock, "Close All", "Open file", etc.
-	SetTimer, PatCxTimer, 1000															; start clock for PatCxTimer
+	SetTimer, PatCxTimer, 500															; start clock for PatCxTimer
 
 	if IsObject(pt) {																	; pt obj had values, added CHIPOTLE data sidebar
 		return																			; finish
