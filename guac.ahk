@@ -13,11 +13,11 @@ LV_Colors.OnMessage()
 user := A_UserName
 IfInString, A_WorkingDir, AhkProjects
 {
-	netdir := A_WorkingDir "\files\Tuesday Conference"								; local files
+	netdir := A_WorkingDir "\files\Tuesday_Conference"								; local files
 	chipdir := ""
 	isDevt := true
 } else {
-	netdir := "\\childrens\files\HCConference\Tuesday Conference"					; networked Conference folder
+	netdir := "\\childrens\files\HCConference\Tuesday_Conference"					; networked Conference folder
 	chipdir := "\\childrens\files\HCChipotle\"										; and CHIPOTLE files
 	isDevt := false
 }
