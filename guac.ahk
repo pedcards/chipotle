@@ -549,6 +549,7 @@ PatFileGet:
 			}
 		}
 	}
+	Run, %filepath%																		; open an explorer window with patdir filepath
 Return
 }
 
