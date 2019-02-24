@@ -453,6 +453,7 @@ PatLGuiClose:
 	if (PatLCons := WinExist("Acrobat","close all tabs")) {
 		ControlSend,, {t}, ahk_id %PatLCons%
 	}
+	WinClose, % patName " ahk_exe explorer.exe"
 	
 	Gui, PatL:Destroy																	; destroy PatList GUI
 	if (Presenter) {																	; update Takt time for Presenter only
