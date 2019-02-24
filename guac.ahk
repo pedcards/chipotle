@@ -552,6 +552,8 @@ PatFileGet:
 	}
 	
 	Run, %filepath%																		; open an explorer window with patdir filepath
+	
+	sleep, 2000
 	if (patFileLocked := WinExist("File In Use")) {
 		WinActivate, %patFileLocked%
 		SendInput, {r}{Enter}
