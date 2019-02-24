@@ -535,6 +535,8 @@ PatFileGet:
 	gXml.selectSingleNode("/root/id[@name='" PatName "']").setAttribute("done",1)		; set done bit in gXML
 	gXml.save("guac.xml")																; save gXML
 	
+	patWordPCC := ""
+	
 	Loop, parse, files, |																; iterate through files in folder
 	{
 		patloopfile := A_LoopField														; file name
@@ -543,9 +545,7 @@ PatFileGet:
 			Run, %patDirFile%															; open by Windows default method
 			
 			if (patloopfile~="i)PCC") {													; PCC docx
-				oDoc := ComObjGet(patdirfile)
-				oDoc.ActiveWindow.View.Zoom.PageFit := 2								; "wdPageFitTextFit"
-				ComObjConnect(oDoc)														; disconnect object
+				patWordPCC := patloopfile
 			}
 		}
 	}
