@@ -549,7 +549,16 @@ PatFileGet:
 			}
 		}
 	}
+	
 	Run, %filepath%																		; open an explorer window with patdir filepath
+	if (patFileLocked := WinExist("File In Use")) {
+		WinActivate, %patFileLocked%
+		SendInput, {r}{Enter}
+	}
+	if IsObject(oDoc := ComObjGet(filepath "\" patWordPCC)) {
+		oDoc.ActiveWindow.View.Zoom.PageFit := 2								; "wdPageFitTextFit"
+		ComObjConnect(oDoc)														; disconnect object
+	}
 Return
 }
 
