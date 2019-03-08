@@ -748,7 +748,6 @@ readQgenda() {
 		.	" and IsPublished"
 		.	" and not IsStruck"
 		. "&$orderby=Date,TaskName"
-		. "&" q_eml
 	str := httpGetter("GET",url,
 		,"Authorization= bearer " qAuth.access_token
 		,"Content-Type=application/json")
