@@ -13,7 +13,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.4.5.0"
+vers := "2.4.5.1"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
@@ -748,7 +748,6 @@ readQgenda() {
 		.	" and IsPublished"
 		.	" and not IsStruck"
 		. "&$orderby=Date,TaskName"
-		. "&" q_eml
 	str := httpGetter("GET",url,
 		,"Authorization= bearer " qAuth.access_token
 		,"Content-Type=application/json")

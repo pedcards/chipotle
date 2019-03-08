@@ -13,11 +13,11 @@ LV_Colors.OnMessage()
 user := A_UserName
 IfInString, A_WorkingDir, AhkProjects
 {
-	netdir := A_WorkingDir "\files\Tuesday Conference"								; local files
+	netdir := A_WorkingDir "\files\Tuesday_Conference"								; local files
 	chipdir := ""
 	isDevt := true
 } else {
-	netdir := "\\childrens\files\HCConference\Tuesday Conference"					; networked Conference folder
+	netdir := "\\childrens\files\HCConference\Tuesday_Conference"					; networked Conference folder
 	chipdir := "\\childrens\files\HCChipotle\"										; and CHIPOTLE files
 	isDevt := false
 }
@@ -28,7 +28,7 @@ else
 	Presenter := false
 
 firstRun := true
-SplashImage, % chipDir "gru.jpg", B2 
+SplashImage, % chipDir "guac.jpg", B2 
 
 y := new XML(chipdir "currlist.xml")												; Get latest local currlist into memory
 arch := new XML(chipdir "archlist.xml")												; Get archive.xml
@@ -39,7 +39,7 @@ ConfStart := A_Now
 
 Gosub MainGUI																		; Draw the main GUI
 if (firstRun) {
-	SoundPlay, % chipDir "chillin.wav", Wait
+	;~ SoundPlay, % chipDir "chillin.wav", Wait
 	SplashImage, off
 	firstRun := false
 }
@@ -411,7 +411,7 @@ PatDir:
 	Gui, Show, w800 AutoSize, % "[Guac] Patient: " PatName
 	
 	Gosub PatConsole																	; launch PatConsole for patient clock, "Close All", "Open file", etc.
-	SetTimer, PatCxTimer, 1000															; start clock for PatCxTimer
+	SetTimer, PatCxTimer, 500															; start clock for PatCxTimer
 
 	if IsObject(pt) {																	; pt obj had values, added CHIPOTLE data sidebar
 		return																			; finish
@@ -453,6 +453,7 @@ PatLGuiClose:
 	if (PatLCons := WinExist("Acrobat","close all tabs")) {
 		ControlSend,, {t}, ahk_id %PatLCons%
 	}
+	WinClose, % patName " ahk_exe explorer.exe"
 	
 	Gui, PatL:Destroy																	; destroy PatList GUI
 	if (Presenter) {																	; update Takt time for Presenter only
@@ -485,9 +486,24 @@ PatCxTimer:
 {
 	tt := elapsed(PatTime,A_Now)														; get elapsed time between PatTime and A_Now
 	GuiControl, PatCx:Text, PatCxT, % tt.mm ":" tt.ss									; update PatCx time display
-	if (tt.mm >= 10) {
+	
+	if (tt.mm >= 15) {																	; bkgd alternates RED/YEL every cycle (0.5 sec)
+		PatCxColor := !(PatCxColor)
+		Gui, PatCx:Color
+		, % (patCxColor) 
+		? "Red" 
+		: "Yellow"
+	}
+	else if (tt.mm >= 12) {																; bkgd alternates RED/YEL every other sec if over 12 mins
+		Gui, PatCx:Color
+		, % (mod(tt.ss,2)=0) 
+		? "Red" 
+		: "Yellow"
+	}
+	else if (tt.mm >= 10) {
 		Gui, PatCx:Color, Red															; change bkgd RED if over 10 mins
-	} else if (tt.mm >= 8) {
+	} 
+	else if (tt.mm >= 8) {
 		Gui, PatCx:Color, Yellow														; otherwise change bkgd YEL if over 8 mins
 	}
 	return
@@ -520,13 +536,31 @@ PatFileGet:
 	gXml.selectSingleNode("/root/id[@name='" PatName "']").setAttribute("done",1)		; set done bit in gXML
 	gXml.save("guac.xml")																; save gXML
 	
+	patWordPCC := ""
+	
 	Loop, parse, files, |																; iterate through files in folder
 	{
 		patloopfile := A_LoopField														; file name
 		if (patloopfile~="i)PCC|Cath|CXR|ECG|EKG") {										; auto open key files
 			patdirfile := filepath "\" PatloopFile										; path + file name
 			Run, %patDirFile%															; open by Windows default method
+			
+			if (patloopfile~="i)PCC") {													; PCC docx
+				patWordPCC := patloopfile
+			}
 		}
+	}
+	
+	Run, %filepath%																		; open an explorer window with patdir filepath
+	
+	sleep, 2000
+	if (patFileLocked := WinExist("File In Use")) {
+		WinActivate, %patFileLocked%
+		SendInput, {r}{Enter}
+	}
+	if IsObject(oDoc := ComObjGet(filepath "\" patWordPCC)) {
+		oDoc.ActiveWindow.View.Zoom.PageFit := 2								; "wdPageFitTextFit"
+		ComObjConnect(oDoc)														; disconnect object
 	}
 Return
 }
