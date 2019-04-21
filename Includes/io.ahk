@@ -79,7 +79,7 @@ WriteFile()
 	}
 	
 	if (chk) {																; successful check
-		FileCopy, currlist.xml, bak/%A_Now%.bak
+		FileCopy, currlist.xml, bak\%A_Now%.bak
 		return "good"
 	} else {																; unsuccessful check
 		progress, hide
@@ -198,7 +198,7 @@ SaveIt:
 	}
 	
 	y.save("currlist.xml")
-	FileCopy, currlist.xml, % "bak/" A_now ".bak"
+	FileCopy, currlist.xml, % "bak\" A_now ".bak"
 	eventlog("Currlist cleaned up.")
 	
 	if !(isLocal) {																		; for live data, send to server
@@ -215,12 +215,12 @@ SaveIt:
 		eventlog("CHIPS server updated.")
 	}
 	
-	Loop, files, bak/*.bak
+	Loop, files, bak\*.bak
 	{
 		tmpDt := A_LoopFileTimeCreated													; File creation date
 		tmpDt -= A_Now, Hours															; diff dates
 		if (tmpDt < -48) {																; older than 48 hrs,
-			FileDelete, % "bak/" A_LoopFileName											; delete it.
+			FileDelete, % "bak\" A_LoopFileName											; delete it.
 		}
 	}
 	
@@ -244,7 +244,7 @@ saveCensus:
 	censY := censDT.YYYY
 	censM := censDT.MM
 	censD := censDT.DD
-	censFile := "logs/" censY censM ".xml"										; Read or create the censDate.xml file
+	censFile := "logs\" censY censM ".xml"										; Read or create the censDate.xml file
 	if (fileexist(censFile)) {
 		cens := new XML(censFile)
 	} else {
@@ -357,7 +357,7 @@ saveCensus:
 		totConsICU  := cens.selectSingleNode(c1 "/Cons/ICU").getAttribute("tot")
 		totCsrWard := censCSR.selectSingleNode(loc_Surg).getAttribute("tot")
 		totCsrICU  := censCSR.selectSingleNode(loc_CICU).getAttribute("tot")
-		FileAppend, % censM "/" censD "/" censY "," totCRD "," totCSR "," totTxCICU "," totTxWard "," totConsWard "," totConsICU "," totCsrWard "`n" , logs/census.csv
+		FileAppend, % censM "/" censD "/" censY "," totCRD "," totCSR "," totTxCICU "," totTxWard "," totConsWard "," totConsICU "," totCsrWard "`n" , logs\census.csv
 		eventlog("Daily census updated.")
 		
 		regionalCensus("Cards")
@@ -751,7 +751,7 @@ eventlog(event) {
 	global user, sessdate
 	comp := A_ComputerName
 	FormatTime, now, A_Now, yyyy.MM.dd||HH:mm:ss
-	name := "logs/" . sessdate . ".log"
+	name := "logs\" . sessdate . ".log"
 	txt := now " [" user "/" comp "] " event "`n"
 	filePrepend(txt,name)
 ;	FileAppend, % timenow " ["  user "/" comp "] " event "`n", % "logs/" . sessdate . ".log"
@@ -906,7 +906,7 @@ WriteOut(path,node) {
 	zPath.replaceChild(clone,zNode)												; replace existing zNode with node clone
 	
 	z.save("currlist.xml")														; write z into currlist
-	FileCopy, currlist.xml, % "bak/" A_now ".bak"								; create a backup for each writeout
+	FileCopy, currlist.xml, % "bak\" A_now ".bak"								; create a backup for each writeout
 	FileGetSize, currSize, currlist.xml, k
 	if (currSize > 500) {
 		notify("err200")
