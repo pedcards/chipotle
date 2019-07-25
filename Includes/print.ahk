@@ -178,6 +178,12 @@ return
 PrintARNP() {
 	global y, location, locString, ccFields, rtflist, pr
 	
+	go :=CMsgBox("Print format","Which print layout?","&Service list|&Patient systems","Q","V")
+	If instr(go,"service") {
+		PrintIt()
+		return
+	}
+	
 	TblC:="\cellx", tw:=1440							; Measured in twips (1440 = 1", 720 = 1/2", 360 = 1/4")
 	TblBrdr:="\clbrdrt\brdrs\clbrdrl\brdrs\clbrdrb\brdrs\clbrdrr\brdrs"
 	TcelX:=0
