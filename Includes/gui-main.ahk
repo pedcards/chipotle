@@ -293,7 +293,9 @@ FindPt:
 			adhoc := true
 			pl_list := [tmpMRN]
 			pl_pos := 1
+			progress, 100, , Reading currlist, Finding patient...
 			gosub PatListGet
+			progress, off
 			return
 		} 
 		if IsObject(yArch.selectSingleNode(MRNstring)) {
@@ -301,7 +303,9 @@ FindPt:
 			adhoc := true
 			pl_list := [tmpMRN]
 			pl_pos := 1
+			progress, 100, , Reading archlist, Finding patient...
 			gosub pullPtArch
+			progress, off
 			return
 		}
 	} else if (clk.field="Name") {
@@ -315,7 +319,9 @@ FindPt:
 			adhoc := true
 			pl_list := [MRN]
 			pl_pos := 1
+			progress, 100, , Reading currlist, Finding patient...
 			gosub PatListGet
+			progress, off
 			return
 		}
 		if IsObject(tmpNode:=yArch.selectSingleNode(nameString)) {
@@ -324,10 +330,15 @@ FindPt:
 			adhoc := true
 			pl_list := [MRN]
 			pl_pos := 1
+			progress, 100, , Reading archlist, Finding patient...
 			gosub pullPtArch
+			progress, off
 			return
 		}
 	}
+	
+	return
+	
 	getDem := true
 	fetchQuit := false
 	encMRN := tmpMRN
@@ -367,7 +378,9 @@ FindPt:
 	adhoc = true
 	pl_list := [MRN]
 	pl_pos := 1
+	progress, 100, , Reading archlist, Finding patient...
 	gosub pullPtArch
+	progress, off
 	
 	Return
 }
