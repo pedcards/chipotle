@@ -1,4 +1,4 @@
-/* 	Patient List Updater (C)2014-2016 TC
+/* 	Patient List Updater (C)2014-2020 TC
 	CHIPOTLE = Children's Heart Center InPatient Online Task List Environment
 */
 
@@ -14,7 +14,7 @@ SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.4.5.7"
+vers := "2.4.5.8"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")

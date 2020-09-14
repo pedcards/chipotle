@@ -191,7 +191,7 @@ PatListGUI:
 /*	Display GUI
 */
 	;~ Gui, Show, w880 h620, % "Patient Information - " pl_NameL
-	Gui, Show, , % "Patient Information - " pl_NameL
+	Gui, Show, Restore, % "Patient Information - " pl_NameL
 	plEditNote = 
 	plEditStat =
 
