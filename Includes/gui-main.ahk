@@ -336,6 +336,9 @@ FindPt:
 			return
 		}
 	}
+	
+	return
+	
 	getDem := true
 	fetchQuit := false
 	encMRN := tmpMRN
