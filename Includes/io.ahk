@@ -23,7 +23,7 @@ GetIt:
 	eventlog("Valid currlist.")
 	
 	Progress, 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	
+
 	FileDelete, .currlock
 	
 	Progress 100, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
@@ -810,20 +810,7 @@ refreshCurr(lock:="") {
 		}
 	}
 	
-	eventlog("** Failed to restore backup. Attempting to download server backup.")
-	sz := httpComm("","full")														; call download of FULL list from server, not just changes
-	FileDelete, templist.xml
-	FileAppend, %sz%, templist.xml												; write out as templist
-	if (z:=checkXML("templist.xml")) {
-		y := new XML(z)															; Replace Y with Z
-		eventlog("Successful restore from server.")
-		filecopy, templist.xml, currlist.xml, 1									; copy templist to currlist
-		if (lock)
-			FileDelete, .currlock													; clear file lock
-		return
-	}
-	
-	eventlog("*** Failed to restore from server.")									; All attempts fail. Something bad has happened.
+	eventlog("*** Failed to restore from backup.")									; All attempts fail. Something bad has happened.
 	httpComm("","err999")															; Pushover message of utter failure
 	FileDelete, .currlock
 	MsgBox, 16, CRITICAL ERROR, Unable to read currlist. `n`nExiting.
