@@ -143,8 +143,6 @@ Loop, Read, outdocs.csv
 outGrpV["Other"] := "callGrp" . (tmpIdxG+1)
 outGrpV["TO CALL"] := "callGrp" . (tmpIdxG+2)
 
-SetTimer, SeekWordErr, 250
-
 initDone = true
 Gosub GetIt
 Gosub MainGUI
@@ -227,21 +225,6 @@ Return
 Return
 
 ;	===========================================================================================
-
-SeekWordErr:
-{
-if (Word_win2 := WinExist("User Name")) {
-	ControlSend,, {Enter}, ahk_id %Word_win2%
-	;MsgBox,,Win 2, %Word_win2%
-	return
-}
-If (Word_win1 := WinExist("Microsoft Office Word", "The command cannot be performed because a dialog box is open.")) {
-	ControlSend,, {Esc}, ahk_id %Word_win1%
-	;MsgBox,,Win 1, %Word_win1%
-	return
-}
-Return
-}
 
 initClipSub:									;*** Initialize some stuff
 {
