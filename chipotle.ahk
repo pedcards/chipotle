@@ -18,12 +18,6 @@ vers := "2.4.5.8"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
-if WinExist("View Downloads -") {
-	WinClose, View Downloads -
-	eventlog("Launched from CIS")
-} else {
-	eventlog("Launched from Citrix")
-}
 LV_Colors.OnMessage()
 
 FileGetTime, iniDT, chipotle.ini
