@@ -43,14 +43,16 @@ if (CisEnvt) {
 	eventlog("CIS visible.")
 }
 
-servfold := "patlist"
-storkPath := "\\childrens\files\HCCardiologyFiles\Fetal"
-forecastPath := "\\childrens\files\HCSchedules\Electronic Forecast"
+path := []
+path.serv := "patlist"
+path.stork := "\\childrens\files\HCCardiologyFiles\Fetal"
+path.forecast := "\\childrens\files\HCSchedules\Electronic Forecast"
+path.Epic := "Epic"
 if (InStr(A_WorkingDir,"Ahk")) {
 	isLocal := true
 	;FileDelete, currlist.xml
-	storkPath := "files\Fetal"
-	forecastPath := "files\Electronic Forecast"
+	path.stork := "files\Fetal"
+	path.forecast := "files\Electronic Forecast"
 }
 if (ObjHasValue(admins,user)) {
 	isAdmin := true
