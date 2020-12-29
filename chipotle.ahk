@@ -143,7 +143,6 @@ Loop, Read, outdocs.csv
 outGrpV["Other"] := "callGrp" . (tmpIdxG+1)
 outGrpV["TO CALL"] := "callGrp" . (tmpIdxG+2)
 
-SetTimer, SeekCores, 250
 SetTimer, SeekWordErr, 250
 
 initDone = true
@@ -191,7 +190,6 @@ clipCk := substr(clip,1,256)														; Check first 256 bytes of clipboard
 If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.ini
 	coresType := StrX(clipCk,"CORES",1,0,"REPORT v3.0",1,0)
 	if (coresType == CORES_type) {
-		SetTimer, SeekCores, On
 		WinClose, % CORES_window
 		gosub initClipSub
 		processCORES(clip)
@@ -229,26 +227,6 @@ Return
 Return
 
 ;	===========================================================================================
-
-SeekCores:
-{
-IfWinNotExist, % CORES_window
-	return
-IfWinNotExist, Print
-	return
-else {									; If CORES window and Print window open
-	conswin := WinExist(CORES_window)
-	SetTimer, SeekCores, Off
-	SetKeyDelay, 40, 200
-	WinClose, Print
-	WinActivate, % CORES_window
-	sleep 250
-	ControlSend,, ^a, %CORES_window%
-	sleep 500
-	ControlSend,, ^c, %CORES_window%
-	}
-Return
-}
 
 SeekWordErr:
 {
