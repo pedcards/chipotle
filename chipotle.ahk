@@ -256,6 +256,33 @@ seekEpicReports()
 	return
 }
 
+scanEpicReport(listname) {
+	global path, y
+
+	res := {}
+	FileRead, txt, % path.Epic "\" listname ".csv"
+	
+	Loop, parse, txt, `n`r
+	{
+		k := A_LoopField
+		if (k="") {
+			continue
+		}
+		l := []
+		Loop, parse, k, CSV
+		{
+			l.push(A_LoopField)
+		}
+		if (A_index=1) {
+			res.Idx := l
+			continue
+		}
+		res.Push(l)
+	}
+
+	return
+}
+
 initClipSub:									;*** Initialize some stuff
 {
 	Clipboard =
