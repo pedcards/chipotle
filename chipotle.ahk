@@ -234,9 +234,9 @@ seekEpicReports()
 {
 	global epicReportTime, path
 
-	FileGetTime, dt_EP, 	% path.Epic "/eplist.csv", M
-	FileGetTime, dt_Ward,	% path.Epic "/wardlist.csv", M
-	FileGetTime, dt_ICU,	% path.Epic "/iculist.csv", M
+	FileGetTime, dt_EP, 	% path.Epic "\eplist.csv", M
+	FileGetTime, dt_Ward,	% path.Epic "\wardlist.csv", M
+	FileGetTime, dt_ICU,	% path.Epic "\iculist.csv", M
 
 	if (dt_EP > epicReportTime.ep) {
 		SetTimer, seekEpicReports, Off
