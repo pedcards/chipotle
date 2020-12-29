@@ -23,35 +23,11 @@ GetIt:
 	eventlog("Valid currlist.")
 	
 	Progress, 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	if !(isLocal) {																	; live run, download changes file from server
-		ckRes := httpComm("","get")													; Check response from "get"
-		
-		if (ckRes=="NONE") {														; no change.xml file present
-			eventlog("No change file.")
-		} else if (instr(ckRes,"proxy")) {											; hospital proxy problem
-			eventlog("Hospital proxy problem.")
-		} else {																	; actual response, merge the blob
-			eventlog("Import blob found.")
-			StringReplace, ckRes, ckRes, `r`n,`n, All								; MSXML cannot handle the UNIX format when modified on server 
-			StringReplace, ckRes, ckRes, `n,`r`n, All								; so convert all MS CRLF to Unix LF, then all LF back to CRLF
-			z := new XML(ckRes)														; Z is the imported updates blob
-			
-			importNodes()															; parse Z blob
-			eventlog("Import complete.")
-			
-			if (WriteFile()) {														; Write updated Y to currlist
-				eventlog("Successful currlist update.")
-				ckRes := httpComm("","unlink")											; Send command to delete update blob
-				eventlog((ckRes="unlink") ? "Changefile unlinked." : "Not unlinked.")
-			} else {
-				eventlog("*** httpComm failed to write currlist.")
-			}
-		}
-	}
+	
 	FileDelete, .currlock
 	
 	Progress 100, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	
+
 	Progress, off
 Return
 }
