@@ -143,6 +143,8 @@ Loop, Read, outdocs.csv
 outGrpV["Other"] := "callGrp" . (tmpIdxG+1)
 outGrpV["TO CALL"] := "callGrp" . (tmpIdxG+2)
 
+SetTimer, seekEpicReports, 2000										; 
+
 initDone = true
 Gosub GetIt
 Gosub MainGUI
@@ -225,6 +227,32 @@ Return
 Return
 
 ;	===========================================================================================
+
+seekEpicReports()
+{
+	global epicReportTime, path
+
+	FileGetTime, dt_EP, 	% path.Epic "/eplist.csv", M
+	FileGetTime, dt_Ward,	% path.Epic "/wardlist.csv", M
+	FileGetTime, dt_ICU,	% path.Epic "/iculist.csv", M
+
+	if (dt_EP > epicReportTime.ep) {
+		SetTimer, seekEpicReports, Off
+		scanEpicReport("eplist")
+		SetTimer, seekEpicReports, On
+	}
+	if (dt_Ward > epicReportTime.ward) {
+		SetTimer, seekEpicReports, Off
+		scanEpicReport("wardlist")
+		SetTimer, seekEpicReports, On
+	}
+	if (dt_ICU > epicReportTime.icu) {
+		SetTimer, seekEpicReports, Off
+		scanEpicReport("iculist")
+		SetTimer, seekEpicReports, On
+	}
+	return
+}
 
 initClipSub:									;*** Initialize some stuff
 {
