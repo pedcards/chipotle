@@ -47,22 +47,10 @@ servfold := "patlist"
 storkPath := "\\childrens\files\HCCardiologyFiles\Fetal"
 forecastPath := "\\childrens\files\HCSchedules\Electronic Forecast"
 if (InStr(A_WorkingDir,"Ahk")) {
-	tmp:=CMsgBox("Data source","Data from which system?","&Local|&Test Server|Production","Q","V")
-	if (tmp="Local") {
-		isLocal := true
-		;FileDelete, currlist.xml
-		storkPath := "files\Fetal"
-		forecastPath := "files\Electronic Forecast"
-	}
-	if (tmp="Test Server") {
-		isLocal := false
-		servfold := "testlist"
-		;FileDelete, currlist.xml
-	}
-	if (tmp="Production") {
-		isLocal := false
-		;FileDelete, currlist.xml
-	}
+	isLocal := true
+	;FileDelete, currlist.xml
+	storkPath := "files\Fetal"
+	forecastPath := "files\Electronic Forecast"
 }
 if (ObjHasValue(admins,user)) {
 	isAdmin := true
