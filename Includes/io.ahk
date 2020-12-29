@@ -175,20 +175,6 @@ SaveIt:
 	FileCopy, currlist.xml, % "bak\" A_now ".bak"
 	eventlog("Currlist cleaned up.")
 	
-	if !(isLocal) {																		; for live data, send to server
-		Run pscp.exe -sftp -i chipotle-pr.ppk -p currlist.xml pedcards@homer.u.washington.edu:public_html/%servfold%/currlist.xml,, Min
-		sleep 500																		; CIS VM needs longer delay than 200ms to recognize window
-		ConsWin := WinExist("ahk_class ConsoleWindowClass")								; get window ID
-		IfWinExist ahk_id %consWin% 
-		{
-			ControlSend,, {y}{Enter}, ahk_id %consWin%									; blindly send {y}{enter} string to console
-			Progress,, Console %consWin% found											; to get past save keys query
-		}
-		Run pscp.exe -sftp -i chipotle-pr.ppk -p logs/%sessdate%.log pedcards@homer.u.washington.edu:public_html/%servfold%/logs/%sessdate%.log,, Min
-		WinWaitClose ahk_id %consWin%
-		eventlog("CHIPS server updated.")
-	}
-	
 	Loop, files, bak\*.bak
 	{
 		tmpDt := A_LoopFileTimeCreated													; File creation date
