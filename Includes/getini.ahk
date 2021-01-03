@@ -33,8 +33,6 @@ meds3:=[]
 meds4:=[]
 meds0:=[]
 medfilt:=[]
-Forecast_svc:=[]
-Forecast_val:=[]
 
 	Loop, Read, chipotle.ini
 	{
@@ -127,11 +125,6 @@ Forecast_val:=[]
 		if (sec="Med_filt") {
 			splitIni(i,c1,c2)
 			%c1% := c2
-		}
-		if (sec="Forecast") {
-			splitIni(i,c1,c2)
-			Forecast_svc.Insert(c1)
-			Forecast_val.Insert(c2)
 		}
 	}
 Return
