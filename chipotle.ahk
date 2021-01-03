@@ -38,21 +38,10 @@ Sleep 500
 gosub ReadIni
 scr:=screenDims()
 win:=winDim(scr)
-CisEnvt := WinExist("ahk_exe powerchart.exe") ? true : false
-if (CisEnvt) {
-	eventlog("CIS visible.")
-}
 
-path := []
-path.serv := "patlist"
-path.stork := "\\childrens\files\HCCardiologyFiles\Fetal"
-path.forecast := "\\childrens\files\HCSchedules\Electronic Forecast"
-path.Epic := "Epic"
-if (InStr(A_WorkingDir,"Ahk")) {
+if InStr(A_WorkingDir,"Ahk") {
 	isLocal := true
 	;FileDelete, currlist.xml
-	path.stork := "files\Fetal"
-	path.forecast := "files\Electronic Forecast"
 }
 if (ObjHasValue(admins,user)) {
 	isAdmin := true
