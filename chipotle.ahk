@@ -151,8 +151,8 @@ ExitApp
 /*	Clipboard copier
 	Will wait resident until clipboard change, then will save clipboard to file.
 	Tends to falsely trigger a couple of times first. Will exit after .clip successfully saved.
-
-;*/																; add ";" to save clipboard
+*/
+/*																; add ";" to save clipboard
 OnClipboardChange:
 	FileSelectFile, clipname, 8, , Name of .clip file, *.clip
 	If (clipname) {			; If blank (e.g. pressed cancel), continue; If saved, then exitapp
@@ -163,51 +163,6 @@ OnClipboardChange:
 		ExitApp
 	}
 Return
-
-*/																; add ";" for live
-
-;/*
-OnClipboardChange:
-*/
-{
-if !initDone													; Avoid clip processing before initialization complete
-	return
-AutoTrim Off
-clip = %Clipboard%																	; Get text of clipboard, exclude formatting chars
-clipCk := substr(clip,1,256)														; Check first 256 bytes of clipboard
-
-If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.ini
-	coresType := StrX(clipCk,"CORES",1,0,"REPORT v3.0",1,0)
-	if (coresType == CORES_type) {
-		WinClose, % CORES_window
-		gosub initClipSub
-		processCORES(clip)
-	} else {
-		MsgBox, 16, Wrong format!, % "Requires """ CORES_type """"
-		WinClose, % CORES_window
-	}
-} else if ((clipCk ~= CIS_colRx["Name"]) 
-		&& ((clipCk ~= CIS_colRx["Room"]) or (clipCk ~= CIS_colRx["Locn"]))
-		&& (clipCk ~= CIS_colRx["MRN"])) {												; Check for features of CIS patient list
-	Gosub initClipSub
-	processCIS(clip)
-	if !(locString) {						; Avoids error if exit QueryList
-		return								; without choice.
-	}
-	
-	if (location="Cards" or location="CSR" or location="TXP") {
-		gosub saveCensus
-	}
-	if (location="CSR" or location="CICU") {
-		IcuMerge()
-	}
-} else if ((clipCk ~= "MRN:\d{6,8}") || (clipCk ~= "^[A-Z '\-]+, [A-Z .'()\-]+$")) {
-	clk := parseClip(clipCk)
-	gosub findPt
-}
-
-Return
-}
 
 ^F12::
 	;~ FileSelectFile , clipname,, %A_ScriptDir%/files, Select file:, AHK clip files (*.clip)
