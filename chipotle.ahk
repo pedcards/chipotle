@@ -134,8 +134,6 @@ Loop, Read, outdocs.csv
 outGrpV["Other"] := "callGrp" . (tmpIdxG+1)
 outGrpV["TO CALL"] := "callGrp" . (tmpIdxG+2)
 
-SetTimer, seekEpicReports, 2000										; 
-
 initDone = true
 Gosub GetIt
 Gosub MainGUI
@@ -217,68 +215,9 @@ Return
 	FileRead, Clipboard, *c %clipname%
 Return
 
+*/
+
 ;	===========================================================================================
-
-seekEpicReports()
-{
-	global epicReportTime, path
-
-	FileGetTime, dt_EP, 	% path.Epic "\eplist.csv", M
-	FileGetTime, dt_Ward,	% path.Epic "\wardlist.csv", M
-	FileGetTime, dt_ICU,	% path.Epic "\iculist.csv", M
-
-	if (dt_EP > epicReportTime.ep) {
-		SetTimer, seekEpicReports, Off
-		scanEpicReport("eplist")
-		SetTimer, seekEpicReports, On
-	}
-	if (dt_Ward > epicReportTime.ward) {
-		SetTimer, seekEpicReports, Off
-		scanEpicReport("wardlist")
-		SetTimer, seekEpicReports, On
-	}
-	if (dt_ICU > epicReportTime.icu) {
-		SetTimer, seekEpicReports, Off
-		scanEpicReport("iculist")
-		SetTimer, seekEpicReports, On
-	}
-	return
-}
-
-scanEpicReport(listname) {
-	global path, y
-
-	res := {}
-	FileRead, txt, % path.Epic "\" listname ".csv"
-	
-	Loop, parse, txt, `n`r
-	{
-		k := A_LoopField
-		if (k="") {
-			continue
-		}
-		l := []
-		Loop, parse, k, CSV
-		{
-			l.push(A_LoopField)
-		}
-		if (A_index=1) {
-			res.Idx := l
-			continue
-		}
-		res.Push(l)
-	}
-
-	return
-}
-
-initClipSub:									;*** Initialize some stuff
-{
-	Clipboard =
-	FormatTime, timenow, A_Now, yyyyMMddHHmm
-
-	Return
-}
 
 listsort(list,parm="",ord:="") {
 /*	Sort a given list:
