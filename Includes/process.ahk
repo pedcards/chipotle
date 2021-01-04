@@ -1,6 +1,7 @@
 syncHandoff() {
 	global EpicSvcList, svcText
 
+	Gui, main:Minimize
 	res := {}
 	t0 := A_TickCount
 	epicWin := WinExist("Hyperspace")
@@ -14,6 +15,7 @@ syncHandoff() {
 	}
 	if !IsObject(HndOff) {
 		msgbox fail
+		Gui, main:Show
 		return
 	}
 
@@ -26,6 +28,7 @@ syncHandoff() {
 	}
 	if (HndOff.Service="") {															; no match, will need to choose
 		MsgBox No service found
+		Gui, main:Show
 		return
 	}
 
@@ -88,6 +91,7 @@ syncHandoff() {
 	}
 
 	MsgBox,,% HndOff.Service, % "T=" (A_TickCount-t0)/1000 "`n`n" txt
+	Gui, main:Show
 	return res
 }
 
