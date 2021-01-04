@@ -11,123 +11,115 @@
 	Forecast = strings for recognizing Electronic Forecast fields
 */
 
-ReadIni:
+getIni:
 {
-admins:=[]
-coordUsers:=[]
-cicuUsers:=[]
-arnpUsers:=[]
-pharmUsers:=[]
-txpDocs:=[]
-csrDocs:=[]
-cicuDocs:=[]
-loc:=Object()
-CIS_colRx:=[]
-dialogVals:=[]
-teamSort:=[]
-ccFields:=[]
-bpdFields:=[]
-meds1:=[]
-meds2:=[]
-meds3:=[]
-meds4:=[]
-meds0:=[]
-medfilt:=[]
+	admins:=readIni("admins")
+	coordUsers:=readIni("coordUsers")
+	cicuUsers:=readIni("cicuUsers")
+	arnpUsers:=readIni("arnpUsers")
+	pharmUsers:=readIni("pharmUsers")
 
-	Loop, Read, chipotle.ini
+	txpDocs:=readIni("txpDocs")
+	csrDocs:=readIni("csrDocs")
+	cicuDocs:=readIni("cicuDocs")
+
+	dialogVals:=readIni("dialogVals")
+	teamSort:=readIni("teamSort")
+	ccFields:=readIni("ccFields")
+	bpdFields:=readIni("bpdFields")
+
+	meds1:=readIni("meds1")
+	meds2:=readIni("meds2")
+	meds3:=readIni("meds3")
+	meds4:=readIni("meds4")
+	meds0:=readIni("meds0")
+	readIni("med_filt")
+
+	hndText:=readIni("hndText")
+	svcText:=readIni("svcText")
+	EpicSvcList:=readIni("EpicSvcList")
+
+	pathprd:=readIni("pathPRD")
+	pathdev:=readIni("pathDEV")
+
+	loc := {}
+	readIni("Hosp_Loc")
+	loc_str:=readIni("loc_str")
+	loop, % loc_str.MaxIndex()
 	{
-		i:=A_LoopReadLine
-		if (i="")
-			continue
-		if (substr(i,1,1)="[") {
-			sec:=strX(i,"[",1,1,"]",1,1)
-			continue
-		}
-		if (k := RegExMatch(i,"[\s\t];")) {
-			i := trim(substr(i,1,k))
-		}
-		if (sec="ADMINS") {
-			admins.Insert(i)
-		}
-		if (sec="COORD") {
-			coordUsers.Insert(i)
-		}
-		if (sec="CICU") {
-			cicuUsers.Insert(i)
-		}
-		if (sec="ARNP") {
-			arnpUsers.Insert(i)
-		}
-		if (sec="PHARM") {
-			pharmUsers.Insert(i)
-		}
-		if (sec="BPD") {
-			bpdUsers.Insert(i)
-		}
-		if (sec="TXPDOCS") {
-			txpDocs.Insert(i)
-		}
-		if (sec="CSRDOCS") {
-			csrDocs.Insert(i)
-		}
-		if (sec="CICUDOCS") {
-			cicuDocs.Insert(i)
-		}
-		if (sec="LOCATIONS") {
-			splitIni(i,c1,c2)
-			StringLower, c3, c1
-			loc.Insert(c1)
-			loc[c1] := {name:c2, datevar:"GUI" c3 "TXT"}
-		}
-		if (sec="Hosp_Loc") {
-			splitIni(i,c1,c2)
-			%c1% := c2
-		}
-		if (sec="CIS_strings") {
-			splitIni(i,c1,c2)
-			%c1% := c2
-		}
-		if (sec="Dialog_Str") {
-			dialogVals.Insert(i)
-		}
-		if (sec="CIS_cols") {
-			splitIni(i,c1,c2)
-			CIS_colRx[c1] := c2
-		}
-		if (sec="CORES_struc") {
-			splitIni(i,c1,c2)
-			%c1% := c2
-		}
-		if (sec="Team sort") {
-			teamSort.Insert(i)
-		}
-		if (sec="CC Systems") {
-			ccFields.Insert(i)
-		}
-		if (sec="BPD Systems") {
-			bpdFields.Insert(i)
-		}
-		if (sec="MEDS1") {
-			meds1.Insert(i)
-		}
-		if (sec="MEDS2") {
-			meds2.Insert(i)
-		}
-		if (sec="MEDS3") {
-			meds3.Insert(i)
-		}
-		if (sec="MEDS4") {
-			meds4.Insert(i)
-		}
-		if (sec="MEDS0") {
-			meds0.Insert(i)
-		}
-		if (sec="Med_filt") {
-			splitIni(i,c1,c2)
-			%c1% := c2
+		splitIni(loc_str[A_index],c1,c2)
+		loc.push(c1)
+		loc[c1]:={name:}
+		loc[c1] := {name:c2, datevar:"GUI" format("{:l}",c1) "TXT"}
+	}
+	
+Return
+}
+
+readIni(section) {
+/*	Reads a set of variables
+	[section]					==	 		var1 := res1, var2 := res2
+	var1=res1
+	var2=res2
+	
+	[array]						==			array := ["ccc","bbb","aaa"]
+	=ccc
+	=bbb
+	=aaa
+	
+	[objet]						==	 		objet := {aaa:10,bbb:27,ccc:31}
+	aaa:10
+	bbb:27
+	ccc:31
+*/
+	global
+	local x, i, key, val
+		, i_res := object()
+		, i_type := []
+		, i_lines := []
+	i_type.var := i_type.obj := i_type.arr := false
+	IniRead,x,chipotle.ini,%section%
+	Loop, parse, x, `n,`r																; analyze section struction
+	{
+		i := A_LoopField
+		if (i~="(?<!"")[=]")															; find = not preceded by "
+		{
+			if (i ~= "^=") {															; starts with "=" is an array list
+				i_type.arr := true
+			} else {																	; "aaa=123" is a var declaration
+				i_type.var := true
+			}
+		} else																			; does not contain a quoted =
+		{
+			if (i~="(?<!"")[:]") {														; find : not preceded by " is an object
+				i_type.obj := true
+			} else {																	; contains neither = nor : can be an array list
+				i_type.arr := true
+			}
 		}
 	}
-Return
+	if ((i_type.obj) + (i_type.arr) + (i_type.var)) > 1 {								; too many types, return error
+		return error
+	}
+	Loop, parse, x, `n,`r																; now loop through lines
+	{
+		i := A_LoopField
+		if (i_type.var) {
+			key := strX(i,"",1,0,"=",1,1)
+			val := strX(i,"=",1,1,"",0)
+			%key% := trim(val,"""")
+		}
+		if (i_type.obj) {
+			key := strX(i,"",1,0,":",1,1)
+			val := strX(i,":",1,1,"",0)
+			i_res[key] := trim(val,"""")
+		}
+		if (i_type.arr) {
+			i := RegExReplace(i,"^=")													; remove preceding =
+			i_res.push(trim(i,""""))
+		}
+	}
+	return i_res
 }
 
 splitIni(x, ByRef y, ByRef z) {

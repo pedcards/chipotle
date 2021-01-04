@@ -35,7 +35,7 @@ if (iniDT < 0) {
 
 Sleep 500
 
-gosub ReadIni
+gosub getIni
 scr:=screenDims()
 win:=winDim(scr)
 
