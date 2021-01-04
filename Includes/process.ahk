@@ -1,4 +1,6 @@
 syncHandoff() {
+	global EpicSvcList, svcText
+
 	res := {}
 	t0 := A_TickCount
 	epicWin := WinExist("Hyperspace")
@@ -104,6 +106,8 @@ checkHandoff() {
 		* Returns targets
 
 */
+	global hndText
+
 	if (ok:=FindText(0,0,1920,500,0.2,0.2,hndText.HandoffTab)) {
 		progress, 40, Illness Severity, Finding geometry
 		Ill := FindText(0,0,1920,1024,0.2,0.2,hndText.IllnessSev)
