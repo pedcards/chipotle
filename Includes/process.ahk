@@ -13,6 +13,7 @@ syncHandoff() {
 			break
 		}
 	}
+	Progress, Off
 	if !IsObject(HndOff) {
 		msgbox fail
 		Gui, main:Show
@@ -125,7 +126,6 @@ checkHandoff() {
 		progress, 100, Updates, Finding geometry
 		Upd := FindText(0,0,1920,1024,0.1,0.1,hndText.Updates)
 
-		progress, hide
 		return { tabX:ok[1].x
 				, IllnessY:Ill[1].y+100
 				, SummaryY:Summ[1].y+100
