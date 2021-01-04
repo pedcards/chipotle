@@ -35,6 +35,7 @@ if (iniDT < 0) {
 
 Sleep 500
 
+global path
 gosub getIni
 scr:=screenDims()
 win:=winDim(scr)
@@ -42,6 +43,9 @@ win:=winDim(scr)
 if InStr(A_WorkingDir,"Ahk") {
 	isLocal := true
 	;FileDelete, currlist.xml
+	path:=pathDEV
+} else {
+	path:=pathPRD
 }
 if (ObjHasValue(admins,user)) {
 	isAdmin := true
