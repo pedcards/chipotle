@@ -192,7 +192,7 @@ updateSmartLinks(x,y) {
 /*	Updates smart links by sending ctrl+F11 to the active window
 	Arguments (x,y) are pixel coords to monitor change in Update icon
 */
-	SendInput, ^{F11}
+	SendInput, !r
 	sleep 100
 	loop,
 	{
