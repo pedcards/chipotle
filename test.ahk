@@ -1,5 +1,5 @@
 global epicWin
-global fText:={}, svcText:={}, EpicSvcList:=[]
+global hndText:={}, svcText:={}, EpicSvcList:=[]
 /*	Strings for FindText
 	Stick these in INI
  */
@@ -117,18 +117,18 @@ checkHandoff() {
 		* Returns targets
 
 */
-	if (ok:=FindText(0,0,1920,500,0.2,0.2,fText.HandoffTab)) {
+	if (ok:=FindText(0,0,1920,500,0.2,0.2,hndText.HandoffTab)) {
 		progress, 40, Illness Severity, Finding geometry
-		Ill := FindText(0,0,1920,1024,0.2,0.2,fText.IllnessSev)
+		Ill := FindText(0,0,1920,1024,0.2,0.2,hndText.IllnessSev)
 		progress, 80, Patient Summary, Finding geometry
-		Summ := FindText(0,0,1920,1024,0.2,0.2,fText.PatientSum)
+		Summ := FindText(0,0,1920,1024,0.2,0.2,hndText.PatientSum)
 		if !IsObject(Ill) {																; no Illness Severity field found
 			gosub startHandoff															
 			return
 		}
 
 		progress, 100, Updates, Finding geometry
-		Upd := FindText(0,0,1920,1024,0.1,0.1,fText.Updates)
+		Upd := FindText(0,0,1920,1024,0.1,0.1,hndText.Updates)
 
 		progress, hide
 		return { tabX:ok[1].x
@@ -144,12 +144,12 @@ checkHandoff() {
 					or select single patient
 */
 	startHandoff:
-	if (ok:=FindText(0,0,1920,500,0.2,0.2,fText.WriteHand)) {
+	if (ok:=FindText(0,0,1920,500,0.2,0.2,hndText.WriteHand)) {
 		clickField(ok[1].x,ok[1].y)
 		sleep 200
 	} 
 
-	ok:=FindText(0,0,1920,500,0.2,0.2,fText.PatientNam)
+	ok:=FindText(0,0,1920,500,0.2,0.2,hndText.PatientNam)
 	clickfield(ok[1].x,ok[1].y+50)
 	sleep 200
 	
