@@ -785,3 +785,5 @@ winDim(scr) {
 #Include Class_LV_Colors.ahk
 #Include sift3.ahk
 #Include CMsgBox.ahk
+#Include ScrCmp.ahk
+#Include FindText.ahk
