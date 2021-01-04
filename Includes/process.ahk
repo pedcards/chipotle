@@ -6,8 +6,11 @@ syncHandoff() {
 	t0 := A_TickCount
 	epicWin := WinExist("Hyperspace")
 
-	loop, 4																				; Iterate until Handoff editor launched
-	{																					; this is much faster if you select manually
+	/*	Check screen elements for Handoff, launch if necessary
+		(this is much faster if already selected)
+	*/
+	loop, 4
+	{
 		HndOff := checkHandoff()
 		if IsObject(HndOff) {
 			break
@@ -20,20 +23,26 @@ syncHandoff() {
 		return
 	}
 
-	Loop, % EpicSvcList.MaxIndex()														; Find matching Service List on screen
+	/*	Find matching Service List on screen
+		Offer choice if no match
+	*/
+	Loop, % EpicSvcList.MaxIndex()
 	{
 		k := EpicSvcList[A_index]
 		if IsObject(FindText(0,0,1920,500,0.1,0.1,svcText[k])) {
 			HndOff.Service := k
 		}
 	}
-	if (HndOff.Service="") {															; no match, will need to choose
+	if (HndOff.Service="") {
 		MsgBox No service found
 		Gui, main:Show
 		return
 	}
 
-	loop,																				; Loop through each patient in list
+	/*	Loop through each patient using hotkeys, update smart links,
+		copy Illness Severity and Patient Summary fields to clipboard
+	*/
+	loop,
 	{
 		tt0 := A_TickCount
 		progress, % A_index*10,% " ",% " "
