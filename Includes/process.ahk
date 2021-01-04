@@ -22,7 +22,7 @@ syncHandoff() {
 	Loop, % EpicSvcList.MaxIndex()														; Find matching Service List on screen
 	{
 		k := EpicSvcList[A_index]
-		if IsObject(FindText(0,0,1920,500,0,0,svcText[k])) {
+		if IsObject(FindText(0,0,1920,500,0.1,0.1,svcText[k])) {
 			HndOff.Service := k
 		}
 	}
@@ -151,7 +151,7 @@ checkHandoff() {
 	return
 }
 
-clickField(x,y,delay:=0) {
+clickField(x,y,delay:=10) {
 	WinActivate, ahk_id %epicWin%
 	sleep % delay
 	MouseClick, L, % x, % y
@@ -193,7 +193,7 @@ updateSmartLinks(x,y) {
 	Arguments (x,y) are pixel coords to monitor change in Update icon
 */
 	SendInput, !r
-	sleep 100
+	sleep 200
 	loop,
 	{
 		PixelGetColor, col, % x , % y
