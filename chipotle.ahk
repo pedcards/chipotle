@@ -35,7 +35,7 @@ if (iniDT < 0) {
 
 Sleep 500
 
-global path
+global path, epicWin
 gosub getIni
 scr:=screenDims()
 win:=winDim(scr)
