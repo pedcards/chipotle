@@ -4,7 +4,6 @@ syncHandoff() {
 	Gui, main:Minimize
 	res := {}
 	t0 := A_TickCount
-	epicWin := WinExist("Hyperspace")
 
 	/*	Check screen elements for Handoff, launch if necessary
 		(this is much faster if already selected)
@@ -161,7 +160,6 @@ checkHandoff() {
 }
 
 clickField(x,y,delay:=10) {
-	WinActivate, ahk_id %epicWin%
 	sleep % delay
 	MouseClick, L, % x, % y
 	sleep % delay
