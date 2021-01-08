@@ -179,8 +179,23 @@ getClip() {
 	return Clipboard
 }
 
-readClip(byref clp) {
-	top := SubStr(clp, 1, 256)
+updateSmartLinks(x,y) {
+/*	Updates smart links by sending ctrl+F11 to the active window
+	Arguments (x,y) are pixel coords to monitor change in Update icon
+*/
+	SendInput, !r
+	sleep 200
+	loop,
+	{
+		PixelGetColor, col, % x , % y
+		; progress,,,% col
+		if (col="0xFFFFFF") {
+			break
+		}
+	}
+	return
+}
+
 	t1 := StregX(top,"--CHIPOTLE Sign Out ",0,1,"--",1)
 	n:=1
 	fld := []
@@ -197,24 +212,20 @@ readClip(byref clp) {
 	vs := stregx(clp,"<VITALS>",1,1,"</VITALS>",1)
 
 
-	return fld
+	}
 }
 
-updateSmartLinks(x,y) {
-/*	Updates smart links by sending ctrl+F11 to the active window
-	Arguments (x,y) are pixel coords to monitor change in Update icon
+parseTag(txt,tag) {
+/*	Read text between <tag>
+	Returns text excluding tags
 */
-	SendInput, !r
-	sleep 200
-	loop,
-	{
-		PixelGetColor, col, % x , % y
-		; progress,,,% col
-		if (col="0xFFFFFF") {
-			break
+	bs := "<" tag ">"
+	es := "</" tag ">"
+	x := stregx(txt,bs,1,1,es,1)
+	return x
 		}
 	}
-	return
+
 }
 
 processCIS(clip) {
