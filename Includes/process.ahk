@@ -104,6 +104,8 @@ syncHandoff() {
 	Progress, Off
 
 	MsgBox,,% HndOff.Service, % "T=" (A_TickCount-t0)/1000 "`n`n" txt
+	processHandoff(res)
+
 	Gui, main:Show
 	return res
 }
@@ -196,20 +198,61 @@ updateSmartLinks(x,y) {
 	return
 }
 
-	t1 := StregX(top,"--CHIPOTLE Sign Out ",0,1,"--",1)
-	n:=1
-	fld := []
-	Loop
+processHandoff(ByRef epic) {
+	global y, yArch
+		, mrnstring, timenow
+		, cicudocs, txpdocs
+		, loc, location, locString
+		, cis_list
+	filecheck()
+	refreshCurr()																		; Get latest local currlist into memory
+	
+	loop, % epic.MaxIndex()
 	{
-		k := stregx(top,"\[\w+\]",n,0," \[|\R+",1,n)
-		RegExMatch(k, "O)\[(.*)\] (.*)",match)
-		if (match.value(1)="") {
-			break
+		clp := epic[A_Index].Data
+		top := strX(clp,"",0,1,"<VITALS>",0,9)
+		t1 := StregX(top,"--CHIPOTLE Sign Out ",0,1,"--",1)
+		; Date := t1.YYYY t1.MM t1.DD t1.hr t1.min 
+		nn:=1
+		fld := []
+		Loop
+		{
+			k := stregx(top,"\[\w+\]",nn,0," \[|\R+",1,nn)
+			RegExMatch(k, "O)\[(.*)\] (.*)",match)
+			if (match.value(1)="") {
+				break
+			}
+			fld[match.value(1)] := Trim(match.value(2))
 		}
-		fld[match.value(1)] := match.value(2)
-	}
-	fld.time := t1
-	vs := stregx(clp,"<VITALS>",1,1,"</VITALS>",1)
+		fld.time := t1
+
+		datatxt := parseTag(clp,"Data")
+		vstxt := parseTag(datatxt,"vs")
+		vs_bp := parseData(vstxt,"(BP)\s+(.*?)[\s\R]")
+		vs_p := parseData(vstxt,"(Pulse)\s+(.*?)[\s\R]")
+		vs_wt := parseData(vstxt,"(Wt).*?(\d.*)")
+		vs_spo2 := parseData(vstxt,"(SpO2).*?(\d+)")
+		vs_bsa := parseData(vstxt,"(BSA)\s+(.*?)\s")
+		vs_sbp := maxMin(parseData(vstxt,"(Systolic).*?(Min.*?Max.*?)\s"))
+		vs_dbp := maxMin(parseData(vstxt,"(Diastolic).*?(Min.*?Max.*?)\s"))
+		vs_tmax := parseData(vstxt,"(Temp).*?Max:(.*?)\s")
+		vs_wtchg := parseData(vstxt,"(Weight change):\s+(.*)")
+
+		iotxt := parseTag(datatxt,"io")
+		io_in := parseData(iotxt,"(In):\s(.*)")
+		io_out := parseData(iotxt,"(Out):\s(.*)")
+
+		ventTxt := trim(parseTag(datatxt,"vent"),"`r`n")
+
+		labstxt := parseTag(clp,"Labs")
+		abgtxt := parseData(labstxt,"(Art) pH.*?:\s+(.*)")
+		cbctxt := parseData(labstxt,"(CBC) -\s+(.*)")
+		ekgtxt := parseTag(labstxt,"ekg")
+		
+		medstxt := parseTag(clp,"Medications")
+		meds_drips := stregx(medstxt,"\[DRIPS\]",1,1,"\[SCHEDULED\]",1)
+		meds_sched := stregx(medstxt,"\[SCHEDULED\]",1,1,"\[PRN\]",1)
+		meds_prn := stregx(medstxt "<<<","\[PRN\]",1,1,"<<<",1)
 
 
 	}
@@ -223,9 +266,20 @@ parseTag(txt,tag) {
 	es := "</" tag ">"
 	x := stregx(txt,bs,1,1,es,1)
 	return x
-		}
-	}
+}
 
+parseData(clp,set) {
+/*	Scans for values in CLP using regex in SET
+	Returns var1=label var2=field
+*/
+	RegExMatch(clp, "\R+" set, var)
+	return var2
+}
+
+maxMin(txt) {
+	txt := RegExReplace(txt, " |:|Min|Max")
+	txt := StrReplace(txt, ",", "-")
+	return txt
 }
 
 processCIS(clip) {
