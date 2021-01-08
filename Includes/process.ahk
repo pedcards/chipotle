@@ -50,15 +50,13 @@ syncHandoff() {
 		updateSmartLinks(HndOff.UpdateX,HndOff.UpdateY)
 
 		Clipboard :=
-		c0 := Clipboard
 		fld := []
 		loop, 3																			; get 3 attempts to capture clipboard
 		{
 			progress,,% "Attempt " A_Index
 			clp := getClip()
-			if (clp!=c0) {
+			if (clp!="") {
 				fld.MRN := strX(clp,"[MRN] ",1,6," [DOB]",0,6)							; clip changed from baseline
-				; fld := readClip(clp)
 				fld.Data := clp
 				progress,,,% fld.MRN
 				break
@@ -81,11 +79,10 @@ syncHandoff() {
 
 		clickField(HndOff.tabX,HndOff.SummaryY)											; now grab the Patient Summary field 
 		Clipboard :=
-		c0 := Clipboard
 		loop, 3
 		{
 			clp := getClip()
-			if (clp!=c0) {
+			if (clp!="") {
 				fld.Summary := clp
 				break
 			}
