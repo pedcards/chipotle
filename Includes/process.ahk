@@ -41,6 +41,7 @@ syncHandoff() {
 	/*	Loop through each patient using hotkeys, update smart links,
 		copy Illness Severity and Patient Summary fields to clipboard
 	*/
+	BlockInput, On
 	loop,
 	{
 		tt0 := A_TickCount
@@ -98,6 +99,8 @@ syncHandoff() {
 		SendInput, !n																	; Alt+n to move to next record
 		scrcmp(HndOff.tabX,HndOff.NameY,100,15)											; detect when Name on screen changes
 	}
+	BlockInput, Off
+	Progress, Off
 
 	MsgBox,,% HndOff.Service, % "T=" (A_TickCount-t0)/1000 "`n`n" txt
 	Gui, main:Show
