@@ -54,12 +54,15 @@ syncHandoff() {
 		loop, 3																			; get 3 attempts to capture clipboard
 		{
 			progress,,% "Attempt " A_Index
+			clickField(HndOff.tabX,HndOff.IllnessY,100)
 			clp := getClip()
 			if (clp!="") {
 				fld.MRN := strX(clp,"[MRN] ",1,6," [DOB]",0,6)							; clip changed from baseline
 				fld.Data := clp
 				progress,,,% fld.MRN
 				break
+			} else {
+				clickField(HndOff.tabX,HndOff.IllnessY)
 			}
 		}
  		if (clp="`r`n") {																; field is truly blank
@@ -81,6 +84,7 @@ syncHandoff() {
 		Clipboard :=
 		loop, 3
 		{
+			clickField(HndOff.tabX,HndOff.SummaryY)
 			clp := getClip()
 			if (clp!="") {
 				fld.Summary := clp
