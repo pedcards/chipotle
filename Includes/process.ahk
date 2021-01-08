@@ -175,7 +175,7 @@ getClip() {
 	SendInput, ^a
 	sleep 50
 	SendInput, ^c
-	sleep 200																			; Citrix needs time to copy to local clipboard
+	sleep 150																			; Citrix needs time to copy to local clipboard
 	return Clipboard
 }
 
