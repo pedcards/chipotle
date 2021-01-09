@@ -8,6 +8,7 @@ syncHandoff() {
 	/*	Check screen elements for Handoff, launch if necessary
 		(this is much faster if already selected)
 	*/
+	tt0 := A_TickCount
 	loop, 4
 	{
 		HndOff := checkHandoff()
@@ -21,10 +22,12 @@ syncHandoff() {
 		Gui, main:Show
 		return
 	}
+	txt .= "Start = " (A_TickCount-tt0)/1000 "`n"
 
 	/*	Find matching Service List on screen
 		Offer choice if no match
 	*/
+	tt0 := A_TickCount
 	Loop, % EpicSvcList.MaxIndex()
 	{
 		k := EpicSvcList[A_index]
@@ -37,6 +40,7 @@ syncHandoff() {
 		Gui, main:Show
 		return
 	}
+	txt .= "Find Service = " (A_TickCount-tt0)/1000 "`n`n"
 
 	/*	Loop through each patient using hotkeys, update smart links,
 		copy Illness Severity and Patient Summary fields to clipboard
@@ -45,60 +49,17 @@ syncHandoff() {
 	loop,
 	{
 		tt0 := A_TickCount
-		progress, % A_index*10,% " ",% " "
-		clickField(HndOff.tabX,HndOff.IllnessY)
-		updateSmartLinks(HndOff.UpdateX,HndOff.UpdateY)
-
-		Clipboard :=
-		fld := []
-		loop, 3																			; get 3 attempts to capture clipboard
-		{
-			progress,,% "Attempt " A_Index
-			clickField(HndOff.tabX,HndOff.IllnessY,100)
-			clp := getClip()
-			if (clp!="") {
-				fld.MRN := strX(clp,"[MRN] ",1,6," [DOB]",0,6)							; clip changed from baseline
-				fld.Data := clp
-				progress,,,% fld.MRN
-				break
-			} else {
-				clickField(HndOff.tabX,HndOff.IllnessY)
-			}
+		fld := readHandoff(HndOff,done)
+		if instr(done,fld.MRN) {															; break loop if we have read this record already
+			Break
 		}
- 		if (clp="`r`n") {																; field is truly blank
-			MsgBox 0x40024, Novel patient?, Insert CHIPOTLE smart text?`n
-			IfMsgBox Yes, {
-				clickField(HndOff.tabX,HndOff.IllnessY)
-				SendInput, .chipotle{enter}												; type dot phrase to insert
-				sleep 300
-				ScrCmp(HndOff.TextX,HndOff.TextY,100,10)								; detect when text expands
-				continue
-			} 
-		}
-
- 		if instr(txt,fld.MRN) {															; break loop if we have read this record already
-			break
-		}
-
-		clickField(HndOff.tabX,HndOff.SummaryY)											; now grab the Patient Summary field 
-		Clipboard :=
-		loop, 3
-		{
-			clickField(HndOff.tabX,HndOff.SummaryY)
-			clp := getClip()
-			if (clp!="") {
-				fld.Summary := clp
-				break
-			}
-		}
-
-		txt .= fld.MRN " " (A_TickCount-tt0)/1000 "`n"
-		lastMRN := fld.MRN
-
 		res.push(fld)																	; push {MRN, Data, Summary} to RES
 
 		SendInput, !n																	; Alt+n to move to next record
 		scrcmp(HndOff.tabX,HndOff.NameY,100,15)											; detect when Name on screen changes
+		
+		done .= fld.MRN "`n"
+		txt .= fld.MRN " " (A_TickCount-tt0)/1000 "`n"
 	}
 	BlockInput, Off
 	Progress, Off
@@ -109,8 +70,6 @@ syncHandoff() {
 	Gui, main:Show
 	return res
 }
-
-ExitApp
 
 checkHandoff() {
 /*	Check if Handoff is running for this Patient List
@@ -181,12 +140,66 @@ getClip() {
 	return Clipboard
 }
 
+readHandoff(ByRef HndOff, ByRef done) {
+/*	Read the Illness Severity and Patient Summary fields
+	Click twice (not double click) to ensure we are in field
+*/
+	progress, % A_index*10,% " ",% " "
+	clickField(HndOff.tabX,HndOff.IllnessY,100)
+	updateSmartLinks(HndOff.UpdateX,HndOff.UpdateY)
+
+	Clipboard :=
+	fld := []
+	loop, 3																			; get 3 attempts to capture clipboard
+	{
+		progress,,% "Attempt " A_Index
+		clickField(HndOff.tabX,HndOff.IllnessY,50)
+		clp := getClip()
+		if (clp="") {
+			clickField(HndOff.tabX,HndOff.IllnessY)
+		} else {
+			fld.MRN := strX(clp,"[MRN] ",1,6," [DOB]",0,6)							; clip changed from baseline
+			fld.Data := clp
+			progress,,,% fld.MRN
+			break
+		}
+	}
+	if (clp="`r`n") {																; field is truly blank
+		MsgBox 0x40024, Novel patient?, Insert CHIPOTLE smart text?`n
+		IfMsgBox Yes, {
+			clickField(HndOff.tabX,HndOff.IllnessY)
+			SendInput, .chipotle{enter}												; type dot phrase to insert
+			sleep 300
+			ScrCmp(HndOff.TextX,HndOff.TextY,100,10)								; detect when text expands
+		} 
+	}
+	if instr(done,fld.MRN) {															; break loop if we have read this record already
+		return fld
+	}
+
+	clickField(HndOff.tabX,HndOff.SummaryY)											; now grab the Patient Summary field 
+	Clipboard :=
+	loop, 3
+	{
+		clickField(HndOff.tabX,HndOff.SummaryY,50)
+		clp := getClip()
+		if (clp="") {
+			clickField(HndOff.tabX,HndOff.SummaryY)
+		} else {
+			fld.Summary := clp
+			break
+		}
+	}
+
+	return fld
+}
+
 updateSmartLinks(x,y) {
 /*	Updates smart links by sending ctrl+F11 to the active window
 	Arguments (x,y) are pixel coords to monitor change in Update icon
 */
 	SendInput, !r
-	sleep 200
+	sleep 100
 	loop,
 	{
 		PixelGetColor, col, % x , % y
