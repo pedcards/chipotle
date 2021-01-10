@@ -320,6 +320,9 @@ processHandoff(ByRef epic) {
 		meds_drips := stregx(medstxt,"\[DRIPS\]",1,1,"\[SCHEDULED\]",1)
 		meds_sched := stregx(medstxt,"\[SCHEDULED\]",1,1,"\[PRN\]",1)
 		meds_prn := stregx(medstxt "<<<","\[PRN\]",1,1,"<<<",1)
+		; MedListParse("drips",meds_drips)
+		; MedListParse("meds",meds_sched)
+		; MedListParse("prn",meds_prn)
 
 		MRNstring := "/root/id[@mrn='" . fld.mrn . "']"
 		if !IsObject(y.selectSingleNode(MRNstring)) {				; If no MRN node exists, create it.
@@ -331,7 +334,7 @@ processHandoff(ByRef epic) {
 			FetchNode("plan")										; Otherwise, create placeholders.
 			FetchNode("prov")
 			FetchNode("data")
-			eventlog("processCIS " fld.mrn ((fetchGot) ? " pulled from archive":" new") ", added to active list.")
+			eventlog("processHandoff " fld.mrn ((fetchGot) ? " pulled from archive":" new") ", added to active list.")
 		} else {													; Otherwise clear old demog & loc info.
 			RemoveNode(MRNstring . "/demog")
 			y.insertElement("demog", MRNstring . "/diagnoses")		; Insert before "diagnoses" node.
@@ -353,6 +356,70 @@ processHandoff(ByRef epic) {
 		if !IsObject(y.selectSingleNode(MRNstring "/prov/enc[@adm='" parseDate(fld.admit).YMD "']")) {
 			y.addElement("enc", MRNstring "/prov", {adm:parseDate(fld.admit).ymd, attg:fld.attg, svc:fld.service})
 		}
+
+		; Remove the old Info nodes
+		Loop % (infos := y.selectNodes(MRNstring "/info")).length
+		{
+			tmpdt := infos.Item(A_index-1).getAttribute("date")
+			tmpTD := tmpdt
+			tmpTD -= A_now, Days
+			if ((tmpTD < -7) or (substr(tmpdt,1,8) = substr(A_now,1,8))) {				; remove old nodes or replace info/mar from today.
+				RemoveNode(MRNstring "/info[@date='" tmpdt "']")
+				continue
+			}
+			if (tmpTD < 1) {															; remove old info/hx and info/notes from nodes older than 1 day.
+				RemoveNode(MRNstring "/info[@date='" tmpdt "']/hx")
+				RemoveNode(MRNstring "/info[@date='" tmpdt "']/notes")
+			}
+		}
+		; Remove old MAR except for this run.
+		Loop % (infos := y.selectNodes(MRNstring "/MAR")).length
+		{
+			tmpdt := infos.Item(A_Index-1).getAttribute("date")
+			if (tmpdt!=timenow) {
+				RemoveNode(MRNstring "/MAR[@date='" tmpdt "']")
+			}
+		}
+	
+		y.addElement("info", MRNstring, {date: timenow})								; Create a new /info node
+		yInfoDt := MRNstring . "/info[@date='" timenow "']"
+			; y.addElement("wt", yInfoDt, fld.Wt)
+			; y.addElement("allergies", yInfoDt, CORES.Alls)
+			; y.addElement("code", yInfoDt, CORES.Code)
+			; y.addElement("team", yInfoDt, CORES.Team)
+			y.addElement("vs", yInfoDt)
+				y.addElement("wt",   yInfoDt "/vs", {change:vs_wtchg}, vs_wt)
+				y.addElement("bsa",  yInfoDt "/vs", vs_bsa)
+				y.addElement("temp", yInfoDt "/vs", vs_tmax)
+				y.addElement("p",    yInfoDt "/vs", vs_p)
+				y.addElement("bp",   yInfoDt "/vs", vs_sbp "/" vs_dbp)
+				y.addElement("spo2", yInfoDt "/vs", vs_spo2)
+			y.addElement("vent", yInfoDt)
+				y.addElement("vent", yInfoDt "/vent", ventTxt)
+			y.addElement("io", yInfoDt )
+				y.addElement("in",   yInfoDt "/io", io_in)
+				y.addElement("out",  yInfoDt "/io", io_out)
+				; y.addElement("ct",  yInfoDt "/io", CORES.ioCT)
+				; y.addElement("net", yInfoDt "/io", CORES.ioNet)
+				; y.addElement("uop", yInfoDt "/io", CORES.ioUOP)
+			y.addElement("labs", yInfoDt )
+				y.addElement("abg",  yInfoDt "/labs", abgtxt)
+				y.addElement("cbc",  yInfoDt "/labs", cbctxt)
+			y.addElement("studies", yInfoDt)
+				y.addElement("ekg",  yInfoDt "/studies", ekgtxt)
+		if !isobject(y.selectSingleNode(MRNstring "/MAR")) {
+			y.addElement("MAR", MRNstring)											; Create a new /MAR node
+		}
+		y.selectSingleNode(MRNstring "/MAR").setAttribute("date", timenow)			; Change date to now
+		if !(y.selectNodes(MRNstring "/MAR/*").length) {							; Populate only if empty
+			yMarDt := MRNstring "/MAR[@date='" timenow "']"
+				; MedListParse("drips",cores.Drips)
+				; MedListParse("meds",cores.Meds)
+				; MedListParse("prn",CORES.PRN)
+				; MedListParse("abx",cores.Abx)
+				; MedListParse("diet",CORES.Diet)
+		}
+
 	}
 	writeFile()
 	Return
