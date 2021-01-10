@@ -162,28 +162,31 @@ readHandoff(ByRef HndOff, ByRef done) {
 
 	Clipboard :=
 	fld := []
-	loop, 3																			; get 3 attempts to capture clipboard
+	loop, 5																			; get 3 attempts to capture clipboard
 	{
 		progress,,% "Attempt " A_Index
 		clickField(HndOff.tabX,HndOff.IllnessY,50)
 		clp := getClip()
 		if (clp="") {
 			clickField(HndOff.tabX,HndOff.IllnessY)
-		} else {
-			fld.MRN := strX(clp,"[MRN] ",1,6," [DOB]",0,6)							; clip changed from baseline
-			fld.Data := clp
-			progress,,,% fld.MRN
-			break
-		}
-	}
-	if (clp="`r`n") {																; field is truly blank
-		MsgBox 0x40024, Novel patient?, Insert CHIPOTLE smart text?`n
-		IfMsgBox Yes, {
+			Continue
+		} 
+		if (clp="`r`n") {																; field is truly blank
+			MsgBox 0x40021, Novel patient?, Insert CHIPOTLE smart text?`n, 3
+			IfMsgBox Cancel
+			{
+				Break
+			}
 			clickField(HndOff.tabX,HndOff.IllnessY)
 			SendInput, .chipotle{enter}												; type dot phrase to insert
 			sleep 300
 			ScrCmp(HndOff.TextX,HndOff.TextY,100,10)								; detect when text expands
-		} 
+			Continue
+		}
+		fld.MRN := strX(clp,"[MRN] ",1,6," [DOB]",0,6)							; clip changed from baseline
+		fld.Data := clp
+		progress,,,% fld.MRN
+		break
 	}
 	if instr(done,fld.MRN) {															; break loop if we have read this record already
 		return fld
