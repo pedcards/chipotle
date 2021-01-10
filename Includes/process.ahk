@@ -65,7 +65,19 @@ syncHandoff() {
 	Progress, Off
 
 	MsgBox,,% HndOff.Service, % "T=" (A_TickCount-t0)/1000 "`n`n" txt
+
+	filecheck()
+	refreshCurr()																		; Get latest local currlist into memory
+	; FileOpen(".currlock", "W")															; Create lock file.
+	updateList(HndOff.Service,done)
 	processHandoff(res)
+	; FileDelete, .currlock
+
+	MsgBox, 4, Print now?, Print list: %locString%
+	IfMsgBox, Yes
+	{
+		; PrintIt()
+	}
 
 	Gui, main:Show
 	return res
@@ -209,6 +221,32 @@ updateSmartLinks(x,y) {
 		}
 	}
 	return
+}
+
+updateList(service,done) {
+	global y, loc, location, locString, timenow
+
+	timenow := A_now
+	location := Service
+	locString := loc[location,"name"]
+
+	RemoveNode("/root/lists/" . location)												; Clear existing /root/lists for this location
+	y.addElement(location, "/root/lists", {date: timenow})								; Refresh this list
+	Loop, Parse, done, `n, `r
+	{
+		k := A_LoopField
+		if (k="") {
+			Break
+		}
+		y.addElement("mrn", "/root/lists/" location, k)
+	}
+	
+	; listsort(location)
+	writefile()
+	Gosub UpdateMainGui
+	eventlog(location " list updated.")
+
+	Return
 }
 
 processHandoff(ByRef epic) {
