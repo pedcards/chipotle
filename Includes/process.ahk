@@ -1,6 +1,7 @@
 syncHandoff() {
-	global EpicSvcList, svcText
+	global y, MRNstring, EpicSvcList, svcText, timenow
 
+	refreshCurr()																		; Get latest local currlist into memory
 	Gui, main:Minimize
 	res := {}
 	t0 := A_TickCount
@@ -48,11 +49,28 @@ syncHandoff() {
 	BlockInput, On
 	loop,
 	{
+		timenow := A_now
 		tt0 := A_TickCount
 		fld := readHndIllness(HndOff,done)
 		if instr(done,fld.MRN) {														; break loop if we have read this record already
 			Break
 		}
+		MRNstring := "/root/id[@mrn='" . fld.mrn . "']"
+		if !IsObject(y.selectSingleNode(MRNstring)) {									; If no MRN node exists, create it.
+			y.addElement("id", "root", {mrn: fld.mrn})
+			y.addElement("demog", MRNstring)
+			fetchGot := false
+			FetchNode("diagnoses")														; Check for existing node in Archlist,
+			FetchNode("notes")															; retrieve old Dx, Notes, Plan. (Status is discarded)
+			FetchNode("plan")															; Otherwise, create placeholders.
+			FetchNode("prov")
+			FetchNode("data")
+			eventlog("processHandoff " fld.mrn ((fetchGot) ? " pulled from archive":" new") ", added to active list.")
+		} else {																		; Otherwise clear old demog & loc info.
+			RemoveNode(MRNstring . "/demog")
+			y.insertElement("demog", MRNstring . "/diagnoses")							; Insert before "diagnoses" node.
+		}
+		
 		readHndSummary(HndOff,fld)
 		res.push(fld)																	; push {MRN, Data, Summary} to RES
 
@@ -68,10 +86,10 @@ syncHandoff() {
 	MsgBox,,% HndOff.Service, % "T=" (A_TickCount-t0)/1000 "`n`n" txt
 
 	filecheck()
-	refreshCurr()																		; Get latest local currlist into memory
 	; FileOpen(".currlock", "W")															; Create lock file.
 	updateList(HndOff.Service,done)
 	processHandoff(res)
+	writeFile()
 	; FileDelete, .currlock
 
 	MsgBox, 4, Print now?, Print list: %locString%
@@ -200,21 +218,51 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 /*	Read the Patient Summary field
 	Click twice (not double click) to ensure we are in field
 */
+	global y, MRNstring, timenow
+
+	card := y.selectSingleNode(MRNstring "/diagnoses/card")
+	c_txt := card.Text
+	c_dt := card.getAttribute("date")
+	epic := y.selectSingleNode(MRNstring "/diagnoses/summ")
+	e_txt := epic.Text
+	e_dt := epic.getAttribute("date")
+
 	Clipboard :=
 	clickField(HndOff.tabX,HndOff.SummaryY)												; now grab the Patient Summary field 
 	loop, 3
 	{
 		clickField(HndOff.tabX,HndOff.SummaryY,50)
 		clp := getClip()
-		if (clp="") {
+		if (clp="") {																	; nothing populated, try again
 			clickField(HndOff.tabX,HndOff.SummaryY)
 			Continue
 		} 
+		; Patient Summary is empty
 		if (clp="`r`n") {
-			; clickField(HndOff.tabX,HndOff.SummaryY)
-			; Continue
+			if (c_txt="") {																; - if Card empty as well, then exit
+				break
+			} 
+			Clipboard := c_txt															; - Card is present
+			clickField(HndOff.tabX,HndOff.SummaryY)
+			sleep 50
+			SendInput, ^a
+			sleep 50
+			SendInput, ^v																; paste c_txt into Patient Summary
+			ReplacePatNode(MRNstring "/diagnoses","summ",clp)
+			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("date",timenow)
+			card.setAttribute("date",timenow)
 			Break
-		} 
+		}
+		; Patient Summary is not empty, but Diagnoses/Card is empty
+		if (c_txt="") {
+			ReplacePatNode(MRNstring "/diagnoses","card",clp)
+			y.selectSingleNode(MRNstring "/diagnoses/card").setAttribute("date",timenow)
+			ReplacePatNode(MRNstring "/diagnoses","summ",clp)
+			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("date",timenow)
+			Break
+		}
+		; Patient Summary not empty, and Diagnoses/Card not empty
+
 		fld.Summary := clp
 		Break
 	}
@@ -241,7 +289,6 @@ updateSmartLinks(x,y) {
 updateList(service,done) {
 	global y, loc, location, locString, timenow
 
-	timenow := A_now
 	location := Service
 	locString := loc[location,"name"]
 
@@ -339,22 +386,8 @@ processHandoff(ByRef epic) {
 		; MedListParse("meds",meds_sched)
 		; MedListParse("prn",meds_prn)
 
-		MRNstring := "/root/id[@mrn='" . fld.mrn . "']"
-		if !IsObject(y.selectSingleNode(MRNstring)) {				; If no MRN node exists, create it.
-			y.addElement("id", "root", {mrn: fld.mrn})
-			y.addElement("demog", MRNstring)
-			fetchGot := false
-			FetchNode("diagnoses")									; Check for existing node in Archlist,
-			FetchNode("notes")										; retrieve old Dx, Notes, Plan. (Status is discarded)
-			FetchNode("plan")										; Otherwise, create placeholders.
-			FetchNode("prov")
-			FetchNode("data")
-			eventlog("processHandoff " fld.mrn ((fetchGot) ? " pulled from archive":" new") ", added to active list.")
-		} else {													; Otherwise clear old demog & loc info.
-			RemoveNode(MRNstring . "/demog")
-			y.insertElement("demog", MRNstring . "/diagnoses")		; Insert before "diagnoses" node.
-		}
 		; Fill with demographic data
+		MRNstring := "/root/id[@mrn='" . fld.mrn . "']"
 		y.addElement("name_last", MRNstring . "/demog", fld.name_L)
 		y.addElement("name_first", MRNstring . "/demog", fld.name_F)
 		y.addElement("data", MRNstring . "/demog", {date: timenow})
@@ -434,9 +467,8 @@ processHandoff(ByRef epic) {
 				; MedListParse("abx",cores.Abx)
 				; MedListParse("diet",CORES.Diet)
 		}
-
+	writeOut("/root","id[@mrn='" . fld.mrn . "']")
 	}
-	writeFile()
 	Return
 }
 
