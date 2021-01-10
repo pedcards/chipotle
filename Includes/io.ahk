@@ -15,6 +15,7 @@ GetIt:
 	yArch := new XML("archlist.xml")
 	if !IsObject(yArch.selectSingleNode("/root")) {									; if yArch is empty,
 		yArch.addElement("root")													; then create it.
+		yArch.transformXML()
 		yArch.save("archlist.xml")													; Write out archlist
 	}
 	
@@ -37,7 +38,8 @@ WriteFile()
 /*	This is only called during GetIt, SaveIt, ProcessCIS, and ProcessCORES
 */
 	global y
-	
+	y.transformXML()
+
 	FileCopy, currlist.xml, currlist.bak, 1 								; make copy of good currlist
 	
 	Loop, 3
@@ -162,6 +164,7 @@ SaveIt:
 	}
 
 	Progress, 90, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+	yArch.transformXML()
 	yArch.save("archlist.xml")															; Writeout archlist
 	if !(errList) {																		; dialog to show if there were any hits
 		Progress, hide
@@ -171,6 +174,7 @@ SaveIt:
 		Progress, 85
 	}
 	
+	y.transformXML()
 	y.save("currlist.xml")
 	FileCopy, currlist.xml, % "bak\" A_now ".bak"
 	eventlog("Currlist cleaned up.")
@@ -302,6 +306,7 @@ saveCensus:
 	}
 	
 	eventlog("CENSUS '" location "' updated.")
+	cens.transformXML()
 	cens.save(censFile)															; save the censDate.xml file
 	
 	censCrd := cens.selectSingleNode(c1 "/Cards")								; get nodes of service locations
@@ -323,6 +328,7 @@ saveCensus:
 		regionalCensus("Cards")
 		regionalCensus("CSR")
 		regionalCensus("TXP")
+		cens.transformXML()
 		cens.save(censFile)
 		eventlog("Regional census updated.")
 		
@@ -858,6 +864,7 @@ WriteOut(path,node) {
 	zNode := zPath.selectSingleNode(node)
 	zPath.replaceChild(clone,zNode)												; replace existing zNode with node clone
 	
+	z.transformXML()
 	z.save("currlist.xml")														; write z into currlist
 	FileCopy, currlist.xml, % "bak\" A_now ".bak"								; create a backup for each writeout
 	FileGetSize, currSize, currlist.xml, k
