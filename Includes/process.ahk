@@ -49,10 +49,11 @@ syncHandoff() {
 	loop,
 	{
 		tt0 := A_TickCount
-		fld := readHandoff(HndOff,done)
-		if instr(done,fld.MRN) {															; break loop if we have read this record already
+		fld := readHndIllness(HndOff,done)
+		if instr(done,fld.MRN) {														; break loop if we have read this record already
 			Break
 		}
+		readHndSummary(HndOff,fld)
 		res.push(fld)																	; push {MRN, Data, Summary} to RES
 
 		SendInput, !n																	; Alt+n to move to next record
@@ -152,8 +153,8 @@ getClip() {
 	return Clipboard
 }
 
-readHandoff(ByRef HndOff, ByRef done) {
-/*	Read the Illness Severity and Patient Summary fields
+readHndIllness(ByRef HndOff, ByRef done) {
+/*	Read the Illness Severity field
 	Click twice (not double click) to ensure we are in field
 */
 	progress, % A_index*10,% " ",% " "
@@ -162,7 +163,7 @@ readHandoff(ByRef HndOff, ByRef done) {
 
 	Clipboard :=
 	fld := []
-	loop, 5																			; get 3 attempts to capture clipboard
+	loop, 5																				; get 3 attempts to capture clipboard
 	{
 		progress,,% "Attempt " A_Index
 		clickField(HndOff.tabX,HndOff.IllnessY,50)
@@ -178,12 +179,12 @@ readHandoff(ByRef HndOff, ByRef done) {
 				Break
 			}
 			clickField(HndOff.tabX,HndOff.IllnessY)
-			SendInput, .chipotle{enter}												; type dot phrase to insert
+			SendInput, .chipotle{enter}													; type dot phrase to insert
 			sleep 300
-			ScrCmp(HndOff.TextX,HndOff.TextY,100,10)								; detect when text expands
+			ScrCmp(HndOff.TextX,HndOff.TextY,100,10)									; detect when text expands
 			Continue
 		}
-		fld.MRN := strX(clp,"[MRN] ",1,6," [DOB]",0,6)							; clip changed from baseline
+		fld.MRN := strX(clp,"[MRN] ",1,6," [DOB]",0,6)									; clip changed from baseline
 		fld.Data := clp
 		progress,,,% fld.MRN
 		break
@@ -192,21 +193,32 @@ readHandoff(ByRef HndOff, ByRef done) {
 		return fld
 	}
 
-	clickField(HndOff.tabX,HndOff.SummaryY)											; now grab the Patient Summary field 
+	return fld
+}
+
+readHndSummary(ByRef HndOff, ByRef fld) {
+/*	Read the Patient Summary field
+	Click twice (not double click) to ensure we are in field
+*/
 	Clipboard :=
+	clickField(HndOff.tabX,HndOff.SummaryY)												; now grab the Patient Summary field 
 	loop, 3
 	{
 		clickField(HndOff.tabX,HndOff.SummaryY,50)
 		clp := getClip()
 		if (clp="") {
 			clickField(HndOff.tabX,HndOff.SummaryY)
-		} else {
-			fld.Summary := clp
-			break
-		}
+			Continue
+		} 
+		if (clp="`r`n") {
+			; clickField(HndOff.tabX,HndOff.SummaryY)
+			; Continue
+			Break
+		} 
+		fld.Summary := clp
+		Break
 	}
-
-	return fld
+	Return
 }
 
 updateSmartLinks(x,y) {
