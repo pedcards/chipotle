@@ -255,8 +255,6 @@ processHandoff(ByRef epic) {
 		, cicudocs, txpdocs
 		, loc, location, locString
 		, cis_list
-	filecheck()
-	refreshCurr()																		; Get latest local currlist into memory
 	
 	loop, % epic.MaxIndex()
 	{
@@ -276,6 +274,24 @@ processHandoff(ByRef epic) {
 			fld[match.value(1)] := Trim(match.value(2))
 		}
 		fld.time := t1
+		fld.admit := parseDate(fld.admit).YMD
+		fld.unit := (fld.room~="FA\.6.*-C")
+			? "CICU-F6"
+		: (fld.room~="FA\.6.*-P")
+			? "PICU-F6"
+		: (fld.room~="FA\.5.*-P")
+			? "PICU-F5"
+		: (fld.room~="RC\.6.*")
+			? "SUR-RC6"
+		: (fld.room~="RB\.6.*")
+			? "SUR-RB6"
+		: (fld.room~="RA\.6.*")
+			? "NICU-R6"
+		: (fld.room~="FA\.5.*-N")
+			? "NICU-F5"
+		: (fld.room~="FA\.3.*")
+			? "PULM-F3"
+		: fld.unit
 
 		datatxt := parseTag(clp,"Data")
 		vstxt := parseTag(datatxt,"vs")
@@ -305,8 +321,41 @@ processHandoff(ByRef epic) {
 		meds_sched := stregx(medstxt,"\[SCHEDULED\]",1,1,"\[PRN\]",1)
 		meds_prn := stregx(medstxt "<<<","\[PRN\]",1,1,"<<<",1)
 
-
+		MRNstring := "/root/id[@mrn='" . fld.mrn . "']"
+		if !IsObject(y.selectSingleNode(MRNstring)) {				; If no MRN node exists, create it.
+			y.addElement("id", "root", {mrn: fld.mrn})
+			y.addElement("demog", MRNstring)
+			fetchGot := false
+			FetchNode("diagnoses")									; Check for existing node in Archlist,
+			FetchNode("notes")										; retrieve old Dx, Notes, Plan. (Status is discarded)
+			FetchNode("plan")										; Otherwise, create placeholders.
+			FetchNode("prov")
+			FetchNode("data")
+			eventlog("processCIS " fld.mrn ((fetchGot) ? " pulled from archive":" new") ", added to active list.")
+		} else {													; Otherwise clear old demog & loc info.
+			RemoveNode(MRNstring . "/demog")
+			y.insertElement("demog", MRNstring . "/diagnoses")		; Insert before "diagnoses" node.
+		}
+		; Fill with demographic data
+		y.addElement("name_last", MRNstring . "/demog", fld.name_L)
+		y.addElement("name_first", MRNstring . "/demog", fld.name_F)
+		y.addElement("data", MRNstring . "/demog", {date: timenow})
+		y.addElement("sex", MRNstring . "/demog/data", fld.sex)
+		y.addElement("dob", MRNstring . "/demog/data", fld.dob)
+		y.addElement("age", MRNstring . "/demog/data", fld.age)
+		y.addElement("service", MRNstring . "/demog/data", fld.service)
+		y.addElement("attg", MRNstring . "/demog/data", fld.attg)
+		y.addElement("admit", MRNstring . "/demog/data", parseDate(fld.admit).YMD)
+		y.addElement("unit", MRNstring . "/demog/data", fld.unit)
+		y.addElement("room", MRNstring . "/demog/data", fld.room)
+		
+		; Capture each encounter
+		if !IsObject(y.selectSingleNode(MRNstring "/prov/enc[@adm='" parseDate(fld.admit).YMD "']")) {
+			y.addElement("enc", MRNstring "/prov", {adm:parseDate(fld.admit).ymd, attg:fld.attg, svc:fld.service})
+		}
 	}
+	writeFile()
+	Return
 }
 
 parseTag(txt,tag) {
