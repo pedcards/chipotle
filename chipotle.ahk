@@ -588,50 +588,89 @@ breakDate(x) {
 		, "HH":D_Hr, "min":D_Min, "sec":D_sec}
 }
 
-parseDate(x) {
-; Disassembles dates into Yr=2015 Mo=02 Da=09 Hr=08 Min=31
-	; 03 Jan 2016
+ParseDate(x) {
 	mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-	if (x~="i)(\d{1,2})[\-\s\.](Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\-\s\.](\d{2,4})") {
-		StringSplit, DT, x, %A_Space%-.
-		return {"DD":zDigit(DT1), "MM":zDigit(objHasValue(mo,DT2)), "MMM":DT2, "YYYY":year4dig(DT3)}
+	moStr := "Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec"
+	dSep := "[ \-\._/]"
+	date := []
+	time := []
+	x := RegExReplace(x,"[,\(\)]")
+	
+	if (x~="\d{4}.\d{2}.\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z") {
+		x := RegExReplace(x,"[TZ]","|")
+	}
+	if RegExMatch(x,"i)(\d{1,2})" dSep "(" moStr ")" dSep "(\d{4}|\d{2})",d) {			; 03-Jan-2015
+		date.dd := zdigit(d1)
+		date.mmm := d2
+		date.mm := zdigit(objhasvalue(mo,d2))
+		date.yyyy := d3
+		date.date := trim(d)
+	}
+	else if RegExMatch(x,"i)\b(" moStr "|\d{1,2})" dSep "(\d{1,2})" dSep "(\d{4}|\d{2})",d) {	; Jan-03-2015, 01-03-2015
+		date.dd := zdigit(d2)
+		date.mmm := objhasvalue(mo,d1) 
+			? d1
+			: mo[d1]
+		date.mm := objhasvalue(mo,d1)
+			? zdigit(objhasvalue(mo,d1))
+			: zdigit(d1)
+		date.yyyy := (d3~="\d{4}")
+			? d3
+			: (d3>50)
+				? "19" d3
+				: "20" d3
+		date.date := trim(d)
+	}
+	else if RegExMatch(x,"i)(" moStr ")\s+(\d{1,2}),?\s+(\d{4})",d) {					; Dec 21, 2018
+		date.mmm := d1
+		date.mm := zdigit(objhasvalue(mo,d1))
+		date.dd := zdigit(d2)
+		date.yyyy := d3
+		date.date := trim(d)
+	}
+	else if RegExMatch(x,"\b(\d{4})[\-\.](\d{2})[\-\.](\d{2})\b",d) {					; 2015-01-03
+		date.yyyy := d1
+		date.mm := d2
+		date.mmm := mo[d2]
+		date.dd := d3
+		date.date := trim(d)
+	}
+	else if RegExMatch(x,"\b(19|20\d{2})(\d{2})(\d{2})((\d{2})(\d{2})(\d{2})?)?\b",d)  {	; 20150103174307 or 20150103
+		date.yyyy := d1
+		date.mm := d2
+		date.mmm := mo[d2]
+		date.dd := d3
+		date.date := d1 "-" d2 "-" d3
+		
+		time.hr := d5
+		time.min := d6
+		time.sec := d7
+		time.time := d5 ":" d6 . strQ(d7,":###")
 	}
 	
-	; 03_06_17 or 03_06_2017
-	if (x~="\d{1,2}_\d{1,2}_\d{2,4}") {
-		StringSplit, DT, x, _
-		return {"MM":zDigit(DT1), "DD":zDigit(DT2), "MMM":mo[DT2], "YYYY":year4dig(DT3)}
-	}
-	
-	; 2017-02-11
-	if RegExMatch(x,"(\d{4})-(\d{2})-(\d{2})",DT) {
-		return {"YYYY":DT1, "MM":DT2, "DD":DT3}
-	}
-	
-	; Mar 9, 2015 (8:33 am)?
-	if (x~="i)^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{1,2}, \d{4}") {
-		StringSplit, DT, x, %A_Space%
-		StringSplit, DHM, DT4, :
-		return {"MM":zDigit(objHasValue(mo,DT1)),"DD":zDigit(trim(DT2,",")),"YYYY":DT3
-			,	hr:zDigit((DT5~="i)p")?(DHM1+12):DHM1),min:DHM2}
-	}
-	
-	; 02/09/2015 (8:33 am)?
-	if (x~="\d{1,2}[\-/_\.]\d{1,2}[\-/_\.]\d{4}") {
-		RegExMatch(x,"(\d{1,2})[\-/_\.](\d{1,2})[\-/_\.](\d{4})",d)
-		RegExMatch(x,"(\d{1,2}):(\d{2})(:\d{2})?(.*)(AM|PM)?",t)
-		if (t6="pm" and t1<12) {
-			t1 += 12
+	if RegExMatch(x,"iO)(\d+):(\d{2})(:\d{2})?(:\d{2})?(.*)?(AM|PM)?",t) {				; 17:42 PM
+		hasDays := (t.value[4]) ? true : false 											; 4 nums has days
+		time.days := (hasDays) ? t.value[1] : ""
+		time.hr := trim(t.value[1+hasDays])
+		if (time.hr>23) {
+			time.days := floor(time.hr/24)
+			time.hr := mod(time.hr,24)
+			DHM:=true
 		}
-		return {MM:zDigit(d1),DD:zDigit(d2),YYYY:d3
-			,	hr:zDigit(t1),min:t2,sec:trim(t3,":"),AMPM:trim(t4)}
+		time.min := trim(t.value[2+hasDays]," :")
+		time.sec := trim(t.value[3+hasDays]," :")
+		time.ampm := trim(t.value[5])
+		time.time := trim(t.value)
 	}
-	
-	; Remaining are "2/9/2015" or "2/9/2015 8:31" 
-	StringSplit, DT, x, %A_Space%
-	StringSplit, DY, DT1, /
-	StringSplit, DHM, DT2, :
-	return {"MM":zDigit(DY1), "DD":zDigit(DY2), "YYYY":year4dig(DY3), "hr":zDigit(DHM1), "min":zDigit(DHM2), "Date":DT1, "Time":DT2}
+
+	return {yyyy:date.yyyy, mm:date.mm, mmm:date.mmm, dd:date.dd, date:date.date
+			, YMD:date.yyyy date.mm date.dd
+			, MDY:date.mm "/" date.dd "/" date.yyyy
+			, days:zdigit(time.days)
+			, hr:zdigit(time.hr), min:zdigit(time.min), sec:zdigit(time.sec)
+			, ampm:time.ampm, time:time.time
+			, DHM:zdigit(time.days) ":" zdigit(time.hr) ":" zdigit(time.min) " (DD:HH:MM)" 
+ 			, DT:date.mm "/" date.dd "/" date.yyyy " at " zdigit(time.hr) ":" zdigit(time.min) ":" zdigit(time.sec) }
 }
 
 Rand( a=0.0, b=1 ) {
