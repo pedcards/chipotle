@@ -116,7 +116,7 @@ PrintIt() {
 			. strQ(onCall.Ward_F,"Ward Fellow: ###   ")
 			. strQ(onCall.ICU_A,"ICU: ###   ")
 			. strQ(onCall.ICU_F,"ICU Fellow: ###   ")
-			. strQ(onCall.TXP,"Txp: ###   ")
+			. strQ(onCall.TXP_CICU,"Txp: ###   ")
 			. strQ(onCall.EP,"EP: ###   ")
 			. strQ(onCall.TEE,"TEE: ###   ")
 	rtfCall .= strQ(rtfCall,"`n\line`n")
