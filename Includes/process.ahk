@@ -5,12 +5,10 @@ syncHandoff() {
 	refreshCurr()																		; Get latest local currlist into memory
 	Gui, main:Minimize
 	res := {}
-	t0 := A_TickCount
 
 	/*	Check screen elements for Handoff, launch if necessary
 		(this is much faster if already selected)
 	*/
-	tt0 := A_TickCount
 	loop, 5
 	{
 		HndOff := checkHandoff()
@@ -24,12 +22,11 @@ syncHandoff() {
 		Gui, main:Show
 		return
 	}
-	txt .= "Start = " (A_TickCount-tt0)/1000 "`n"
+	}
 
 	/*	Find matching Service List on screen
 		Offer choice if no match
 	*/
-	tt0 := A_TickCount
 	Loop, % EpicSvcList.MaxIndex()
 	{
 		k := EpicSvcList[A_index]
@@ -43,7 +40,6 @@ syncHandoff() {
 		Gui, main:Show
 		return
 	}
-	txt .= "Find Service = " (A_TickCount-tt0)/1000 "`n`n"
 	eventlog("Found service: " HndOff.Service)
 
 	/*	Loop through each patient using hotkeys, update smart links,
@@ -53,7 +49,6 @@ syncHandoff() {
 	loop,
 	{
 		timenow := A_now
-		tt0 := A_TickCount
 		fld := readHndIllness(HndOff,done)
 		if instr(done,fld.MRN) {														; break loop if we have read this record already
 			Break
@@ -81,12 +76,9 @@ syncHandoff() {
 		scrcmp(HndOff.tabX,HndOff.NameY,100,15)											; detect when Name on screen changes
 		
 		done .= fld.MRN "`n"
-		txt .= fld.MRN " " (A_TickCount-tt0)/1000 "`n"
 	}
 	BlockInput, Off
 	Progress, Off
-
-	MsgBox,,% HndOff.Service, % "T=" (A_TickCount-t0)/1000 "`n`n" txt
 
 	filecheck()
 	; FileOpen(".currlock", "W")															; Create lock file.
