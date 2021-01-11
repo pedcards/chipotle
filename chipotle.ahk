@@ -404,9 +404,9 @@ storkVal(val) {
 }
 
 getCall(dt) {
-	global y
+	z := new XML("call.xml")
 	callObj := {}
-	Loop, % (callDate:=y.selectNodes("/root/lists/forecast/call[@date='" dt "']/*")).length {
+	Loop, % (callDate:=z.selectNodes("/root/forecast/call[@date='" dt "']/*")).length {
 		k := callDate.item(A_Index-1)
 		callEl := k.nodeName
 		callVal := k.text
