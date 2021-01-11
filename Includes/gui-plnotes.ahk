@@ -40,6 +40,9 @@ plInputNote:
 		if !(plEditNote) {
 			eventlog(mrn " " i " note changed.")
 		}
+		if (i="pl_dxCard") {
+			plEditCard = true
+		}
 		plEditNote = true
 	}
 Return

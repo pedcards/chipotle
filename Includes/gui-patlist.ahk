@@ -276,6 +276,10 @@ plSave:
 		ReplacePatNode(pl_mrnstring "/diagnoses","misc",cleanString(pl_misc))
 		y.setAtt(pl_mrnstring "/diagnoses", {ed: editdate})
 		y.setAtt(pl_mrnstring "/diagnoses", {au: user})
+		if (plEditCard) {
+			y.setAtt(pl_mrnstring "/diagnoses/card", {ed:A_now})
+			plEditCard =
+		}
 		plEditNote = 
 	}
 	if (plEditsys) {
