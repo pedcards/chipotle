@@ -18,10 +18,15 @@ syncHandoff() {
 	}
 	Progress, Off
 	if !IsObject(HndOff) {
-		msgbox Failed to find Handoff panel. Try again?
-		Gui, main:Show
-		return
-	}
+		MsgBox 0x40015, Handoff Sync, Failed to find Handoff panel.`n`nTry again?
+		IfMsgBox, Retry
+		{
+			syncHandoff()
+			return
+		} else {
+			Gui, main:Show
+			return
+		}
 	}
 
 	/*	Find matching Service List on screen
