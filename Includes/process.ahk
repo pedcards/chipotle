@@ -225,10 +225,10 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 
 	card := y.selectSingleNode(MRNstring "/diagnoses/card")
 	c_txt := card.Text
-	c_dt := card.getAttribute("date")
+	c_dt := card.getAttribute("ed")
 	epic := y.selectSingleNode(MRNstring "/diagnoses/summ")
 	e_txt := epic.Text
-	e_dt := epic.getAttribute("date")
+	e_dt := epic.getAttribute("ed")
 
 	Clipboard :=
 	clickField(HndOff.tabX,HndOff.SummaryY)												; now grab the Patient Summary field 
@@ -252,22 +252,47 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 			sleep 50
 			SendInput, ^v																; paste c_txt into Patient Summary
 			ReplacePatNode(MRNstring "/diagnoses","summ",clp)
-			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("date",timenow)
-			card.setAttribute("date",timenow)
+			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("ed",timenow)
+			card.setAttribute("ed",timenow)
+			eventlog(fld.mrn " Card diagnoses added to Handoff.")
 			Break
 		}
+		clp := trim(clp,"`r`n ")
+		clp := StrReplace(clp, "`r`n", "`n")
 		; Patient Summary is not empty, but Diagnoses/Card is empty
 		if (c_txt="") {
 			ReplacePatNode(MRNstring "/diagnoses","card",clp)
-			y.selectSingleNode(MRNstring "/diagnoses/card").setAttribute("date",timenow)
+			y.selectSingleNode(MRNstring "/diagnoses/card").setAttribute("ed",timenow)
 			ReplacePatNode(MRNstring "/diagnoses","summ",clp)
-			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("date",timenow)
+			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("ed",timenow)
+			eventlog(fld.mrn " Handoff summary added to Chipotle.")
 			Break
 		}
 		; Patient Summary not empty, and Diagnoses/Card not empty
-
-		fld.Summary := clp
-		Break
+		if (c_txt=clp) {																; no changes, exit
+			Break
+		}
+		if ((clp = e_txt) && (c_dt != e_dt)) {											; CARD changed but Epic unchanged
+			Clipboard := c_txt															; most recent edit on Chipotle
+			clickField(HndOff.tabX,HndOff.SummaryY)
+			sleep 50
+			SendInput, ^a
+			sleep 50
+			SendInput, ^v
+			ReplacePatNode(MRNstring "/diagnoses","summ",c_txt)
+			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("ed",c_dt)
+			eventlog(fld.mrn " Card diagnoses changed, updated to Handoff.")
+			Break
+		}
+		if (clp != e_txt) 					 {											; CLIP changed but CARD unchanged
+			ReplacePatNode(MRNstring "/diagnoses","card",clp)							; must assume Epic change more recent
+			y.selectSingleNode(MRNstring "/diagnoses/card").setAttribute("ed",timenow)
+			ReplacePatNode(MRNstring "/diagnoses","summ",clp)
+			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("ed",timenow)
+			eventlog(fld.mrn " Handoff changed, updated to Chipotle.")
+			Break
+		}
+		eventlog(fld.mrn " did not match rules.")
 	}
 	Return
 }
