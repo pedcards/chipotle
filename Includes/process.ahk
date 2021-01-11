@@ -86,16 +86,16 @@ syncHandoff() {
 	Progress, Off
 
 	filecheck()
-	; FileOpen(".currlock", "W")															; Create lock file.
+	FileOpen(".currlock", "W")															; Create lock file.
 	updateList(HndOff.Service,done)
 	processHandoff(res)
 	writeFile()
-	; FileDelete, .currlock
+	FileDelete, .currlock
 
-	MsgBox, 4, Print now?, Print list: %locString%
+	MsgBox, 4, Print now?, % "Print list: " hndOff.Service
 	IfMsgBox, Yes
 	{
-		; PrintIt()
+		PrintIt()
 	}
 
 	Gui, main:Show
