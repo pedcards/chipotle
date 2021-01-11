@@ -85,19 +85,19 @@ mainTitle2 := "Children's Heart Center InPatient"
 mainTitle3 := "Organized Task List Environment"
 
 if (isCICU) {
-	loc := makeLoc("CSR","CICU")										; loc[] defines the choices offered from QueryList. You can only break your own list.
+	loc := makeLoc("CICU")										; loc[] defines the choices offered from QueryList. You can only break your own list.
 	callLoc := "CICUSur"
 	mainTitle1 := "CHILI"
 	mainTitle2 := "Children's Heart Center"
 	mainTitle3 := "Inpatient Longitudinal Integrator"
 } else if (isARNP) {
-	loc := makeLoc("CSR","CICU","Cards")
+	loc := makeLoc("CSR","CICU")
 	callLoc := "CSR"
 	mainTitle1 := "CON CARNE"
 	mainTitle2 := "Collective Organized Notebook"
 	mainTitle3 := "for Cardiac ARNP Efficiency"
 } else if (isCoord) {
-	loc := makeLoc("CSR","CICU","Cards","ICUCons")
+	loc := makeLoc("CSR","CICU","ICUCons")
 } else if (isBPD) {
 	loc := makeLoc("PHTN")
 	mainTitle1 := "CILANTRO"
