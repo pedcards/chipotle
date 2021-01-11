@@ -1,6 +1,7 @@
 syncHandoff() {
 	global y, MRNstring, EpicSvcList, svcText, timenow
 
+	eventlog("Starting Handoff sync.")
 	refreshCurr()																		; Get latest local currlist into memory
 	Gui, main:Minimize
 	res := {}
@@ -10,7 +11,7 @@ syncHandoff() {
 		(this is much faster if already selected)
 	*/
 	tt0 := A_TickCount
-	loop, 4
+	loop, 5
 	{
 		HndOff := checkHandoff()
 		if IsObject(HndOff) {
@@ -19,7 +20,7 @@ syncHandoff() {
 	}
 	Progress, Off
 	if !IsObject(HndOff) {
-		msgbox fail
+		msgbox Failed to find Handoff panel. Try again?
 		Gui, main:Show
 		return
 	}
@@ -34,6 +35,7 @@ syncHandoff() {
 		k := EpicSvcList[A_index]
 		if IsObject(FindText(0,0,1920,500,0.1,0.1,svcText[k])) {
 			HndOff.Service := k
+			break
 		}
 	}
 	if (HndOff.Service="") {
@@ -42,6 +44,7 @@ syncHandoff() {
 		return
 	}
 	txt .= "Find Service = " (A_TickCount-tt0)/1000 "`n`n"
+	eventlog("Found service: " HndOff.Service)
 
 	/*	Loop through each patient using hotkeys, update smart links,
 		copy Illness Severity and Patient Summary fields to clipboard
