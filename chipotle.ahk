@@ -11,7 +11,7 @@ Clipboard = 	; Empty the clipboard
 SendMode Input ; Recommended for new scripts due to its superior speed and reliability.
 SetTitleMatchMode, 2
 SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
-#Include Includes
+#Include %A_ScriptDir%\Includes
 #Persistent		; Keep program resident until ExitApp
 
 vers := "2.4.5.8"
