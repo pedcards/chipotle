@@ -1,5 +1,5 @@
 syncHandoff() {
-	global y, MRNstring, EpicSvcList, svcText, timenow
+	global y, MRNstring, EpicSvcList, svcText, timenow, scr
 
 	eventlog("Starting Handoff sync.")
 	refreshCurr()																		; Get latest local currlist into memory
@@ -35,7 +35,7 @@ syncHandoff() {
 	Loop, % EpicSvcList.MaxIndex()
 	{
 		k := EpicSvcList[A_index]
-		if IsObject(FindText(0,0,1920,500,0.1,0.1,svcText[k])) {
+		if IsObject(FindText(0,0,scr.w,scr.h,0.1,0.1,svcText[k])) {
 			HndOff.Service := k
 			break
 		}
