@@ -339,7 +339,7 @@ updateList(service,done) {
 
 processHandoff(ByRef epic) {
 	global y, yArch
-		, mrnstring, timenow
+		, mrnstring, timenow, yMarDt
 		, cicudocs, txpdocs
 		, loc, location, locString
 		, cis_list
@@ -347,7 +347,7 @@ processHandoff(ByRef epic) {
 	loop, % epic.MaxIndex()
 	{
 		clp := epic[A_Index].Data
-		top := strX(clp,"",0,1,"<VITALS>",0,9)
+		top := strX(clp,"",0,1,"<Data>",0,9)
 		t1 := StregX(top,"--CHIPOTLE Sign Out ",0,1,"--",1)
 		; Date := t1.YYYY t1.MM t1.DD t1.hr t1.min 
 		nn:=1
@@ -407,10 +407,10 @@ processHandoff(ByRef epic) {
 		medstxt := parseTag(clp,"Medications")
 		meds_drips := stregx(medstxt,"\[DRIPS\]",1,1,"\[SCHEDULED\]",1)
 		meds_sched := stregx(medstxt,"\[SCHEDULED\]",1,1,"\[PRN\]",1)
-		meds_prn := stregx(medstxt "<<<","\[PRN\]",1,1,"<<<",1)
-		; MedListParse("drips",meds_drips)
-		; MedListParse("meds",meds_sched)
-		; MedListParse("prn",meds_prn)
+		meds_prn := stregx(medstxt,"\[PRN\]",1,1,"\[DIET\]",1)
+		meds_diet := stregx(medstxt "<<<","\[DIET\]",1,1,"<<<",1)
+		
+		careteam := parseTag(clp,"Team")
 
 		; Fill with demographic data
 		MRNstring := "/root/id[@mrn='" . fld.mrn . "']"
@@ -481,17 +481,17 @@ processHandoff(ByRef epic) {
 				y.addElement("cbc",  yInfoDt "/labs", cbctxt)
 			y.addElement("studies", yInfoDt)
 				y.addElement("ekg",  yInfoDt "/studies", ekgtxt)
+		
 		if !isobject(y.selectSingleNode(MRNstring "/MAR")) {
 			y.addElement("MAR", MRNstring)											; Create a new /MAR node
 		}
 		y.selectSingleNode(MRNstring "/MAR").setAttribute("date", timenow)			; Change date to now
 		if !(y.selectNodes(MRNstring "/MAR/*").length) {							; Populate only if empty
 			yMarDt := MRNstring "/MAR[@date='" timenow "']"
-				; MedListParse("drips",cores.Drips)
-				; MedListParse("meds",cores.Meds)
-				; MedListParse("prn",CORES.PRN)
-				; MedListParse("abx",cores.Abx)
-				; MedListParse("diet",CORES.Diet)
+			MedListParse("drips",meds_drips)
+			MedListParse("meds",meds_sched)
+			MedListParse("prn",meds_prn)
+			MedListParse("diet",meds_diet)
 		}
 	writeOut("/root","id[@mrn='" . fld.mrn . "']")
 	}
