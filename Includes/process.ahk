@@ -5,6 +5,14 @@ syncHandoff() {
 	refreshCurr()																		; Get latest local currlist into memory
 	Gui, main:Minimize
 	res := {}
+timenow := A_Now
+fld := {}
+fld.mrn := "1751700"
+FileRead, tmp, files\eplist.clip
+MRNstring := "/root/id[@mrn='" . fld.mrn . "']"
+res.1 := {data:tmp}
+processHandoff(res)
+
 
 	/*	Check screen elements for Handoff, launch if necessary
 		(this is much faster if already selected)
