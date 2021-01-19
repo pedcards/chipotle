@@ -2,16 +2,19 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 	global meds1, meds2, meds0, y, MRNstring, yMarDt, medfilt_drip, medfilt_med
 	tempArray = 
 	medWords =
-	StringReplace, bList, bList, % chr(8226) " ", ``, ALL											; replace bullet character with backtick "`"
-	StringSplit, tempArray, bList, ``
-	Loop, %tempArray0%
+	Loop, parse, % blist, `r`n
 	{
-		if (StrLen(medName:=tempArray%A_Index%)<3)													; Discard essentially blank lines
-			continue
+		medname := trim(RegExReplace(A_LoopField, "\•"))
+		if (medname="") {
+			Continue
+		}
 		if ObjHasValue(meds0, medName, "med") {														; skip meds on no-fly list meds0
 			continue
 		}
 		
+		if (medlist="drips") {
+			medname:=RegExReplace(medName,",.*Last Rate"," gtt. Last Rate")
+		}
 		medName:=RegExReplace(medName,medfilt_med)													; do some string replacements
 		medName:=RegExReplace(medName,medfilt_drip,"gtt.")
 		medName:=RegExReplace(medName,"\(\d{1,2}/\d{1,2}\)")
