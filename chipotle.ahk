@@ -770,8 +770,9 @@ screenDims() {
 	H := A_ScreenHeight
 	DPI := A_ScreenDPI
 	Orient := (W>H)?"L":"P"
+	Scale := 100*DPI/96
 	;MsgBox % "W: "W "`nH: "H "`nDPI: "DPI
-	return {W:W, H:H, DPI:DPI, OR:Orient}
+	return {W:W, H:H, DPI:DPI, OR:Orient, SCL:Scale}
 }
 winDim(scr) {
 	global ccFields
