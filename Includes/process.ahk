@@ -124,7 +124,7 @@ checkHandoff() {
 
 */
 	global hndText, scr
-	scale := scr.dpi/96
+	scale := scr.scale/100
 
 	if (ok:=FindText(0,0,scr.w,scr.h,0.2,0.2,hndText.HandoffTab)) {
 		progress, 40, Illness Severity, Finding geometry
