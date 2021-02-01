@@ -5,13 +5,13 @@ syncHandoff() {
 	refreshCurr()																		; Get latest local currlist into memory
 	Gui, main:Minimize
 	res := {}
-timenow := A_Now
-fld := {}
-fld.mrn := "1751700"
-FileRead, tmp, files\eplist.clip
-MRNstring := "/root/id[@mrn='" . fld.mrn . "']"
-res.1 := {data:tmp}
-processHandoff(res)
+; timenow := A_Now
+; fld := {}
+; fld.mrn := "1751700"
+; FileRead, tmp, files\eplist.clip
+; MRNstring := "/root/id[@mrn='" . fld.mrn . "']"
+; res.1 := {data:tmp}
+; processHandoff(res)
 
 
 	/*	Check screen elements for Handoff, launch if necessary
@@ -228,6 +228,9 @@ readHndIllness(ByRef HndOff, ByRef done) {
 readHndSummary(ByRef HndOff, ByRef fld) {
 /*	Read the Patient Summary field
 	Click twice (not double click) to ensure we are in field
+
+	y.diagnoses/summ = Epic patient summary with timestamp
+	y.diagnoses/card = Chipotle diagnoses with timestamp
 */
 	global y, MRNstring, timenow
 
