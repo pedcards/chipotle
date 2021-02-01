@@ -4,7 +4,7 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 	medWords =
 	Loop, parse, % blist, `r`n
 	{
-		medname := trim(RegExReplace(A_LoopField, "\•"))
+		medname := trim(StrReplace(A_LoopField,Chr(8226)," "))
 		if (medname="") {
 			Continue
 		}
