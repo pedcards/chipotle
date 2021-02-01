@@ -126,11 +126,11 @@ checkHandoff() {
 	global hndText, scr
 	scale := scr.scale/100
 
-	if (ok:=FindText(0,0,scr.w,scr.h,0.2,0.2,hndText.HandoffTab)) {
+	if (ok:=FindText(0,0,scr.w,scr.h,0.0,0.0,hndText.HandoffTab)) {
 		progress, 40, Illness Severity, Finding geometry
-		Ill := FindText(0,0,scr.w,scr.h,0.2,0.2,hndText.IllnessSev)
+		Ill := FindText(0,0,scr.w,scr.h,0.0,0.0,hndText.IllnessSev)
 		progress, 80, Patient Summary, Finding geometry
-		Summ := FindText(0,0,scr.w,scr.h,0.2,0.2,hndText.PatientSum)
+		Summ := FindText(Ill[1].x-100,Ill[1].y,scr.w,scr.h,0.1,0.1,hndText.PatientSum)
 		if !IsObject(Ill) {																; no Illness Severity field found
 			gosub startHandoff															
 			return
@@ -144,20 +144,22 @@ checkHandoff() {
 				, SummaryY:Summ[1].y+80*scale
 				, NameY:Ill[1].y-72*scale
 				, TextX:ill[1].x
-				, TextY:Ill[1].y+56*scale
+				, TextY:Ill[1].y+60*scale
 				, UpdateX:Upd[1].x+10
-				, UpdateY:Upd[1].y+5 }
+				, UpdateY:Upd[1].y+5
+				, PanelX:Ill[1].x-50*scale
+				, PanelY:ok[1].y }
 	} 
 /*	Second stage: Look for Write Handoff button (single patient selected)
 					or select single patient
 */
 	startHandoff:
-	if (ok:=FindText(0,0,1920,500,0.2,0.2,hndText.WriteHand)) {
+	if (ok:=FindText(0,0,1920,500,0.1,0.1,hndText.WriteHand)) {
 		clickField(ok[1].x,ok[1].y)
 		sleep 200
 	} 
 
-	ok:=FindText(0,0,1920,500,0.2,0.2,hndText.PatientNam)
+	ok:=FindText(0,0,1920,500,0.1,0.1,hndText.PatientNam)
 	clickfield(ok[1].x,ok[1].y+50)
 	sleep 200
 	
