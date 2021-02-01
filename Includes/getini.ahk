@@ -35,8 +35,8 @@ getIni:
 	meds0:=readIni("meds0")
 	readIni("med_filt")
 
-	hndText:=readIni("hndText" . (instr(user,"octe") ? "DEV" : ""))
-	svcText:=readIni("svcText" . (instr(user,"octe") ? "DEV" : ""))
+	hndText:=readIni("hndText" . scr.Scale)
+	svcText:=readIni("svcText" . scr.Scale)
 	EpicSvcList:=readIni("EpicSvcList")
 
 	pathprd:=readIni("pathPRD")
