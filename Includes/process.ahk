@@ -137,7 +137,7 @@ checkHandoff() {
 		}
 
 		progress, 100, Updates, Finding geometry
-		Upd := FindText(0,0,scr.w,scr.h,0.1,0.1,hndText.Updates)
+		Upd := FindText(Ill[1].x,0,scr.w,Ill[1].y,0.1,0.1,hndText.Updates)
 
 		return { tabX:ok[1].x
 				, IllnessY:Ill[1].y+80*scale
@@ -145,8 +145,8 @@ checkHandoff() {
 				, NameY:Ill[1].y-72*scale
 				, TextX:ill[1].x
 				, TextY:Ill[1].y+60*scale
-				, UpdateX:Upd[1].x+10
-				, UpdateY:Upd[1].y+5
+				, UpdateX:Upd[1].x+12*scale
+				, UpdateY:Upd[1].y+4*scale
 				, PanelX:Ill[1].x-50*scale
 				, PanelY:ok[1].y }
 	} 
