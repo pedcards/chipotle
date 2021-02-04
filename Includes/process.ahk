@@ -436,7 +436,7 @@ processHandoff(ByRef epic) {
 		y.addElement("name_last", MRNstring . "/demog", format("{:U}",fld.name_L))
 		y.addElement("name_first", MRNstring . "/demog", format("{:U}",fld.name_F))
 		y.addElement("data", MRNstring . "/demog", {date: timenow})
-		y.addElement("sex", MRNstring . "/demog/data", fld.sex)
+		y.addElement("sex", MRNstring . "/demog/data", format("{:T}",fld.sex))
 		y.addElement("dob", MRNstring . "/demog/data", fld.dob)
 		y.addElement("age", MRNstring . "/demog/data", fld.age)
 		y.addElement("service", MRNstring . "/demog/data", fld.service)
