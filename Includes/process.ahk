@@ -360,7 +360,7 @@ processHandoff(ByRef epic) {
 	totalIndex := epic.MaxIndex()
 	loop, % totalIndex
 	{
-		Progress, % 100*A_Index/totalIndex, Reading demographics, % epic[A_Index].MRN
+		Progress, % 100*A_Index/totalIndex,, % epic[A_Index].MRN
 		clp := epic[A_Index].Data
 		top := strX(clp,"",0,1,"<Data>",0,9)
 		t1 := StregX(top,"--CHIPOTLE Sign Out ",0,1,"--",1)
@@ -400,7 +400,6 @@ processHandoff(ByRef epic) {
 			? "CAN-F8"
 		: fld.unit
 
-		Progress,,Parsing data
 		datatxt := parseTag(clp,"Data")
 		vstxt := parseTag(datatxt,"vs")
 		vs_bp := parseData(vstxt,"(BP)\s+(.*?)[\s\R]")
@@ -432,7 +431,6 @@ processHandoff(ByRef epic) {
 		
 		careteam := parseTag(clp,"Team")
 
-		Progress,,Populating demog
 		; Fill with demographic data
 		MRNstring := "/root/id[@mrn='" . fld.mrn . "']"
 		y.addElement("name_last", MRNstring . "/demog", format("{:U}",fld.name_L))
@@ -452,7 +450,6 @@ processHandoff(ByRef epic) {
 			y.addElement("enc", MRNstring "/prov", {adm:parseDate(fld.admit).ymd, attg:fld.attg, svc:fld.service})
 		}
 
-		Progress,,Populating Info
 		; Remove the old Info nodes
 		Loop % (infos := y.selectNodes(MRNstring "/info")).length
 		{
@@ -504,7 +501,6 @@ processHandoff(ByRef epic) {
 			y.addElement("studies", yInfoDt)
 				y.addElement("ekg",  yInfoDt "/studies", ekgtxt)
 		
-		Progress,,Populating MAR
 		if !isobject(y.selectSingleNode(MRNstring "/MAR")) {
 			y.addElement("MAR", MRNstring)											; Create a new /MAR node
 		}
@@ -516,7 +512,6 @@ processHandoff(ByRef epic) {
 			MedListParse("prn",meds_prn)
 			MedListParse("diet",meds_diet)
 		}
-		Progress,,WriteOut node
 	writeOut("/root","id[@mrn='" . fld.mrn . "']")
 	}
 	Return
