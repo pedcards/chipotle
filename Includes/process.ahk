@@ -435,8 +435,8 @@ processHandoff(ByRef epic) {
 		Progress,,Populating demog
 		; Fill with demographic data
 		MRNstring := "/root/id[@mrn='" . fld.mrn . "']"
-		y.addElement("name_last", MRNstring . "/demog", fld.name_L)
-		y.addElement("name_first", MRNstring . "/demog", fld.name_F)
+		y.addElement("name_last", MRNstring . "/demog", format("{:U}",fld.name_L))
+		y.addElement("name_first", MRNstring . "/demog", format("{:U}",fld.name_F))
 		y.addElement("data", MRNstring . "/demog", {date: timenow})
 		y.addElement("sex", MRNstring . "/demog/data", fld.sex)
 		y.addElement("dob", MRNstring . "/demog/data", fld.dob)
