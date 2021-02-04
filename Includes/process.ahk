@@ -394,6 +394,10 @@ processHandoff(ByRef epic) {
 			? "NICU-F5"
 		: (fld.room~="FA\.3.*")
 			? "PULM-F3"
+		: (fld.room~="FA\.7")
+			? "CAN-F7"
+		: (fld.room~="FA\.8")
+			? "CAN-F8"
 		: fld.unit
 
 		Progress,,Parsing data
