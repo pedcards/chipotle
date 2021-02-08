@@ -8,6 +8,15 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 		if (medname="") {
 			Continue
 		}
+		if (medname~="Held by provider") {															; skip meds on hold
+			Continue
+		}
+		if (medname~="Stopped \(") {																; skip recently dc meds
+			Continue
+		}
+		if (medname~="builder|flush") {																; skip line flush
+			Continue
+		}
 		if ObjHasValue(meds0, medName, "med") {														; skip meds on no-fly list meds0
 			continue
 		}
