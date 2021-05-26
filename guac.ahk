@@ -541,7 +541,7 @@ PatFileGet:
 	Loop, parse, files, |																; iterate through files in folder
 	{
 		patloopfile := A_LoopField														; file name
-		if (patloopfile~="i)PCC|Cath|CXR|ECG|EKG") {										; auto open key files
+		if (patloopfile~="i)PCC|Cath|CXR|ECG|EKG|MUSE") {								; auto open key files
 			patdirfile := filepath "\" PatloopFile										; path + file name
 			Run, %patDirFile%															; open by Windows default method
 			
