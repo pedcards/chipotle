@@ -11,19 +11,13 @@ Clipboard = 	; Empty the clipboard
 SendMode Input ; Recommended for new scripts due to its superior speed and reliability.
 SetTitleMatchMode, 2
 SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
-#Include Includes
+#Include %A_ScriptDir%\Includes
 #Persistent		; Keep program resident until ExitApp
 
 vers := "2.4.5.8"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
-if WinExist("View Downloads -") {
-	WinClose, View Downloads -
-	eventlog("Launched from CIS")
-} else {
-	eventlog("Launched from Citrix")
-}
 LV_Colors.OnMessage()
 
 FileGetTime, iniDT, chipotle.ini
@@ -41,34 +35,17 @@ if (iniDT < 0) {
 
 Sleep 500
 
-gosub ReadIni
+global path
 scr:=screenDims()
 win:=winDim(scr)
-CisEnvt := WinExist("ahk_exe powerchart.exe") ? true : false
-if (CisEnvt) {
-	eventlog("CIS visible.")
-}
+gosub getIni
 
-servfold := "patlist"
-storkPath := "\\childrens\files\HCCardiologyFiles\Fetal"
-forecastPath := "\\childrens\files\HCSchedules\Electronic Forecast"
-if (InStr(A_WorkingDir,"Ahk")) {
-	tmp:=CMsgBox("Data source","Data from which system?","&Local|&Test Server|Production","Q","V")
-	if (tmp="Local") {
-		isLocal := true
-		;FileDelete, currlist.xml
-		storkPath := "files\Fetal"
-		forecastPath := "files\Electronic Forecast"
-	}
-	if (tmp="Test Server") {
-		isLocal := false
-		servfold := "testlist"
-		;FileDelete, currlist.xml
-	}
-	if (tmp="Production") {
-		isLocal := false
-		;FileDelete, currlist.xml
-	}
+if InStr(A_WorkingDir,"Ahk") {
+	isLocal := true
+	;FileDelete, currlist.xml
+	path:=pathDEV
+} else {
+	path:=pathPRD
 }
 if (ObjHasValue(admins,user)) {
 	isAdmin := true
@@ -108,19 +85,19 @@ mainTitle2 := "Children's Heart Center InPatient"
 mainTitle3 := "Organized Task List Environment"
 
 if (isCICU) {
-	loc := makeLoc("CSR","CICU")										; loc[] defines the choices offered from QueryList. You can only break your own list.
+	loc := makeLoc("CICU")										; loc[] defines the choices offered from QueryList. You can only break your own list.
 	callLoc := "CICUSur"
 	mainTitle1 := "CHILI"
 	mainTitle2 := "Children's Heart Center"
 	mainTitle3 := "Inpatient Longitudinal Integrator"
 } else if (isARNP) {
-	loc := makeLoc("CSR","CICU","Cards")
+	loc := makeLoc("CSR","CICU")
 	callLoc := "CSR"
 	mainTitle1 := "CON CARNE"
 	mainTitle2 := "Collective Organized Notebook"
 	mainTitle3 := "for Cardiac ARNP Efficiency"
 } else if (isCoord) {
-	loc := makeLoc("CSR","CICU","Cards","ICUCons")
+	loc := makeLoc("CSR","CICU","ICUCons")
 } else if (isBPD) {
 	loc := makeLoc("PHTN")
 	mainTitle1 := "CILANTRO"
@@ -161,9 +138,6 @@ Loop, Read, outdocs.csv
 outGrpV["Other"] := "callGrp" . (tmpIdxG+1)
 outGrpV["TO CALL"] := "callGrp" . (tmpIdxG+2)
 
-SetTimer, SeekCores, 250
-SetTimer, SeekWordErr, 250
-
 initDone = true
 Gosub GetIt
 Gosub MainGUI
@@ -181,8 +155,8 @@ ExitApp
 /*	Clipboard copier
 	Will wait resident until clipboard change, then will save clipboard to file.
 	Tends to falsely trigger a couple of times first. Will exit after .clip successfully saved.
-
-;*/																; add ";" to save clipboard
+*/
+/*																; add ";" to save clipboard
 OnClipboardChange:
 	FileSelectFile, clipname, 8, , Name of .clip file, *.clip
 	If (clipname) {			; If blank (e.g. pressed cancel), continue; If saved, then exitapp
@@ -194,102 +168,15 @@ OnClipboardChange:
 	}
 Return
 
-*/																; add ";" for live
-
-;/*
-OnClipboardChange:
-*/
-{
-if !initDone													; Avoid clip processing before initialization complete
-	return
-AutoTrim Off
-clip = %Clipboard%																	; Get text of clipboard, exclude formatting chars
-clipCk := substr(clip,1,256)														; Check first 256 bytes of clipboard
-
-If (clipCk ~= CORES_regex) {														; Matches CORES_regex from chipotle.ini
-	coresType := StrX(clipCk,"CORES",1,0,"REPORT v3.0",1,0)
-	if (coresType == CORES_type) {
-		SetTimer, SeekCores, On
-		WinClose, % CORES_window
-		gosub initClipSub
-		processCORES(clip)
-	} else {
-		MsgBox, 16, Wrong format!, % "Requires """ CORES_type """"
-		WinClose, % CORES_window
-	}
-} else if ((clipCk ~= CIS_colRx["Name"]) 
-		&& ((clipCk ~= CIS_colRx["Room"]) or (clipCk ~= CIS_colRx["Locn"]))
-		&& (clipCk ~= CIS_colRx["MRN"])) {												; Check for features of CIS patient list
-	Gosub initClipSub
-	processCIS(clip)
-	if !(locString) {						; Avoids error if exit QueryList
-		return								; without choice.
-	}
-	
-	if (location="Cards" or location="CSR" or location="TXP") {
-		gosub saveCensus
-	}
-	if (location="CSR" or location="CICU") {
-		IcuMerge()
-	}
-} else if ((clipCk ~= "MRN:\d{6,8}") || (clipCk ~= "^[A-Z '\-]+, [A-Z .'()\-]+$")) {
-	clk := parseClip(clipCk)
-	gosub findPt
-}
-
-Return
-}
-
 ^F12::
 	;~ FileSelectFile , clipname,, %A_ScriptDir%/files, Select file:, AHK clip files (*.clip)
 	clipname := "cores0927.clip"
 	FileRead, Clipboard, *c %clipname%
 Return
 
+*/
+
 ;	===========================================================================================
-
-SeekCores:
-{
-IfWinNotExist, % CORES_window
-	return
-IfWinNotExist, Print
-	return
-else {									; If CORES window and Print window open
-	conswin := WinExist(CORES_window)
-	SetTimer, SeekCores, Off
-	SetKeyDelay, 40, 200
-	WinClose, Print
-	WinActivate, % CORES_window
-	sleep 250
-	ControlSend,, ^a, %CORES_window%
-	sleep 500
-	ControlSend,, ^c, %CORES_window%
-	}
-Return
-}
-
-SeekWordErr:
-{
-if (Word_win2 := WinExist("User Name")) {
-	ControlSend,, {Enter}, ahk_id %Word_win2%
-	;MsgBox,,Win 2, %Word_win2%
-	return
-}
-If (Word_win1 := WinExist("Microsoft Office Word", "The command cannot be performed because a dialog box is open.")) {
-	ControlSend,, {Esc}, ahk_id %Word_win1%
-	;MsgBox,,Win 1, %Word_win1%
-	return
-}
-Return
-}
-
-initClipSub:									;*** Initialize some stuff
-{
-	Clipboard =
-	FormatTime, timenow, A_Now, yyyyMMddHHmm
-
-	Return
-}
 
 listsort(list,parm="",ord:="") {
 /*	Sort a given list:
@@ -516,293 +403,10 @@ storkVal(val) {
 	return res
 }
 
-readForecast() {
-/*	Read electronic forecast XLS
-	\\childrens\files\HCSchedules\Electronic Forecast\2016\11-7 thru 11-13_2016 Electronic Forecast.xlsx
-	Move into /lists/forecast/call {date=20150301}/<PM_We_F>Del Toro</PM_We_F>
-*/
-	global y
-		, dialogVals, forecastPath
-	
-	; Get Qgenda items
-	fcMod := substr(y.selectSingleNode("/root/lists/forecast").getAttribute("mod"),1,8) 
-	if !(fcMod = substr(A_now,1,8)) {													; Forecast has not been scanned today
-		readQgenda()																	; Read Qgenda once daily
-	}
-	
-	; Find the most recently modified "*Electronic Forecast.xls" file
-	eventlog("Check electronic forecast.")
-	progress,, Updating schedules, Scanning forecast files...
-	
-	fcLast :=
-	fcNext :=
-	fcFile := 
-	fcFileLong := 
-	fcRecent :=
-	
-	dp:=A_Now
-	FormatTime, Wday,%dt%, Wday															; Today's day of the week (Sun=1)
-	dp += (2-Wday), days																; Get last Monday's date
-	tmp := breakdate(dp)
-	fcLast := tmp.mm tmp.dd																; date string "0602" from last week's fc
-	
-	dt:=A_Now
-	dt += (9-Wday), days																; Get next Monday's date
-	tmp := breakdate(dt)
-	fcNext := tmp.mm tmp.dd																; date string "0609" for next week's fc
-	
-	Loop, Files, % forecastPath "\" tmp.yyyy "\*Electronic Forecast*.xls*", F			; Scan through YYYY\Electronic Forecast.xlsx files
-	{
-		fcFile := A_LoopFileName														; filename, no path
-		fcFileLong := A_LoopFileLongPath												; long path
-		fcRecent := A_LoopFileTimeModified												; most recent file modified
-		if InStr(fcFile,"~") {
-			continue																	; skip ~tmp files
-		}
-		d1 := zDigit(strX(fcFile,"",1,0,"-",1,1)) . zDigit(strX(fcFile,"-",1,1," ",1,1))	; zdigit numerals string from filename "2-19 thru..."
-		fcNode := y.selectSingleNode("/root/lists/forecast")							; fcNode = Forecast Node
-		
-		if (d1=fcNext) {																; this is next week's schedule
-			tmp := fcNode.getAttribute("next")											; read the fcNode attr for next week DT-mod (0205-20180202155212)
-			if ((strX(tmp,"",1,0,"-",1,1) = fcNext) && (strX(tmp,"-",1,1,"",0) = fcRecent)) { ; this file's M attr matches last adjusted fcNode next attr
-				eventlog(fcFile " already done.")
-				continue																; if attr date and file unchanged, go to next file
-			}
-			fcNode.setAttribute("next",fcNext "-" fcRecent)								; otherwise, this is unscanned
-			eventlog("fcNext " fcNext "-" fcRecent)
-		} else if (d1=fcLast) {															; matches last Monday's schedule
-			tmp := fcNode.getAttribute("last")
-			if ((strX(tmp,"",1,0,"-",1,1) = fcLast) && (strX(tmp,"-",1,1,"",0) = fcRecent)) { ; this file's M attr matches last week's fcNode last attr
-				eventlog(fcFile " already done.")
-				continue																; skip to next if attr date and file unchanged
-			}
-			fcNode.setAttribute("last",fcLast "-" fcRecent)								; otherwise, this is unscanned
-			eventlog("fcLast " fcLast "-" fcRecent)										
-		} else {																		; does not match either fcNext or fcLast
-			continue																	; skip to next file
-		}
-		
-		Progress,, Updating schedules, % fcFile
-		FileCopy, %fcFileLong%, fcTemp.xlsx, 1											; create local copy to avoid conflict if open
-		eventlog("Parsing " fcFileLong)
-		parseForecast(fcRecent)															; parseForecast on this file (unprocessed NEXT or LAST)
-	}
-	if !FileExist(fcFileLong) {															; no file found
-		EventLog("Electronic Forecast.xlsx file not found!")
-	}
-	
-	Progress, off	
-	
-return
-}
-
-parseForecast(fcRecent) {
-	global y
-		, forecast_val, forecast_svc
-	
-	; Initialize some stuff
-	if !IsObject(y.selectSingleNode("/root/lists/forecast")) {							; create if for some reason doesn't exist
-		y.addElement("forecast","/root/lists")
-	} 
-	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] 	; array of column letters
-	fcDate:=[]																			; array of dates
-	oWorkbook := ComObjGet(A_WorkingDir "\fcTemp.xlsx")
-	getVals := false																	; flag when have hit the Date vals row
-	valsEnd := false																	; flag when reached the last row
-	
-	; Scan through XLSX document
-	While !(valsEnd)																	; ROWS
-	{
-		RowNum := A_Index
-		row_nm :=																		; ROW name (service name)
-		if (rowNum=1) {																	; first row is title, skip
-			continue
-		}
-		
-		Loop																			; COLUMNS
-		{
-			colNum := A_Index															; next column
-			if (colNum=1) {
-				label:=true																; first column (e.g. A1) is label column
-			} else {
-				label:=false
-			}
-			if (ColNum>maxCol) {														; increment maxCol
-				maxCol:=colNum
-			}
-			
-			cel := oWorkbook.Sheets(1).Range(colArr[ColNum] RowNum).value				; Scan Sheet1 A2.. etc
-			if ((cel="") && (colnum=maxcol)) {											; at maxCol and empty, break this cols loop
-				break
-			}
-			if (cel~="\b\d{1,2}.\d{1,2}(.\d{2,4})?\b") {								; matches date format
-				getVals := true
-				tmp := parseDate(cel)													; cel date parts into tmp[]
-				if !tmp.YYYY {															; get today's YYYY if not given
-					tmp.YYYY := substr(sessdate,1,4)
-				}
-				tmpDt := tmp.YYYY . tmp.MM . tmp.DD										; tmpDt in format YYYYMMDD
-				fcDate[colNum] := tmpDt													; fill fcDate[1-7] with date strings
-				if !IsObject(y.selectSingleNode("/root/lists/forecast/call[@date='" tmpDt "']")) {
-					y.addElement("call","/root/lists/forecast", {date:tmpDt})			; create node if doesn't exist
-				}
-				continue																; keep getting col dates but don't get values yet
-			}
-			
-			if !(getVals) {																; don't start parsing until we have passed date row
-				continue
-			}
-			
-			cel := trim(RegExReplace(cel,"\s+"," "))									; remove extraneous whitespace
-			if (label) {
-				if !(cel) {																; blank label means we've reached the end of rows
-					valsEnd := true														; flag to end
-					break																; break out of LOOP to next WHILE
-				}
-				
-				if (j:=objHasValue(Forecast_val,cel,"RX")) {							; match index value from Forecast_val
-					row_nm := Forecast_svc[j]											; get abbrev string from index
-				} else {
-					row_nm := RegExReplace(cel,"(\s+)|[\/\*\?]","_")					; no match, create ad hoc and replace space, /, \, *, ? with "_"
-				}
-				progress,, Scanning forecast, % row_nm
-				continue																; results in some ROW NAME, now move to the next column
-			}
-			
-			fcNode := "/root/lists/forecast/call[@date='" fcDate[colNum] "']"
-			if !IsObject(y.selectSingleNode(fcNode "/" row_nm)) {						; create node for service person if not present
-				y.addElement(row_nm,fcNode)
-			}
-			y.setText(fcNode "/" row_nm, cleanString(cel))								; setText changes text value for that node
-		}
-	}
-	
-	oExcel := oWorkbook.Application
-	oExcel.DisplayAlerts := false
-	oExcel.quit
-	
-	y.selectSingleNode("/root/lists/forecast").setAttribute("xlsdate",fcRecent)			; change forecast[@xlsdate] to the XLS mod date
-	y.selectSingleNode("/root/lists/forecast").setAttribute("mod",A_Now)				; change forecast[@mod] to now
-
-	loop, % (fcN := y.selectNodes("/root/lists/forecast/call")).length					; Remove old call elements
-	{
-		k:=fcN.item(A_index-1)															; each item[0] on forward
-		tmpDt := k.getAttribute("date")													; date attribute
-		tmpDt -= A_Now, Days															; diff dates
-		if (tmpDt < -21) {																; save call schedule for 3 weeks (for TRRIQ)
-			RemoveNode("/root/lists/forecast/call[@date='" k.getAttribute("date") "']")
-		}
-	}
-	Writeout("/root/lists","forecast")
-	Eventlog("Electronic Forecast " fcRecent " updated.")
-Return
-}
-
-readQgenda() {
-/*	Fetch upcoming call schedule in Qgenda
-	Parse JSON into call elements
-	Move into /lists/forecast/call {date=20150301}/<PM_We_F>Del Toro</PM_We_F>
-*/
-	global y
-	
-	t0 := t1 := A_now
-	t1 += 14, Days
-	FormatTime,t0, %t0%, MM/dd/yyyy
-	FormatTime,t1, %t1%, MM/dd/yyyy
-	IniRead, q_com, qgenda.ppk, api, com
-	IniRead, q_eml, qgenda.ppk, api, eml
-	
-	qg_fc := {"CALL":"PM_We_A"
-			, "fCall":"PM_We_F"
-			, "EP Call":"EP"
-			, "ICU":"ICU_A"
-			, "TXP Inpt":"Txp"
-			, "IW":"Ward_A"}
-	
-	progress, , Updating schedules, Auth Qgenda...
-	url := "https://api.qgenda.com/v2/login"
-	str := httpGetter("POST",url,q_eml
-		,"Content-Type=application/x-www-form-urlencoded")
-	qAuth := parseJSON(str)[1]																; MsgBox % qAuth[1].access_token
-	
-	progress, , Updating schedules, Reading Qgenda...
-	url := "https://api.qgenda.com/v2/schedule"
-		. "?companyKey=" q_com
-		. "&startDate=" t0
-		. "&endDate=" t1
-		. "&$select=Date,TaskName,StaffLName,StaffFName"
-		. "&$filter="
-		.	"("
-		.		"TaskName eq 'CALL'"
-		.		" or TaskName eq 'fCall'"
-	;	.		" or TaskName eq 'CATH LAB'"
-	;	.		" or TaskName eq 'CATH RES'"
-		.		" or TaskName eq 'EP Call'"
-	;	.		" or TaskName eq 'Fetal Call'"
-		.		" or TaskName eq 'ICU'"
-	;	.		" or TaskName eq 'TEE/ECHO'"
-	;	.		" or TaskName eq 'TEE Call'"
-		.		" or TaskName eq 'TXP Inpt'"
-	;	.		" or TaskName eq 'TXP Res'"
-		.		" or TaskName eq 'IW'"
-		.	")"
-		.	" and IsPublished"
-		.	" and not IsStruck"
-		. "&$orderby=Date,TaskName"
-	str := httpGetter("GET",url,
-		,"Authorization= bearer " qAuth.access_token
-		,"Content-Type=application/json")
-	
-	progress, , Updating schedules, Parsing JSON...
-	qOut := parseJSON(str)
-	
-	progress, , Updating schedules, Updating Forecast...
-	Loop, % qOut.MaxIndex()
-	{
-		i := A_Index
-		qDate := parseDate(qOut[i,"Date"])										; Date array
-		qTask := qg_fc[qOut[i,"TaskName"]]										; Call name
-		qNameF := qOut[i,"StaffFName"]
-		qNameL := qOut[i,"StaffLName"]
-		if (qNameL~="^[A-Z]{2}[a-z]") {											; Remove first initial if present
-			qNameL := SubStr(qNameL,2)
-		}
-		if (qNameL~="Mallenahalli|Chikkabyrappa") {								; Special fix for Sathish and his extra long name
-			qNameL:="Mallenahalli Chikkabyrappa"
-		}
-		if (qNameL qNameF = "NelsonJames") {									; Special fix to make Tony findable on paging call site
-			qNameF:="Tony"
-		}
-		if (qnameF qNameL = "JoshFriedland") {									; Special fix for Josh who is registered incorrectly on Qgenda
-			qnameL:="Friedland-Little"
-		}
-		
-		tmpDt := qDate.YYYY . qDate.MM . qDate.DD								; tmpDt in format YYYYMMDD
-		if !IsObject(y.selectSingleNode("/root/lists/forecast/call[@date='" tmpDt "']")) {
-			y.addElement("call","/root/lists/forecast", {date:tmpDt})			; create node if doesn't exist
-		}
-		
-		fcNode := "/root/lists/forecast/call[@date='" tmpDt "']"
-		if !IsObject(y.selectSingleNode(fcNode "/" qTask)) {					; create node for service person if not present
-			y.addElement(qTask,fcNode)
-		}
-		y.setText(fcNode "/" qTask, qNameF " " qNameL)							; setText changes text value for that node
-		y.selectSingleNode("/root/lists/forecast").setAttribute("mod",A_Now)	; change forecast[@mod] to now
-	}
-	
-	Writeout("/root/lists","forecast")
-	Eventlog("Qgenda " t0 "-" t1 " updated.")
-	
-	FileCopy, archlist.xml, archback\%A_now%.xml
-	eventLog("archlist.xml backed up.")
-	
-return
-}
-
 getCall(dt) {
-	global y
+	z := new XML("call.xml")
 	callObj := {}
-	Loop, % (callDate:=y.selectNodes("/root/lists/forecast/call[@date='" dt "']/*")).length {
+	Loop, % (callDate:=z.selectNodes("/root/forecast/call[@date='" dt "']/*")).length {
 		k := callDate.item(A_Index-1)
 		callEl := k.nodeName
 		callVal := k.text
@@ -984,50 +588,89 @@ breakDate(x) {
 		, "HH":D_Hr, "min":D_Min, "sec":D_sec}
 }
 
-parseDate(x) {
-; Disassembles dates into Yr=2015 Mo=02 Da=09 Hr=08 Min=31
-	; 03 Jan 2016
+ParseDate(x) {
 	mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-	if (x~="i)(\d{1,2})[\-\s\.](Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\-\s\.](\d{2,4})") {
-		StringSplit, DT, x, %A_Space%-.
-		return {"DD":zDigit(DT1), "MM":zDigit(objHasValue(mo,DT2)), "MMM":DT2, "YYYY":year4dig(DT3)}
+	moStr := "Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec"
+	dSep := "[ \-\._/]"
+	date := []
+	time := []
+	x := RegExReplace(x,"[,\(\)]")
+	
+	if (x~="\d{4}.\d{2}.\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z") {
+		x := RegExReplace(x,"[TZ]","|")
+	}
+	if RegExMatch(x,"i)(\d{1,2})" dSep "(" moStr ")" dSep "(\d{4}|\d{2})",d) {			; 03-Jan-2015
+		date.dd := zdigit(d1)
+		date.mmm := d2
+		date.mm := zdigit(objhasvalue(mo,d2))
+		date.yyyy := d3
+		date.date := trim(d)
+	}
+	else if RegExMatch(x,"i)\b(" moStr "|\d{1,2})" dSep "(\d{1,2})" dSep "(\d{4}|\d{2})",d) {	; Jan-03-2015, 01-03-2015
+		date.dd := zdigit(d2)
+		date.mmm := objhasvalue(mo,d1) 
+			? d1
+			: mo[d1]
+		date.mm := objhasvalue(mo,d1)
+			? zdigit(objhasvalue(mo,d1))
+			: zdigit(d1)
+		date.yyyy := (d3~="\d{4}")
+			? d3
+			: (d3>50)
+				? "19" d3
+				: "20" d3
+		date.date := trim(d)
+	}
+	else if RegExMatch(x,"i)(" moStr ")\s+(\d{1,2}),?\s+(\d{4})",d) {					; Dec 21, 2018
+		date.mmm := d1
+		date.mm := zdigit(objhasvalue(mo,d1))
+		date.dd := zdigit(d2)
+		date.yyyy := d3
+		date.date := trim(d)
+	}
+	else if RegExMatch(x,"\b(\d{4})[\-\.](\d{2})[\-\.](\d{2})\b",d) {					; 2015-01-03
+		date.yyyy := d1
+		date.mm := d2
+		date.mmm := mo[d2]
+		date.dd := d3
+		date.date := trim(d)
+	}
+	else if RegExMatch(x,"\b(19|20\d{2})(\d{2})(\d{2})((\d{2})(\d{2})(\d{2})?)?\b",d)  {	; 20150103174307 or 20150103
+		date.yyyy := d1
+		date.mm := d2
+		date.mmm := mo[d2]
+		date.dd := d3
+		date.date := d1 "-" d2 "-" d3
+		
+		time.hr := d5
+		time.min := d6
+		time.sec := d7
+		time.time := d5 ":" d6 . strQ(d7,":###")
 	}
 	
-	; 03_06_17 or 03_06_2017
-	if (x~="\d{1,2}_\d{1,2}_\d{2,4}") {
-		StringSplit, DT, x, _
-		return {"MM":zDigit(DT1), "DD":zDigit(DT2), "MMM":mo[DT2], "YYYY":year4dig(DT3)}
-	}
-	
-	; 2017-02-11
-	if RegExMatch(x,"(\d{4})-(\d{2})-(\d{2})",DT) {
-		return {"YYYY":DT1, "MM":DT2, "DD":DT3}
-	}
-	
-	; Mar 9, 2015 (8:33 am)?
-	if (x~="i)^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{1,2}, \d{4}") {
-		StringSplit, DT, x, %A_Space%
-		StringSplit, DHM, DT4, :
-		return {"MM":zDigit(objHasValue(mo,DT1)),"DD":zDigit(trim(DT2,",")),"YYYY":DT3
-			,	hr:zDigit((DT5~="i)p")?(DHM1+12):DHM1),min:DHM2}
-	}
-	
-	; 02/09/2015 (8:33 am)?
-	if (x~="\d{1,2}[\-/_\.]\d{1,2}[\-/_\.]\d{4}") {
-		RegExMatch(x,"(\d{1,2})[\-/_\.](\d{1,2})[\-/_\.](\d{4})",d)
-		RegExMatch(x,"(\d{1,2}):(\d{2})(:\d{2})?(.*)(AM|PM)?",t)
-		if (t6="pm" and t1<12) {
-			t1 += 12
+	if RegExMatch(x,"iO)(\d+):(\d{2})(:\d{2})?(:\d{2})?(.*)?(AM|PM)?",t) {				; 17:42 PM
+		hasDays := (t.value[4]) ? true : false 											; 4 nums has days
+		time.days := (hasDays) ? t.value[1] : ""
+		time.hr := trim(t.value[1+hasDays])
+		if (time.hr>23) {
+			time.days := floor(time.hr/24)
+			time.hr := mod(time.hr,24)
+			DHM:=true
 		}
-		return {MM:zDigit(d1),DD:zDigit(d2),YYYY:d3
-			,	hr:zDigit(t1),min:t2,sec:trim(t3,":"),AMPM:trim(t4)}
+		time.min := trim(t.value[2+hasDays]," :")
+		time.sec := trim(t.value[3+hasDays]," :")
+		time.ampm := trim(t.value[5])
+		time.time := trim(t.value)
 	}
-	
-	; Remaining are "2/9/2015" or "2/9/2015 8:31" 
-	StringSplit, DT, x, %A_Space%
-	StringSplit, DY, DT1, /
-	StringSplit, DHM, DT2, :
-	return {"MM":zDigit(DY1), "DD":zDigit(DY2), "YYYY":year4dig(DY3), "hr":zDigit(DHM1), "min":zDigit(DHM2), "Date":DT1, "Time":DT2}
+
+	return {yyyy:date.yyyy, mm:date.mm, mmm:date.mmm, dd:date.dd, date:date.date
+			, YMD:date.yyyy date.mm date.dd
+			, MDY:date.mm "/" date.dd "/" date.yyyy
+			, days:zdigit(time.days)
+			, hr:zdigit(time.hr), min:zdigit(time.min), sec:zdigit(time.sec)
+			, ampm:time.ampm, time:time.time
+			, DHM:zdigit(time.days) ":" zdigit(time.hr) ":" zdigit(time.min) " (DD:HH:MM)" 
+ 			, DT:date.mm "/" date.dd "/" date.yyyy " at " zdigit(time.hr) ":" zdigit(time.min) ":" zdigit(time.sec) }
 }
 
 Rand( a=0.0, b=1 ) {
@@ -1127,8 +770,9 @@ screenDims() {
 	H := A_ScreenHeight
 	DPI := A_ScreenDPI
 	Orient := (W>H)?"L":"P"
+	Scale := round(100*DPI/96)
 	;MsgBox % "W: "W "`nH: "H "`nDPI: "DPI
-	return {W:W, H:H, DPI:DPI, OR:Orient}
+	return {W:W, H:H, DPI:DPI, OR:Orient, Scale:Scale}
 }
 winDim(scr) {
 	global ccFields
@@ -1185,3 +829,5 @@ winDim(scr) {
 #Include Class_LV_Colors.ahk
 #Include sift3.ahk
 #Include CMsgBox.ahk
+#Include ScrCmp.ahk
+#Include FindText.ahk

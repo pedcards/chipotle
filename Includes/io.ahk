@@ -15,6 +15,7 @@ GetIt:
 	yArch := new XML("archlist.xml")
 	if !IsObject(yArch.selectSingleNode("/root")) {									; if yArch is empty,
 		yArch.addElement("root")													; then create it.
+		yArch.transformXML()
 		yArch.save("archlist.xml")													; Write out archlist
 	}
 	
@@ -23,37 +24,11 @@ GetIt:
 	eventlog("Valid currlist.")
 	
 	Progress, 80, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	if !(isLocal) {																	; live run, download changes file from server
-		ckRes := httpComm("","get")													; Check response from "get"
-		
-		if (ckRes=="NONE") {														; no change.xml file present
-			eventlog("No change file.")
-		} else if (instr(ckRes,"proxy")) {											; hospital proxy problem
-			eventlog("Hospital proxy problem.")
-		} else {																	; actual response, merge the blob
-			eventlog("Import blob found.")
-			StringReplace, ckRes, ckRes, `r`n,`n, All								; MSXML cannot handle the UNIX format when modified on server 
-			StringReplace, ckRes, ckRes, `n,`r`n, All								; so convert all MS CRLF to Unix LF, then all LF back to CRLF
-			z := new XML(ckRes)														; Z is the imported updates blob
-			
-			importNodes()															; parse Z blob
-			eventlog("Import complete.")
-			
-			if (WriteFile()) {														; Write updated Y to currlist
-				eventlog("Successful currlist update.")
-				ckRes := httpComm("","unlink")											; Send command to delete update blob
-				eventlog((ckRes="unlink") ? "Changefile unlinked." : "Not unlinked.")
-			} else {
-				eventlog("*** httpComm failed to write currlist.")
-			}
-		}
-	}
+
 	FileDelete, .currlock
 	
 	Progress 100, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
-	if !(vSaveIt=true) {
-		readForecast()
-	}
+
 	Progress, off
 Return
 }
@@ -63,7 +38,8 @@ WriteFile()
 /*	This is only called during GetIt, SaveIt, ProcessCIS, and ProcessCORES
 */
 	global y
-	
+	y.transformXML()
+
 	FileCopy, currlist.xml, currlist.bak, 1 								; make copy of good currlist
 	
 	Loop, 3
@@ -188,6 +164,7 @@ SaveIt:
 	}
 
 	Progress, 90, % dialogVals[Rand(dialogVals.MaxIndex())] "..."
+	yArch.transformXML()
 	yArch.save("archlist.xml")															; Writeout archlist
 	if !(errList) {																		; dialog to show if there were any hits
 		Progress, hide
@@ -197,23 +174,10 @@ SaveIt:
 		Progress, 85
 	}
 	
+	y.transformXML()
 	y.save("currlist.xml")
 	FileCopy, currlist.xml, % "bak\" A_now ".bak"
 	eventlog("Currlist cleaned up.")
-	
-	if !(isLocal) {																		; for live data, send to server
-		Run pscp.exe -sftp -i chipotle-pr.ppk -p currlist.xml pedcards@homer.u.washington.edu:public_html/%servfold%/currlist.xml,, Min
-		sleep 500																		; CIS VM needs longer delay than 200ms to recognize window
-		ConsWin := WinExist("ahk_class ConsoleWindowClass")								; get window ID
-		IfWinExist ahk_id %consWin% 
-		{
-			ControlSend,, {y}{Enter}, ahk_id %consWin%									; blindly send {y}{enter} string to console
-			Progress,, Console %consWin% found											; to get past save keys query
-		}
-		Run pscp.exe -sftp -i chipotle-pr.ppk -p logs/%sessdate%.log pedcards@homer.u.washington.edu:public_html/%servfold%/logs/%sessdate%.log,, Min
-		WinWaitClose ahk_id %consWin%
-		eventlog("CHIPS server updated.")
-	}
 	
 	Loop, files, bak\*.bak
 	{
@@ -342,6 +306,7 @@ saveCensus:
 	}
 	
 	eventlog("CENSUS '" location "' updated.")
+	cens.transformXML()
 	cens.save(censFile)															; save the censDate.xml file
 	
 	censCrd := cens.selectSingleNode(c1 "/Cards")								; get nodes of service locations
@@ -363,6 +328,7 @@ saveCensus:
 		regionalCensus("Cards")
 		regionalCensus("CSR")
 		regionalCensus("TXP")
+		cens.transformXML()
 		cens.save(censFile)
 		eventlog("Regional census updated.")
 		
@@ -836,20 +802,7 @@ refreshCurr(lock:="") {
 		}
 	}
 	
-	eventlog("** Failed to restore backup. Attempting to download server backup.")
-	sz := httpComm("","full")														; call download of FULL list from server, not just changes
-	FileDelete, templist.xml
-	FileAppend, %sz%, templist.xml												; write out as templist
-	if (z:=checkXML("templist.xml")) {
-		y := new XML(z)															; Replace Y with Z
-		eventlog("Successful restore from server.")
-		filecopy, templist.xml, currlist.xml, 1									; copy templist to currlist
-		if (lock)
-			FileDelete, .currlock													; clear file lock
-		return
-	}
-	
-	eventlog("*** Failed to restore from server.")									; All attempts fail. Something bad has happened.
+	eventlog("*** Failed to restore from backup.")									; All attempts fail. Something bad has happened.
 	httpComm("","err999")															; Pushover message of utter failure
 	FileDelete, .currlock
 	MsgBox, 16, CRITICAL ERROR, Unable to read currlist. `n`nExiting.
@@ -911,6 +864,7 @@ WriteOut(path,node) {
 	zNode := zPath.selectSingleNode(node)
 	zPath.replaceChild(clone,zNode)												; replace existing zNode with node clone
 	
+	z.transformXML()
 	z.save("currlist.xml")														; write z into currlist
 	FileCopy, currlist.xml, % "bak\" A_now ".bak"								; create a backup for each writeout
 	FileGetSize, currSize, currlist.xml, k

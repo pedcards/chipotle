@@ -43,13 +43,9 @@ if (isCoord) {
 	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gTeamList vECoord", Coordination
 }
 
-strCO := breakDate(DateCORES := y.getAtt("/root/lists/cores", "date"))
-posy += 35
-Gui, Main:Add, Text, x40 y%posy% vGUIcoresChk
-Gui, Main:Add, Text, x50 y%posy% w100 h20 , CORES:
-Gui, Main:Add, Text, vGUIcoresTXT x137 y%posy% w130 h20 , % strCO.MM "/" strCO.DD "  " strCO.HH ":" strCO.Min
+Gui, Main:Add, Button, % "x20 y" (posy+=40) " w220 h30 gSyncHandoff", Grab Patient List Data
 
-Gui, Main:Add, Button, % "x80 y" (posy+=40) " w100 h30 gMainGUIdone", Update && Exit!
+Gui, Main:Add, Button, % "x80 y" (posy+=40) " w100 h30 gMainGUIdone", Save && Exit!
 
 Menu, menuSys, Add, GUACAMOLE, buttonGuac
 Menu, menuSys, Add, NACHOS, buttonNachos
@@ -64,7 +60,6 @@ Menu, MenuBar, Add, System, :menuSys
 Menu, menuFile, Add, Find/Add a patient, FindPt
 Menu, menuFile, Add
 Menu, menuFile, Add, Import Stork List, readStorkList
-Menu, menuFile, Add, Update Electronic Forecast, readForecast
 Menu, menuFile, Add, Read Centripetus data, getCentrip
 Menu, MenuBar, Add, File, :menuFile
 
