@@ -192,7 +192,7 @@ readHndIllness(ByRef HndOff, ByRef done) {
 
 	Clipboard :=
 	fld := []
-	loop, 5																				; get 3 attempts to capture clipboard
+	loop, 7																				; get 7 attempts to capture clipboard
 	{
 		progress,,% "Attempt " A_Index
 		clickField(HndOff.tabX,HndOff.IllnessY,50)
