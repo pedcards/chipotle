@@ -51,7 +51,7 @@ syncHandoff() {
 	Loop, % EpicSvcList.MaxIndex()
 	{
 		k := EpicSvcList[A_index]
-		if IsObject(FindText(0,0,scr.w,scr.h,0.1,0.1,svcText[k])) {
+		if IsObject(FindText(x,y,0,0,scr.W,scr.H,0.1,0.1,svcText[k])) {
 			HndOff.Service := k
 			break
 		}
@@ -133,42 +133,43 @@ checkHandoff() {
 */
 	global hndText, scr
 	scale := scr.scale/100
+	rtside := 0.5*scr.w
 
-	if (ok:=FindText(0,0,scr.w,scr.h,0.0,0.0,hndText.HandoffTab)) {
+	if (ok:=FindText(x,y,rtside,0,scr.w,scr.h,0.0,0.0,hndText.HandoffTab)) {
 		progress, 40, Illness Severity, Finding geometry
-		Ill := FindText(0,0,scr.w,scr.h,0.0,0.0,hndText.IllnessSev)
+		Ill := FindText(x,y,rtside,y,scr.w,scr.h,0.0,0.0,hndText.IllnessSev)
 		progress, 80, Patient Summary, Finding geometry
-		Summ := FindText(Ill[1].x-100,Ill[1].y,scr.w,scr.h,0.1,0.1,hndText.PatientSum)
+		Summ := FindText(x,y,rtside,y,scr.w,scr.h,0.0,0.0,hndText.PatientSum)
 		if !IsObject(Ill) {																; no Illness Severity field found
 			gosub startHandoff															
 			return
 		}
 
 		progress, 100, Updates, Finding geometry
-		Upd := FindText(Ill[1].x,0,scr.w,Ill[1].y,0.1,0.1,hndText.Updates)
+		Upd := FindText(x,y,rtside,0,scr.w,Ill[1].y,0.0,0.0,hndText.Updates)
 
 		return { tabX:ok[1].x
-				, IllnessY:Ill[1].y+80*scale
-				, SummaryY:Summ[1].y+80*scale
-				, NameY:Ill[1].y-72*scale
+				, IllnessY:Ill[1].y
+				, SummaryY:Summ[1].y
+				, NameY:Ill[1].y-round(72*scale)
 				, TextX:ill[1].x
-				, TextY:Ill[1].y+60*scale
-				, UpdateX:Upd[1].x+12*scale
-				, UpdateY:Upd[1].y+4*scale
-				, PanelX:Ill[1].x-50*scale
+				, TextY:Ill[1].y+round(60*scale)
+				, UpdateX:Upd[1].x+round(12*scale)
+				, UpdateY:Upd[1].y+round(4*scale)
+				, PanelX:Ill[1].x-round(50*scale)
 				, PanelY:ok[1].y }
 	} 
 /*	Second stage: Look for Write Handoff button (single patient selected)
 					or select single patient
 */
 	startHandoff:
-	if (ok:=FindText(0,0,1920,500,0.1,0.1,hndText.WriteHand)) {
-		clickField(ok[1].x,ok[1].y)
+	if (FindText(x,y,0,0,rtside,500,0.0,0.0,hndText.WriteHand)) {
+		clickField(x,y)
 		sleep 200
 	} 
 
-	ok:=FindText(0,0,1920,500,0.1,0.1,hndText.PatientNam)
-	clickfield(ok[1].x,ok[1].y+50)
+	FindText(x,y,0,0,rtside,500,0.0,0.0,hndText.PatientNam)
+	clickfield(x,y+50)
 	sleep 200
 	
 	return
