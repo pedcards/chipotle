@@ -771,7 +771,7 @@ screenDims() {
 	DPI := A_ScreenDPI
 	Orient := (W>H)?"L":"P"
 	Scale := round(100*DPI/96)
-	Type := (W=1536)?"L":"D"
+	Type := (W=1536)?"L":"D"															; 1536px=_L_aptop/Remote, 1920px=_D_esktop/Full
 	;MsgBox % "W: "W "`nH: "H "`nDPI: "DPI
 	return {W:W, H:H, DPI:DPI, OR:Orient, Scale:Scale, Type:Type}
 }
