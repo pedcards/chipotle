@@ -35,8 +35,8 @@ getIni:
 	meds0:=readIni("meds0")
 	readIni("med_filt")
 
-	hndText:=readIni("hndText" . scr.Scale)
-	svcText:=readIni("svcText" . scr.Scale)
+	hndText:=readIni("hndText" . scr.Type . scr.Scale)
+	svcText:=readIni("svcText" . scr.Type . scr.Scale)
 	EpicSvcList:=readIni("EpicSvcList")
 
 	pathprd:=readIni("pathPRD")
