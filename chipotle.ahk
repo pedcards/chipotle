@@ -9,7 +9,7 @@
 #NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
 Clipboard = 	; Empty the clipboard
 SendMode Input ; Recommended for new scripts due to its superior speed and reliability.
-SetTitleMatchMode, 2
+SetTitleMatchMode, RegEx
 SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include %A_ScriptDir%\Includes
 #Persistent		; Keep program resident until ExitApp

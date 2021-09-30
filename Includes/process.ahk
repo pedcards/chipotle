@@ -13,6 +13,14 @@ syncHandoff() {
 ; res.1 := {data:tmp}
 ; processHandoff(res)
 
+	/*	Find Epic instance
+	*/
+	if !(winEpic := WinExist("Hyperspace.*Production -")) {
+		MsgBox NO EPIC WINDOW!
+		eventlog("No Epic window found.")
+		Return
+	}
+	WinActivate
 
 	/*	Check screen elements for Handoff, launch if necessary
 		(this is much faster if already selected)
