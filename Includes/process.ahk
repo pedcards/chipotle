@@ -95,7 +95,7 @@ syncHandoff() {
 		res.push(fld)																	; push {MRN, Data, Summary} to RES
 
 		SendInput, !n																	; Alt+n to move to next record
-		scrcmp(HndOff.tabX,HndOff.NameY,100,15)											; detect when Name on screen changes
+		scrcmp(HndOff.IllnessFldX,HndOff.NameY,100,15)									; detect when Name on screen changes
 		
 		done .= fld.MRN "`n"
 	}
