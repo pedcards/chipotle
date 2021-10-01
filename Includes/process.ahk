@@ -317,11 +317,18 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 }
 
 updateSmartLinks(x,y) {
-/*	Updates smart links by sending ctrl+F11 to the active window
+/*	Updates smart links by sending alt+R to the active window
 	Arguments (x,y) are pixel coords to monitor change in Update icon
 */
 	SendInput, !r
 	sleep 100
+	updatesWait(x,y)
+	return
+}
+
+updatesWait(x,y) {
+/*	Check Updates icon (x,y) until it has changed back from gray to white
+*/
 	loop,
 	{
 		PixelGetColor, col, % x , % y
