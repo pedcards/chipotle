@@ -15,12 +15,12 @@ syncHandoff() {
 
 	/*	Find Epic instance
 	*/
-	if !(winEpic := WinExist("Hyperspace.*Production -")) {
+	if !(winEpic := WinExist("Hyperspace.*Production")) {
 		MsgBox NO EPIC WINDOW!
 		eventlog("No Epic window found.")
 		Return
 	}
-	WinActivate
+	WinActivate ahk_id %winEpic%
 
 	/*	Check screen elements for Handoff, launch if necessary
 		(this is much faster if already selected)
@@ -69,6 +69,7 @@ syncHandoff() {
 	BlockInput, On
 	loop,
 	{
+		WinActivate ahk_id %winEpic%
 		timenow := A_now
 		fld := readHndIllness(HndOff,done)
 		if instr(done,fld.MRN) {														; break loop if we have read this record already
