@@ -215,8 +215,7 @@ readHndIllness(ByRef HndOff, ByRef done) {
 		if (clp="`r`n") {																; field is truly blank
 			clickField(HndOff.IllnessFldX,HndOff.IllnessFldY)
 			SendInput, .chipotle{enter}													; type dot phrase to insert
-			sleep 300
-			ScrCmp(HndOff.IllnessFldX,HndOff.IllnessFldY,100,16)						; detect when text expands
+			clipbdWait(HndOff.IllnessFldX-20,HndOff.IllnessFldY,60,60)					; Wait for Clipbd icon after text expansion
 			Continue
 		}
 		fld.MRN := strX(clp,"[MRN] ",1,6," [DOB]",0,6)									; clip changed from baseline
@@ -308,28 +307,19 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 	Return
 }
 
-updateSmartLinks(x,y) {
-/*	Updates smart links by sending alt+R to the active window
-	Arguments (x,y) are pixel coords to monitor change in Update icon
-*/
-	SendInput, !r
-	sleep 100
-	updatesWait(x,y)
-	return
-}
+clipbdWait(x,y,w,h,timeout:=3,tick:=100) {
+	global hndText
+	t1 := A_TickCount+1000*timeout
+	MouseMove, % X+50, % Y
 
-updatesWait(x,y) {
-/*	Check Updates icon (x,y) until it has changed back from gray to white
-*/
-	loop,
+	While, (A_tickcount < t1)
 	{
-		PixelGetColor, col, % x , % y
-		; progress,,,% col
-		if (col="0xFFFFFF") {
-			break
+		if IsObject(ok:=FindText(okx,oky,x,y,x+w,y+h,0.0,0.0,hndText.Clipbd)) {
+			Return
 		}
+		Sleep, % tick
 	}
-	return
+	Return
 }
 
 updateList(service,done) {
