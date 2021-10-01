@@ -136,7 +136,9 @@ checkHandoff() {
 	scale := scr.scale/100
 	rtside := 0.5*scr.w
 
-	if (ok:=FindText(x,y,rtside,0,scr.w,scr.h,0.0,0.0,hndText.HandoffTab)) {
+	if (ok:=FindText(okx,oky,rtside,0,scr.w,scr.h,0.0,0.0,hndText.HandoffTab)) {
+		MouseClick, Left, % ok[1].X, % ok[1].Y
+		sleep 100
 		progress, 40, Illness Severity, Finding geometry
 		Ill := FindText(x,y,rtside,y,scr.w,scr.h,0.0,0.0,hndText.IllnessSev)
 		progress, 80, Patient Summary, Finding geometry
