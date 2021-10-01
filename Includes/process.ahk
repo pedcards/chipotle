@@ -186,7 +186,7 @@ checkHandoff() {
 clickField(x,y,delay:=20) {
 	MouseClick, Left, % x, % y
 	sleep % delay
-	MouseClick, Left, % x-5, % y+5
+	MouseClick, Left, % x+5, % y+5
 	sleep % delay
 	return
 }
