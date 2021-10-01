@@ -208,30 +208,23 @@ readHndIllness(ByRef HndOff, ByRef done) {
 	Click twice (not double click) to ensure we are in field
 */
 	progress, % A_index*10,% " ",% " "
-	clickField(HndOff.tabX,HndOff.IllnessY,100)
-	updateSmartLinks(HndOff.UpdateX,HndOff.UpdateY)
 
 	Clipboard :=
 	fld := []
 	loop, 7																				; get 7 attempts to capture clipboard
 	{
 		progress,,% "Attempt " A_Index
-		clickField(HndOff.tabX,HndOff.IllnessY,50)
-		clp := getClip()
+		clickField(HndOff.IllnessFldX,HndOff.IllnessFldY)
+		clp := getClip("x")
 		if (clp="") {
-			clickField(HndOff.tabX,HndOff.IllnessY)
+			clickField(HndOff.IllnessFldX,HndOff.IllnessFldY)
 			Continue
 		} 
 		if (clp="`r`n") {																; field is truly blank
-			MsgBox 0x40021, Novel patient?, Insert CHIPOTLE smart text?`n, 3
-			IfMsgBox Cancel
-			{
-				Break
-			}
-			clickField(HndOff.tabX,HndOff.IllnessY)
+			clickField(HndOff.IllnessFldX,HndOff.IllnessFldY)
 			SendInput, .chipotle{enter}													; type dot phrase to insert
 			sleep 300
-			ScrCmp(HndOff.TextX,HndOff.TextY,100,10)									; detect when text expands
+			ScrCmp(HndOff.IllnessFldX,HndOff.IllnessFldY,100,16)						; detect when text expands
 			Continue
 		}
 		fld.MRN := strX(clp,"[MRN] ",1,6," [DOB]",0,6)									; clip changed from baseline
