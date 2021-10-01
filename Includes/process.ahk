@@ -403,10 +403,10 @@ processHandoff(ByRef epic) {
 			? "SUR-RC6"
 		: (fld.room~="RB\.6.*")
 			? "SUR-RB6"
-		: (fld.room~="RA\.6.*")
-			? "NICU-R6"
 		: (fld.room~="FA\.5.*-N")
 			? "NICU-F5"
+		: (fld.room~="FA\.4.*-N")
+			? "NICU-F4"
 		: (fld.room~="FA\.3.*")
 			? "PULM-F3"
 		: (fld.room~="FA\.7")
