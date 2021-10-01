@@ -256,13 +256,11 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 	e_dt := epic.getAttribute("ed")
 
 	Clipboard :=
-	clickField(HndOff.tabX,HndOff.SummaryY)												; now grab the Patient Summary field 
-	loop, 3
+	loop, 7
 	{
-		clickField(HndOff.tabX,HndOff.SummaryY,50)
-		clp := getClip()
+		clickField(HndOff.SummaryFldX,HndOff.SummaryFldY)								; grab the Patient Summary field
+		clp := getClip("c")
 		if (clp="") {																	; nothing populated, try again
-			clickField(HndOff.tabX,HndOff.SummaryY)
 			Continue
 		} 
 		; Patient Summary is empty
@@ -271,11 +269,9 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 				break
 			} 
 			Clipboard := c_txt															; - Card is present
-			clickField(HndOff.tabX,HndOff.SummaryY)
+			clickField(HndOff.SummaryFldX,HndOff.SummaryFldY)
 			sleep 50
-			SendInput, ^a
-			sleep 50
-			SendInput, ^v																; paste c_txt into Patient Summary
+			getClip("v")
 			ReplacePatNode(MRNstring "/diagnoses","summ",clp)
 			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("ed",timenow)
 			card.setAttribute("ed",timenow)
@@ -284,6 +280,7 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 		}
 		clp := trim(clp,"`r`n ")
 		clp := StrReplace(clp, "`r`n", "`n")
+
 		; Patient Summary is not empty, but Diagnoses/Card is empty
 		if (c_txt="") {
 			ReplacePatNode(MRNstring "/diagnoses","card",clp)
@@ -299,11 +296,8 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 		}
 		if ((clp = e_txt) && (c_dt != e_dt)) {											; CARD changed but Epic unchanged
 			Clipboard := c_txt															; most recent edit on Chipotle
-			clickField(HndOff.tabX,HndOff.SummaryY)
-			sleep 50
-			SendInput, ^a
-			sleep 50
-			SendInput, ^v
+			clickField(HndOff.SummaryFldX,HndOff.SummaryFldY)
+			getClip("v")
 			ReplacePatNode(MRNstring "/diagnoses","summ",c_txt)
 			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("ed",c_dt)
 			eventlog(fld.mrn " Card diagnoses changed, updated to Handoff.")
