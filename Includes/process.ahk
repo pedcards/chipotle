@@ -191,10 +191,14 @@ clickField(x,y,delay:=20) {
 	return
 }
 
-getClip() {
+getClip(k) {
+	str := "^" k
 	SendInput, ^a
 	sleep 50
-	SendInput, ^c
+	SendInput, % str
+	if (k="v") {																		; Pasting, don't wait for clipboard
+		return
+	}
 	sleep 150																			; Citrix needs time to copy to local clipboard
 	return Clipboard
 }
