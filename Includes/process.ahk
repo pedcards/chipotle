@@ -27,8 +27,8 @@ syncHandoff() {
 	*/
 	loop, 5
 	{
-		HndOff := checkHandoff()
-		if IsObject(HndOff) {
+		HndOff := checkHandoff()														; Check if Handoff running
+		if IsObject(HndOff) {															; and find key UI coords
 			break
 		}
 	}
