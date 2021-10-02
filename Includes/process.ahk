@@ -51,7 +51,7 @@ syncHandoff() {
 	Loop, % EpicSvcList.MaxIndex()
 	{
 		k := EpicSvcList[A_index]
-		if IsObject(FindText(okx,oky,0,0,scr.W,scr.H,0.1,0.1,svcText[k])) {
+		if IsObject(FindText(okx,oky,0,0,scr.W,scr.H,0.0,0.0,svcText[k])) {
 			HndOff.Service := k
 			break
 		}
