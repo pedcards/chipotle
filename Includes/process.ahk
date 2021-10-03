@@ -265,7 +265,7 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 	Clipboard :=
 	loop, 7
 	{
-		clickField(HndOff.SummaryFldX,HndOff.SummaryFldY)								; grab the Patient Summary field
+		clickField(summ.FldX,summ.FldY,true)											; grab the Patient Summary field
 		clp := getClip("c")
 		if (clp="") {																	; nothing populated, try again
 			Continue
@@ -276,8 +276,7 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 				break
 			} 
 			Clipboard := c_txt															; - Card is present
-			clickField(HndOff.SummaryFldX,HndOff.SummaryFldY)
-			sleep 50
+			clickField(summ.FldX,summ.FldY)
 			getClip("v")
 			ReplacePatNode(MRNstring "/diagnoses","summ",clp)
 			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("ed",timenow)
@@ -303,7 +302,7 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 		}
 		if ((clp = e_txt) && (c_dt != e_dt)) {											; CARD changed but Epic unchanged
 			Clipboard := c_txt															; most recent edit on Chipotle
-			clickField(HndOff.SummaryFldX,HndOff.SummaryFldY)
+			clickField(summ.FldX,summ.FldY)
 			getClip("v")
 			ReplacePatNode(MRNstring "/diagnoses","summ",c_txt)
 			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("ed",c_dt)
