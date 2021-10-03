@@ -141,7 +141,7 @@ checkHandoff() {
 		sleep 200
 		progress,,, Finding geometry
 		Illness := FindText(okx,oky,rtside,ok[1].y,scr.w,scr.h,0.0,0.0,hndText.IllnessSev)
-		IllnessBox := FindText(okx,oky,rtside,Illness[1].y,scr.w,oky+100,0.0,0.0,hndText.EditBox)
+		IllnessBox := FindText(okx,oky,rtside,Illness[1].y,scr.w,Illness[1].y+200,0.0,0.0,hndText.EditBox)
 		if !IsObject(Illness) {															; no Illness Severity field found
 			gosub startHandoff															
 			return
