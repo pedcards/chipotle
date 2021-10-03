@@ -271,6 +271,7 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 	y.diagnoses/card = Chipotle diagnoses with timestamp
 */
 	global y, MRNstring, timenow
+	summ := findHndSummary()
 
 	card := y.selectSingleNode(MRNstring "/diagnoses/card")
 	c_txt := card.Text
