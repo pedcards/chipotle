@@ -297,7 +297,7 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 	Clipboard :=
 	loop, 7
 	{
-		clickField(summ.FldX,summ.FldY,true)											; grab the Patient Summary field
+		clickField(summ.FldX,summ.FldY)											; grab the Patient Summary field
 		clp := getClip("c")
 		if (clp="") {																	; nothing populated, try again
 			Continue
