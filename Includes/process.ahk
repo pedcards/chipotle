@@ -164,7 +164,7 @@ checkHandoff() {
 		sleep 200
 	} 
 
-	FindText(okx,oky,0,0,rtside,500,0.0,0.0,hndText.PatientNam)
+	FindText(okx,oky,0,0,rtside,500,0.2,0.2,hndText.RoomBed)
 	clickfield(okx,oky+50)
 	sleep 200
 	
