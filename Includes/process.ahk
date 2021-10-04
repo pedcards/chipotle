@@ -160,12 +160,12 @@ checkHandoff() {
 */
 	startHandoff:
 	if (FindText(okx,oky,0,0,rtside,500,0.0,0.0,hndText.WriteHand)) {
-		clickField(okx,oky)
+		clickButton(okx,oky)
 		sleep 200
 	} 
 
 	FindText(okx,oky,0,0,rtside,500,0.2,0.2,hndText.RoomBed)
-	clickfield(okx,oky+50)
+	clickButton(okx,oky+50)
 	sleep 200
 	
 	return
@@ -197,6 +197,13 @@ clickField(x,y,ver:=False) {
 		}
 	}
 	return
+}
+
+clickButton(x,y) {
+	MouseMove, % X, % Y 
+	MouseClick, Left, % x, % y
+	sleep % delay
+	Return
 }
 
 getClip(k) {
