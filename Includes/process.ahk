@@ -230,18 +230,20 @@ readHndIllness(ByRef HndOff, ByRef done) {
 	loop, 7																				; get 7 attempts to capture clipboard
 	{
 		progress,,% "Attempt " A_Index
-		clickField(HndOff.IllnessFldX,HndOff.IllnessFldY,true)
-		clp := getClip("x")
+		clickField(HndOff.IllnessFldX+100,HndOff.IllnessFldY)
+		clp := getClip("c")
 		if (clp="") {
-			clickField(HndOff.IllnessFldX,HndOff.IllnessFldY)
+			clickField(HndOff.IllnessFldX+100,HndOff.IllnessFldY)
+			sleep 100
 			Continue
 		} 
 		if (clp="`r`n") {																; field is truly blank
-			clickField(HndOff.IllnessFldX,HndOff.IllnessFldY,true)
+			clickField(HndOff.IllnessFldX,HndOff+100.IllnessFldY)
 			SendInput, .chipotletext{enter}												; type dot phrase to insert
-			clipbdWait(HndOff.IllnessFldX-20,HndOff.IllnessFldY,80,80)					; Wait for Clipbd icon after text expansion
+			clipbdWait(HndOff.IllnessX,HndOff.IllnessFldY)					; Wait for Clipbd icon after text expansion
 			Continue
 		}
+		SendInput, {del}
 		fld.MRN := strX(clp,"[MRN] ",1,6," [DOB]",0,6)									; clip changed from baseline
 		fld.Data := clp
 		progress,,,% fld.MRN
