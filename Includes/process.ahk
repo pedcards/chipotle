@@ -171,30 +171,31 @@ checkHandoff() {
 	return
 }
 
-clickField(x,y,ver:=False) {
+clickField(x,y) {
 /*	Click on text field with given coordinates (x,y)
 	Click a second time with offset coords to ensure we are in the box
 	*ver = (true,false) verify the text box is active
 */
 	global hndText
-	delay := 20
+	delay := 100
 
-	Loop, 5
+	Loop, 8
 	{
-		l ++
 		MouseMove, % X, % Y 
 		MouseClick, Left, % x, % y
 		sleep % delay
-		; MouseMove, % X+5, % Y+5 
-		; MouseClick, Left, % x+5, % y+5
-		if (ver) {
-			if (FindText(okx,oky,x,y-100,x+100,y+50,0.0,0.0,hndText.ActiveBox)) {
-				ver:=False
-			}
+		MouseMove, % X+5, % Y+5 
+		MouseClick, Left, % x+5, % y+5
+		sleep % delay
+		
+		if (FindText(okx,oky,x,y-100,x+100,y+100,0.0,0.0,hndText.ActiveBox)) {
+			ver:=True
 		}
-		if !(ver) {
+		if (ver) {
+			sleep % delay
 			break
 		}
+		sleep % delay
 	}
 	return
 }
