@@ -354,14 +354,16 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 	Return
 }
 
-clipbdWait(x,y,w,h,timeout:=5,tick:=100) {
+clipbdWait(x,y,timeout:=5,tick:=100) {
+/*	Search for clipboard from (x-100,y-100) to (x+100,y+100)
+*/
 	global hndText
 	t1 := A_TickCount+1000*timeout
 	MouseMove, % X+80, % Y
 
 	While, (A_tickcount < t1)
 	{
-		if IsObject(ok:=FindText(okx,oky,x,y,x+w,y+h,0.0,0.0,hndText.Clipbd)) {
+		if IsObject(ok:=FindText(okx,oky,x,y-100,x+100,y+100,0.0,0.0,hndText.Clipbd)) {
 			Return
 		}
 		Sleep, % tick
