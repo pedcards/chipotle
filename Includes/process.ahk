@@ -98,6 +98,8 @@ syncHandoff() {
 		scrcmp(HndOff.IllnessFldX,HndOff.NameY,100,15)									; detect when Name on screen changes
 		
 		done .= fld.MRN "`n"
+		
+		sleep 500
 	}
 	BlockInput, Off
 	Progress, Off
