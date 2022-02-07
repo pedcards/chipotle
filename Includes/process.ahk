@@ -1,5 +1,5 @@
 syncHandoff() {
-	global y, MRNstring, EpicSvcList, svcText, timenow, scr
+	global y, MRNstring, EpicSvcList, svcText, timenow, scr, gdi
 
 	eventlog("Starting Handoff sync.")
 	refreshCurr()																		; Get latest local currlist into memory
@@ -21,6 +21,8 @@ syncHandoff() {
 		Return
 	}
 	WinActivate ahk_id %winEpic%
+	gdi_init()																			; create GDI canvas
+
 
 	/*	Check screen elements for Handoff, launch if necessary
 		(this is much faster if already selected)
@@ -655,4 +657,77 @@ readHIS(txt) {
 		}
 	}
 	return y
+}
+
+;Create a canvas using GDI+. Values in global var gdi.
+gdi_init() {
+	global gdi, scr
+
+	gdi := []
+	If !(gdi.pToken := Gdip_Startup())
+	{
+		MsgBox "Gdiplus failed to start. Please ensure you have gdiplus on your system"
+		ExitApp
+	}
+	Gui, 1: -Caption +E0x80000 +LastFound +AlwaysOnTop +ToolWindow +OwnDialogs
+	Gui, 1: Show, NA
+	gdi.hwnd1 := WinExist()																; window handle
+	gdi.hbm := CreateDIBSection(scr.w, scr.h)											; gdi bitmap
+	gdi.hdc := CreateCompatibleDC()														; device context
+	gdi.obm := SelectObject(gdi.hdc, gdi.hbm)											; select bitmap
+	gdi.G := Gdip_GraphicsFromHDC(gdi.hdc)												; pointer to graphics
+	Gdip_SetSmoothingMode(gdi.G, 4)														; smoothing mode to antialias=4 
+
+	return
+}
+
+;Clear the canvas created. Shutdown Gdip.
+gdi_clear() {
+	global gdi
+
+	SelectObject(gdi.hdc, gdi.obm)
+	DeleteObject(gdi.hbm)
+	DeleteDC(gdi.hdc)
+	Gdip_DeleteGraphics(gdi.G)
+
+	Gui, 1:destroy
+	Gdip_Shutdown(gdi.pToken)
+	
+	Return
+}
+
+draw_crosshair(x,y,r:=20,type:="") {
+	global gdi, scr
+	
+	pPen := Gdip_CreatePen(0xffff0000, 1)
+	Gdip_DrawLine(gdi.G, pPen, x-1,y-1,x+1,y+1)
+	Gdip_DrawLine(gdi.G, pPen, x-1,y+1,x+1,y-1)
+
+	if (type="X") {
+		Gdip_DrawLine(gdi.G, pPen, x-r,y-r,x-10,y-10)
+		Gdip_DrawLine(gdi.G, pPen, x-r,y+r,x-10,y+10)
+		Gdip_DrawLine(gdi.G, pPen, x+r,y-r,x+10,y-10)
+		Gdip_DrawLine(gdi.G, pPen, x+r,y+r,x+10,y+10)
+	} else {
+		Gdip_DrawLine(gdi.G, pPen, x,y-r,x,y-10)
+		Gdip_DrawLine(gdi.G, pPen, x,y+r,x,y+10)
+		Gdip_DrawLine(gdi.G, pPen, x-r,y,x-10,y)
+		Gdip_DrawLine(gdi.G, pPen, x+r,y,x+10,y)
+	}
+
+	Gdip_DeletePen(pPen)
+	UpdateLayeredWindow(gdi.hwnd1, gdi.hdc, 0,0, scr.w, scr.h)
+
+	return
+}
+
+draw_box(x,y,w,h) {
+	global gdi, scr
+	
+	pPen := Gdip_CreatePen(0xffff0000, 1)
+	Gdip_DrawRectangle(gdi.G,pPen,x,y,w,h)
+	Gdip_DeletePen(pPen)
+	UpdateLayeredWindow(gdi.hwnd1, gdi.hdc, 0,0, scr.w, scr.h)
+
+	Return
 }
