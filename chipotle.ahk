@@ -831,3 +831,4 @@ winDim(scr) {
 #Include CMsgBox.ahk
 #Include ScrCmp.ahk
 #Include FindText.ahk
+#Include Gdip_All.ahk
