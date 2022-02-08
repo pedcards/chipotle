@@ -150,6 +150,10 @@ checkHandoff() {
 			gosub startHandoff															
 			return
 		}
+draw_crosshair(Illness[1].x,Illness[1].y)
+draw_box(Illness[1][1],Illness[1][2],Illness[1][3],Illness[1][4])
+draw_crosshair(IllnessBox[1].x,IllnessBox[1].y)
+draw_box(IllnessBox[1][1],IllnessBox[1][2],IllnessBox[1][3],IllnessBox[1][4])
 
 		return { tabX:ok[1].x															; x.coord of Handoff sidetab
 				, NameY:ok[1].y+round(36*scale)											; y.coord of Handoff Patient Name
