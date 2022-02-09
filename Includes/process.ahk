@@ -29,7 +29,7 @@ syncHandoff() {
 	*/
 	loop, 5
 	{
-		HndOff := checkHandoff()														; Check if Handoff running
+		HndOff := checkHandoff(winEpic)													; Check if Handoff running
 		if IsObject(HndOff) {															; and find key UI coords
 			break
 		}
@@ -123,7 +123,7 @@ syncHandoff() {
 	return res
 }
 
-checkHandoff() {
+checkHandoff(win) {
 /*	Check if Handoff is running for this Patient List
 	If not, start it
 	Returns 
@@ -140,6 +140,8 @@ checkHandoff() {
 	scale := scr.scale/100
 	rtside := 0.5*scr.w
 
+	WinActivate ahk_id %winEpic%
+	
 	if (ok:=FindText(okx,oky,rtside,0,scr.w,scr.h,0.0,0.0,hndText.HandoffTab)) {
 		MouseClick, Left, % ok[1].X, % ok[1].Y
 		sleep 200
