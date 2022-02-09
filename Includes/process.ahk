@@ -105,15 +105,19 @@ syncHandoff() {
 			y.insertElement("demog", MRNstring . "/diagnoses")							; Insert before "diagnoses" node.
 		}
 		
+		WinActivate % "ahk_id " scr.winEpic
 		readHndSummary(HndOff,fld)
 		res.push(fld)																	; push {MRN, Data, Summary} to RES
 
+		WinActivate % "ahk_id " scr.winEpic
+		Illness:=FindHndSection("IllnessSev",1)
+		clickButton(Illness.EditX,Illness.EditY+20)
 		SendInput, !n																	; Alt+n to move to next record
-		scrcmp(HndOff.IllnessFldX,HndOff.NameY,100,15)									; detect when Name on screen changes
+		scrcmp(Illness.EditX,HndOff.NameY,100,15)										; detect when Name on screen changes
 		
 		done .= fld.MRN "`n"
 		
-		sleep 500
+		sleep 200
 	}
 	BlockInput, Off
 	Progress, Off
