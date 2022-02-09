@@ -20,6 +20,7 @@ syncHandoff() {
 		eventlog("No Epic window found.")
 		Return
 	}
+	scr.winEpic := winEpic
 	WinActivate ahk_id %winEpic%
 	gdi_init()																			; create GDI canvas
 
