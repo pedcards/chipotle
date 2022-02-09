@@ -325,27 +325,6 @@ readHndIllness(ByRef HndOff, ByRef done) {
 	return fld
 }
 
-findHndSummary() {
-	global hndText, scr, HndOff
-	scale := scr.scale/100
-	rtside := 0.5*scr.w
-
-	x := HndOff.IllnessX-10
-	y := HndOff.IllnessY
-
-	Summary := FindText(okx,oky,x,y,x+100,y+400,0.0,0.0,hndText.PatientSum)
-	SummaryBox := FindText(okx,oky,x,Summary[1].y,x+100,oky+100,0.0,0.0,hndText.EditBox)
-	if !IsObject(Summary) {																; no Patient Summary field found
-		MsgBox error															
-		return
-	}
-
-	return	{ X:Summary[1][1]
-			, Y:Summary[1][2]
-			, FldX:SummaryBox[1].x														; x.coord of Patient Summary edit box
-			, FldY:SummaryBox[1][2]+SummaryBox[1][4]+20 }								; y.coord of Patient Summary edit box
-}
-
 readHndSummary(ByRef HndOff, ByRef fld) {
 /*	Read the Patient Summary field
 	Click twice (not double click) to ensure we are in field
