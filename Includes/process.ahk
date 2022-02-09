@@ -179,6 +179,41 @@ draw_box(IllnessBox[1][1],IllnessBox[1][2],IllnessBox[1][3],IllnessBox[1][4])
 	return
 }
 
+FindHndSection(sect,open:="") {
+/*	Find Handoff section
+	sect - Section name from hndText.sect
+	open - 1=click open closed section
+	returns coords of upper L corner of section header, upper edge of edit box, null if fails
+*/
+	global hndText, scr
+
+	rtside := 0.5*scr.w
+
+	secHeader := FindText(okx,oky,rtside,0,scr.w,scr.h,0.0,0.0,hndText[sect])
+	if !IsObject(secHeader) {															; no section header found (e.g. Illness Severity)
+		return																			; returns null
+	}
+
+	togDN := FindText(okx,oky,secHeader[1].x,secHeader[1][2],scr.w,secHeader[1][2]+secHeader[1][4],0.0,0.0,hndText.ToggleDN)
+	if (open && togDN) {
+		clickButton(secHeader[1].x,secHeader[1].y)
+		sleep 100
+		FindHndSection(sect,1)
+	}
+	togUP := FindText(okx,oky,secHeader[1].x,secHeader[1][2],scr.w,secHeader[1][2]+secHeader[1][4],0.0,0.0,hndText.ToggleUP)
+	secToggle := (togUP ? "UP" 
+		: togDN ? "DN"
+		: "")
+	secEdit := FindText(okx,oky,secHeader[1][1]-20,secHeader[1][2],secHeader[1][1]+200,secHeader[1][2]+200,0.0,0.0,hndText.EditBox)
+
+	return  { HeadX:secHeader.1.1
+			, HeadY:secHeader.1.2
+			, EditX:secEdit.1.1+secEdit.1.3
+			, EditY:secEdit.1.2+secEdit.1.4
+			, toggle:secToggle
+			, null:"" }
+}
+
 clickField(x,y) {
 /*	Click on text field with given coordinates (x,y)
 	Click a second time with offset coords to ensure we are in the box
