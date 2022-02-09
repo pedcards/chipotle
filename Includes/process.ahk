@@ -137,9 +137,10 @@ checkHandoff(win) {
 	scale := scr.scale/100
 	rtside := 0.5*scr.w
 
-	WinActivate ahk_id %winEpic%
+	WinActivate ahk_id %win%
 	
 	if (ok:=FindText(okx,oky,rtside,0,scr.w,scr.h,0.0,0.0,hndText.HandoffTab)) {
+		WinActivate ahk_id %win%
 		MouseClick, Left, % ok[1].X, % ok[1].Y
 		sleep 200
 		progress,,, Finding geometry
@@ -152,11 +153,13 @@ checkHandoff(win) {
 					or select single patient
 */
 	if (wrH:=FindText(okx,oky,0,0,rtside,500,0.0,0.0,hndText.WriteHand)) {
+		WinActivate ahk_id %win%
 		clickButton(wrH[1].x,wrH[1].y)
 		sleep 500
 	} 
 
-	if (room:=FindText(okx,oky,0,0,rtside,500,0.2,0.2,hndText.RoomBed) {
+	if (room:=FindText(okx,oky,0,0,rtside,500,0.2,0.2,hndText.RoomBed)) {
+		WinActivate ahk_id %win%
 		clickButton(room[1].x,room[1].y+50)
 		sleep 500
 	}
