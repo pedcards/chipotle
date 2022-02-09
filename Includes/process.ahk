@@ -47,6 +47,11 @@ syncHandoff() {
 		}
 	}
 
+	/*	Make sure Illness Severity and Patient Summary sections are open
+	*/
+	Illness:=FindHndSection("IllnessSev",1)
+	Summ:=FindHndSection("PatientSum",1)
+
 	/*	Find matching Service List on screen
 		Offer choice if no match
 	*/
