@@ -71,6 +71,12 @@ syncHandoff() {
 	}
 	eventlog("Found service: " HndOff.Service)
 
+	; Illness:=FindHndSection("IllnessSev",1)
+	; clickButton(Illness.EditX,Illness.EditY+20)
+	; sleep 150
+	; PixelSearch, px, py, % Illness.EditX, % Illness.EditY-3, % Illness.EditX, % Illness.EditY, 0xFF7700, 2
+
+	
 	/*	Loop through each patient using hotkeys, update smart links,
 		copy Illness Severity and Patient Summary fields to clipboard
 	*/
@@ -267,7 +273,7 @@ clickField(x,y) {
 
 clickButton(x,y) {
 	delay := 100
-	
+
 	MouseMove, % X, % Y 
 	MouseClick, Left, % x, % y
 	sleep % delay
