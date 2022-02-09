@@ -332,9 +332,8 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 	y.diagnoses/summ = Epic patient summary with timestamp
 	y.diagnoses/card = Chipotle diagnoses with timestamp
 */
-	global y, MRNstring, timenow
-	summ := findHndSummary()
-
+	global y, MRNstring, timenow, scr
+	
 	card := y.selectSingleNode(MRNstring "/diagnoses/card")
 	c_txt := card.Text
 	c_dt := card.getAttribute("ed")
@@ -342,12 +341,16 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 	e_txt := epic.Text
 	e_dt := epic.getAttribute("ed")
 
+	WinActivate % "ahk_id " scr.winEpic
+	summ := FindHndSection("PatientSum",1)
 	Clipboard :=
 	loop, 7
 	{
-		clickField(summ.FldX,summ.FldY)											; grab the Patient Summary field
+		WinActivate % "ahk_id " scr.winEpic
+		clickField(summ.EditX,summ.EditY+20)											; grab the Patient Summary field
 		clp := getClip("c")
 		if (clp="") {																	; nothing populated, try again
+			sleep 100
 			Continue
 		} 
 		; Patient Summary is empty
@@ -356,7 +359,8 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 				break
 			} 
 			Clipboard := c_txt															; - Card is present
-			clickField(summ.FldX,summ.FldY)
+			WinActivate % "ahk_id " scr.winEpic
+			clickField(summ.EditX,summ.EditY+20)
 			getClip("v")
 			ReplacePatNode(MRNstring "/diagnoses","summ",clp)
 			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("ed",timenow)
@@ -382,7 +386,8 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 		}
 		if ((clp = e_txt) && (c_dt != e_dt)) {											; CARD changed but Epic unchanged
 			Clipboard := c_txt															; most recent edit on Chipotle
-			clickField(summ.FldX,summ.FldY)
+			WinActivate % "ahk_id " scr.winEpic
+			clickField(summ.EditX,summ.EditY)
 			getClip("v")
 			ReplacePatNode(MRNstring "/diagnoses","summ",c_txt)
 			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("ed",c_dt)
