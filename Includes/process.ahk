@@ -117,7 +117,7 @@ syncHandoff() {
 		
 		done .= fld.MRN "`n"
 		
-		sleep 200
+		sleep 100
 	}
 	BlockInput, Off
 	Progress, Off
@@ -166,7 +166,7 @@ checkHandoff(win) {
 	if (ok:=FindText(okx,oky,rtside,0,scr.w,scr.h,0.0,0.0,hndText.HandoffTab)) {
 		WinActivate ahk_id %win%
 		MouseClick, Left, % ok[1].X, % ok[1].Y
-		sleep 200
+		sleep 100
 		progress,,, Finding geometry
 
 		return { tabX:ok[1].x															; x.coord of Handoff sidetab
@@ -257,15 +257,17 @@ clickField(x,y) {
 			ver:=True
 		}
 		if (ver) {
-			sleep % delay
+			; sleep % delay
 			break
 		}
-		sleep % delay
+		; sleep % delay
 	}
 	return
 }
 
 clickButton(x,y) {
+	delay := 100
+	
 	MouseMove, % X, % Y 
 	MouseClick, Left, % x, % y
 	sleep % delay
