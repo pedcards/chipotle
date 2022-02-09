@@ -216,7 +216,13 @@ FindHndSection(sect,open:="") {
 	secToggle := (togUP ? "UP" 
 		: togDN ? "DN"
 		: "")
-	secEdit := FindText(okx,oky,secHeader[1][1]-20,secHeader[1][2],secHeader[1][1]+200,secHeader[1][2]+200,0.0,0.0,hndText.EditBox)
+	loop, 3
+	{
+		secEdit := FindText(okx,oky,secHeader[1][1]-20,secHeader[1][2],secHeader[1][1]+200,secHeader[1][2]+200,0.1,0.1,hndText.EditBox)
+		if (secEdit) {
+			break
+		}
+	}
 
 	return  { HeadX:secHeader.1.1
 			, HeadY:secHeader.1.2
