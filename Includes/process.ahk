@@ -79,6 +79,13 @@ syncHandoff() {
 	{
 		timenow := A_now
 		fld := readHndIllness(HndOff,done)
+		if (fld="UNABLE") {																; Unable to edit Handoff error
+			WinActivate % "ahk_id " scr.winEpic
+			clickButton(HndOff.tabX-100,HndOff.NameY)
+			SendInput, !n																; Alt+n to move to next record
+			scrcmp(HndOff.tabX-100,HndOff.NameY,100,15)									; detect when Name on screen changes
+			Continue
+		}
 		if instr(done,fld.MRN) {														; break loop if we have read this record already
 			Break
 		}
@@ -192,7 +199,11 @@ FindHndSection(sect,open:="") {
 
 	secHeader := FindText(okx,oky,rtside,0,scr.w,scr.h,0.0,0.0,hndText[sect])
 	if !IsObject(secHeader) {															; no section header found (e.g. Illness Severity)
-		return																			; returns null
+		if FindText(okx,oky,rtside,0,scr.w,scr.y,0.0,0.0,hndText.Unable) {
+			return "UNABLE"
+		} else {
+			return
+		}
 	}
 
 	togDN := FindText(okx,oky,secHeader[1].x,secHeader[1][2],scr.w,secHeader[1][2]+secHeader[1][4],0.0,0.0,hndText.ToggleDN)
@@ -271,6 +282,9 @@ readHndIllness(ByRef HndOff, ByRef done) {
 	progress, % A_index*10,% " ",% " "
 	WinActivate % "ahk_id " scr.winEpic
 	Illness:=FindHndSection("IllnessSev",1)
+	if !IsObject(Illness) {
+		return Illness
+	}
 
 	Clipboard :=
 	fld := []
