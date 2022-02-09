@@ -298,7 +298,7 @@ readHndIllness(ByRef HndOff, ByRef done) {
 	{
 		progress,,% "Attempt " A_Index
 		WinActivate % "ahk_id " scr.winEpic
-		clickField(Illness.EditX, Illness.EditY+20)
+		clickField(Illness.EditX+100, Illness.EditY+20)
 		clp := getClip("c")
 		if (clp="") {
 			sleep 100
@@ -306,9 +306,9 @@ readHndIllness(ByRef HndOff, ByRef done) {
 		} 
 		if (clp="`r`n") {																; field is truly blank
 			WinActivate % "ahk_id " scr.winEpic
-			clickField(Illness.EditX, Illness.EditY+20)
+			clickField(Illness.EditX+100, Illness.EditY+20)
 			SendInput, .chipotletext{enter}												; type dot phrase to insert
-			clipbdWait(Illness.EditX, Illness.EditY+20)									; Wait for Clipbd icon after text expansion
+			clipbdWait(Illness.EditX-50, Illness.EditY)									; Wait for Clipbd icon after text expansion
 			Continue
 		}
 		WinActivate % "ahk_id " scr.winEpic
