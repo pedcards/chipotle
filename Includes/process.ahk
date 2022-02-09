@@ -77,7 +77,6 @@ syncHandoff() {
 	BlockInput, On
 	loop,
 	{
-		WinActivate ahk_id %winEpic%
 		timenow := A_now
 		fld := readHndIllness(HndOff,done)
 		if instr(done,fld.MRN) {														; break loop if we have read this record already
@@ -260,26 +259,31 @@ readHndIllness(ByRef HndOff, ByRef done) {
 /*	Read the Illness Severity field
 	Click twice (not double click) to ensure we are in field
 */
+	global scr
 	progress, % A_index*10,% " ",% " "
+	WinActivate % "ahk_id " scr.winEpic
+	Illness:=FindHndSection("IllnessSev",1)
 
 	Clipboard :=
 	fld := []
 	loop, 7																				; get 7 attempts to capture clipboard
 	{
 		progress,,% "Attempt " A_Index
-		clickField(HndOff.IllnessFldX+100,HndOff.IllnessFldY)
+		WinActivate % "ahk_id " scr.winEpic
+		clickField(Illness.EditX, Illness.EditY+20)
 		clp := getClip("c")
 		if (clp="") {
-			clickField(HndOff.IllnessFldX+100,HndOff.IllnessFldY)
 			sleep 100
 			Continue
 		} 
 		if (clp="`r`n") {																; field is truly blank
-			clickField(HndOff.IllnessFldX,HndOff+100.IllnessFldY)
+			WinActivate % "ahk_id " scr.winEpic
+			clickField(Illness.EditX, Illness.EditY+20)
 			SendInput, .chipotletext{enter}												; type dot phrase to insert
-			clipbdWait(HndOff.IllnessX,HndOff.IllnessFldY)					; Wait for Clipbd icon after text expansion
+			clipbdWait(Illness.EditX, Illness.EditY+20)									; Wait for Clipbd icon after text expansion
 			Continue
 		}
+		WinActivate % "ahk_id " scr.winEpic
 		SendInput, {del}
 		fld.MRN := strX(clp,"[MRN] ",1,6," [DOB]",0,6)									; clip changed from baseline
 		fld.Data := clp
