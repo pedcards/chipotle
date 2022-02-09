@@ -125,15 +125,12 @@ syncHandoff() {
 
 checkHandoff(win) {
 /*	Check if Handoff is running for this Patient List
-	If not, start it
-	Returns 
+	If not, start it and make sure Illness Severity and Patient Summary sections are open
 */
 
 /*	First stage: look for "Handoff" tab in right sidebar
-		* Find section header geometry for "Illness Severity", "Patient Summary", "Action Item"
-		* Find location of "Updates" (clapboard icon)
-		* Calculate targets for text fields, CHIPOTLETEXT, name bar
-		* Returns targets
+	* Open text sections
+	* Returns Handoff tabX, and Patient nameY values
 
 */
 	global hndText, scr
@@ -146,37 +143,23 @@ checkHandoff(win) {
 		MouseClick, Left, % ok[1].X, % ok[1].Y
 		sleep 200
 		progress,,, Finding geometry
-		Illness := FindText(okx,oky,rtside,ok[1].y,scr.w,scr.h,0.0,0.0,hndText.IllnessSev)
-		IllnessBox := FindText(okx,oky,rtside,Illness[1].y,scr.w,Illness[1].y+200,0.0,0.0,hndText.EditBox)
-		if !IsObject(Illness) {															; no Illness Severity field found
-			gosub startHandoff															
-			return
-		}
-draw_crosshair(Illness[1].x,Illness[1].y)
-draw_box(Illness[1][1],Illness[1][2],Illness[1][3],Illness[1][4])
-draw_crosshair(IllnessBox[1].x,IllnessBox[1].y)
-draw_box(IllnessBox[1][1],IllnessBox[1][2],IllnessBox[1][3],IllnessBox[1][4])
 
 		return { tabX:ok[1].x															; x.coord of Handoff sidetab
 				, NameY:ok[1].y+round(36*scale)											; y.coord of Handoff Patient Name
-				, IllnessX:Illness[1][1]												; x.coord of leftmost Illness Severity title
-				, IllnessY:Illness[1][2]												; y.coord of mid Illness Severity title
-				, IllnessFldX:IllnessBox[1].x											; x.coord of Illness Severity edit box
-				, IllnessFldY:IllnessBox[1][2]+IllnessBox[1][4]+20						; y.coord of Illness Severity edit box
 				, null:""}
 	} 
 /*	Second stage: Look for Write Handoff button (single patient selected)
 					or select single patient
 */
-	startHandoff:
-	if (FindText(okx,oky,0,0,rtside,500,0.0,0.0,hndText.WriteHand)) {
-		clickButton(okx,oky)
-		sleep 200
+	if (wrH:=FindText(okx,oky,0,0,rtside,500,0.0,0.0,hndText.WriteHand)) {
+		clickButton(wrH[1].x,wrH[1].y)
+		sleep 500
 	} 
 
-	FindText(okx,oky,0,0,rtside,500,0.2,0.2,hndText.RoomBed)
-	clickButton(okx,oky+50)
-	sleep 200
+	if (room:=FindText(okx,oky,0,0,rtside,500,0.2,0.2,hndText.RoomBed) {
+		clickButton(room[1].x,room[1].y+50)
+		sleep 500
+	}
 	
 	return
 }
