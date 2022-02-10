@@ -5,7 +5,6 @@ syncHandoff() {
 	refreshCurr()																		; Get latest local currlist into memory
 	Gui, main:Minimize
 	res := {}
-	escActive := true
 ; timenow := A_Now
 ; fld := {}
 ; fld.mrn := "1751700"
@@ -19,11 +18,13 @@ syncHandoff() {
 	if !(winEpic := WinExist("Hyperspace.*Production")) {
 		MsgBox NO EPIC WINDOW!
 		eventlog("No Epic window found.")
+		Gui, main:Show
 		Return
 	}
 	scr.winEpic := winEpic
 	WinActivate ahk_id %winEpic%
 	gdi_init()																			; create GDI canvas
+	escActive := true
 
 
 	/*	Check screen elements for Handoff, launch if necessary
