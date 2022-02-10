@@ -183,19 +183,17 @@ CatchEsc() {
 	If !(escActive) {
 		return
 	}
-	MsgBox 0x40024, Escape, Break?
+	MsgBox 0x40024, Escape, Break process?`n`nWill reset CHIPOTLE to previous state.
 
 	IfMsgBox Yes, {
 		BlockInput, Off
 		Progress, Off
-		escActive := false
-		Gui, main:Show
 		
 		Reload
 		exit
-	} 
-	
-	Return
+	} else {
+		return
+	}
 }
 
 listsort(list,parm="",ord:="") {
