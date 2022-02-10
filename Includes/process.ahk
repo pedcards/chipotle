@@ -89,7 +89,7 @@ syncHandoff() {
 		fld := readHndIllness(HndOff,done)
 		if (fld="UNABLE") {																; Unable to edit Handoff error
 			WinActivate % "ahk_id " scr.winEpic
-			clickButton(HndOff.tabX-100,HndOff.NameY)
+			clickButton(HndOff.tabX,HndOff.NameY-Round(36*(scr.scale/100)))
 			SendInput, !n																; Alt+n to move to next record
 			scrcmp(HndOff.tabX-100,HndOff.NameY,100,15)									; detect when Name on screen changes
 			Continue
