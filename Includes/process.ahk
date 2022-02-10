@@ -1,17 +1,15 @@
 syncHandoff() {
+/*	The main loop for syncing between CHIPOTLE and Handoff
+	Must be run from either PC or VDI so Epic window is visible to CHIPOTLE
+	Cannot be run directly from Citrix (sister process does not "see" other Citrix windows)
+
+*/
 	global y, MRNstring, EpicSvcList, svcText, timenow, scr, gdi, EscActive
 
 	eventlog("Starting Handoff sync.")
 	refreshCurr()																		; Get latest local currlist into memory
 	Gui, main:Minimize
 	res := {}
-; timenow := A_Now
-; fld := {}
-; fld.mrn := "1751700"
-; FileRead, tmp, files\eplist.clip
-; MRNstring := "/root/id[@mrn='" . fld.mrn . "']"
-; res.1 := {data:tmp}
-; processHandoff(res)
 
 	/*	Find Epic instance
 	*/
@@ -85,6 +83,8 @@ syncHandoff() {
 	BlockInput, On
 	loop,
 	{
+		/*	Populate fld with data from .CHIPOTLETEXT from Illness Severity 
+		*/
 		timenow := A_now
 		fld := readHndIllness(HndOff,done)
 		if (fld="UNABLE") {																; Unable to edit Handoff error
@@ -113,12 +113,17 @@ syncHandoff() {
 			y.insertElement("demog", MRNstring . "/diagnoses")							; Insert before "diagnoses" node.
 		}
 		
+		/*	Update DIAGNOSIS field with Patient Summary
+		*/
 		WinActivate % "ahk_id " scr.winEpic
 		readHndSummary(HndOff,fld)
 		res.push(fld)																	; push {MRN, Data, Summary} to RES
 
+		/*	Move to next patient
+			Wait until name field changes with scrcmp() 
+		*/
 		WinActivate % "ahk_id " scr.winEpic
-		Illness:=FindHndSection("IllnessSev",1)
+		Illness:=FindHndSection("IllnessSev")
 		clickButton(Illness.EditX,Illness.EditY+20)
 		SendInput, !n																	; Alt+n to move to next record
 		scrcmp(Illness.EditX,HndOff.NameY,100,15)										; detect when Name on screen changes
