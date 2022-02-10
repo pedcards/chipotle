@@ -177,6 +177,20 @@ Return
 
 ;	===========================================================================================
 
+Esc::
+CatchEsc() {
+	global EscKey
+	MsgBox 0x40024, Escape, Break?
+
+	IfMsgBox Yes, {
+		EscKey:=true
+		exit
+	} Else {
+		EscKey:=false
+	}
+	Return
+}
+
 listsort(list,parm="",ord:="") {
 /*	Sort a given list:
 		arg list =	location list to sort (e.g. CICUSur, EP, ICUCons, CSR, CICU, TXP, Cards, Ward, PHTN)
