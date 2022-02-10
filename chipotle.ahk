@@ -179,15 +179,22 @@ Return
 
 Esc::
 CatchEsc() {
-	global EscKey
+	global escActive
+	If !(escActive) {
+		return
+	}
 	MsgBox 0x40024, Escape, Break?
 
 	IfMsgBox Yes, {
-		EscKey:=true
+		BlockInput, Off
+		Progress, Off
+		escActive := false
+		Gui, main:Show
+		
+		Reload
 		exit
-	} Else {
-		EscKey:=false
-	}
+	} 
+	
 	Return
 }
 
