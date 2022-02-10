@@ -508,6 +508,8 @@ processHandoff(ByRef epic) {
 			? "NICU-F4"
 		: (fld.room~="FA\.3.*")
 			? "PULM-F3"
+		: (fld.room~="RB\.4.*")
+			? "MED-RB4"
 		: (fld.room~="FA\.7")
 			? "CAN-F7"
 		: (fld.room~="FA\.8")
