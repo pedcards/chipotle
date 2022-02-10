@@ -309,9 +309,6 @@ readHndIllness(ByRef HndOff, ByRef done) {
 	loop, 7																				; get 7 attempts to capture clipboard
 	{
 		progress,,% "Attempt " A_Index
-		if GetKeyState("Esc") {
-			
-		}
 		WinActivate % "ahk_id " scr.winEpic
 		clickField(Illness.EditX+100, Illness.EditY+20)
 		clp := getClip("c")
