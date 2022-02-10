@@ -1,10 +1,11 @@
 syncHandoff() {
-	global y, MRNstring, EpicSvcList, svcText, timenow, scr, gdi
+	global y, MRNstring, EpicSvcList, svcText, timenow, scr, gdi, EscActive
 
 	eventlog("Starting Handoff sync.")
 	refreshCurr()																		; Get latest local currlist into memory
 	Gui, main:Minimize
 	res := {}
+	escActive := true
 ; timenow := A_Now
 ; fld := {}
 ; fld.mrn := "1751700"
@@ -127,6 +128,7 @@ syncHandoff() {
 	}
 	BlockInput, Off
 	Progress, Off
+	escActive := false
 
 	filecheck()
 	updateList(HndOff.Service,done)
