@@ -363,6 +363,7 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 		WinActivate % "ahk_id " scr.winEpic
 		clickField(summ.EditX,summ.EditY+20)											; grab the Patient Summary field
 		clp := getClip("c")
+		SendInput, {Right}
 		if (clp="") {																	; nothing populated, try again
 			sleep 100
 			Continue
@@ -376,6 +377,7 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 			WinActivate % "ahk_id " scr.winEpic
 			clickField(summ.EditX,summ.EditY+20)
 			getClip("v")
+			SendInput, {Right}
 			ReplacePatNode(MRNstring "/diagnoses","summ",clp)
 			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("ed",timenow)
 			card.setAttribute("ed",timenow)
@@ -403,6 +405,7 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 			WinActivate % "ahk_id " scr.winEpic
 			clickField(summ.EditX,summ.EditY)
 			getClip("v")
+			SendInput, {Right}
 			ReplacePatNode(MRNstring "/diagnoses","summ",c_txt)
 			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("ed",c_dt)
 			eventlog(fld.mrn " Card diagnoses changed, updated to Handoff.")
