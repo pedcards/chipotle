@@ -158,18 +158,17 @@ checkHandoff(win) {
 	If not, start it and make sure Illness Severity and Patient Summary sections are open
 */
 
-/*	First stage: look for "Handoff" tab in right sidebar
-	* Open text sections
-	* Returns Handoff tabX, and Patient nameY values
-
-*/
 	global hndText, scr
 	scale := scr.scale/100
 	rtside := 0.5*scr.w
 
+/*	look for "Handoff" tab in right sidebar
+	* Open text sections
+	* On success, return Handoff tabX, and Patient nameY values
+*/
 	WinActivate ahk_id %win%
 	
-	if (FindText(okx,oky,rtside,0,scr.w,scr.h,0.0,0.0,hndText.NoPatient)) {
+	if (FindText(okx,oky,rtside,0,scr.w,scr.h,0.0,0.0,hndText.NoPatient)) {				; Finds "No Patient Handoff" error
 		WinActivate ahk_id %win%
 		clickButton(ok[1].X,ok[1].Y)
 		SendInput, !n																	; Alt+n to move to next record
@@ -178,17 +177,12 @@ checkHandoff(win) {
 	}
 	
 	if (ok:=FindText(okx,oky,rtside,0,scr.w,scr.h,0.0,0.0,hndText.HandoffTab)) {
-		WinActivate ahk_id %win%
-		MouseClick, Left, % ok[1].X, % ok[1].Y
-		sleep 100
-		progress,,, Finding geometry
-
 		return { tabX:ok[1].x															; x.coord of Handoff sidetab
 				, NameY:ok[1].y+round(36*scale)											; y.coord of Handoff Patient Name
 				, null:""}
 	} 
-/*	Second stage: Look for Write Handoff button (single patient selected)
-					or select single patient
+/*	Look for Write Handoff button (single patient selected)
+	or select single patient
 */
 	if (wrH:=FindText(okx,oky,0,0,rtside,500,0.0,0.0,hndText.WriteHand)) {
 		WinActivate ahk_id %win%
