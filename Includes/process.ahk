@@ -29,7 +29,7 @@ syncHandoff() {
 		(this is much faster if already selected)
 	*/
 	Progress, , Finding Geometry`n
-		, `nSyncing Handoff...`n`nDo not touch mouse or keyboard!`n`n[esc] to cancel`n
+		, `nSyncing Handoff...`n`nDo not touch mouse or keyboard!`n`n[ctrl-esc] to cancel`n
 		, Handoff Sync
 	loop, 5
 	{
