@@ -168,6 +168,12 @@ checkHandoff(win) {
 */
 	WinActivate ahk_id %win%
 	
+	if (FindText(okx,oky,rtside,0,scr.w,scr.h,0.0,0.0,hndText.ArrowLt)) {				; Right panel is collapsed
+		WinActivate ahk_id %win%
+		clickButton(okX,okY)
+		sleep 100
+		return
+	}
 	if (FindText(okx,oky,rtside,0,scr.w,scr.h,0.0,0.0,hndText.NoPatient)) {				; Finds "No Patient Handoff" error
 		WinActivate ahk_id %win%
 		clickButton(ok[1].X,ok[1].Y)
