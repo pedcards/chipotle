@@ -386,11 +386,11 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 	global y, MRNstring, timenow, scr
 	
 	card := y.selectSingleNode(MRNstring "/diagnoses/card")
-	c_txt := card.Text
-	c_dt := card.getAttribute("ed")
+	c_txt := card.Text																	; Text from diagnoses/card
+	c_dt := card.getAttribute("ed")														; last saved DT
 	epic := y.selectSingleNode(MRNstring "/diagnoses/summ")
-	e_txt := epic.Text
-	e_dt := epic.getAttribute("ed")
+	e_txt := epic.Text																	; Text from last Patient Summary
+	e_dt := epic.getAttribute("ed")														; last saved DT
 
 	WinActivate % "ahk_id " scr.winEpic
 	summ := FindHndSection("PatientSum",1)
