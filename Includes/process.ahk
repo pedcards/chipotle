@@ -28,6 +28,9 @@ syncHandoff() {
 	/*	Check screen elements for Handoff, launch if necessary
 		(this is much faster if already selected)
 	*/
+	Progress, , Finding Geometry`n
+		, `nSyncing Handoff...`n`nDo not touch mouse or keyboard!`n`n[esc] to cancel`n
+		, Handoff Sync
 	loop, 5
 	{
 		HndOff := checkHandoff(winEpic)													; Check if Handoff running
@@ -35,7 +38,6 @@ syncHandoff() {
 			break
 		}
 	}
-	Progress, Off
 	if !IsObject(HndOff) {
 		MsgBox 0x40015, Handoff Sync, Failed to find Handoff panel.`n`nTry again?
 		IfMsgBox, Retry
@@ -43,6 +45,7 @@ syncHandoff() {
 			syncHandoff()
 			return
 		} else {
+			Progress, Off
 			Gui, main:Show
 			return
 		}
@@ -56,6 +59,7 @@ syncHandoff() {
 	/*	Find matching Service List on screen
 		Offer choice if no match
 	*/
+	Progress,,Finding service
 	Loop, % EpicSvcList.MaxIndex()
 	{
 		k := EpicSvcList[A_index]
@@ -85,6 +89,7 @@ syncHandoff() {
 	{
 		/*	Populate fld with data from .CHIPOTLETEXT from Illness Severity 
 		*/
+		Progress,,Record %A_Index%
 		timenow := A_now
 		fld := readHndIllness(HndOff,done)
 		if (fld="UNABLE") {																; Unable to edit Handoff error
@@ -305,7 +310,6 @@ readHndIllness(ByRef HndOff, ByRef done) {
 	Click twice (not double click) to ensure we are in field
 */
 	global scr
-	progress, % A_index*10,% " ",% " "
 	WinActivate % "ahk_id " scr.winEpic
 	Illness:=FindHndSection("IllnessSev",1)
 	if !IsObject(Illness) {
@@ -314,9 +318,9 @@ readHndIllness(ByRef HndOff, ByRef done) {
 
 	Clipboard :=
 	fld := []
-	loop, 7																				; get 7 attempts to capture clipboard
+	loop, 5																				; get 5 attempts to capture clipboard
 	{
-		progress,,% "Attempt " A_Index
+		progress, % 20*A_Index
 		WinActivate % "ahk_id " scr.winEpic
 		clickField(Illness.EditX+100, Illness.EditY+20)
 		clp := getClip("c")
@@ -335,7 +339,7 @@ readHndIllness(ByRef HndOff, ByRef done) {
 		SendInput, {del}
 		fld.MRN := strX(clp,"[MRN] ",1,6," [DOB]",0,6)									; clip changed from baseline
 		fld.Data := clp
-		progress,,,% fld.MRN
+		progress,,% "Found " fld.MRN
 		break
 	}
 	if instr(done,fld.MRN) {															; break loop if we have read this record already
