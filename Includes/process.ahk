@@ -439,7 +439,7 @@ clipbdWait(x,y,timeout:=5,tick:=100) {
 */
 	global hndText
 	t1 := A_TickCount+1000*timeout
-	MouseMove, % X+80, % Y
+	MouseMove, % X+120, % Y
 
 	While, (A_tickcount < t1)
 	{
