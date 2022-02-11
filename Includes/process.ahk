@@ -444,12 +444,11 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 	Return
 }
 
-clipbdWait(x,y,timeout:=5,tick:=100) {
+clipbdWait(x,y,timeout:=5,tick:=50) {
 /*	Search for clipboard from (x,y) to (x+100,y+100)
 */
 	global hndText
 	t1 := A_TickCount+1000*timeout
-	MouseMove, % X+120, % Y
 
 	While, (A_tickcount < t1)
 	{
