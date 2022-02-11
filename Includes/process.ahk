@@ -306,7 +306,7 @@ clickButton(x,y) {
 getClip(k) {
 	str := "^" k
 	SendInput, ^a
-	sleep 50
+	sleep 150
 	SendInput, % str
 	if (k="v") {																		; Pasting, don't wait for clipboard
 		return
