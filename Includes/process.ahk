@@ -333,7 +333,7 @@ readHndIllness(ByRef HndOff, ByRef done) {
 		progress, % 20*A_Index
 		WinActivate % "ahk_id " scr.winEpic
 		clickField(Illness.EditX+100, Illness.EditY+16)
-		clp := getClip("c")
+		clp := getClip("x")
 		if (clp="") {
 			sleep 100
 			Continue
@@ -343,10 +343,27 @@ readHndIllness(ByRef HndOff, ByRef done) {
 			clickField(Illness.EditX+100, Illness.EditY+16)
 			SendInput, .chipotletext{enter}												; type dot phrase to insert
 			clipbdWait(Illness.EditX-50, Illness.EditY)									; Wait for Clipbd icon after text expansion
+			clipsent := true
 			Continue
+		} 
+		if !(clipsent) {
+			if instr(clp,"--CHIPOTLE Sign Out") {
+				continue
+			} else {
+				clp0 := trim(clp,"`r`n")
+				Continue
+			}
 		}
 		WinActivate % "ahk_id " scr.winEpic
-		SendInput, {del}
+		clickfield(Illness.EditX+100, Illness.EditY+16)
+		if (clp0) {
+			Clipboard := clp0
+			sleep 150
+			getClip("v")
+			SendInput, {Right}
+		} else {
+			SendInput, {del}
+		}
 		fld.MRN := strX(clp,"[MRN] ",1,6," [DOB]",0,6)									; clip changed from baseline
 		fld.Data := clp
 		progress,,% "Found " fld.MRN
