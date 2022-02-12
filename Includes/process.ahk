@@ -38,9 +38,6 @@ syncHandoff() {
 	/*	Check screen elements for Handoff, launch if necessary
 		(this is much faster if already selected)
 	*/
-	Progress, , Finding Geometry`n
-		, `nSyncing Handoff...`n`nDo not touch mouse or keyboard!`n`n[ctrl-esc] to cancel`n
-		, Handoff Sync
 	loop, 5
 	{
 		HndOff := checkHandoff(winEpic)													; Check if Handoff running
@@ -60,6 +57,9 @@ syncHandoff() {
 			return
 		}
 	}
+	Progress, , Finding Geometry`n
+		, `nSyncing Handoff...`n`nDo not touch mouse or keyboard!`n`n[ctrl-esc] to cancel`n
+		, Handoff Sync
 
 	/*	Make sure Illness Severity and Patient Summary sections are open
 	*/
