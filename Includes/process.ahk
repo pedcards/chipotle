@@ -57,14 +57,14 @@ syncHandoff() {
 			return
 		}
 	}
-	Progress, , Finding Geometry`n
-		, `nSyncing Handoff...`n`nDo not touch mouse or keyboard!`n`n[ctrl-esc] to cancel`n
-		, Handoff Sync
-
 	/*	Make sure Illness Severity and Patient Summary sections are open
 	*/
 	Illness:=FindHndSection("IllnessSev",1)
 	Summ:=FindHndSection("PatientSum",1)
+
+	Progress, % "y" Illness.HeadY, Finding Geometry`n
+		, `nSyncing Handoff...`n`nDo not touch mouse or keyboard!`n`n[ctrl-esc] to cancel`n
+		, Handoff Sync
 
 	/*	Find matching Service List on screen
 		Offer choice if no match
