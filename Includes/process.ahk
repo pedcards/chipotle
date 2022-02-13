@@ -304,9 +304,12 @@ clickButton(x,y) {
 }
 
 getClip(k) {
+	global scr, hndText
 	str := "^" k
 	SendInput, ^a
-	sleep 150
+	if (FindText(okx,oky,0.5*scr.w,0,scr.w,scr.h,0.0,0.0,hndText.Multiple)) {
+	}
+	; sleep 150
 	SendInput, % str
 	if (k="v") {																		; Pasting, don't wait for clipboard
 		return
