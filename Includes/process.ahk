@@ -85,12 +85,6 @@ syncHandoff() {
 	}
 	eventlog("Found service: " HndOff.Service)
 
-	; Illness:=FindHndSection("IllnessSev",1)
-	; clickButton(Illness.EditX,Illness.EditY+20)
-	; sleep 150
-	; PixelSearch, px, py, % Illness.EditX, % Illness.EditY-3, % Illness.EditX, % Illness.EditY, 0xFF7700, 2
-
-	
 	/*	Loop through each patient using hotkeys, update smart links,
 		copy Illness Severity and Patient Summary fields to clipboard
 	*/
@@ -189,7 +183,7 @@ checkHandoff(win) {
 		sleep 100
 		return
 	}
-	if (FindText(okx,oky,0,0,scr.w,scr.h,0.0,0.0,hndText.ArrowUp)) {				; Bottom panel is opened
+	if (FindText(okx,oky,0,0,scr.w,scr.h,0.0,0.0,hndText.ArrowUp)) {					; Bottom panel is opened
 		WinActivate ahk_id %win%
 		clickButton(okX,okY)
 		sleep 100
