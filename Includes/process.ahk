@@ -1,4 +1,4 @@
-syncHandoff() {
+syncHandoff(restart:="") {
 /*	The main loop for syncing between CHIPOTLE and Handoff
 	Must be run from either PC or VDI so Epic window is visible to CHIPOTLE
 	Cannot be run directly from Citrix (sister process does not "see" other Citrix windows)
@@ -6,15 +6,17 @@ syncHandoff() {
 */
 	global y, MRNstring, EpicSvcList, svcText, timenow, scr, gdi, EscActive
 
-	MsgBox 0x31, Handoff Sync
-		, % "Ready to start Handoff Sync?`n`n`n"
-		. "This will take 1-2 minutes.`n`n"
+	if !(restart) {
+		MsgBox 0x31, Handoff Sync
+			, % "Ready to start Handoff Sync?`n`n`n"
+			. "This will take 1-2 minutes.`n`n"
 		. "Do not touch your mouse or keyboard during the process.`n`n"
 		. "[ctrl-esc] to cancel during sync."
 	IfMsgBox OK, {
 		
-	} Else {
-		return
+		} Else {
+			return
+		}
 	}
 	eventlog("Starting Handoff sync.")
 	refreshCurr()																		; Get latest local currlist into memory
@@ -49,7 +51,7 @@ syncHandoff() {
 		MsgBox 0x40015, Handoff Sync, Failed to find Handoff panel.`n`nTry again?
 		IfMsgBox, Retry
 		{
-			syncHandoff()
+			syncHandoff("Y")
 			return
 		} else {
 			Progress, Off
