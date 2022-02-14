@@ -10,10 +10,10 @@ syncHandoff(restart:="") {
 		MsgBox 0x31, Handoff Sync
 			, % "Ready to start Handoff Sync?`n`n`n"
 			. "This will take 1-2 minutes.`n`n"
-		. "Do not touch your mouse or keyboard during the process.`n`n"
-		. "[ctrl-esc] to cancel during sync."
-	IfMsgBox OK, {
-		
+			. "Do not touch your mouse or keyboard during the process.`n`n"
+			. "[ctrl-esc] to cancel during sync."
+		IfMsgBox OK, {
+			
 		} Else {
 			return
 		}
@@ -335,7 +335,7 @@ readHndIllness(ByRef HndOff, ByRef done) {
 	global scr
 	WinActivate % "ahk_id " scr.winEpic
 	Illness:=FindHndSection("IllnessSev",1)
-	if !IsObject(Illness) {
+	if !IsObject(Illness) {																; no object, return error string
 		return Illness
 	}
 
