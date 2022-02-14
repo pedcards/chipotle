@@ -232,10 +232,13 @@ FindHndSection(sect,open:="") {
 
 	secHeader := FindText(okx,oky,rtside,0,scr.w,scr.h,0.0,0.0,hndText[sect])
 	if !IsObject(secHeader) {															; no section header found (e.g. Illness Severity)
-		if FindText(okx,oky,rtside,0,scr.w,scr.y,0.0,0.0,hndText.Unable) {
+		if FindText(okx,oky,rtside,0,scr.w,scr.y,0.0,0.0,hndText.Unable) {				; Unable to edit Handoff message
 			return "UNABLE"
+		} else 
+		if FindText(okx,oky,rtside,0,scr.w,scr.y,0.0,0.0,hndText.Multiple) {			; Multiple patients selected message
+			return "MULTIPLE"
 		} else {
-			return
+			Return
 		}
 	}
 
