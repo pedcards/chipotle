@@ -103,6 +103,14 @@ syncHandoff() {
 			scrcmp(HndOff.tabX-100,HndOff.NameY,100,15)									; detect when Name on screen changes
 			Continue
 		}
+		if (fld="MULTIPLE") {															; Multiple patients got selected somehow
+			WinActivate % "ahk_id " scr.winEpic
+			clickButton(HndOff.tabX,HndOff.NameY-Round(36*(scr.scale/100)))
+			SendInput, !n																
+			scrcmp(HndOff.tabX-100,HndOff.NameY,100,15)									
+			syncHandoff("Y")															; restart the cycl
+			Return
+		}
 		if instr(done,fld.MRN) {														; break loop if we have read this record already
 			Break
 		}
