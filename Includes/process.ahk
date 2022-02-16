@@ -145,6 +145,8 @@ syncHandoff(restart:="") {
 		readHndSummary(HndOff,fld)
 		res.push(fld)																	; push {MRN, Data, Summary} to RES
 
+		done .= fld.MRN "`n"
+		
 		/*	Move to next patient
 			Wait until name field changes with scrcmp() 
 		*/
@@ -153,8 +155,6 @@ syncHandoff(restart:="") {
 		clickButton(Illness.EditX,Illness.EditY+20)
 		SendInput, !n																	; Alt+n to move to next record
 		scrcmp(Illness.EditX,HndOff.NameY,100,15)										; detect when Name on screen changes
-		
-		done .= fld.MRN "`n"
 		
 		sleep 100
 	}
