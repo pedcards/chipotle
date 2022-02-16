@@ -77,6 +77,8 @@ syncHandoff(restart:="") {
 		k := EpicSvcList[A_index]
 		if IsObject(FindText(okx,oky,0,0,scr.W,scr.H,0.0,0.0,svcText[k])) {
 			HndOff.Service := k
+			HndOff.ServiceX := okx
+			HndOff.ServiceY := oky-16
 			break
 		}
 	}
@@ -86,6 +88,11 @@ syncHandoff(restart:="") {
 		return
 	}
 	eventlog("Found service: " HndOff.Service)
+	/*	Check if only 1 patient
+	*/
+	if FindText(okx,oky,0,0,scr.w,scr.h,2,2,hndText.JustOne) {
+		HndOff.JustOne := true 
+	}
 
 	/*	Loop through each patient using hotkeys, update smart links,
 		copy Illness Severity and Patient Summary fields to clipboard
