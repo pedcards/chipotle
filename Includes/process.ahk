@@ -147,6 +147,12 @@ syncHandoff(restart:="") {
 
 		done .= fld.MRN "`n"
 		
+		/*	If only 1 patient
+		*/
+		if (hndOff.JustOne=true) {
+			break
+		}
+
 		/*	Move to next patient
 			Wait until name field changes with scrcmp() 
 		*/
