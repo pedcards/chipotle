@@ -90,7 +90,7 @@ syncHandoff(restart:="") {
 	eventlog("Found service: " HndOff.Service)
 	/*	Check if only 1 patient
 	*/
-	if FindText(okx,oky,0,0,scr.W,scr.H,0.1,0.1,hndText.JustOne) {
+	if FindText(okx,oky,0,0,scr.W,scr.H,0.0,0.0,svcText["JustOne"]) {
 		HndOff.JustOne := true 
 	}
 
