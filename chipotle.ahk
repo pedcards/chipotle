@@ -406,6 +406,7 @@ getPnProv(cel,node) {
 		prov := parsePnProv(A_LoopField)
 		y.addElement("prov", node, {svc:prov.svc,date:prov.date}, prov.prov)
 	}
+	return
 }
 
 parsePnProv(txt) {
