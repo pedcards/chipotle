@@ -348,7 +348,7 @@ readHndIllness(ByRef HndOff, ByRef done) {
 		clickField(Illness.EditX+100, Illness.EditY+16)
 		clp := getClip("x")
 		if (clp="") {
-			sleep 100
+			sleep 50
 			Continue
 		} 
 		if (clp="`r`n") {																; field is truly blank
@@ -415,7 +415,7 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 		clp := getClip("c")
 		SendInput, {Right}
 		if (clp="") {																	; nothing populated, try again
-			sleep 100
+			sleep 50
 			Continue
 		} 
 		; Patient Summary is empty
