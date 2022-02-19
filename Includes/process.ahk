@@ -316,10 +316,7 @@ clickField(x,y) {
 
 clickButton(x,y) {
 	delay := 100
-
-	MouseMove, % X, % Y 
 	MouseClick, Left, % x, % y
-	sleep % delay
 	Return
 }
 
