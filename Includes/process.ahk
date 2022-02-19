@@ -301,21 +301,15 @@ clickField(x,y) {
 
 	Loop, 8
 	{
-		MouseMove, % X, % Y 
 		MouseClick, Left, % x, % y
-		sleep % delay
-		MouseMove, % X+5, % Y+5 
-		MouseClick, Left, % x+5, % y+5
-		sleep % delay
+		MouseClick, Left, % x+10, % y+10
 		
 		if (FindText(okx,oky,x,y-100,x+100,y+100,0.0,0.0,hndText.ActiveBox)) {
 			ver:=True
 		}
 		if (ver) {
-			; sleep % delay
 			break
 		}
-		; sleep % delay
 	}
 	return
 }
