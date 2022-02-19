@@ -419,7 +419,9 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 			sleep 50
 			Continue
 		} 
-		; Patient Summary is empty
+
+		/*	Patient Summary is empty
+		*/
 		if (clp="`r`n") {
 			if (c_txt="") {																; - if Card empty as well, then exit
 				break
@@ -435,10 +437,17 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 			eventlog(fld.mrn " Card diagnoses added to Handoff.")
 			Break
 		}
-		clp := trim(clp,"`r`n ")
-		clp := StrReplace(clp, "`r`n", "`n")
 
-		; Patient Summary is not empty, but Diagnoses/Card is empty
+		/*	Patient Summary is not empty
+		*/
+ 		clp := trim(clp,"`r`n ")
+		clp := StrReplace(clp, "`r`n", "`n")
+		
+		; Check for illegal characters
+		;
+		;
+
+		; ... Diagnoses/Card is empty
 		if (c_txt="") {
 			ReplacePatNode(MRNstring "/diagnoses","card",clp)
 			y.selectSingleNode(MRNstring "/diagnoses/card").setAttribute("ed",timenow)
@@ -447,10 +456,12 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 			eventlog(fld.mrn " Handoff summary added to Chipotle.")
 			Break
 		}
-		; Patient Summary not empty, and Diagnoses/Card not empty
+
+		; ... Diagnoses/Card not empty
 		if (c_txt=clp) {																; no changes, exit
 			Break
 		}
+
 		if ((clp = e_txt) && (c_dt != e_dt)) {											; CARD changed but Epic unchanged
 			Clipboard := c_txt															; most recent edit on Chipotle
 			WinActivate % "ahk_id " scr.winEpic
@@ -462,7 +473,8 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 			eventlog(fld.mrn " Card diagnoses changed, updated to Handoff.")
 			Break
 		}
-		if (clp != e_txt) 					 {											; CLIP changed but CARD unchanged
+
+		if (clp != e_txt) {					 											; CLIP changed but CARD unchanged
 			ReplacePatNode(MRNstring "/diagnoses","card",clp)							; must assume Epic change more recent
 			y.selectSingleNode(MRNstring "/diagnoses/card").setAttribute("ed",timenow)
 			ReplacePatNode(MRNstring "/diagnoses","summ",clp)
