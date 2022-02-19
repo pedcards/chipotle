@@ -206,7 +206,7 @@ checkHandoff(win) {
 		sleep 100
 		return
 	}
-	if (FindText(okx,oky,0,0,scr.w,scr.h,0.0,0.0,hndText.ArrowUp)) {					; Bottom panel is opened
+	if (FindText(okx,oky,0,0,scr.w,scr.h,0.0,0.0,hndText.ArrowDn)) {					; Bottom panel is opened
 		WinActivate ahk_id %win%
 		clickButton(okX,okY)
 		sleep 100
