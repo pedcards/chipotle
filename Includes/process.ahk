@@ -446,10 +446,13 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 		*/
  		clp := trim(clp,"`r`n ")
 		clp := StrReplace(clp, "`r`n", "`n")
+		charsub := false
 		
 		; Check for illegal characters
-		;
-		;
+		if instr(clp,chr(160)) {
+			clp := StrReplace(clp,chr(160)," ")
+			charsub := true
+		}
 
 		; ... Diagnoses/Card is empty
 		if (c_txt="") {
