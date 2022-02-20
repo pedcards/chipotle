@@ -206,6 +206,8 @@ checkHandoff(win) {
 		clickButton(okX,okY)
 		sleep 100
 		return
+	} else {
+		FindText(panelX,panelY,rtside,0,scr.w,scr.h,0.0,0.0,hndText.ArrowRt)			; Right panel X
 	}
 	if (FindText(okx,oky,0,0,scr.w,scr.h,0.0,0.0,hndText.ArrowDn)) {					; Bottom panel is opened
 		WinActivate ahk_id %win%
@@ -223,6 +225,8 @@ checkHandoff(win) {
 	
 	if (ok:=FindText(okx,oky,rtside,0,scr.w,scr.h,0.0,0.0,hndText.HandoffTab)) {
 		return { tabX:ok[1].x															; x.coord of Handoff sidetab
+				, tabY:ok[1].y															; y.coord of Handoff sidetab
+				, panelX:panelX
 				, NameY:ok[1].y+round(36*scale)											; y.coord of Handoff Patient Name
 				, null:""}
 	} 
