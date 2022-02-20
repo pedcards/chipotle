@@ -491,6 +491,18 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 	Return
 }
 
+summReplace(ByRef summ) {
+/*	Replace Patient Summary with clipboard
+*/
+	global scr
+
+	WinActivate % "ahk_id " scr.winEpic
+	clickField(summ.EditX,summ.EditY)
+	getClip("v")
+	SendInput, {Right}
+	Return
+}
+
 clipbdWait(x,y,timeout:=5,tick:=50) {
 /*	Search for clipboard from (x,y) to (x+100,y+100)
 */
