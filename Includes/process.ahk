@@ -103,7 +103,7 @@ syncHandoff(restart:="") {
 		/*	Populate fld with data from .CHIPOTLETEXT from Illness Severity 
 		*/
 		Progress,,Record %A_Index%
-		sleep 200
+		; sleep 200																		; might need to sleep if selecting patients for deletion
 		timenow := A_now
 		fld := readHndIllness(HndOff,done)
 		if (fld="UNABLE") {																; Unable to edit Handoff error
