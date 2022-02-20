@@ -527,9 +527,10 @@ checkXML(xml) {
 		pre := instr(substr(str,1,pos),"mrn=",,0)										; search backwards from pos
 		mrn := trim(stregX(str,"mrn=",pre,1,">",1)," """)
 		tag := stregX(str,"</",pos,0,">",0)
+		bad := substr(str,pos+1,1)
 		
 		str := RegExReplace(str,"[^[:ascii:]]","~",,1)									; replace 1 illegal char
-		eventlog("Illegal chars detected in " xml " pos " pos ", <id mrn=" mrn ">" tag ".")
+		eventlog("Illegal char (" asc(bad) ") detected in " xml " pos " pos ", <id mrn=" mrn ">" tag ".")
 	}
 	
 	return str
