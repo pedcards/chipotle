@@ -431,10 +431,7 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 				break
 			} 
 			Clipboard := c_txt															; - Card is present
-			WinActivate % "ahk_id " scr.winEpic
-			clickField(summ.EditX,summ.EditY+20)
-			getClip("v")
-			SendInput, {Right}
+			summReplace(summ)
 			ReplacePatNode(MRNstring "/diagnoses","summ",clp)
 			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("ed",timenow)
 			card.setAttribute("ed",timenow)
@@ -471,10 +468,7 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 
 		if ((clp = e_txt) && (c_dt != e_dt)) {											; CARD changed but Epic unchanged
 			Clipboard := c_txt															; most recent edit on Chipotle
-			WinActivate % "ahk_id " scr.winEpic
-			clickField(summ.EditX,summ.EditY)
-			getClip("v")
-			SendInput, {Right}
+			summReplace(summ)
 			ReplacePatNode(MRNstring "/diagnoses","summ",c_txt)
 			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("ed",c_dt)
 			eventlog(fld.mrn " Card diagnoses changed, updated to Handoff.")
