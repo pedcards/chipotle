@@ -458,6 +458,13 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 			ReplacePatNode(MRNstring "/diagnoses","summ",clp)
 			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("ed",timenow)
 			eventlog(fld.mrn " Handoff summary added to Chipotle.")
+
+			if (charsub) {
+				clipboard := clp														; replace Summary with fixed chars
+				summReplace(summ)
+				eventlog(fld.mrn " Summary replaced charsub")
+			}
+
 			Break
 		}
 
@@ -472,6 +479,13 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 			ReplacePatNode(MRNstring "/diagnoses","summ",c_txt)
 			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("ed",c_dt)
 			eventlog(fld.mrn " Card diagnoses changed, updated to Handoff.")
+
+			if (charsub) {
+				clipboard := clp														; replace Summary with fixed chars
+				summReplace(summ)
+				eventlog(fld.mrn " Summary replaced charsub")
+			}
+
 			Break
 		}
 
@@ -481,6 +495,13 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 			ReplacePatNode(MRNstring "/diagnoses","summ",clp)
 			y.selectSingleNode(MRNstring "/diagnoses/summ").setAttribute("ed",timenow)
 			eventlog(fld.mrn " Handoff changed, updated to Chipotle.")
+
+			if (charsub) {
+				clipboard := clp														; replace Summary with fixed chars
+				summReplace(summ)
+				eventlog(fld.mrn " Summary replaced charsub")
+			}
+
 			Break
 		}
 		eventlog(fld.mrn " did not match rules.")
