@@ -376,7 +376,7 @@ readHndIllness(ByRef HndOff, ByRef done) {
 		clickfield(Illness.EditX+100, Illness.EditY+16)
 		if (clp0) {
 			Clipboard := clp0
-			sleep 150
+			; sleep 150
 			getClip("v")
 			SendInput, {Right}
 		} else {
