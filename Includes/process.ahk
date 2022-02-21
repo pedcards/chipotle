@@ -577,7 +577,7 @@ processHandoff(ByRef epic) {
 		, mrnstring, timenow, yMarDt
 		, cicudocs, txpdocs
 		, loc, location, locString
-		, cis_list
+		, cis_list, unitloc
 	
 	totalIndex := epic.MaxIndex()
 	loop, % totalIndex
@@ -600,31 +600,14 @@ processHandoff(ByRef epic) {
 		}
 		fld.time := t1
 		fld.admit := parseDate(fld.admit).YMD
-		fld.unit := (fld.room~="FA\.6.*-C")
-			? "CICU-F6"
-		: (fld.room~="FA\.6.*-P")
-			? "PICU-F6"
-		: (fld.room~="FA\.5.*-P")
-			? "PICU-F5"
-		: (fld.room~="RC\.6.*")
-			? "SUR-RC6"
-		: (fld.room~="RB\.6.*")
-			? "SUR-RB6"
-		: (fld.room~="FA\.5.*-N")
-			? "NICU-F5"
-		: (fld.room~="FA\.4.*-N")
-			? "NICU-F4"
-		: (fld.room~="FA\.3.*")
-			? "PULM-F3"
-		: (fld.room~="RB\.4.*")
-			? "MED-RB4"
-		: (fld.room~="RC\.4.*")
-			? "MED-RC4"
-		: (fld.room~="FA\.7")
-			? "CAN-F7"
-		: (fld.room~="FA\.8")
-			? "CAN-F8"
-		: fld.unit
+		loop, % unitloc.Length()
+		{
+			unitrx := StrSplit(unitloc[A_Index],":")
+			if (fld.room~=unitrx[1]) {
+				fld.unit := unitrx[2]
+				Break
+			}
+		}
 
 		datatxt := parseTag(clp,"Data")
 		vstxt := parseTag(datatxt,"vs")
