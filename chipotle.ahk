@@ -36,8 +36,8 @@ Sleep 500
 
 global path
 scr:=screenDims()
-win:=winDim(scr)
 gosub getIni
+win:=winDim(scr)
 
 if InStr(A_WorkingDir,"Ahk") {
 	isLocal := true
