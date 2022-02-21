@@ -531,15 +531,17 @@ summReplace(ByRef summ) {
 	Return
 }
 
-clipbdWait(x,y,timeout:=5,tick:=50) {
+clipbdWait(x,y,x2,h) {
 /*	Search for clipboard from (x,y) to (x+100,y+100)
 */
 	global hndText
+	timeout:=7
+	tick:=50
 	t1 := A_TickCount+1000*timeout
 
 	While, (A_tickcount < t1)
 	{
-		if IsObject(ok:=FindText(okx,oky,x,y,x+100,y+100,0.0,0.0,hndText.Clipbd)) {
+		if IsObject(ok:=FindText(okx,oky,x,y,x2,y+h,0.0,0.0,hndText.Clipbd)) {
 			Return
 		}
 		Sleep, % tick
