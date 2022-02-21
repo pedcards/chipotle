@@ -647,7 +647,13 @@ processHandoff(ByRef epic) {
 		labstxt := parseTag(clp,"Labs")
 		abgtxt := parseData(labstxt,"(Art) pH.*?:\s+(.*)")
 		cbctxt := parseData(labstxt,"(CBC) -\s+(.*)")
-		ekgtxt := parseTag(labstxt,"ekg")
+		ekgtxt := strX(parseTag(labstxt,"ekg"),"Narrative`r`n",1,9,"",0,1)
+		echotxt := parseTag(labstxt,"echo")
+			echotmp := parseDate(stregX(echotxt,"Study Date:",1,1,"Sex:",1))
+			echodt := echotmp.YMD echotmp.hr echotmp.min echotmp.sec
+			echosumm := stregX(echotxt
+				,"Exam Location:",1,0
+				,"(Segmental Cardiotype,|Systemic Veins:|Pulmonary Veins:|Atria:|Mitral Valve:|Tricuspid Valve:)",1)
 		
 		medstxt := parseTag(clp,"Medications")
 		meds_drips := stregx(medstxt,"\[DRIPS\]",1,1,"\[SCHEDULED\]",1)
