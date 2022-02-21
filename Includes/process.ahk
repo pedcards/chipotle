@@ -104,6 +104,15 @@ syncHandoff(restart:="") {
 		*/
 		Progress,,Record %A_Index%
 		; sleep 200																		; might need to sleep if selecting patients for deletion
+		snap := Gdip_BitmapFromScreen(hndOff.PanelX+12 "|" hndOff.RoomY "|90|18")
+		snap64 := Gdip_EncodeBitmapTo64string(snap,"png")
+		Gdip_DisposeImage(snap)
+		if (A_index=1) {
+			snap0 := snap64																; base64 of first room number
+		} else if (snap64=snap0) {
+			Break																		; jump out when  reach first bitmap again
+		} 
+
 		timenow := A_now
 		fld := readHndIllness(HndOff,done)
 		if (fld="UNABLE") {																; Unable to edit Handoff error
