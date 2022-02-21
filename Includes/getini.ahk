@@ -52,6 +52,8 @@ getIni:
 		loc[c1]:={name:}
 		loc[c1] := {name:c2, datevar:"GUI" format("{:l}",c1) "TXT"}
 	}
+
+	unitloc:=readIni("units")
 	
 Return
 }
