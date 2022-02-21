@@ -6,7 +6,7 @@ syncHandoff(restart:="") {
 */
 	global y, MRNstring, EpicSvcList, svcText, timenow, scr, gdi, EscActive
 
-	if !(restart) {
+	if !(restart="Y") {
 		MsgBox 0x31, Handoff Sync
 			, % "Ready to start Handoff Sync?`n`n`n"
 			. "This will take 1-2 minutes.`n`n"
