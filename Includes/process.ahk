@@ -228,6 +228,7 @@ checkHandoff(win) {
 				, tabY:ok[1].y															; y.coord of Handoff sidetab
 				, panelX:panelX
 				, NameY:ok[1].y+round(36*scale)											; y.coord of Handoff Patient Name
+				, roomY:ok[1].y+round(54*scale)											; y.coord of Handoff room number
 				, null:""}
 	} 
 /*	Look for Write Handoff button (single patient selected)
