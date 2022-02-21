@@ -732,6 +732,7 @@ processHandoff(ByRef epic) {
 				y.addElement("cbc",  yInfoDt "/labs", cbctxt)
 			y.addElement("studies", yInfoDt)
 				y.addElement("ekg",  yInfoDt "/studies", ekgtxt)
+				y.addElement("echo", yInfoDt "/studies", {date:echodt}, echosumm)
 		
 		if !isobject(y.selectSingleNode(MRNstring "/MAR")) {
 			y.addElement("MAR", MRNstring)											; Create a new /MAR node
