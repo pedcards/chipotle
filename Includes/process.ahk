@@ -897,3 +897,77 @@ draw_box(x,y,w,h) {
 
 	Return
 }
+
+Gdip_EncodeBitmapTo64string(pBitmap, ext, Quality=75) {
+/*	Taken from https://github.com/iseahound/Vis2/
+*/
+	if Ext not in BMP,DIB,RLE,JPG,JPEG,JPE,JFIF,GIF,TIF,TIFF,PNG
+		return -1
+	Extension := "." Ext
+
+	DllCall("gdiplus\GdipGetImageEncodersSize", "uint*", nCount, "uint*", nSize)
+	VarSetCapacity(ci, nSize)
+	DllCall("gdiplus\GdipGetImageEncoders", "uint", nCount, "uint", nSize, Ptr, &ci)
+	if !(nCount && nSize)
+	return -2
+
+
+
+	Loop, %nCount%
+	{
+			sString := StrGet(NumGet(ci, (idx := (48+7*A_PtrSize)*(A_Index-1))+32+3*A_PtrSize), "UTF-16")
+			if !InStr(sString, "*" Extension)
+				continue
+
+			pCodec := &ci+idx
+			break
+	}
+
+
+	if !pCodec
+		return -3
+
+	if (Quality != 75)
+	{
+		Quality := (Quality < 0) ? 0 : (Quality > 100) ? 100 : Quality
+		if Extension in .JPG,.JPEG,.JPE,.JFIF
+		{
+				DllCall("gdiplus\GdipGetEncoderParameterListSize", Ptr, pBitmap, Ptr, pCodec, "uint*", nSize)
+				VarSetCapacity(EncoderParameters, nSize, 0)
+				DllCall("gdiplus\GdipGetEncoderParameterList", Ptr, pBitmap, Ptr, pCodec, "uint", nSize, Ptr, &EncoderParameters)
+				Loop, % NumGet(EncoderParameters, "UInt")
+				{
+				elem := (24+(A_PtrSize ? A_PtrSize : 4))*(A_Index-1) + 4 + (pad := A_PtrSize = 8 ? 4 : 0)
+				if (NumGet(EncoderParameters, elem+16, "UInt") = 1) && (NumGet(EncoderParameters, elem+20, "UInt") = 6)
+				{
+						p := elem+&EncoderParameters-pad-4
+						NumPut(Quality, NumGet(NumPut(4, NumPut(1, p+0)+20, "UInt")), "UInt")
+						break
+				}
+				}
+		}
+	}
+
+	DllCall("ole32\CreateStreamOnHGlobal", "ptr",0, "int",true, "ptr*",pStream)
+	DllCall("gdiplus\GdipSaveImageToStream", "ptr",pBitmap, "ptr",pStream, "ptr",pCodec, "uint",p ? p : 0)
+
+	DllCall("ole32\GetHGlobalFromStream", "ptr",pStream, "uint*",hData)
+	pData := DllCall("GlobalLock", "ptr",hData, "uptr")
+	nSize := DllCall("GlobalSize", "uint",pData)
+
+	VarSetCapacity(Bin, nSize, 0)
+	DllCall("RtlMoveMemory", "ptr",&Bin , "ptr",pData , "uint",nSize)
+	DllCall("GlobalUnlock", "ptr",hData)
+	DllCall(NumGet(NumGet(pStream + 0, 0, "uptr") + (A_PtrSize * 2), 0, "uptr"), "ptr",pStream)
+	DllCall("GlobalFree", "ptr",hData)
+	
+	DllCall("Crypt32.dll\CryptBinaryToString", "ptr",&Bin, "uint",nSize, "uint",0x01, "ptr",0, "uint*",base64Length)
+	VarSetCapacity(base64, base64Length*2, 0)
+	DllCall("Crypt32.dll\CryptBinaryToString", "ptr",&Bin, "uint",nSize, "uint",0x01, "ptr",&base64, "uint*",base64Length)
+	Bin := ""
+	VarSetCapacity(Bin, 0)
+	VarSetCapacity(base64, -1)
+
+	return base64
+}
+
