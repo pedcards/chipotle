@@ -363,6 +363,10 @@ readHndIllness(ByRef HndOff, ByRef done) {
 		WinActivate % "ahk_id " scr.winEpic
 		clickField(Illness.EditX+100, Illness.EditY+16)
 		clp := getClip("x")
+		if (FindText(okx,oky,0,0,scr.w,scr.h,0.0,0.0,hndText.DontRemove)) {
+			clickButton(okx,oky)
+			Continue
+		}
 		if (clp="") {
 			sleep 50
 			Continue
@@ -371,7 +375,7 @@ readHndIllness(ByRef HndOff, ByRef done) {
 			WinActivate % "ahk_id " scr.winEpic
 			clickField(Illness.EditX+100, Illness.EditY+16)
 			SendInput, .chipotletext{enter}												; type dot phrase to insert
-			clipbdWait(Illness.EditX-40, Illness.EditY, Illness.ToggleUp, 100)									; Wait for Clipbd icon after text expansion
+			clipbdWait(Illness.EditX-40, Illness.EditY, Illness.ToggleUp, 100)			; Wait for Clipbd icon after text expansion
 			clipsent := true
 			Continue
 		} 
