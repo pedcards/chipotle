@@ -54,6 +54,7 @@ syncHandoff(restart:="") {
 			syncHandoff("Y")
 			return
 		} else {
+			gdi_clear()
 			Progress, Off
 			Gui, main:Show
 			return
@@ -83,6 +84,7 @@ syncHandoff(restart:="") {
 		}
 	}
 	if (HndOff.Service="") {
+		gdi_clear()
 		MsgBox No service found
 		Gui, main:Show
 		return
@@ -174,6 +176,7 @@ syncHandoff(restart:="") {
 		
 		sleep 100
 	}
+	gdi_clear()
 	BlockInput, Off
 	Progress, Off
 	escActive := false
