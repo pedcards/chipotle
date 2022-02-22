@@ -667,6 +667,23 @@ processHandoff(ByRef epic) {
 		y.addElement("unit", MRNstring . "/demog/data", fld.unit)
 		y.addElement("room", MRNstring . "/demog/data", fld.room)
 		
+		; Update cardiologists
+		prv := parseCareTeam(careteam)
+		for key,val in prv
+		{
+			if (val="") {
+				Continue
+			}
+			set := y.selectSingleNode(MRNstring "/prov").getAttribute(key)
+			if (set=val) {
+				Continue
+			}
+			y.selectSingleNode(MRNstring "/prov").setAttribute(key,val)
+			y.selectSingleNode(MRNstring "/prov").setAttribute("au",A_UserName)
+			y.selectSingleNode(MRNstring "/prov").setAttribute("ed",timenow)
+			eventlog("Updated " fld.mrn " " key ":" val)
+		}
+
 		; Capture each encounter
 		if !IsObject(y.selectSingleNode(MRNstring "/prov/enc[@adm='" parseDate(fld.admit).YMD "']")) {
 			y.addElement("enc", MRNstring "/prov", {adm:parseDate(fld.admit).ymd, attg:fld.attg, svc:fld.service})
