@@ -758,6 +758,58 @@ parseData(clp,set) {
 	return var2
 }
 
+parseCareTeam(list) {
+/* 	Read PCT list
+	prv1=name (no title)
+	prv2=Role
+	prv3=Specialty
+	Identify primary cardiologist and SCH continuity provider
+	Identify other specialty providers (EP, CSR, other)
+	Returns providers
+*/
+	specs := "Pediatric Cardiology|Cardiology|Cardiac Surgery|Electrophysiology"
+	roles := "Attending Physician|Consulting Physician|Nurse Practitioner|"
+			. "Cardiologist|Referring Cardiologist|Continuity Attending|Surgeon|"
+			. "Primary Txp Physician|Primary Txp Surgeon|Transplant Specialist"
+	
+	Loop, parse, list, `n, `r
+	{
+		i := A_LoopField
+		if ! RegExMatch(i
+			, "(.*?,\s+.*?)"															; NAME (prv1)
+			. "[ ,].*? as "
+			. "(.*?)"																	; ROLE (prv2)
+			. "\s\((" specs ")\)",prv)													; Must be permitted SPECIALTY (prv3)
+		{
+			Continue
+		}
+		if !(prv2~=roles) {																; Must be permitted ROLE
+			Continue
+		} 
+		
+		if (prv3~="Cardiac Surgery") {
+			CSR := prv1
+			Continue
+		}
+		if (prv="Electrophysiology") {
+			EP := prv1
+			Continue
+		}
+		if (prv2="Continuity Attending") {
+			SchProv := prv1
+			Continue
+		} else {
+			provCard := prv1
+			Continue
+		}
+	}
+	
+	Return {SchProv:SchProv
+			, provCard:provCard
+			, CSR:CSR
+			, EP:EP}
+}
+
 maxMin(txt) {
 	txt := RegExReplace(txt, " |:|Min|Max")
 	txt := StrReplace(txt, ",", "-")
