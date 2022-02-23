@@ -543,7 +543,7 @@ clipbdWait(x,y,x2,h) {
 /*	Search for clipboard from (x,y) to (x+100,y+100)
 */
 	global hndText
-	timeout:=7
+	timeout:=8
 	tick:=50
 	t1 := A_TickCount+1000*timeout
 
