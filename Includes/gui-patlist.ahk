@@ -100,11 +100,11 @@ PatListGUI:
 /*	Providers block
 */
 	Gui, Add, Text, x266 y24 w150 h30 gplInputCard, Primary Cardiologist:
-	Gui, Add, Text, xp yp+14 cBlue w140 vpl_card, % pl_ProvCard
+	Gui, Add, Text, xp yp+14 cBlue w140 vpl_card, % parseName(pl_ProvCard).FLast
 	Gui, Add, Text, xp yp+20 w150 h30 gplInputCard, Continuity Cardiologist:
-	Gui, Add, Text, xp yp+14 cBlue w140 vpl_SCHcard, % pl_ProvSchCard
+	Gui, Add, Text, xp yp+14 cBlue w140 vpl_SCHcard, % parseName(pl_ProvSchCard).FLast
 	Gui, Add, Text, xp yp+20 w150 h30 gplInputCard, Cardiac Surgeon:
-	Gui, Add, Text, xp yp+14 cBlue w140 vpl_CSR, % pl_ProvCSR
+	Gui, Add, Text, xp yp+14 cBlue w140 vpl_CSR, % parseName(pl_ProvCSR).FLast
 	
 /*	Call block
 */
