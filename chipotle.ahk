@@ -727,6 +727,31 @@ zDigit(x) {
 	return SubStr("0" . x, -1)
 }
 
+parseName(name) {
+	degs := "MD|PhD|PHD|DO|MBBS|ARNP|RN"
+	if RegExMatch(name,",( |" degs ")+")
+    if (pos:=RegExMatch(name,",(\s*(" degs "))+",deg)) {							; Trim off the degree(s)
+		name := SubStr(name, 1, pos-1)
+		deg := trim(deg,", `r`n")
+	}
+
+	if RegExMatch(name,"^(.*?),\s+(.*?)(,| |\z)",nm) {								; "SMITH, JOHN" ignore other names
+		nameL := nm1
+		nameF := nm2
+	}
+	else if RegExMatch(name,"^([a-zA-Z\-]+)\s+([a-zA-Z\-]+)$",nm) {					; "JOHN SMITH"
+		nameF := nm1
+		nameL := nm2
+	}
+
+	nameFI := SubStr(nameF, 1, 1)
+	nameLI := SubStr(nameL, 1, 1)
+
+	Return {last:nameL, first:nameF, deg:deg
+		, FI:nameFI, LI:nameLI, initials:nameFI nameLI
+		, FLast:nameFI ". " nameL	}
+}
+
 cleanString(x) {
 	replace := {"{":"["															; substitutes for common error-causing chars
 				,"}":"]"
