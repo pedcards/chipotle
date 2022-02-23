@@ -79,7 +79,7 @@ PrintIt() {
 		if (pr_call := pr.callN) {
 			pr_call -= A_Now, D															; add Call task item if callN diff less than 1 day
 			if (pr_call<1) {
-				pr_today .= "\f2q\f0 (" breakDate(pr.callN).MM "/" breakDate(pr.callN).DD ") Call Dr. " pr.provCard "\line\fs12 "
+				pr_today .= "\f2q\f0 (" breakDate(pr.callN).MM "/" breakDate(pr.callN).DD ") Call Dr. " parseName(pr.provCard).last "\line\fs12 "
 			}
 		}
 		E0best := plDataRes(kMRN,"Echo")
@@ -94,9 +94,16 @@ PrintIt() {
 				. strQ(RegExReplace(pr.dxSurg,"[\r\n]"," * "),"[[Surg]] ###\line ") 	; to the DX col-B
 				. strQ(RegExReplace(pr.dxEP,"[\r\n]"," * "),  "[[EP]] ###\line ")
 				. strQ(RegExReplace(pmNoteChk(pr.dxNotes),"[\r\n]"," * "), "[[Notes]] ###\line ")
-		
+
+		if (pr.provCard pr.provSchCard) {
+			prv := (pr.provCard)
+				? strQ(parseName(pr.provCard).FLast,"\fs12  (###" strQ(parseName(pr.provSchCard).FLast,"//###") ")\fs18")
+				: strQ(parseName(pr.provSchCard).FLast,"\fs12  (###" strQ(parseName(pr.provCard).FLast,"//###") ")\fs18")
+		} else {
+			prv :=
+		}
 		rtfList .= "\keepn\trowd\trgaph144\trkeep" rtfTblCols "`n\b"					; define Tbl ID row 
-			. "\intbl " . pr.nameL ", " pr.nameF . strQ(pr.provCard,"\fs12  (###" strQ(pr.provSchCard,"//###") ")\fs18") "\cell`n"
+			. "\intbl " . pr.nameL ", " pr.nameF . prv . "\cell`n"
 			. "\intbl " . pr.Unit " " pr.Room "\cell`n"
 			. "\intbl " . kMRN "\cell`n"
 			. "\intbl " . SubStr(pr.Sex,1,1) " " pr.Age "\cell`n" 
@@ -276,7 +283,10 @@ PrintARNP() {
 			. "\intbl " kMRN "\cell`n"
 			. "\intbl " pr.DOB "\cell`n"
 			. "\intbl " pr_adm.Date "\cell`n"
-			. "\intbl " pr.provCard ((pr.provCSR) ? "\line\line\b CSR\b0\line " pr.provCSR : "") "\cell`n"
+			. "\intbl " ((pr.provCard)
+				? strQ(parseName(pr.provCard).FLast,"###" strQ(parseName(pr.provSchCard).FLast,"//###"))
+				: strQ(parseName(pr.provSchCard).FLast,"###" strQ(parseName(pr.provCard).FLast,"//###")) )
+				. ((pr.provCSR) ? "\line\line\b CSR\b0\line " pr.provCSR : "") "\cell`n"
 			. "\intbl " pr.misc "\cell`n"
 			. "\row}`n"
 		rtfList .= "{\trowd\trgaph144\trrh720" rtfTblCol2 "`n"
