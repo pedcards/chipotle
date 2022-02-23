@@ -746,10 +746,11 @@ parseName(name) {
 
 	nameFI := SubStr(nameF, 1, 1)
 	nameLI := SubStr(nameL, 1, 1)
+	FLast := (nameFI nameL) ? nameFI ". " nameL : ""
 
 	Return {last:nameL, first:nameF, deg:deg
 		, FI:nameFI, LI:nameLI, initials:nameFI nameLI
-		, FLast:nameFI ". " nameL	}
+		, FLast:FLast	}
 }
 
 cleanString(x) {
