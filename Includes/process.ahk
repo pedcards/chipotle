@@ -47,6 +47,10 @@ syncHandoff(restart:="") {
 			break
 		}
 	}
+	if FindText(okx,oky,0,0,scr.W,scr.H,0.0,0.0,svcText["NoPts"]) {
+		HndOff := {}
+		HndOff.NoPts := true
+	}
 	if !IsObject(HndOff) {
 		MsgBox 0x40015, Handoff Sync, Failed to find Handoff panel.`n`nTry again?
 		IfMsgBox, Retry
@@ -94,9 +98,6 @@ syncHandoff(restart:="") {
 	*/
 	if FindText(okx,oky,0,0,scr.W,scr.H,0.0,0.0,svcText["JustOne"]) {
 		HndOff.JustOne := true 
-	}
-	if FindText(okx,oky,0,0,scr.W,scr.H,0.0,0.0,svcText["NoPts"]) {
-		HndOff.NoPts := true 
 	}
 
 	/*	Loop through each patient using hotkeys, update smart links,
@@ -1052,4 +1053,3 @@ Gdip_EncodeBitmapTo64string(pBitmap, ext, Quality=75) {
 
 	return base64
 }
-
