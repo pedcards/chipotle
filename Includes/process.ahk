@@ -90,10 +90,13 @@ syncHandoff(restart:="") {
 		return
 	}
 	eventlog("Found service: " HndOff.Service)
-	/*	Check if only 1 patient
+	/*	Check if only 1 patient or 0 patients
 	*/
 	if FindText(okx,oky,0,0,scr.W,scr.H,0.0,0.0,svcText["JustOne"]) {
 		HndOff.JustOne := true 
+	}
+	if FindText(okx,oky,0,0,scr.W,scr.H,0.0,0.0,svcText["NoPts"]) {
+		HndOff.NoPts := true 
 	}
 
 	/*	Loop through each patient using hotkeys, update smart links,
