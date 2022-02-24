@@ -232,7 +232,7 @@ checkHandoff(win) {
 	}
 	if (FindText(okx,oky,rtside,0,scr.w,scr.h,0.0,0.0,hndText.NoPatient)) {				; Finds "No Patient Handoff" error
 		WinActivate ahk_id %win%
-		clickButton(ok[1].X,ok[1].Y)
+		clickButton(okX,okY)
 		SendInput, !n																	; Alt+n to move to next record
 		sleep 100
 		return
