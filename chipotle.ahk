@@ -90,13 +90,13 @@ if (isCICU) {
 	mainTitle2 := "Children's Heart Center"
 	mainTitle3 := "Inpatient Longitudinal Integrator"
 } else if (isARNP) {
-	loc := makeLoc("CSR","CICU")
+	loc := makeLoc("CSR")
 	callLoc := "CSR"
 	mainTitle1 := "CON CARNE"
 	mainTitle2 := "Collective Organized Notebook"
 	mainTitle3 := "for Cardiac ARNP Efficiency"
 } else if (isCoord) {
-	loc := makeLoc("CSR","CICU","ICUCons")
+	loc := makeLoc("CSR","ICUCons")
 } else if (isBPD) {
 	loc := makeLoc("PHTN")
 	mainTitle1 := "CILANTRO"

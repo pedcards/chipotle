@@ -17,13 +17,13 @@ while (str := loc[i:=A_Index]) {					; get the dates for each of the lists
 		, % strDT.MM "/" strDT.DD "  " strDT.HH ":" strDT.Min
 	loc[str,"ypos"] := posy
 }
-if (isCICU) {
-	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gTeamList vECICUSur", CICU+Surg patients
-}
-if (isARNP) {
-	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gTeamList vESurUnit", Surg Unit
-	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gTeamList vESURGCNTR", Surgery Center
-}
+; if (isCICU) {
+; 	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gTeamList vECICUSur", CICU+Surg patients
+; }
+; if (isARNP) {
+; 	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gTeamList vESurUnit", Surg Unit
+; 	Gui, Main:Add, Button, % "x20 y" (posy+=25) " w110 h20 gTeamList vESURGCNTR", Surgery Center
+; }
 if (isCICU or isARNP) {																				; CICU interface
 	callCt:=0
 	Loop, % (plist := y.selectNodes("/root/lists/" . callLoc . "/mrn")).length {
