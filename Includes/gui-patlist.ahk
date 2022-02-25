@@ -109,9 +109,9 @@ PatListGUI:
 /*	Call block
 */
 	Gui, Add, Text, xp y140 w150 h28 , Last call:
-	Gui, Add, Text, xp+50 yp w80 vCrdCall_L , % ((pl_Call_L) ? niceDate(pl_Call_L) : "---")		;substr(pl_Call_L,1,8)
+	Gui, Add, Text, xp+50 yp w80 vCrdCall_L , % ((pl_Call_L) ? parseDate(pl_Call_L).MDY : "---")		;substr(pl_Call_L,1,8)
 	Gui, Add, Text, xp-50 yp+14 , Next call:
-	Gui, Add, Text, xp+50 yp w80 vCrdCall_N, % ((pl_Call_N) ? niceDate(pl_Call_N) : "---")
+	Gui, Add, Text, xp+50 yp w80 vCrdCall_N, % ((pl_Call_N) ? parseDate(pl_Call_N).MDY : "---")
 	
 /*	Status flags
 */
@@ -177,7 +177,7 @@ PatListGUI:
 	Gui, Add, GroupBox, x436 y14 w140 h160 , Status Flags
 	Gui, Add, GroupBox, x600 y14 w260 h160 Disabled, Tasks/Todos
 	Gui, Add, GroupBox, xp y180 wp h140 , Data Highlights
-	Gui, Add, GroupBox, xp y330 wp h180 , % "Cardiac Meds/Diet (" nicedate(DateCores) ")"
+	Gui, Add, GroupBox, xp y330 wp h180 , % "Cardiac Meds/Diet (" parsedate(DateCores).MDY ")"
 	;~ Gui, Add, Button, x600 y+20 w120 h20 gplupd Disabled, Update notes
 	Gui, Add, Button, x600 y+20 w120 h20 gplupd Disabled, Cath Req
 	Gui, Add, Button, x+20 yp w120 hp gplSumm, Summary Notes
@@ -228,9 +228,9 @@ PatListCoGUI:
 	Gui, Add, Text, xp yp+20 w150 h30 gplInputCard, Cardiac Surgeon:
 	Gui, Add, Text, xp yp+14 cBlue w140 vpl_CSR, % pl_ProvCSR
 	Gui, Add, Text, xp y140 w150 h28 , Last call:
-	Gui, Add, Text, xp+50 yp w80 vCrdCall_L , % ((pl_Call_L) ? niceDate(pl_Call_L) : "---")		;substr(pl_Call_L,1,8)
+	Gui, Add, Text, xp+50 yp w80 vCrdCall_L , % ((pl_Call_L) ? parseDate(pl_Call_L).MDY : "---")		;substr(pl_Call_L,1,8)
 	Gui, Add, Text, xp-50 yp+14 , Next call:
-	Gui, Add, Text, xp+50 yp w80 vCrdCall_N, % ((pl_Call_N) ? niceDate(pl_Call_N) : "---")
+	Gui, Add, Text, xp+50 yp w80 vCrdCall_N, % ((pl_Call_N) ? parseDate(pl_Call_N).MDY : "---")
 
 	Gui, Add, CheckBox, x446 y34 w120 h20 Checked%pl_statCoBag% vpl_statCoBag gplInputNote, Bag given
 	Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statCoPillow% vpl_statCoPillow gplInputNote, Heart pillow
@@ -416,7 +416,7 @@ plMAR:
 		plMARlist("diet","Diet")
 	}
 	tmp := parseDate(CoresD)
-	Gui, MarGui:Show, AutoSize, % "CORES " nicedate(CoresD) " @ " tmp.HrMin 
+	Gui, MarGui:Show, AutoSize, % "CORES " parsedate(CoresD).MDY " @ " tmp.HrMin 
 	return
 }
 

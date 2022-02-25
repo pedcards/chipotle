@@ -120,8 +120,8 @@ plCallCard:
 	tmpL := parseDate(pl.callL)
 	Gui, cCard:Destroy
 	Gui, cCard:Add, Text, x20 y30 , % "Cardiologist: `t" plProv
-	Gui, cCard:Add, Text, , % "Last call: `t" ((pl.callL) ? niceDate(pl.callL) " @ " tmpL.hrmin " by " pl.callBy : "")
-	Gui, cCard:Add, Text, , % "Next call: `t" ((pl.callN) ? niceDate(pl.callN) : "")
+	Gui, cCard:Add, Text, , % "Last call: `t" ((pl.callL) ? parseDate(pl.callL).MDY " @ " tmpL.hrmin " by " pl.callBy : "")
+	Gui, cCard:Add, Text, , % "Next call: `t" ((pl.callN) ? parseDate(pl.callN).MDY : "")
 	Gui, cCard:Add, GroupBox, x10 y10 w250 h100, % plname
 	Gui, cCard:Add, Button, w250 gplCallSet, Set/Reset call tasks
 	Gui, cCard:Add, Button, w250 gplCardCon, Contact cardiologist
@@ -226,7 +226,7 @@ plCallMade:
 	tmp := pl.callN
 	tmp -= A_Now, Days
 	;plCall -= substr(A_Now,1,8), Days
-	eventlog(mrn " Contact " ctype " to " plProv "." . ((pl.callN) ? " Due " niceDate(pl.callN) " (" tmp ")" : ""))
+	eventlog(mrn " Contact " ctype " to " plProv "." . ((pl.callN) ? " Due " parseDate(pl.callN).MDY " (" tmp ")" : ""))
 	gosub CallList
 	return
 }

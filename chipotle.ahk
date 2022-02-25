@@ -663,13 +663,6 @@ Rand( a=0.0, b=1 ) {
 	Return r
 }
 
-niceDate(x) {
-	if !(x)
-		return error
-	FormatTime, x, %x%, MM/dd/yyyy
-	return x
-}
-
 year4dig(x) {
 	if (StrLen(x)=4) {
 		return x

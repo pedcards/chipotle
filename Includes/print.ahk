@@ -47,7 +47,7 @@ PrintIt() {
 		if (pri_now < 26) {									; only generate VS if CORES from last 24 hr or so
 			pr_todo .= strQ(pri.selectSingleNode("team").text,"\b ### Team\b0\line ")
 			pr_VS := pri.selectSingleNode("vs")
-			pr_todo .= "Wt = " . pr_VS.selectSingleNode("wt").text " (" niceDate(pri_date) ")\line "
+			pr_todo .= "Wt = " . pr_VS.selectSingleNode("wt").text " (" parseDate(pri_date).MDY ")\line "
 					;~ . ((i:=pr_VS.selectSingleNode("spo2").text) ? ", O2 sat = " . vsMean(i) : "") "\line "
 					;~ . ((i:=pr_VS.selectSingleNode("hr").text) ? "HR = " . vsMean(i) : "")
 					;~ . ((i:=pr_VS.selectSingleNode("rr").text) ? ", RR = " . vsMean(i) : "") "\line "

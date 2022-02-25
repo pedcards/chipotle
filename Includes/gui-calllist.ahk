@@ -106,8 +106,8 @@ CallList:
 				, kMRN
 				, plG.name
 				, plG.prov
-				, ((plG.last) ? niceDate(plG.last) : "---")
-				, ((plG.next) ? niceDate(plG.next) : "---"))
+				, ((plG.last) ? parseDate(plG.last).MDY : "---")
+				, ((plG.next) ? parseDate(plG.next).MDY : "---"))
 			RowNum := LV_GetCount()												; RowNum is the currently added row
 			if !(plG.next) {													; no due date, set gray
 				LV_Colors.Row(%tmpV%, RowNum, 0xCCCCCC)
