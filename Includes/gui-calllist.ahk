@@ -9,9 +9,11 @@ CallList:
 	cGrps := {}
 	
 ; First pass: scan patient list into arrays
+	Progress,,% " ",Scanning docs...
 	Loop, % (plist := y.selectNodes("/root/lists/" . location . "/mrn")).length {		; loop through location MRN's into plist
 		kMRN := plist.item(i:=A_Index-1).text									; text item in lists/location/mrn
 		pl := ptParse(kMRN)														; fill pl with ptParse
+		progress, % 100*A_index/plist.length(),% kMRN
 		clProv := parseName(pl.provCard).FirstLast								; get CRD provider into clProv
 		if (plCall := pl.callN)													; check if next call date set
 			plCall -= substr(A_Now,1,8), Days									; and calculate days to next due call
@@ -51,6 +53,7 @@ CallList:
 	}
 	
 ; Second pass: identify groups with patients, and generate tabs
+	Progress,100,% " ", Matching groups...
 	cGrpList := ""
 	for k,val in cGrps															; index groups by number of items
 	{																			; then sort in descending order
@@ -71,6 +74,7 @@ CallList:
 	tmpTG .= "Other|TO CALL"
 	tmpTgW := 600
 	k := 0
+	Progress, off
 	Gui, cList:Add, Tab2, Buttons -Wrap w%tmpTgW% h440 vCallLV, % tmpTG			; add Tab bar with var CallLV
 
 ; Third pass: fill each tab LV with the previously found patients
