@@ -701,6 +701,7 @@ parseName(name) {
 
 	Return {last:nameL, first:nameF, deg:deg
 		, FI:nameFI, LI:nameLI, initials:nameFI nameLI
+		, FirstLast:nameF " " nameL
 		, FLast:FLast	}
 }
 

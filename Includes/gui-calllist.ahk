@@ -12,12 +12,12 @@ CallList:
 	Loop, % (plist := y.selectNodes("/root/lists/" . location . "/mrn")).length {		; loop through location MRN's into plist
 		kMRN := plist.item(i:=A_Index-1).text									; text item in lists/location/mrn
 		pl := ptParse(kMRN)														; fill pl with ptParse
-		clProv := pl.provCard													; get CRD provider into clProv
+		clProv := parseName(pl.provCard).FirstLast								; get CRD provider into clProv
 		if (plCall := pl.callN)													; check if next call date set
 			plCall -= substr(A_Now,1,8), Days									; and calculate days to next due call
 		tmpCrd := checkCrd(clProv)												; tmpCrd gets provCard (spell checked)
 		plFuzz := 100*tmpCrd.fuzz												; fuzz score for tmpCrd
-		if (clProv="") {														; no cardiologist
+		if (clProv=" ") {														; no cardiologist
 			tmpCrd.group := "Other"												; group is "Other"
 		} else if (clProv~="SCH|Transplant|Heart Failure|Tx|SV team") {			; unclaimed Tx and Cards patients
 			tmpCrd.group := "SCH"												; place in SCH group
