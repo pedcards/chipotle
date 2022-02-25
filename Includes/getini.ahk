@@ -165,11 +165,8 @@ getDocs(ByRef Docs, ByRef outGrps, ByRef outGrpV) {
 			outGrpV[tmpGrp] := "callGrp" . tmpIdxG
 			continue
 		}
-		tmpIdx += 1														; Otherwise format Crd name to first initial, last name
-		nameF := strX(tmp.1,"",1,0," ",1,1)
-		nameL := strX(tmp.1," ",1,1,"",0)
-		tmpPrv := substr(nameF,1,1) . ". " . nameL
-		Docs[tmpGrp,tmpIdx] := tmpPrv
+		tmpIdx += 1
+		Docs[tmpGrp,tmpIdx] := tmp.1
 		outGrpV[tmpGrp] := "callGrp" . tmpIdxG
 	}
 	outGrpV["Other"] := "callGrp" . (tmpIdxG+1)
