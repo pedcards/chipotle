@@ -175,9 +175,7 @@ plCardCon:
 			tmpGrp := tmp1
 			continue
 		}
-		StringSplit, tmpPrv, tmp1, %A_Space%
-		tmpPrv := substr(tmpPrv1,1,1) . ". " . tmpPrv2
-		if (tmpPrv=plProv) {
+		if (tmp1=plProv) {
 			plProvGroup := tmpGrp
 			plProvName := tmp1
 			plProvPh1 := tmp2
