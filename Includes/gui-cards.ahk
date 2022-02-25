@@ -198,7 +198,7 @@ plCardCon:
 		plEml.Subject := "SCH Heart Center patient update - " substr(pl.nameF,1,1) " " substr(pl.nameL,1,1)
 		plEml.Display																	; Must display first to get default signature
 		plEml.HTMLBody := pl.nameF " " substr(pl.nameL,1,1) 
-			. " (Admitted " strX(pl.admit,,0,0," ",1,1) ")"
+			. " (Admitted " parseDate(pl.admit).MDY ")"
 			. " Diagnosis: " RegExReplace(pl.dxCard,"[\r\n]"," * ")
 			. plEml.HTMLBody															; Prepend to existing default message
 		
