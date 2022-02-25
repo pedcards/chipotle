@@ -820,12 +820,13 @@ parseCareTeam(list) {
 			Continue
 		}
 		if (prv2="Continuity Attending") {
-			SchCard := prv1
-			Continue
-		} else {
 			provCard := prv1
 			Continue
-		}
+		} 
+		; else {
+		; 	provCard := prv1
+		; 	Continue
+		; }
 	}
 	
 	Return {SchCard:SchCard
