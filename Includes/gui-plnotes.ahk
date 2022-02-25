@@ -78,8 +78,8 @@ plUpdSum:
 		plUpd := plUpdates.item(i:=A_Index-1)
 		plUpdTS := plUpd.getAttribute("created")
 		plUpdD := plUpd.getAttribute("date")
-		tmpD := breakdate(plUpdD)
-		plUpdDate := tmpD.MM "/" tmpD.DD "-" tmpD.HH . tmpD.min
+		tmpD := parseDate(plUpdD)
+		plUpdDate := tmpD.MMDD "-" tmpD.hrmin
 		LV_Add("", plUpdDate, plUpd.text, plUpdD, plUpdTS)
 	}
 	LV_ModifyCol()  ; Auto-size each column to fit its contents.
@@ -280,8 +280,8 @@ GetNotes(mrn,type) {
 	global y
 	Loop, % (notes := y.selectNodes("/root/id[@mrn='" mrn "']" node)).length {
 		note := notes.item(A_Index-1)
-		date := breakDate(note.getAttribute("date"))
-		text .= "[" date.MM "/" date.DD "] " note.text . "`n"
+		date := parseDate(note.getAttribute("date"))
+		text .= "[" date.MMDD "] " note.text . "`n"
 	}
 	return text
 }

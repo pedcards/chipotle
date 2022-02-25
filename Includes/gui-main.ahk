@@ -11,10 +11,10 @@ Gui, Main:Add, Text, xp yp+14 wp hp +Center, % MainTitle3
 Gui, Main:Font, wNorm
 
 while (str := loc[i:=A_Index]) {					; get the dates for each of the lists
-	strDT := breakDate(loc[str,"date"] := y.getAtt("/root/lists/" . str, "date"))
+	strDT := parseDate(loc[str,"date"] := y.getAtt("/root/lists/" . str, "date"))
 	Gui, Main:Add, Button, % "x20 y" (posy:=75+(i*25)) " w110 h20 gTeamList vE" str, % loc[str,"name"]
 	Gui, Main:Add, Text, % "v" loc[str,"datevar"] " x170 y" (posy+4) " w70 h20" 
-		, % strDT.MM "/" strDT.DD "  " strDT.HH ":" strDT.Min
+		, % strDT.MMDD "  " strDT.hrmin
 	loc[str,"ypos"] := posy
 }
 ; if (isCICU) {
@@ -261,9 +261,9 @@ QLselect:
 UpdateMainGUI:
 {
 	str := loc[location,"datevar"]
-	strDT := breakDate(timenow)
+	strDT := parseDate(timenow)
 	posy := loc[location,"ypos"]
-	GuiControl, Main:Text, %str%, % strDT.MM "/" strDT.DD "  " strDT.HH ":" strDT.Min " *"
+	GuiControl, Main:Text, %str%, % strDT.MMDD "  " strDT.HrMin " *"
 	Gui, Main:Submit, NoHide
 	;~ loc[location,"print"] := true
 Return

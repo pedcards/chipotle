@@ -117,10 +117,10 @@ plCallCard:
 	
 	pl_mrnstring := "/root/id[@mrn='" mrn "']"
 	pl := ptParse(mrn)
-	tmpL := breakDate(pl.callL)
+	tmpL := parseDate(pl.callL)
 	Gui, cCard:Destroy
 	Gui, cCard:Add, Text, x20 y30 , % "Cardiologist: `t" plProv
-	Gui, cCard:Add, Text, , % "Last call: `t" ((pl.callL) ? niceDate(pl.callL) " @ " tmpL.HH ":" tmpL.min " by " pl.callBy : "")
+	Gui, cCard:Add, Text, , % "Last call: `t" ((pl.callL) ? niceDate(pl.callL) " @ " tmpL.hrmin " by " pl.callBy : "")
 	Gui, cCard:Add, Text, , % "Next call: `t" ((pl.callN) ? niceDate(pl.callN) : "")
 	Gui, cCard:Add, GroupBox, x10 y10 w250 h100, % plname
 	Gui, cCard:Add, Button, w250 gplCallSet, Set/Reset call tasks

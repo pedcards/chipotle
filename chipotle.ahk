@@ -563,19 +563,6 @@ ObjHasValue(aObj, aValue, rx:="") {
     return, false, errorlevel := 1
 }
 
-breakDate(x) {
-; Disassembles 201502150831 into Yr=2015 Mo=02 Da=15 Hr=08 Min=31 Sec=00
-	D_Yr := substr(x,1,4)
-	D_Mo := substr(x,5,2)
-	D_Da := substr(x,7,2)
-	D_Hr := substr(x,9,2)
-	D_Min := substr(x,11,2)
-	D_Sec := substr(x,13,2)
-	FormatTime, D_day, x, ddd
-	return {"YYYY":D_Yr, "MM":D_Mo, "DD":D_Da, "ddd":D_day
-		, "HH":D_Hr, "min":D_Min, "sec":D_sec}
-}
-
 ParseDate(x) {
 	mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 	moStr := "Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec"
@@ -654,6 +641,8 @@ ParseDate(x) {
 	return {yyyy:date.yyyy, mm:date.mm, mmm:date.mmm, dd:date.dd, date:date.date
 			, YMD:date.yyyy date.mm date.dd
 			, MDY:date.mm "/" date.dd "/" date.yyyy
+			, MMDD:date.mm "/" date.dd
+			, hrmin:zdigit(time.hr) ":" zdigit(time.min)
 			, days:zdigit(time.days)
 			, hr:zdigit(time.hr), min:zdigit(time.min), sec:zdigit(time.sec)
 			, ampm:time.ampm, time:time.time

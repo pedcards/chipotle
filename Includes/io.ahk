@@ -204,7 +204,7 @@ saveCensus:
 	TXP divided into Ward, ICU, and Cons
 */
 	FormatTime, censDate, A_Now, yyyyMMdd
-	censDT := breakDate(censDate)
+	censDT := parseDate(censDate)
 	censY := censDT.YYYY
 	censM := censDT.MM
 	censD := censDT.DD

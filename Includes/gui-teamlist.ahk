@@ -130,8 +130,8 @@ SignOut:
 			. ((so.dxSurg) ? "[Surg] " so.dxSurg "<br>" : "")
 		loop, % (soNotes := y.selectNodes("/root/id[@mrn='" soMRN "']/notes/weekly/summary")).length {	; loop through each Weekly Summary note.
 			soNote := soNotes.item(A_Index-1)
-			soDate := breakDate(soNote.getAttribute("date"))
-			soSumm .= "[" soDate.MM "/" soDate.DD "] "soNote.text . "<br>"
+			soDate := parseDate(soNote.getAttribute("date"))
+			soSumm .= "[" soDate.MMDD "] "soNote.text . "<br>"
 		}
 		soText .= soSumm "<br>"
 	}

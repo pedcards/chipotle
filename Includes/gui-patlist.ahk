@@ -415,8 +415,8 @@ plMAR:
 		Gui, MarGui:Default
 		plMARlist("diet","Diet")
 	}
-	tmp := breakDate(CoresD)
-	Gui, MarGui:Show, AutoSize, % "CORES " nicedate(CoresD) " @ " tmp.HH ":" tmp.Min 
+	tmp := parseDate(CoresD)
+	Gui, MarGui:Show, AutoSize, % "CORES " nicedate(CoresD) " @ " tmp.HrMin 
 	return
 }
 
@@ -484,7 +484,7 @@ plDataRes(mrn,type,DT="") {
 	}
 	
 	ResTxt := k.selectSingleNode("data/" type "/study[@date='" bestDT "']").text
-	ResDT := breakDate(bestDT).MM "/" breakDate(bestDT).DD
+	ResDT := parseDate(bestDT).MMDD
 	
 	return {res:ResTxt,date:ResDT} 
 }
@@ -581,7 +581,7 @@ plPMsettings:
 		loop % (i := y.selectNodes(pl_MRNstring "/pacing/temp")).length {				; get <pacing> element into pl_PM
 			j := i.item(A_Index-1)														; read through last <pacing/leads> element
 		}
-		pmDate := breakDate(j.getAttribute("ed"))
+		pmDate := parseDate(j.getAttribute("ed"))
 		PmSet := Object()																; clear pmSet object
 		Loop % (i := j.selectNodes("*")).length {
 			k := i.item(A_Index-1)														; read each element <mode>, <LRL>, etc
@@ -591,7 +591,7 @@ plPMsettings:
 		Gui, PmGui:Destroy
 		Gui, PmGui:Default
 		Gui, Add, Text, Center, Pacemaker Settings
-		Gui, Add, Text, Center, % (pmDate.MM) ? pmDate.MM "/" pmDate.DD "/" pmDate.YYYY " @ " pmDate.HH ":" pmDate.min ":" pmDate.sec : ""
+		Gui, Add, Text, Center, % (pmDate.MM) ? pmDate.MDY " @ " pmDate.hr ":" pmDate.min ":" pmDate.sec : ""
 		Gui, Add, Text, Section, MODE
 		Gui, Add, Text, xm yp+22, LRL
 		Gui, Add, Text, xm yp+22, URL
@@ -639,7 +639,7 @@ plPMsettings:
 	else if (PM_chk="Permanent") {
 		pm_dev := y.selectSingleNode(pl_MRNstring "/data/device")
 		pm_IPG := pm_dev.getAttribute("model")
-		pmDate := breakDate(pm_dev.getAttribute("ed"))
+		pmDate := parseDate(pm_dev.getAttribute("ed"))
 		PmSet := Object()																; clear pmSet object
 		Loop % (i := pm_dev.selectNodes("*")).length {
 			k := i.item(A_Index-1)														; read each element <mode>, <LRL>, etc
@@ -649,7 +649,7 @@ plPMsettings:
 		Gui, PmGui:Destroy
 		Gui, PmGui:Default
 		Gui, Add, Text, Center, Pacemaker Settings
-		Gui, Add, Text, Center, % (pmDate.MM) ? pmDate.MM "/" pmDate.DD "/" pmDate.YYYY " @ " pmDate.HH ":" pmDate.min ":" pmDate.sec : ""
+		Gui, Add, Text, Center, % (pmDate.MM) ? pmDate.MDY " @ " pmDate.hr ":" pmDate.min ":" pmDate.sec : ""
 		
 		Gui, Add, Text, Section xm yp+22, MODEL
 		Gui, Add, Edit, ys-2 w160 vPmSet_model, % pm_IPG

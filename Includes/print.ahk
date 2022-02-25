@@ -79,7 +79,7 @@ PrintIt() {
 		if (pr_call := pr.callN) {
 			pr_call -= A_Now, D															; add Call task item if callN diff less than 1 day
 			if (pr_call<1) {
-				pr_today .= "\f2q\f0 (" breakDate(pr.callN).MM "/" breakDate(pr.callN).DD ") Call Dr. " parseName(pr.provCard).last "\line\fs12 "
+				pr_today .= "\f2q\f0 (" parseDate(pr.callN).MMDD ") Call Dr. " parseName(pr.provCard).last "\line\fs12 "
 			}
 		}
 		E0best := plDataRes(kMRN,"Echo")
@@ -255,7 +255,7 @@ PrintARNP() {
 		if (pr_call := pr.callN) {
 			pr_call -= A_Now, D
 			if (pr_call<2) {
-				pr_today .= "\f2q\f0 (" breakDate(pr.callN).MM "/" breakDate(pr.callN).DD ") Call Dr. " pr.provCard "\line\fs12 "
+				pr_today .= "\f2q\f0 (" parseDate(pr.callN).MMDD ") Call Dr. " pr.provCard "\line\fs12 "
 			}
 		}
 

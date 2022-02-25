@@ -9,7 +9,7 @@ PatListGUIcc:
 		. pl_Unit " :: " pl_Room "`n"
 		. pl_Svc "`n"
 		. "Admitted: " pl_Admit
-	pl_infoDT := breakdate(pl_info.getAttribute("date"))
+	pl_infoDT := parseDate(pl_info.getAttribute("date"))
 	winFW := win.wX
 	Gui, plistG:Destroy
 	Gui, plistG:Default
@@ -61,9 +61,9 @@ PatListGUIcc:
 	Loop % (yInfo:=y.selectNodes("//id[@mrn='" MRN "']/info")).length
 	{
 		yInfoDt := yInfo.Item(A_index-1).getAttribute("date")
-		tmpD := breakdate(yInfoDt)
-		tmpDarr[tmpD.MM "/" tmpD.DD] := yInfoDt
-		tmpDt .= tmpD.MM "/" tmpD.DD "|"
+		tmpD := parseDate(yInfoDt)
+		tmpDarr[tmpD.MMDD] := yInfoDt
+		tmpDt .= tmpD.MMDD "|"
 		tmpCt := A_Index
 	}
 	Gui, Add, Tab2, % "x"win.bor+win.boxF+win.bor " y"win.bor " w"win.rCol-win.bor " h"win.demo_H+win.cont_H-win.bor " -Wrap Choose"tmpCt+1, % tmpDt
@@ -163,7 +163,7 @@ ccData(pl,sec) {
 			;txtln := (strlen(Hgb)>strlen(Hct)) ? strlen(Hgb) : strlen(Hct)
 			txtln := compStr(Hgb,Hct)
 			Gui, Add, Text,wP, % "CBC`t" i.selectSingleNode("legend").text
-			Gui, Add, Text, Center Section wP, % Hgb "`n>" substr("————————————————————————————————————————",1,txtln.ln) "<`n" Hct
+			Gui, Add, Text, Center Section wP, % Hgb "`n>" substr("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½",1,txtln.ln) "<`n" Hct
 			Gui, Add, Text,% "xS+" (win.rCol/2)-txtln.px-ln(strlen(WBC))*10 " yS", % "`n" WBC
 			Gui, Add, Text,% "xS+" (win.rCol/2)+(txtln.px/2) " yS", % "`n" Plt
 			Gui, Add, Text,xS, % "`t" cleanwhitespace(i.selectSingleNode("rest").text)
@@ -183,9 +183,9 @@ ccData(pl,sec) {
 			Gui, Add, Text, % "Center Section", % "`t" Na "`n`n`t" K
 			Gui, Add, Text, % "Center xS+"ch1.px+10 " yS", % HCO3 "`n`n" Cl
 			Gui, Add, Text, % "Center xS+"ch1.px+ch2.px " yS", % Bun "`n`n" Cr
-			Gui, Add, Text, xS yS+14, % "`t" substr("————————————————————————————————————————",1,ch1.ln) 
-			Gui, Add, Text, % "xS+"ch1.px " yS+14", % substr("————————————————————————————————————————",1,ch2.ln+4) 
-			Gui, Add, Text, % "xS+"ch1.px+ch2.px-20 " yS+14", % substr("————————————————————————————————————————",1,ch3.ln+2) "<    " Glu
+			Gui, Add, Text, xS yS+14, % "`t" substr("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½",1,ch1.ln) 
+			Gui, Add, Text, % "xS+"ch1.px " yS+14", % substr("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½",1,ch2.ln+4) 
+			Gui, Add, Text, % "xS+"ch1.px+ch2.px-20 " yS+14", % substr("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½",1,ch3.ln+2) "<    " Glu
 			Gui, Add, Text, % "xS+"ch1.px " yS", % "|`n|`n|"
 			Gui, Add, Text, % "xS+"ch1.px+ch2.px-20 " yS", % "|`n|`n|`n"
 			if (ABG:=i.selectSingleNode("ABG").text) {
@@ -355,8 +355,8 @@ InjUpd:
 InjLabs:
 {
 	tmp :=
-	tmpD := BreakDate(A_Now)
-	dcLabs := y.selectSingleNode("//id[@mrn='" MRN "']/info[@date='" tmpDarr[tmpD.MM "/" tmpD.DD] "']/labs")	; get today's info/labs node 
+	tmpD := parseDate(A_Now)
+	dcLabs := y.selectSingleNode("//id[@mrn='" MRN "']/info[@date='" tmpDarr[tmpD.MMDD] "']/labs")				; get today's info/labs node 
 	Gui, gDCinj:Hide																							; from the tmpDarr[] obj used for tabs
 	if !IsObject(dcLabs) {																; no node exists	
 		MsgBox,,% dcDate, No labs!
