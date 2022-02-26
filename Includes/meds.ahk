@@ -1,5 +1,5 @@
-MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR")
-	global meds1, meds2, meds0, y, MRNstring, yMarDt, medfilt_drip, medfilt_med
+MedListParse(bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR")
+	global meds1, meds2, meds0, y, MRNstring, yMarDt
 	tempArray = 
 	medWords =
 	Loop, parse, % blist, `r`n
@@ -23,20 +23,17 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 			continue
 		}
 		
+		/*	Parse line and do string replacements
+		*/
 		tab := StrSplit(medline, ", ")
 			Name := tab[1]
 			Dose := tab[2]
 			Route := tab[3]
 			Sched := tab[4]
-		Name:=RegExReplace(Name,medfilt_med)														; do some string replacements
-		Name:=RegExReplace(Name,"\b[0-9\.]+ mg/mL .*?injection")
 		Name:=RegExReplace(Name,"i) in (sodium chloride|lactated|dextrose|sterile water).*?mL\)?( infusion)?")
-		Name:=RegExReplace(Name,"^(.*?)( \d.*? infusion)","$1")
-		Name:=RegExReplace(Name,"\(\d{1,2}/\d{1,2}\)")
-		Name:=RegExReplace(Name,"\(?[0-9\-\.]+ mg/mL\)?")
+		Name:=RegExReplace(Name,"^(.*?)( \d.*? )(infusion|drops|injection)","$1")
+		Name:=RegExReplace(Name,"\b\(?[0-9\-\.]+ mg/mL\)?")
 		Name:=RegExReplace(Name,"i)injection|oral solution|nasal/buccal")
-		Name:=RegExReplace(Name,"^(.*?)( \d.*? drops)","$1")
-		Name:=RegExReplace(Name,"i)(?<!Q|every|given)\s[0-9.]+\s(hrs|min)")
 		Name:=RegExReplace(Name,Dose)
 		Dose:=RegExReplace(Dose,".*? \(Dosing Weight\)")
 		Route:=RegExReplace(Route,"Intravenous","IV")
@@ -46,21 +43,28 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 		Sched:=RegExReplace(Sched,"3 times a day","TID")
 		Sched:=RegExReplace(Sched,"4 times a day","QID")
 		
-		medlist := "med"																			; default list is "med"
-		if (medline~=medfilt_drip) {
-			medlist := "drips"
+		/*	Determine tag: drips, med, or prn
+		*/
+		if (medline~="i)\d\s+(mg|mcg|unit|units|milli-units)\/kg\/(sec|min|hr)") {
+			tag := "drips"
+			Name := RegExReplace(Name,"^(.*?)( \d.*?)$","$1")
 			RegExMatch(medline,"(Last Rate:.*?)$",lastrate)
-			Sched .= RegExReplace(lastrate,"Last Rate:.*?,"," Last:")
+			Sched .= strQ(lastrate," (" RegExReplace(lastrate,"Last Rate:.*?, ") ")")
+		} 
+		else if (medline~="PRN") {
+			tag := "prn"
 		}
-		if (medline~="PRN") {
-			medlist := "prn"
+		else {
+			tag := "med"
 		}
 
+		/*	Determine medclass: Cardiac, Arrhythmia, Other, etc.
+		*/
 		medclass := "Other"																			; default medclass is Other
 		if ObjHasValue(meds1, Name, "RX") {															; in meds1 list (cardiac meds)
 			medclass:="Cardiac"
 		}
-		if ObjHasValue(meds2, Name, "RX") {														; in meds2 list (antiarrhythmic meds)
+		if ObjHasValue(meds2, Name, "RX") {															; in meds2 list (antiarrhythmic meds)
 			medclass:="Arrhythmia"
 		}
 		if (medlist="abx") {																		; antibiotics meds
@@ -69,7 +73,13 @@ MedListParse(medList,bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR
 			; 	, RegExReplace(medName,"(\d+)\s+-\s+(.*?)[\r\n]+","$2 (Day $1) "))
 		}
 		
+		/*	Write MAR element
+		*/
 		medName := Name strQ(Dose," ###") strQ(Route," ###") strQ(Sched," ###")
+		y.addElement(tag, yMarDt, {class: medclass}, cleanSpace(medName))
+	}
+	return
+}
 		if (medlist="diet") {																		; diet string replacements
 			diet := RegExReplace(medname,"i)(,\s+)?(Requested|Start) date\/time: .*")
 			diet := RegExReplace(diet,"i)(, )?Start: \d{1,2}\/\d{2}\/\d{2} \d{1,2}:\d{2}:\d{2}")
