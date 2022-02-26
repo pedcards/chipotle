@@ -653,9 +653,7 @@ processHandoff(ByRef epic) {
 				,"(Segmental Cardiotype,|Systemic Veins:|Pulmonary Veins:|Atria:|Mitral Valve:|Tricuspid Valve:)",1)
 		
 		medstxt := parseTag(clp,"Medications")
-		meds_drips := stregx(medstxt,"\[DRIPS\]",1,1,"\[SCHEDULED\]",1)
-		meds_sched := stregx(medstxt,"\[SCHEDULED\]",1,1,"\[PRN\]",1)
-		meds_prn := stregx(medstxt,"\[PRN\]",1,1,"\[DIET\]",1)
+		meds_all := stregx(medstxt,"\[CONTINUOUS\]",1,1,"\[DIET\]",1)
 		meds_diet := stregx(medstxt "<<<","\[DIET\]",1,1,"<<<",1)
 		
 		careteam := parseTag(clp,"Team")
@@ -754,9 +752,7 @@ processHandoff(ByRef epic) {
 		y.selectSingleNode(MRNstring "/MAR").setAttribute("date", timenow)			; Change date to now
 		if !(y.selectNodes(MRNstring "/MAR/*").length) {							; Populate only if empty
 			yMarDt := MRNstring "/MAR[@date='" timenow "']"
-			MedListParse("drips",meds_drips)
-			MedListParse("meds",meds_sched)
-			MedListParse("prn",meds_prn)
+			MedListParse("continuous",meds_all)
 			MedListParse("diet",meds_diet)
 		}
 	writeOut("/root","id[@mrn='" . fld.mrn . "']")
