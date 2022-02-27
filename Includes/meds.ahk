@@ -75,7 +75,7 @@ MedListParse(bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR")
 			tag := "prn"
 		}
 		else {
-			tag := "med"
+			tag := "meds"
 		}
 
 		/*	Determine medclass: Cardiac, Arrhythmia, Other, etc.
