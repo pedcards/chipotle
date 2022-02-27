@@ -1,8 +1,11 @@
 MedListParse(bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR")
 	global meds1, meds2, meds0, y, MRNstring, yMarDt
+	meds_abx := stregx(blist,"\[ABX\]",1,1,"\[CONTINUOUS\]",1)
+	meds_all := stregx(blist ">>>","\[CONTINUOUS\]",1,1,"\[DIET\]",1)
+
 	tempArray = 
 	medWords =
-	Loop, parse, % blist, `r`n
+	Loop, parse, % meds_all, `r`n
 	{
 		medline := trim(StrReplace(A_LoopField,Chr(8226)," "))
 		medline := RegExReplace(medline,"(\d),(\d{3})","$1$2")
