@@ -552,7 +552,13 @@ ObjHasValue(aObj, aValue, rx:="") {
 			if (med) {													; if a med regex, preface with "i)" to make case insensitive search
 				val := "i)" val
 			}
-			if (aValue ~= val) {
+			if (aValue="") {															; null aValue in "RX" is error
+				return, false, errorlevel := 1
+			}
+			if (val ~= aValue) {														; val=text, aValue=RX
+				return, key, Errorlevel := 0
+			}
+			if (aValue ~= val) {														; aValue=text, val=RX
 				return, key, Errorlevel := 0
 			}
 		} else {
