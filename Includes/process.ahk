@@ -760,10 +760,10 @@ processHandoff(ByRef epic) {
 	Return
 }
 
-parseTag(txt,tag) {
 /*	Read text between <tag>
 	Returns text excluding tags
 */
+parseTag(txt,tag) {
 	bs := "<" tag ">"
 	es := "</" tag ">"
 	x := stregx(txt,bs,1,1,es,1)

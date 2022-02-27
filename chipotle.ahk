@@ -403,6 +403,9 @@ getCall(dt) {
 	return callObj
 }
 
+/*	Merge CICU and SUR lists into CICUSUR
+	This may be obsolete
+*/
 IcuMerge() {
 	global y, timenow, loc_surg, csrDocs
 	
