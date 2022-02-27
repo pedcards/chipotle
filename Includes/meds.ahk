@@ -81,13 +81,14 @@ MedListParse(bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR")
 		/*	Determine medclass: Cardiac, Arrhythmia, Other, etc.
 		*/
 		medclass := "Other"																			; default medclass is Other
+		medfw := strX(Name,"",0,1," ",1,1)															; get first word of med name
 		if ObjHasValue(meds1, "i)" Name, "med") {													; in meds1 list (cardiac meds)
 			medclass:="Cardiac"
 		}
 		if ObjHasValue(meds2, "i)" Name, "med") {													; in meds2 list (antiarrhythmic meds)
 			medclass:="Arrhythmia"
 		}
-		if (medlist="abx") {																		; antibiotics meds
+		if InStr(meds_abx,medfw) {																	; antibiotics meds
 			medclass:="Abx"
 			; y.addElement("meds", yMarDt, {class: "Abx"}
 			; 	, RegExReplace(medName,"(\d+)\s+-\s+(.*?)[\r\n]+","$2 (Day $1) "))
