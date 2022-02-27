@@ -752,7 +752,7 @@ processHandoff(ByRef epic) {
 		if !(y.selectNodes(MRNstring "/MAR/*").length) {							; Populate only if empty
 			yMarDt := MRNstring "/MAR[@date='" timenow "']"
 			MedListParse(medstxt)
-			MedListParse("diet",meds_diet)
+			dietListParse(meds_diet)
 		}
 	writeOut("/root","id[@mrn='" . fld.mrn . "']")
 	}
