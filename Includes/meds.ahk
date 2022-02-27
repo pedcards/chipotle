@@ -30,16 +30,33 @@ MedListParse(bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR")
 		*/
 		tab := StrSplit(medline, ", ")
 			Name := tab[1]
-			Dose := tab[2]
-			Route := tab[3]
-			Sched := tab[4]
+		Dose := tab[2]
+		Route := tab[3]
+		Sched := tab[4]
+
 		Name:=RegExReplace(Name,"i) in (sodium chloride|lactated|dextrose|sterile water).*?mL\)?( infusion)?")
 		Name:=RegExReplace(Name,"^(.*?)( \d.*? )(infusion|drops|injection)","$1")
-		Name:=RegExReplace(Name,"\b\(?[0-9\-\.]+ mg/mL\)?")
-		Name:=RegExReplace(Name,"i)injection|oral solution|nasal/buccal")
+		Name:=RegExReplace(Name,"\b\(?[0-9\-\.]+ (mg|mEq)/([0-9\.]+ )?mL\)?")
+		Name:=RegExReplace(Name,"i)injection|nasal/buccal")
+		Name:=RegExReplace(Name,"i)(\(pediatric\))? suppository")
+		Name:=RegExReplace(Name,"i)dextrose [0-9\.]+ .*?with sodium chloride [0-9\.]+ mEq ")
+		Name:=RegExReplace(Name,"i)oral (suspension|solution|liquid)")
+		Name:=RegExReplace(Name,"i)chewable .*?tablet")
+		Name:=RegExReplace(Name,"i)suppository|pill|packet|tablet|capsule|lozenge|suspension")
+		Name:=RegExReplace(Name,"i)(HFA|MDI) .*?inhaler")
+		Name:=RegExReplace(Name,"i)bolus from pump","bolus")
 		Name:=RegExReplace(Name,Dose)
+
 		Dose:=RegExReplace(Dose,".*? \(Dosing Weight\)")
-		Route:=RegExReplace(Route,"Intravenous","IV")
+
+		Route:=RegExReplace(Route,"i)Oral","PO")
+		Route:=RegExReplace(Route,"i)Intravenous","IV")
+		Route:=RegExReplace(Route,"i)Rectal","PR")
+		Route:=RegExReplace(Route,"i)Intramuscular","IM")
+		Route:=RegExReplace(Route,"i)Subcutaneous","SQ")
+		Route:=RegExReplace(Route,"i)Per (G|J|D|NG|ND|NJ) tube","P$1T")
+		Route:=RegExReplace(Route,"i)(PO|NG|ND|NJ) or (PO|NG|ND|NJ)( tube)?","$1/$2")
+
 		Sched:=RegExReplace(Sched,"Continuous","gtt.")
 		Sched:=RegExReplace(Sched,"Every","Q")
 		Sched:=RegExReplace(Sched,"2 times a day","BID")
