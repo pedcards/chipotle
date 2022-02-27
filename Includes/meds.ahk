@@ -19,7 +19,7 @@ MedListParse(bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR")
 		if (medline~="i)discontinued|stopped|canceled") {											; skip recently dc meds
 			Continue
 		}
-		if ObjHasValue(meds0, medline, "RX") {														; skip meds on no-fly list meds0
+		if ObjHasValue(meds0, medline, "med") {														; skip meds on no-fly list meds0
 			continue
 		}
 		
@@ -61,10 +61,10 @@ MedListParse(bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR")
 		/*	Determine medclass: Cardiac, Arrhythmia, Other, etc.
 		*/
 		medclass := "Other"																			; default medclass is Other
-		if ObjHasValue(meds1, Name, "RX") {															; in meds1 list (cardiac meds)
+		if ObjHasValue(meds1, "i)" Name, "med") {													; in meds1 list (cardiac meds)
 			medclass:="Cardiac"
 		}
-		if ObjHasValue(meds2, Name, "RX") {															; in meds2 list (antiarrhythmic meds)
+		if ObjHasValue(meds2, "i)" Name, "med") {													; in meds2 list (antiarrhythmic meds)
 			medclass:="Arrhythmia"
 		}
 		if (medlist="abx") {																		; antibiotics meds
