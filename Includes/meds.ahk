@@ -102,46 +102,33 @@ MedListParse(bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR")
 	return
 }
 
-dietListParse(blist) {
+dietListParse(txt) {
 	global y, yMarDt
 
-	Loop, parse, % blist, `r`n
+	dstr:="(\d{2}\/\d{2}\/\d{2})\s+\d{4}"
+	ptr:=1
+	Loop,
 	{
-		medline := trim(StrReplace(A_LoopField,Chr(8226)," "))
-		medline := RegExReplace(medline,"(\d),(\d{3})","$1$2")
-		
-		if (medline="") {
-			Continue
+		if !(pos1:=RegExMatch(txt,dstr,dmatch,ptr)) {									; search for "mm/dd/yy hhmm" beginning at ptr
+			break
 		}
-		if (medline~="Held by provider") {															; skip meds on hold
-			Continue
-		}
-		if (medline~="Current Facility-Administered") {												; skip section header
-			Continue
-		}
-		if (medline~="i)discontinued|stopped|canceled") {											; skip recently dc meds
-			Continue
-		}
-		diet := medline
-		; diet := RegExReplace(medname,"i)(,\s+)?(Requested|Start) date\/time: .*")
-		; diet := RegExReplace(diet,"i)(, )?Start: \d{1,2}\/\d{2}\/\d{2} \d{1,2}:\d{2}:\d{2}")
-		; diet := RegExReplace(diet,"[^[:ascii:]]","~")
-		; StringReplace, diet, diet, Other (Nonstandard),, All
-		; StringReplace, diet, diet, Nonformulary Formula,, All
-		; StringReplace, diet, diet, % "(Formula, Nonformulary)",, All
-		; StringReplace, diet, diet, (Diet NPO for Procedure),, All
-		; StringReplace, diet, diet, (Diet Regular for Age),, All
-		; StringReplace, diet, diet, (Diet Modified),, All
-		; StringReplace, diet, diet, NPO NPO, NPO
-		; if (RegExMatch(diet,"Justification: (.*), Name: ([^,]*), (.*)",just)) {
-		; 	diet := just2 " (" just1 ") " just3
-		; }
-		y.addElement("diet", yMarDt, {class: "Diet"}, diet)
-		dietStr .= diet " | "
+		val:=trim(stregX(txt,dmatch,pos1,1,dstr "(?!\t)",1,ptr),"`r`n`t ")				; get string to next matching mm/dd/yy
+		ptr++																			; advance ptr+1 to avoid rematch
+
+		source := trim(stregX(val,"",1,1,"(Until discontinued|\R+)",1),"`r`n`t ")
+		route := trim(stregX(val,"^Route\s+",1,1,"(\R|\Z)",1),"`r`n`t ")
+		freq := trim(stregX(val,"^Frequency\s+",1,1,"(\R|\Z)",1),"`r`n`t ")
+		volume := trim(stregX(val,"^Volume.*?:\s+",1,1,"(\R|\Z)",1),"`r`n`t ")
+		dur := trim(stregX(val,"^Duration.*?:\s+",1,1,"(\R|\Z)",1),"`r`n`t ")
+		cals := trim(stregX(val,"^Final Calories:\s+",1,1,"(\R|\Z)",1),"`r`n`t ")
+
+		str1 := source . strQ(cals," (###)")
+				. strQ(route freq,", ") strQ (volume,"### mL") strQ(route," ###") strQ(freq," ###") strQ(dur," over ###")
+
+		y.addElement("diet", yMarDt, {class: "Diet"}, str1 )
+		dietStr .= str1 " | "
 	}
 	if (dietStr) {																					; if dietStr generated, add for ARNP
-		StringReplace, dietStr, dietStr, `r, , All
-		StringReplace, dietStr, dietStr, `n, , All
 		dietStr := trim(dietStr,"| `r`n")
 		y.addElement("dietstr", yMarDt, {class: "Diet"}, dietStr)
 	}
