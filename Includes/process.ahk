@@ -644,12 +644,16 @@ processHandoff(ByRef epic) {
 		labstxt := parseTag(clp,"Labs")
 		abgtxt := parseData(labstxt,"(Art) pH.*?:\s+(.*)")
 		cbctxt := parseData(labstxt,"(CBC) -\s+(.*)")
-		ekgtxt := strX(parseTag(labstxt,"ekg"),"Narrative`r`n",1,9,"",0,1)
+		ekgtxt := trim(strX(parseTag(labstxt,"ekg"),"Narrative`r`n",1,9,"",0,1),"`r`n")
+			RegExMatch(ekgtxt,"Confirmed by .*? on (.*?)$",ekgdt)
+			ekgdt := parseDate(ekgdt1)
+			ekgdt := ekgdt.YMD ekgdt.hr ekgdt.min ekgdt.sec
+			ekgtxt := trim(stregX(ekgtxt,"^.*?\*\*\s\*\*.*?\R+",1,1,"Confirmed by",1)," `r`n`t")
 		echotxt := parseTag(labstxt,"echo")
 			echotmp := parseDate(stregX(echotxt,"Study Date:",1,1,"Sex:",1))
 			echodt := echotmp.YMD echotmp.hr echotmp.min echotmp.sec
 			echosumm := stregX(echotxt
-				,"Exam Location:",1,0
+				,"^Summary:",1,0
 				,"(Segmental Cardiotype,|Systemic Veins:|Pulmonary Veins:|Atria:|Mitral Valve:|Tricuspid Valve:)",1)
 		
 		medstxt := parseTag(clp,"Medications")
@@ -741,9 +745,30 @@ processHandoff(ByRef epic) {
 			y.addElement("labs", yInfoDt )
 				y.addElement("abg",  yInfoDt "/labs", abgtxt)
 				y.addElement("cbc",  yInfoDt "/labs", cbctxt)
-			y.addElement("studies", yInfoDt)
-				y.addElement("ekg",  yInfoDt "/studies", ekgtxt)
-				y.addElement("echo", yInfoDt "/studies", {date:echodt}, echosumm)
+		
+		if !isobject(y.selectSingleNode(MRNstring "/data")) {
+			y.addElement("data", MRNstring)											; Create a new /data node
+		}
+		y.selectSingleNode(MRNstring "/data").setAttribute("date", timenow)			; Change date to now
+		
+		if (ekgdt) {
+			if !isobject(y.selectSingleNode(MRNstring "/data/ECG")) {
+				y.addElement("ECG", MRNstring "/data")
+			}
+			if !IsObject(y.selectSingleNode(MRNstring "/data/ECG/study[@date='" ekgdt "']")) {
+				y.addElement("study",  MRNstring "/data/ECG", {date:ekgdt},ekgtxt)
+				eventlog(MRNstring " added ECG " ekgdt)
+			}
+		}
+		if (echodt) {
+			if !isobject(y.selectSingleNode(MRNstring "/data/Echo")) {
+				y.addElement("Echo", MRNstring "/data")
+			}
+			if !IsObject(y.selectSingleNode(MRNstring "/data/Echo/study[@date='" echodt "']")) {
+				y.addElement("study",  MRNstring "/data/Echo", {date:echodt},echosumm)
+				eventlog(MRNstring " added Echo " echodt)
+			}
+		}
 		
 		if !isobject(y.selectSingleNode(MRNstring "/MAR")) {
 			y.addElement("MAR", MRNstring)											; Create a new /MAR node
