@@ -91,7 +91,7 @@ PatListGUI:
 		. "   Sex: " substr(pl_Sex,1,1) "`n`n"
 		. pl_Unit " :: " pl_Room "`n"
 		. pl_Svc "`n`n"
-		. "Admitted: " pl_Admit "`n"
+		. "Admitted: " parseDate(pl_Admit).MDY "`n"
 	if !(pl_Unit) {																				; no unit means is an ad hoc entry
 		pl_demo := "`nDemographics will be added`nwhen patient is admitted"
 	}
@@ -177,7 +177,8 @@ PatListGUI:
 	Gui, Add, GroupBox, x436 y14 w140 h160 , Status Flags
 	Gui, Add, GroupBox, x600 y14 w260 h160 Disabled, Tasks/Todos
 	Gui, Add, GroupBox, xp y180 wp h140 , Data Highlights
-	Gui, Add, GroupBox, xp y330 wp h180 , % "Cardiac Meds/Diet (" parsedate(DateCores).MDY ")"
+	Gui, Add, GroupBox, xp y330 wp h180 
+		, % "Cardiac Meds/Diet (" parseDate(y.getAtt("/root/id[@mrn='" MRN "']/data","date")).MDY ")"
 	;~ Gui, Add, Button, x600 y+20 w120 h20 gplupd Disabled, Update notes
 	Gui, Add, Button, x600 y+20 w120 h20 gplupd Disabled, Cath Req
 	Gui, Add, Button, x+20 yp w120 hp gplSumm, Summary Notes
@@ -418,8 +419,6 @@ plMAR:
 		Gui, MarGui:Default
 		plMARlist("diet","Diet")
 	}
-	tmp := parseDate(CoresD)
-	Gui, MarGui:Show, AutoSize, % "CORES " parsedate(CoresD).MDY " @ " tmp.HrMin 
 	return
 }
 
