@@ -1,5 +1,17 @@
 plInputCard:
 {
+	MsgBox 0x40030, Edit patient provider
+		, %	"To change the patient's primary cardiologist or surgeon,`n"
+		.	"edit the CARE TEAM from the Storyboard panel.`n`n"
+		. 	"Set role to: CONTINUITY ATTENDING`n"
+		. 	"and specialty to: Pediatric Cardiology or Cardiac Surgery."
+
+	Return
+
+/*	===========================================================================
+	This whole section may be obsolete with Epic
+	Pulls cardiologist names from .PATIENTCARETEAM
+*/
 	CrdType:=A_GuiControl
 	if (isARNP) {
 		if (instr(CrdType,"card")) {
