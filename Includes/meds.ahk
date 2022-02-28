@@ -1,7 +1,7 @@
 MedListParse(bList) {								; may bake in y.ssn(//id[@mrn='" mrn "'/MAR")
 	global meds1, meds2, meds0, y, MRNstring, yMarDt
-	meds_abx := stregx(blist,"\[ABX\]",1,1,"\[CONTINUOUS\]",1)
-	meds_all := stregx(blist ">>>","\[CONTINUOUS\]",1,1,"\[DIET\]",1)
+	meds_abx := parseTag(blist,"abx")
+	meds_all := parseTag(blist,"full")
 
 	tempArray = 
 	medWords =

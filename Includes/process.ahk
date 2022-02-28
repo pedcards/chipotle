@@ -657,7 +657,7 @@ processHandoff(ByRef epic) {
 				,"(Segmental Cardiotype,|Systemic Veins:|Pulmonary Veins:|Atria:|Mitral Valve:|Tricuspid Valve:)",1)
 		
 		medstxt := parseTag(clp,"Medications")
-		meds_diet := stregx(medstxt "<<<","\[DIET\]",1,1,"<<<",1)
+		meds_diet := parseTag(medstxt,"diet")
 		
 		careteam := parseTag(clp,"Team")
 
