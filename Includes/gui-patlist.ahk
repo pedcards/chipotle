@@ -419,6 +419,8 @@ plMAR:
 		Gui, MarGui:Default
 		plMARlist("diet","Diet")
 	}
+	tmp := parseDate(CoresD)
+	Gui, MarGui:Show, AutoSize, % "CORES " parsedate(CoresD).MDY " @ " tmp.HrMin 
 	return
 }
 
