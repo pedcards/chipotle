@@ -1,4 +1,5 @@
 /* 	CHIPOTLE = Children's Heart Center InPatient Online Task List Environment (C)2014-2021 TC
+				Children's Handoffs InPatient Organized Teams List Extender (2022)
 */
 
 /*	Todo lists: 
@@ -80,8 +81,8 @@ if (ObjHasValue(bpdUsers,user)) {
 }
 
 mainTitle1 := "CHIPOTLE"												; Default title, unless changed below
-mainTitle2 := "Children's Heart Center InPatient"
-mainTitle3 := "Organized Task List Environment"
+mainTitle2 := "Children's Handoffs InPatient"
+mainTitle3 := "Organized Teams List Extender"
 
 if (isCICU) {
 	loc := makeLoc("CICU")										; loc[] defines the choices offered from QueryList. You can only break your own list.
