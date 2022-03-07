@@ -182,7 +182,7 @@ syncHandoff(restart:="") {
 	}
 	gdi_clear()
 	BlockInput, Off
-	Progress, Off
+	Progress,100,% " ", Scanning updates...
 	escActive := false
 
 	filecheck()
@@ -596,7 +596,7 @@ processHandoff(ByRef epic) {
 	totalIndex := epic.MaxIndex()
 	loop, % totalIndex
 	{
-		Progress, % 100*A_Index/totalIndex,, % epic[A_Index].MRN
+		Progress, % 100*A_Index/totalIndex, % epic[A_Index].MRN
 		clp := epic[A_Index].Data
 		top := strX(clp,"",0,1,"<Data>",0,9)
 		t1 := StregX(top,"--CHIPOTLE Sign Out ",0,1,"--",1)
