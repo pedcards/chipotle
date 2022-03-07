@@ -243,7 +243,7 @@ checkHandoff(win) {
 		return { tabX:ok[1].x															; x.coord of Handoff sidetab
 				, tabY:ok[1].y															; y.coord of Handoff sidetab
 				, panelX:panelX															; x.coord of Panel collapse arrow
-				, NameY:ok[1].y+round(36*scale)											; y.coord of Handoff Patient Name
+				, NameY:ok[1].y+round(28*scale)											; y.coord of Handoff Patient Name
 				, roomY:ok[1].y+round(54*scale)											; y.coord of Handoff room number
 				, null:""}
 	} 
