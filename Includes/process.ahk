@@ -4,7 +4,7 @@ syncHandoff(restart:="") {
 	Cannot be run directly from Citrix (sister process does not "see" other Citrix windows)
 
 */
-	global y, MRNstring, EpicSvcList, svcText, timenow, scr, gdi, EscActive
+	global y, MRNstring, EpicSvcList, hndText, svcText, timenow, scr, gdi, EscActive
 
 	if !(restart="Y") {
 		MsgBox 0x31, Handoff Sync
@@ -47,7 +47,7 @@ syncHandoff(restart:="") {
 			break
 		}
 	}
-	if FindText(okx,oky,0,0,scr.W,scr.H,0.0,0.0,svcText["NoPts"]) {
+	if FindText(okx,oky,0,0,scr.W,scr.H,0.0,0.0,hndText.NoPts) {
 		HndOff := {}
 		HndOff.NoPts := true
 	}
@@ -96,7 +96,7 @@ syncHandoff(restart:="") {
 	eventlog("Found service: " HndOff.Service)
 	/*	Check if only 1 patient or 0 patients
 	*/
-	if FindText(okx,oky,0,0,scr.W,scr.H,0.0,0.0,svcText["JustOne"]) {
+	if FindText(okx,oky,0,0,scr.W,scr.H,0.0,0.0,hndText.JustOne) {
 		HndOff.JustOne := true 
 	}
 
