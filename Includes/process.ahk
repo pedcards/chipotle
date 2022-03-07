@@ -159,6 +159,7 @@ syncHandoff(restart:="") {
 		*/
 		WinActivate % "ahk_id " scr.winEpic
 		readHndSummary(HndOff,fld)
+		fld.name64 := snap64
 		res.push(fld)																	; push {MRN, Data, Summary} to RES
 
 		done .= fld.MRN "`n"
@@ -622,6 +623,7 @@ processHandoff(ByRef epic) {
 				Break
 			}
 		}
+		fld.name64 := epic[A_index].name64
 
 		datatxt := parseTag(clp,"Data")
 		vstxt := parseTag(datatxt,"vs")
@@ -669,6 +671,7 @@ processHandoff(ByRef epic) {
 		y.addElement("sex", MRNstring . "/demog/data", format("{:T}",fld.sex))
 		y.addElement("dob", MRNstring . "/demog/data", fld.dob)
 		y.addElement("age", MRNstring . "/demog/data", fld.age)
+		y.addElement("name64", MRNstring . "/demog/data", fld.name64)
 		y.addElement("service", MRNstring . "/demog/data", fld.service)
 		y.addElement("attg", MRNstring . "/demog/data", fld.attg)
 		y.addElement("admit", MRNstring . "/demog/data", parseDate(fld.admit).YMD)
