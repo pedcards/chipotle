@@ -111,8 +111,10 @@ syncHandoff(restart:="") {
 		Progress,,Record %A_Index%
 		; sleep 200																		; might need to sleep if selecting patients for deletion
 		; snap64 := Gdip_Grab64(hndOff.PanelX+12, hndOff.RoomY, 90, 18)
-		comma := FindText(okx,oky,hndOff.PanelX+12,hndOff.NameY,hndOff.PanelX+200,hndOff.NameY+28,0,0,hndText.NameComma)
-		snap64 := Gdip_Grab64(hndOff.PanelX+12,hndOff.NameY,comma[1].x-hndOff.PanelX+64,6)
+		if !FindText(okx,oky,hndOff.PanelX+12,hndOff.NameY,hndOff.PanelX+200,hndOff.NameY+28,0,0,hndText.NameComma) {
+			okx := hndOff.PanelX+140
+		}
+		snap64 := Gdip_Grab64(hndOff.PanelX+12,hndOff.NameY,okx-hndOff.PanelX+64,6)
 		if (A_index=1) {
 			snap0 := snap64																; base64 of name
 		} else if (snap64=snap0) {
