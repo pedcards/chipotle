@@ -242,7 +242,7 @@ checkHandoff(win) {
 	if (ok:=FindText(okx,oky,rtside,0,scr.w,scr.h,0.0,0.0,hndText.HandoffTab)) {
 		return { tabX:ok[1].x															; x.coord of Handoff sidetab
 				, tabY:ok[1].y															; y.coord of Handoff sidetab
-				, panelX:panelX
+				, panelX:panelX															; x.coord of Panel collapse arrow
 				, NameY:ok[1].y+round(36*scale)											; y.coord of Handoff Patient Name
 				, roomY:ok[1].y+round(54*scale)											; y.coord of Handoff room number
 				, null:""}
