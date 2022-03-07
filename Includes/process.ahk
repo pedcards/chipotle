@@ -110,14 +110,14 @@ syncHandoff(restart:="") {
 		*/
 		Progress,,Record %A_Index%
 		; sleep 200																		; might need to sleep if selecting patients for deletion
-		snap := Gdip_BitmapFromScreen(hndOff.PanelX+12 "|" hndOff.RoomY "|90|18")
-		snap64 := Gdip_EncodeBitmapTo64string(snap,"png")
-		Gdip_DisposeImage(snap)
+		; snap64 := Gdip_Grab64(hndOff.PanelX+12, hndOff.RoomY, 90, 18)
+		comma := FindText(okx,oky,hndOff.PanelX+12,hndOff.NameY,hndOff.PanelX+200,hndOff.NameY+28,0,0,hndText.NameComma)
+		snap64 := Gdip_Grab64(hndOff.PanelX+12,hndOff.NameY,comma[1].x-hndOff.PanelX+64,6)
 		if (A_index=1) {
-			snap0 := snap64																; base64 of first room number
+			snap0 := snap64																; base64 of name
 		} else if (snap64=snap0) {
 			Break																		; jump out when  reach first bitmap again
-		} 
+		}	
 
 		timenow := A_now
 		fld := readHndIllness(HndOff,done)
