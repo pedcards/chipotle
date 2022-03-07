@@ -1002,6 +1002,13 @@ draw_box(x,y,w,h) {
 	Return
 }
 
+Gdip_Grab64(x,y,w,h) {
+	snap := Gdip_BitmapFromScreen(x "|" y "|" w "|" h)
+	snap64 := Gdip_EncodeBitmapTo64string(snap,"png")
+	Gdip_DisposeImage(snap)
+	Return snap64
+}
+
 Gdip_EncodeBitmapTo64string(pBitmap, ext, Quality=75) {
 /*	Taken from https://github.com/iseahound/Vis2/
 */
