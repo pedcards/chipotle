@@ -110,11 +110,13 @@ syncHandoff(restart:="") {
 		*/
 		Progress,,Record %A_Index%
 		; sleep 200																		; might need to sleep if selecting patients for deletion
-		; snap64 := Gdip_Grab64(hndOff.PanelX+12, hndOff.RoomY, 90, 18)
-		if !FindText(okx,oky,hndOff.PanelX+12,hndOff.NameY,hndOff.PanelX+200,hndOff.NameY+28,0,0,hndText.NameComma) {
+		if !FindText(okx,oky,hndOff.PanelX+12,hndOff.NameY,hndOff.PanelX+200,hndOff.NameY+28,0.1,0.1,hndText.NameComma) {
 			okx := hndOff.PanelX+140
+			MsgBox Miss
 		}
-		snap64 := Gdip_Grab64(hndOff.PanelX+12,hndOff.NameY,okx-hndOff.PanelX+64,6)
+		name64 := Gdip_Grab64(hndOff.PanelX+12,hndOff.NameY,okx-hndOff.PanelX+64,6)
+
+		snap64 := Gdip_Grab64(hndOff.PanelX+12, hndOff.RoomY, 90, 18)
 		if (A_index=1) {
 			snap0 := snap64																; base64 of name
 		} else if (snap64=snap0) {
@@ -161,7 +163,7 @@ syncHandoff(restart:="") {
 		*/
 		WinActivate % "ahk_id " scr.winEpic
 		readHndSummary(HndOff,fld)
-		fld.name64 := snap64
+		fld.name64 := name64
 		res.push(fld)																	; push {MRN, Data, Summary} to RES
 
 		done .= fld.MRN "`n"
