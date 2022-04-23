@@ -386,7 +386,7 @@ readHndIllness(ByRef HndOff, ByRef done) {
 		if (clp="`r`n") {																; field is truly blank
 			WinActivate % "ahk_id " scr.winEpic
 			clickField(Illness.EditX+100, Illness.EditY+16)
-			SendInput, .chipotletext{enter}												; type dot phrase to insert
+			SendEvent, .chipotletext{enter}												; type dot phrase to insert
 			clipbdWait(Illness.EditX-40, Illness.EditY, Illness.ToggleUp, 100)			; Wait for Clipbd icon after text expansion
 			clipsent := true
 			Continue
@@ -405,9 +405,9 @@ readHndIllness(ByRef HndOff, ByRef done) {
 			Clipboard := clp0
 			; sleep 150
 			getClip("v")
-			SendInput, {Right}
+			SendEvent, {Right}
 		} else {
-			SendInput, {del}
+			SendEvent, {del}
 		}
 		fld.MRN := strX(clp,"[MRN] ",1,6," [DOB]",0,6)									; clip changed from baseline
 		fld.Data := clp
