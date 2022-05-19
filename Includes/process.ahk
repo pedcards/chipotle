@@ -115,7 +115,7 @@ syncHandoff(restart:="") {
 		; sleep 200																		; might need to sleep if selecting patients for deletion
 		if !FindText(okx,oky,hndOff.PanelX+12,hndOff.NameY,hndOff.PanelX+200,hndOff.NameY+28,0.1,0.1,hndText.NameComma) {
 			okx := hndOff.PanelX+140
-			MsgBox Miss
+			; MsgBox Miss
 		}
 		name64 := Gdip_Grab64(hndOff.PanelX+12,hndOff.NameY,okx-hndOff.PanelX+64,6)
 
