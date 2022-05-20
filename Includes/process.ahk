@@ -6,6 +6,26 @@ syncHandoff(restart:="") {
 */
 	global y, MRNstring, EpicSvcList, hndText, svcText, timenow, scr, gdi, EscActive
 
+	/*	Find Epic instance
+	*/
+	winEpic := WinExist("Hyperspace.*Production")
+	winEpicSUP := WinExist("Hyperspace.*SUP")
+	if (winEpicSUP) {
+		if (winEpic) {
+			tmp:=CMsgBox("Multiple Epic instances", "Use which instance?","PROD|SUP")
+			winEpic := (tmp="PROD") ? winEpic : winEpicSUP
+		} else {
+			winEpic := winEpicSUP
+		}
+	}
+	if !(winEpic) {
+		MsgBox NO EPIC WINDOW!
+		eventlog("No Epic window found.")
+		Gui, main:Show
+		Return
+	}
+	scr.winEpic := winEpic
+
 	if !(restart="Y") {
 		MsgBox 0x31, Handoff Sync
 			, % "Ready to start Handoff Sync?`n`n`n"
@@ -23,15 +43,6 @@ syncHandoff(restart:="") {
 	Gui, main:Minimize
 	res := {}
 
-	/*	Find Epic instance
-	*/
-	if !(winEpic := WinExist("Hyperspace.*Production")) {
-		MsgBox NO EPIC WINDOW!
-		eventlog("No Epic window found.")
-		Gui, main:Show
-		Return
-	}
-	scr.winEpic := winEpic
 	WinActivate ahk_id %winEpic%
 	gdi_init()																			; create GDI canvas
 	escActive := true
