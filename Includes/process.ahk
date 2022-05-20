@@ -354,6 +354,10 @@ clickField(x,y) {
 			break
 		}
 	}
+	if !(ver) {
+		err := true
+		return err
+	}
 	return
 }
 
