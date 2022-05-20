@@ -339,12 +339,14 @@ clickField(x,y) {
 	*ver = (true,false) verify the text box is active
 */
 	global hndText
-	delay := 100
+	delay := 40
 
 	Loop, 8
 	{
 		MouseClick, Left, % x, % y
+		Sleep, %delay%
 		MouseClick, Left, % x+10, % y+10
+		Sleep, %delay%
 		
 		if (FindText(okx,oky,x,y-100,x+100,y+100,0.0,0.0,hndText.ActiveBox)) {
 			ver:=True
