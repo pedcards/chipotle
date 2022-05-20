@@ -392,7 +392,9 @@ readHndIllness(ByRef HndOff, ByRef done) {
 	{
 		progress, % 20*A_Index
 		WinActivate % "ahk_id " scr.winEpic
-		clickField(Illness.EditX+100, Illness.EditY+16)
+		if (clickField(Illness.EditX+100, Illness.EditY+16)) {
+			Continue
+		}
 		clp := getClip("x")
 		if (FindText(okx,oky,0,0,scr.w,scr.h,0.0,0.0,hndText.DontRemove)) {
 			clickButton(okx,oky)
@@ -404,7 +406,9 @@ readHndIllness(ByRef HndOff, ByRef done) {
 		} 
 		if (clp="`r`n") {																; field is truly blank
 			WinActivate % "ahk_id " scr.winEpic
-			clickField(Illness.EditX+100, Illness.EditY+16)
+			if (clickField(Illness.EditX+100, Illness.EditY+16)) {
+				Continue
+			}
 			SendEvent, .chipotletext{enter}												; type dot phrase to insert
 			clipbdWait(Illness.EditX-40, Illness.EditY, Illness.ToggleUp, 100)			; Wait for Clipbd icon after text expansion
 			clipsent := true
@@ -419,7 +423,9 @@ readHndIllness(ByRef HndOff, ByRef done) {
 			}
 		}
 		WinActivate % "ahk_id " scr.winEpic
-		clickfield(Illness.EditX+100, Illness.EditY+16)
+		if (clickfield(Illness.EditX+100, Illness.EditY+16)) {
+			Continue
+		}
 		if (clp0) {
 			Clipboard := clp0
 			; sleep 150
@@ -462,7 +468,9 @@ readHndSummary(ByRef HndOff, ByRef fld) {
 	loop, 7
 	{
 		WinActivate % "ahk_id " scr.winEpic
-		clickField(summ.EditX,summ.EditY+20)											; grab the Patient Summary field
+		if (clickField(summ.EditX,summ.EditY+20)) {										; grab the Patient Summary field
+			Continue
+		}
 		clp := getClip("c")
 		SendInput, {Right}
 		if (clp="") {																	; nothing populated, try again
