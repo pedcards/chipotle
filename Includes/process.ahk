@@ -139,7 +139,7 @@ syncHandoff(restart:="") {
 
 		timenow := A_now
 		fld := readHndIllness(HndOff,done)
-		if (fld="UNABLE") {																; Unable to edit Handoff error
+		if (fld~="UNABLE|READONLY") {													; Unable to edit Handoff error
 			WinActivate % "ahk_id " scr.winEpic
 			clickButton(HndOff.tabX,HndOff.tabY)
 			SendInput, !n																; Alt+n to move to next record
@@ -305,6 +305,9 @@ FindHndSection(sect,open:="") {
 			Return
 		}
 	}
+	if FindText(okx,oky,rtside,0,scr.w,scr.y,0.0,0.0,hndText.ReadOnly) {				; Unable to edit Handoff message
+		return "READONLY"
+	} else 
 
 	togDN := FindText(okx,oky,secHeader[1].x,secHeader[1][2],scr.w,secHeader[1][2]+secHeader[1][4],0.0,0.0,hndText.ToggleDN)
 	if (open && togDN) {
