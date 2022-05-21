@@ -589,11 +589,11 @@ clipbdWait(x,y,x2,h) {
 	While, (A_tickcount < t1)
 	{
 		if IsObject(ok:=FindText(okx,oky,x,y,x2,y+h,0.0,0.0,hndText.Clipbd)) {
-			Return
+			Return true
 		}
 		Sleep, % tick
 	}
-	Return
+	Return false
 }
 
 updateList(service,done) {
