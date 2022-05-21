@@ -352,12 +352,10 @@ clickField(x,y) {
 		
 		if (FindText(okx,oky,x,y-100,x+100,y+100,0.0,0.0,hndText.ActiveBox)) {
 			ver:=True
-		}
-		if (ver) {
 			break
 		}
 	}
-	if !(ver) {
+	if !(ver) {																			; Fails to find activebox
 		err := true
 		return err
 	}
@@ -395,7 +393,7 @@ readHndIllness(ByRef HndOff, ByRef done) {
 	{
 		progress, % 20*A_Index
 		WinActivate % "ahk_id " scr.winEpic
-		if (clickField(Illness.EditX+100, Illness.EditY+16)) {
+		if (clickField(Illness.EditX+100, Illness.EditY+16)) {							; no activebox found, try again
 			Continue
 		}
 		clp := getClip("x")
@@ -403,25 +401,24 @@ readHndIllness(ByRef HndOff, ByRef done) {
 			clickButton(okx,oky)
 			Continue
 		}
-		if (clp="") {
+		if (clp="") {																	; failed to get anything
 			sleep 50
 			Continue
 		} 
 		if (clp="`r`n") {																; field is truly blank
 			WinActivate % "ahk_id " scr.winEpic
-			if (clickField(Illness.EditX+100, Illness.EditY+16)) {
+			if (clickField(Illness.EditX+100, Illness.EditY+16)) {						; confirm box still active
 				Continue
 			}
 			SendEvent, .chipotletext{enter}												; type dot phrase to insert
-			clipbdWait(Illness.EditX-40, Illness.EditY, Illness.ToggleUp, 100)			; Wait for Clipbd icon after text expansion
-			clipsent := true
+			clipsent := clipbdWait(Illness.EditX-40, Illness.EditY, Illness.ToggleUp, 100)		; Wait for Clipbd icon after text expansion
 			Continue
 		} 
 		if !(clipsent) {
-			if instr(clp,"--CHIPOTLE Sign Out") {
+			if instr(clp,"--CHIPOTLE Sign Out") {										; leftover CHIPOTLETEXT
 				continue
 			} else {
-				clp0 := trim(clp,"`r`n")
+				clp0 := trim(clp,"`r`n")												; save contents to clp0
 				Continue
 			}
 		}
