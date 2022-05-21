@@ -405,6 +405,9 @@ readHndIllness(ByRef HndOff, ByRef done) {
 			sleep 50
 			Continue
 		} 
+		if InStr("chipotletext", clp) {													; poorly typed CHIPOTLETEXT
+			Continue
+		}
 		if (clp="`r`n") {																; field is truly blank
 			WinActivate % "ahk_id " scr.winEpic
 			if (clickField(Illness.EditX+100, Illness.EditY+16)) {						; confirm box still active
