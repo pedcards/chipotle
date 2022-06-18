@@ -1,5 +1,5 @@
-/* 	Patient List Updater (C)2014-2020 TC
-	CHIPOTLE = Children's Heart Center InPatient Online Task List Environment
+/* 	CHIPOTLE = Children's Heart Center InPatient Online Task List Environment (C)2014-2021 TC
+				Children's Handoffs InPatient Organized Teams List Extender (2022)
 */
 
 /*	Todo lists: 
@@ -9,12 +9,12 @@
 #NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
 Clipboard = 	; Empty the clipboard
 SendMode Input ; Recommended for new scripts due to its superior speed and reliability.
-SetTitleMatchMode, 2
+SetTitleMatchMode, RegEx
 SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #Include %A_ScriptDir%\Includes
 #Persistent		; Keep program resident until ExitApp
 
-vers := "2.4.5.8"
+vers := "3.0.b"
 user := A_UserName
 FormatTime, sessdate, A_Now, yyyyMM
 eventlog(">>>>> Session started.")
@@ -37,8 +37,8 @@ Sleep 500
 
 global path
 scr:=screenDims()
-win:=winDim(scr)
 gosub getIni
+win:=winDim(scr)
 
 if InStr(A_WorkingDir,"Ahk") {
 	isLocal := true
@@ -81,8 +81,8 @@ if (ObjHasValue(bpdUsers,user)) {
 }
 
 mainTitle1 := "CHIPOTLE"												; Default title, unless changed below
-mainTitle2 := "Children's Heart Center InPatient"
-mainTitle3 := "Organized Task List Environment"
+mainTitle2 := "Children's Handoffs InPatient"
+mainTitle3 := "Organized Teams List Extender"
 
 if (isCICU) {
 	loc := makeLoc("CICU")										; loc[] defines the choices offered from QueryList. You can only break your own list.
@@ -91,13 +91,13 @@ if (isCICU) {
 	mainTitle2 := "Children's Heart Center"
 	mainTitle3 := "Inpatient Longitudinal Integrator"
 } else if (isARNP) {
-	loc := makeLoc("CSR","CICU")
+	loc := makeLoc("CSR")
 	callLoc := "CSR"
 	mainTitle1 := "CON CARNE"
 	mainTitle2 := "Collective Organized Notebook"
 	mainTitle3 := "for Cardiac ARNP Efficiency"
 } else if (isCoord) {
-	loc := makeLoc("CSR","CICU","ICUCons")
+	loc := makeLoc("CSR","ICUCons")
 } else if (isBPD) {
 	loc := makeLoc("PHTN")
 	mainTitle1 := "CILANTRO"
@@ -105,38 +105,7 @@ if (isCICU) {
 	mainTitle3 := "Networked Team Rounds Organizer"
 }
 
-Docs := Object()
-outGrps := []
-outGrpV := {}
-tmpIdxG := 0
-Loop, Read, outdocs.csv
-{
-	tmp := StrSplit(A_LoopReadLine,",","""")
-	if (tmp.1="Name" or tmp.1="end" or tmp.1="") {					; header, end, or blank lines
-		continue
-	}
-	if (tmp.2="" and tmp.3="" and tmp.4="") {						; Fields 2,3,4 blank = new group
-		tmpGrp := tmp.1
-		tmpIdx := 0
-		tmpIdxG += 1
-		outGrps.Insert(tmpGrp)
-		continue
-	}
-	if (tmp.4="group") {											; Field4 "group" = synonym for group name
-		tmpIdx += 1													; if including names, place at END of group list to avoid premature match
-		Docs[tmpGrp,tmpIdx]:=tmp.1
-		outGrpV[tmpGrp] := "callGrp" . tmpIdxG
-		continue
-	}
-	tmpIdx += 1														; Otherwise format Crd name to first initial, last name
-	nameF := strX(tmp.1,"",1,0," ",1,1)
-	nameL := strX(tmp.1," ",1,1,"",0)
-	tmpPrv := substr(nameF,1,1) . ". " . nameL
-	Docs[tmpGrp,tmpIdx] := tmpPrv
-	outGrpV[tmpGrp] := "callGrp" . tmpIdxG
-}
-outGrpV["Other"] := "callGrp" . (tmpIdxG+1)
-outGrpV["TO CALL"] := "callGrp" . (tmpIdxG+2)
+getDocs(Docs, outGrps, outGrpV)
 
 initDone = true
 Gosub GetIt
@@ -177,6 +146,25 @@ Return
 */
 
 ;	===========================================================================================
+
+^Esc::
+CatchEsc() {
+	global escActive
+	If !(escActive) {
+		return
+	}
+	MsgBox 0x40024, Escape, Break process?`n`nWill reset CHIPOTLE to previous state.
+
+	IfMsgBox Yes, {
+		BlockInput, Off
+		Progress, Off
+		
+		Reload
+		exit
+	} else {
+		return
+	}
+}
 
 listsort(list,parm="",ord:="") {
 /*	Sort a given list:
@@ -388,6 +376,7 @@ getPnProv(cel,node) {
 		prov := parsePnProv(A_LoopField)
 		y.addElement("prov", node, {svc:prov.svc,date:prov.date}, prov.prov)
 	}
+	return
 }
 
 parsePnProv(txt) {
@@ -415,6 +404,9 @@ getCall(dt) {
 	return callObj
 }
 
+/*	Merge CICU and SUR lists into CICUSUR
+	This may be obsolete
+*/
 IcuMerge() {
 	global y, timenow, loc_surg, csrDocs
 	
@@ -564,7 +556,13 @@ ObjHasValue(aObj, aValue, rx:="") {
 			if (med) {													; if a med regex, preface with "i)" to make case insensitive search
 				val := "i)" val
 			}
-			if (aValue ~= val) {
+			if (aValue="") {															; null aValue in "RX" is error
+				return, false, errorlevel := 1
+			}
+			if (val ~= aValue) {														; val=text, aValue=RX
+				return, key, Errorlevel := 0
+			}
+			if (aValue ~= val) {														; aValue=text, val=RX
 				return, key, Errorlevel := 0
 			}
 		} else {
@@ -573,19 +571,6 @@ ObjHasValue(aObj, aValue, rx:="") {
 			}
 		}
     return, false, errorlevel := 1
-}
-
-breakDate(x) {
-; Disassembles 201502150831 into Yr=2015 Mo=02 Da=15 Hr=08 Min=31 Sec=00
-	D_Yr := substr(x,1,4)
-	D_Mo := substr(x,5,2)
-	D_Da := substr(x,7,2)
-	D_Hr := substr(x,9,2)
-	D_Min := substr(x,11,2)
-	D_Sec := substr(x,13,2)
-	FormatTime, D_day, x, ddd
-	return {"YYYY":D_Yr, "MM":D_Mo, "DD":D_Da, "ddd":D_day
-		, "HH":D_Hr, "min":D_Min, "sec":D_sec}
 }
 
 ParseDate(x) {
@@ -599,11 +584,22 @@ ParseDate(x) {
 	if (x~="\d{4}.\d{2}.\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z") {
 		x := RegExReplace(x,"[TZ]","|")
 	}
+	if (x~="\d{4}.\d{2}.\d{2}T\d{2,}") {
+		x := RegExReplace(x,"T","|")
+	}
+	
 	if RegExMatch(x,"i)(\d{1,2})" dSep "(" moStr ")" dSep "(\d{4}|\d{2})",d) {			; 03-Jan-2015
 		date.dd := zdigit(d1)
 		date.mmm := d2
 		date.mm := zdigit(objhasvalue(mo,d2))
 		date.yyyy := d3
+		date.date := trim(d)
+	}
+	else if RegExMatch(x,"\b(\d{4})[\-\.](\d{2})[\-\.](\d{2})\b",d) {					; 2015-01-03
+		date.yyyy := d1
+		date.mm := d2
+		date.mmm := mo[d2]
+		date.dd := d3
 		date.date := trim(d)
 	}
 	else if RegExMatch(x,"i)\b(" moStr "|\d{1,2})" dSep "(\d{1,2})" dSep "(\d{4}|\d{2})",d) {	; Jan-03-2015, 01-03-2015
@@ -626,13 +622,6 @@ ParseDate(x) {
 		date.mm := zdigit(objhasvalue(mo,d1))
 		date.dd := zdigit(d2)
 		date.yyyy := d3
-		date.date := trim(d)
-	}
-	else if RegExMatch(x,"\b(\d{4})[\-\.](\d{2})[\-\.](\d{2})\b",d) {					; 2015-01-03
-		date.yyyy := d1
-		date.mm := d2
-		date.mmm := mo[d2]
-		date.dd := d3
 		date.date := trim(d)
 	}
 	else if RegExMatch(x,"\b(19|20\d{2})(\d{2})(\d{2})((\d{2})(\d{2})(\d{2})?)?\b",d)  {	; 20150103174307 or 20150103
@@ -666,6 +655,8 @@ ParseDate(x) {
 	return {yyyy:date.yyyy, mm:date.mm, mmm:date.mmm, dd:date.dd, date:date.date
 			, YMD:date.yyyy date.mm date.dd
 			, MDY:date.mm "/" date.dd "/" date.yyyy
+			, MMDD:date.mm "/" date.dd
+			, hrmin:zdigit(time.hr) ":" zdigit(time.min)
 			, days:zdigit(time.days)
 			, hr:zdigit(time.hr), min:zdigit(time.min), sec:zdigit(time.sec)
 			, ampm:time.ampm, time:time.time
@@ -686,13 +677,6 @@ Rand( a=0.0, b=1 ) {
 	Return r
 }
 
-niceDate(x) {
-	if !(x)
-		return error
-	FormatTime, x, %x%, MM/dd/yyyy
-	return x
-}
-
 year4dig(x) {
 	if (StrLen(x)=4) {
 		return x
@@ -706,6 +690,33 @@ year4dig(x) {
 zDigit(x) {
 ; Add leading zero to a number
 	return SubStr("0" . x, -1)
+}
+
+parseName(name) {
+	degs := "MD|PhD|PHD|DO|MBBS|ARNP|RN"
+	if RegExMatch(name,",( |" degs ")+")
+    if (pos:=RegExMatch(name,",(\s*(" degs "))+",deg)) {							; Trim off the degree(s)
+		name := SubStr(name, 1, pos-1)
+		deg := trim(deg,", `r`n")
+	}
+
+	if RegExMatch(name,"^(.*?),\s+(.*?)(,| |\z)",nm) {								; "SMITH, JOHN" ignore other names
+		nameL := nm1
+		nameF := nm2
+	}
+	else if RegExMatch(name,"^([a-zA-Z\-]+)\s+([a-zA-Z\-]+)$",nm) {					; "JOHN SMITH"
+		nameF := nm1
+		nameL := nm2
+	}
+
+	nameFI := SubStr(nameF, 1, 1)
+	nameLI := SubStr(nameL, 1, 1)
+	FLast := (nameFI nameL) ? nameFI ". " nameL : ""
+
+	Return {last:nameL, first:nameF, deg:deg
+		, FI:nameFI, LI:nameLI, initials:nameFI nameLI
+		, FirstLast:nameF " " nameL
+		, FLast:FLast	}
 }
 
 cleanString(x) {
@@ -771,8 +782,9 @@ screenDims() {
 	DPI := A_ScreenDPI
 	Orient := (W>H)?"L":"P"
 	Scale := round(100*DPI/96)
+	Type := (W=1536)?"L":"D"															; 1536px=_L_aptop/Remote, 1920px=_D_esktop/Full
 	;MsgBox % "W: "W "`nH: "H "`nDPI: "DPI
-	return {W:W, H:H, DPI:DPI, OR:Orient, Scale:Scale}
+	return {W:W, H:H, DPI:DPI, OR:Orient, Scale:Scale, Type:Type}
 }
 winDim(scr) {
 	global ccFields
@@ -831,3 +843,4 @@ winDim(scr) {
 #Include CMsgBox.ahk
 #Include ScrCmp.ahk
 #Include FindText.ahk
+#Include Gdip_All.ahk

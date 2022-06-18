@@ -1,5 +1,17 @@
 plInputCard:
 {
+	MsgBox 0x40030, Edit patient provider
+		, %	"To change the patient's primary cardiologist or surgeon,`n"
+		.	"edit the CARE TEAM from the Storyboard panel.`n`n"
+		. 	"Set role to: CONTINUITY ATTENDING`n"
+		. 	"and specialty to: Pediatric Cardiology or Cardiac Surgery."
+
+	Return
+
+/*	===========================================================================
+	This whole section may be obsolete with Epic
+	Pulls cardiologist names from .PATIENTCARETEAM
+*/
 	CrdType:=A_GuiControl
 	if (isARNP) {
 		if (instr(CrdType,"card")) {
@@ -117,11 +129,11 @@ plCallCard:
 	
 	pl_mrnstring := "/root/id[@mrn='" mrn "']"
 	pl := ptParse(mrn)
-	tmpL := breakDate(pl.callL)
+	tmpL := parseDate(pl.callL)
 	Gui, cCard:Destroy
 	Gui, cCard:Add, Text, x20 y30 , % "Cardiologist: `t" plProv
-	Gui, cCard:Add, Text, , % "Last call: `t" ((pl.callL) ? niceDate(pl.callL) " @ " tmpL.HH ":" tmpL.min " by " pl.callBy : "")
-	Gui, cCard:Add, Text, , % "Next call: `t" ((pl.callN) ? niceDate(pl.callN) : "")
+	Gui, cCard:Add, Text, , % "Last call: `t" ((pl.callL) ? parseDate(pl.callL).MDY " @ " tmpL.hrmin " by " pl.callBy : "")
+	Gui, cCard:Add, Text, , % "Next call: `t" ((pl.callN) ? parseDate(pl.callN).MDY : "")
 	Gui, cCard:Add, GroupBox, x10 y10 w250 h100, % plname
 	Gui, cCard:Add, Button, w250 gplCallSet, Set/Reset call tasks
 	Gui, cCard:Add, Button, w250 gplCardCon, Contact cardiologist
@@ -175,9 +187,7 @@ plCardCon:
 			tmpGrp := tmp1
 			continue
 		}
-		StringSplit, tmpPrv, tmp1, %A_Space%
-		tmpPrv := substr(tmpPrv1,1,1) . ". " . tmpPrv2
-		if (tmpPrv=plProv) {
+		if (tmp1=plProv) {
 			plProvGroup := tmpGrp
 			plProvName := tmp1
 			plProvPh1 := tmp2
@@ -200,7 +210,7 @@ plCardCon:
 		plEml.Subject := "SCH Heart Center patient update - " substr(pl.nameF,1,1) " " substr(pl.nameL,1,1)
 		plEml.Display																	; Must display first to get default signature
 		plEml.HTMLBody := pl.nameF " " substr(pl.nameL,1,1) 
-			. " (Admitted " strX(pl.admit,,0,0," ",1,1) ")"
+			. " (Admitted " parseDate(pl.admit).MDY ")"
 			. " Diagnosis: " RegExReplace(pl.dxCard,"[\r\n]"," * ")
 			. plEml.HTMLBody															; Prepend to existing default message
 		
@@ -226,7 +236,7 @@ plCallMade:
 	tmp := pl.callN
 	tmp -= A_Now, Days
 	;plCall -= substr(A_Now,1,8), Days
-	eventlog(mrn " Contact " ctype " to " plProv "." . ((pl.callN) ? " Due " niceDate(pl.callN) " (" tmp ")" : ""))
+	eventlog(mrn " Contact " ctype " to " plProv "." . ((pl.callN) ? " Due " parseDate(pl.callN).MDY " (" tmp ")" : ""))
 	gosub CallList
 	return
 }

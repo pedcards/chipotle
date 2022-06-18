@@ -541,7 +541,7 @@ PatFileGet:
 	Loop, parse, files, |																; iterate through files in folder
 	{
 		patloopfile := A_LoopField														; file name
-		if (patloopfile~="i)PCC|Cath|CXR|ECG|EKG") {										; auto open key files
+		if (patloopfile~="i)PCC|Cath|CXR|ECG|EKG|MUSE") {								; auto open key files
 			patdirfile := filepath "\" PatloopFile										; path + file name
 			Run, %patDirFile%															; open by Windows default method
 			
@@ -611,7 +611,13 @@ ObjHasValue(aObj, aValue, rx:="") {
 ; modified from http://www.autohotkey.com/board/topic/84006-ahk-l-containshasvalue-method/	
     for key, val in aObj
 		if (rx="RX") {																	; argument 3 is "RX" 
-			if (aValue ~= val) {														; does RegExMatch
+			if (aValue="") {															; null aValue in "RX" is error
+				return, false, errorlevel := 1
+			}
+			if (val ~= aValue) {														; val=text, aValue=RX
+				return, key, Errorlevel := 0
+			}
+			if (aValue ~= val) {														; aValue=text, val=RX
 				return, key, Errorlevel := 0
 			}
 		} else {

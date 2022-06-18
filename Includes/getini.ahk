@@ -35,8 +35,8 @@ getIni:
 	meds0:=readIni("meds0")
 	readIni("med_filt")
 
-	hndText:=readIni("hndText" . scr.Scale)
-	svcText:=readIni("svcText" . scr.Scale)
+	hndText:=readIni("hndText" . scr.Type . scr.Scale)
+	svcText:=readIni("svcText" . scr.Type . scr.Scale)
 	EpicSvcList:=readIni("EpicSvcList")
 
 	pathprd:=readIni("pathPRD")
@@ -52,6 +52,8 @@ getIni:
 		loc[c1]:={name:}
 		loc[c1] := {name:c2, datevar:"GUI" format("{:l}",c1) "TXT"}
 	}
+
+	unitloc:=readIni("units")
 	
 Return
 }
@@ -136,4 +138,39 @@ makeLoc(vars*) {
 		res[var] := loc[var]
 	}
 	return res
+}
+
+getDocs(ByRef Docs, ByRef outGrps, ByRef outGrpV) {
+
+	Docs := Object()
+	outGrps := []
+	outGrpV := {}
+	tmpIdxG := 0
+	Loop, Read, outdocs.csv
+	{
+		tmp := StrSplit(A_LoopReadLine,",","""")
+		if (tmp.1="Name" or tmp.1="end" or tmp.1="") {					; header, end, or blank lines
+			continue
+		}
+		if (tmp.2="" and tmp.3="" and tmp.4="") {						; Fields 2,3,4 blank = new group
+			tmpGrp := tmp.1
+			tmpIdx := 0
+			tmpIdxG += 1
+			outGrps.Insert(tmpGrp)
+			continue
+		}
+		if (tmp.4="group") {											; Field4 "group" = synonym for group name
+			tmpIdx += 1													; if including names, place at END of group list to avoid premature match
+			Docs[tmpGrp,tmpIdx]:=tmp.1
+			outGrpV[tmpGrp] := "callGrp" . tmpIdxG
+			continue
+		}
+		tmpIdx += 1
+		Docs[tmpGrp,tmpIdx] := tmp.1
+		outGrpV[tmpGrp] := "callGrp" . tmpIdxG
+	}
+	outGrpV["Other"] := "callGrp" . (tmpIdxG+1)
+	outGrpV["TO CALL"] := "callGrp" . (tmpIdxG+2)
+
+	Return
 }

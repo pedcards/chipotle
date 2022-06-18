@@ -91,7 +91,7 @@ PatListGUI:
 		. "   Sex: " substr(pl_Sex,1,1) "`n`n"
 		. pl_Unit " :: " pl_Room "`n"
 		. pl_Svc "`n`n"
-		. "Admitted: " pl_Admit "`n"
+		. "Admitted: " parseDate(pl_Admit).MDY "`n"
 	if !(pl_Unit) {																				; no unit means is an ad hoc entry
 		pl_demo := "`nDemographics will be added`nwhen patient is admitted"
 	}
@@ -100,18 +100,18 @@ PatListGUI:
 /*	Providers block
 */
 	Gui, Add, Text, x266 y24 w150 h30 gplInputCard, Primary Cardiologist:
-	Gui, Add, Text, xp yp+14 cBlue w140 vpl_card, % pl_ProvCard
+	Gui, Add, Text, xp yp+14 cBlue w140 vpl_card, % parseName(pl_ProvCard).FLast
 	Gui, Add, Text, xp yp+20 w150 h30 gplInputCard, Continuity Cardiologist:
-	Gui, Add, Text, xp yp+14 cBlue w140 vpl_SCHcard, % pl_ProvSchCard
+	Gui, Add, Text, xp yp+14 cBlue w140 vpl_SCHcard, % parseName(pl_ProvSchCard).FLast
 	Gui, Add, Text, xp yp+20 w150 h30 gplInputCard, Cardiac Surgeon:
-	Gui, Add, Text, xp yp+14 cBlue w140 vpl_CSR, % pl_ProvCSR
+	Gui, Add, Text, xp yp+14 cBlue w140 vpl_CSR, % parseName(pl_ProvCSR).FLast
 	
 /*	Call block
 */
 	Gui, Add, Text, xp y140 w150 h28 , Last call:
-	Gui, Add, Text, xp+50 yp w80 vCrdCall_L , % ((pl_Call_L) ? niceDate(pl_Call_L) : "---")		;substr(pl_Call_L,1,8)
+	Gui, Add, Text, xp+50 yp w80 vCrdCall_L , % ((pl_Call_L) ? parseDate(pl_Call_L).MDY : "---")		;substr(pl_Call_L,1,8)
 	Gui, Add, Text, xp-50 yp+14 , Next call:
-	Gui, Add, Text, xp+50 yp w80 vCrdCall_N, % ((pl_Call_N) ? niceDate(pl_Call_N) : "---")
+	Gui, Add, Text, xp+50 yp w80 vCrdCall_N, % ((pl_Call_N) ? parseDate(pl_Call_N).MDY : "---")
 	
 /*	Status flags
 */
@@ -177,7 +177,8 @@ PatListGUI:
 	Gui, Add, GroupBox, x436 y14 w140 h160 , Status Flags
 	Gui, Add, GroupBox, x600 y14 w260 h160 Disabled, Tasks/Todos
 	Gui, Add, GroupBox, xp y180 wp h140 , Data Highlights
-	Gui, Add, GroupBox, xp y330 wp h180 , % "Cardiac Meds/Diet (" nicedate(DateCores) ")"
+	Gui, Add, GroupBox, xp y330 wp h180 
+		, % "Cardiac Meds/Diet (" parseDate(y.getAtt("/root/id[@mrn='" MRN "']/data","date")).MDY ")"
 	;~ Gui, Add, Button, x600 y+20 w120 h20 gplupd Disabled, Update notes
 	Gui, Add, Button, x600 y+20 w120 h20 gplupd Disabled, Cath Req
 	Gui, Add, Button, x+20 yp w120 hp gplSumm, Summary Notes
@@ -228,9 +229,9 @@ PatListCoGUI:
 	Gui, Add, Text, xp yp+20 w150 h30 gplInputCard, Cardiac Surgeon:
 	Gui, Add, Text, xp yp+14 cBlue w140 vpl_CSR, % pl_ProvCSR
 	Gui, Add, Text, xp y140 w150 h28 , Last call:
-	Gui, Add, Text, xp+50 yp w80 vCrdCall_L , % ((pl_Call_L) ? niceDate(pl_Call_L) : "---")		;substr(pl_Call_L,1,8)
+	Gui, Add, Text, xp+50 yp w80 vCrdCall_L , % ((pl_Call_L) ? parseDate(pl_Call_L).MDY : "---")		;substr(pl_Call_L,1,8)
 	Gui, Add, Text, xp-50 yp+14 , Next call:
-	Gui, Add, Text, xp+50 yp w80 vCrdCall_N, % ((pl_Call_N) ? niceDate(pl_Call_N) : "---")
+	Gui, Add, Text, xp+50 yp w80 vCrdCall_N, % ((pl_Call_N) ? parseDate(pl_Call_N).MDY : "---")
 
 	Gui, Add, CheckBox, x446 y34 w120 h20 Checked%pl_statCoBag% vpl_statCoBag gplInputNote, Bag given
 	Gui, Add, CheckBox, xp yp+20 w120 h20 Checked%pl_statCoPillow% vpl_statCoPillow gplInputNote, Heart pillow
@@ -410,13 +411,16 @@ plMAR:
 		LV_Add("","")
 		LV_Add("", "=== PRN ===")
 		plMARlist("prn","Other")
+		LV_Add("","")
+		LV_Add("", "=== ABX ===")
+		plMARlist("meds","Abx")
 		Gui, MarGui:Tab, Diet
 		Gui, MarGui:Add, ListView, Grid NoSortHdr w400 h400, Diet
 		Gui, MarGui:Default
 		plMARlist("diet","Diet")
 	}
-	tmp := breakDate(CoresD)
-	Gui, MarGui:Show, AutoSize, % "CORES " nicedate(CoresD) " @ " tmp.HH ":" tmp.Min 
+	tmp := parseDate(CoresD)
+	Gui, MarGui:Show, AutoSize, % "CORES " parsedate(CoresD).MDY " @ " tmp.HrMin 
 	return
 }
 
@@ -484,7 +488,7 @@ plDataRes(mrn,type,DT="") {
 	}
 	
 	ResTxt := k.selectSingleNode("data/" type "/study[@date='" bestDT "']").text
-	ResDT := breakDate(bestDT).MM "/" breakDate(bestDT).DD
+	ResDT := parseDate(bestDT).MMDD
 	
 	return {res:ResTxt,date:ResDT} 
 }
@@ -581,7 +585,7 @@ plPMsettings:
 		loop % (i := y.selectNodes(pl_MRNstring "/pacing/temp")).length {				; get <pacing> element into pl_PM
 			j := i.item(A_Index-1)														; read through last <pacing/leads> element
 		}
-		pmDate := breakDate(j.getAttribute("ed"))
+		pmDate := parseDate(j.getAttribute("ed"))
 		PmSet := Object()																; clear pmSet object
 		Loop % (i := j.selectNodes("*")).length {
 			k := i.item(A_Index-1)														; read each element <mode>, <LRL>, etc
@@ -591,7 +595,7 @@ plPMsettings:
 		Gui, PmGui:Destroy
 		Gui, PmGui:Default
 		Gui, Add, Text, Center, Pacemaker Settings
-		Gui, Add, Text, Center, % (pmDate.MM) ? pmDate.MM "/" pmDate.DD "/" pmDate.YYYY " @ " pmDate.HH ":" pmDate.min ":" pmDate.sec : ""
+		Gui, Add, Text, Center, % (pmDate.MM) ? pmDate.MDY " @ " pmDate.hr ":" pmDate.min ":" pmDate.sec : ""
 		Gui, Add, Text, Section, MODE
 		Gui, Add, Text, xm yp+22, LRL
 		Gui, Add, Text, xm yp+22, URL
@@ -639,7 +643,7 @@ plPMsettings:
 	else if (PM_chk="Permanent") {
 		pm_dev := y.selectSingleNode(pl_MRNstring "/data/device")
 		pm_IPG := pm_dev.getAttribute("model")
-		pmDate := breakDate(pm_dev.getAttribute("ed"))
+		pmDate := parseDate(pm_dev.getAttribute("ed"))
 		PmSet := Object()																; clear pmSet object
 		Loop % (i := pm_dev.selectNodes("*")).length {
 			k := i.item(A_Index-1)														; read each element <mode>, <LRL>, etc
@@ -649,7 +653,7 @@ plPMsettings:
 		Gui, PmGui:Destroy
 		Gui, PmGui:Default
 		Gui, Add, Text, Center, Pacemaker Settings
-		Gui, Add, Text, Center, % (pmDate.MM) ? pmDate.MM "/" pmDate.DD "/" pmDate.YYYY " @ " pmDate.HH ":" pmDate.min ":" pmDate.sec : ""
+		Gui, Add, Text, Center, % (pmDate.MM) ? pmDate.MDY " @ " pmDate.hr ":" pmDate.min ":" pmDate.sec : ""
 		
 		Gui, Add, Text, Section xm yp+22, MODEL
 		Gui, Add, Edit, ys-2 w160 vPmSet_model, % pm_IPG
